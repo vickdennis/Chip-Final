@@ -1,5 +1,6 @@
 import React from 'react';
 import { ViewState } from '../App';
+import { supabase } from '../supabaseClient';
 import { 
   MemoryStick, 
   LayoutDashboard, 
@@ -82,7 +83,10 @@ export default function AdminLayout({ children, onNavigate, activePath }: AdminL
           </button>
           
           <button 
-            onClick={() => onNavigate('landing')}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              onNavigate('landing');
+            }}
             className="w-full flex items-center gap-3 px-4 py-2 text-[#ba1a1a] hover:bg-[#ffdad6] transition-all duration-150 ease-in-out rounded-sm font-mono text-[14px] font-medium"
           >
             <LogOut className="w-[18px] h-[18px]" />

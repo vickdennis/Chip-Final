@@ -8,22 +8,28 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setSuccessMsg('');
     setLoading(true);
 
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        window.location.href = "/";
+        if (!data.session) {
+          setSuccessMsg("Check your email and confirm your account before logging in.");
+          return;
+        }
+        onNavigate('admin-overview');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        window.location.href = "/";
+        onNavigate('admin-overview');
       }
     } catch (error: any) {
       setErrorMsg(error.message || 'An error occurred during authentication.');
@@ -54,13 +60,13 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
           <div className="flex border-b border-[#e2e2e2] mb-8 relative">
             <button 
               className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'login' ? 'text-black border-black' : 'text-[#4c4546] border-transparent hover:text-black'}`}
-              onClick={() => { setMode('login'); setErrorMsg(''); }}
+              onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
             >
               Login
             </button>
             <button 
               className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'signup' ? 'text-black border-black' : 'text-[#4c4546] border-transparent hover:text-black'}`}
-              onClick={() => { setMode('signup'); setErrorMsg(''); }}
+              onClick={() => { setMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
             >
               Create Account
             </button>
@@ -103,6 +109,11 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
             {errorMsg && (
               <p className="text-[13px] text-[#ba1a1a] font-medium mt-2">
                 {errorMsg}
+              </p>
+            )}
+            {successMsg && (
+              <p className="text-[13px] text-[#10B981] font-medium mt-2">
+                {successMsg}
               </p>
             )}
             
