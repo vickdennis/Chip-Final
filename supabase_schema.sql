@@ -115,3 +115,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- Storage setup for Profile Covers
+INSERT INTO storage.buckets (id, name, public) VALUES ('covers', 'covers', true) ON CONFLICT DO NOTHING;
+
+CREATE POLICY "Cover images are publicly accessible."
+  ON storage.objects FOR SELECT
+  USING ( bucket_id = 'covers' );
+
+CREATE POLICY "Users can upload their own cover."
+  ON storage.objects FOR INSERT
+  WITH CHECK ( bucket_id = 'covers' AND auth.uid()::text = owner );
+
+CREATE POLICY "Users can update their own cover."
+  ON storage.objects FOR UPDATE
+  USING ( bucket_id = 'covers' AND auth.uid()::text = owner );
+
+CREATE POLICY "Users can delete their own cover."
+  ON storage.objects FOR DELETE
+  USING ( bucket_id = 'covers' AND auth.uid()::text = owner );
