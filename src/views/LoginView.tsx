@@ -7,6 +7,7 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,13 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
 
     try {
       if (mode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: { full_name: fullName }
+          }
+        });
         if (error) throw error;
         // Do not auto-login
         if (data.session) {
@@ -95,6 +102,9 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
                 <input 
                   type="text" 
                   placeholder="Jane Doe" 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
                   className="w-full bg-white border border-[#cfc4c5] rounded-sm px-4 py-3 text-[14px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow"
                 />
               </div>
