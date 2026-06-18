@@ -21,11 +21,13 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
       if (mode === 'signup') {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        if (!data.session) {
-          setSuccessMsg("Check your email and confirm your account before logging in.");
-          return;
+        // Do not auto-login
+        if (data.session) {
+          await supabase.auth.signOut();
         }
-        onNavigate('admin-overview');
+        setMode('login');
+        setPassword('');
+        setSuccessMsg('Successfully signed up! Please check your email to confirm your account before logging in.');
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
