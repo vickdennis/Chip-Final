@@ -1,9 +1,36 @@
 import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { MemoryStick } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setLoading(true);
+
+    try {
+      if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        window.location.href = "/";
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        window.location.href = "/";
+      }
+    } catch (error: any) {
+      setErrorMsg(error.message || 'An error occurred during authentication.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white relative">
@@ -27,19 +54,19 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
           <div className="flex border-b border-[#e2e2e2] mb-8 relative">
             <button 
               className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'login' ? 'text-black border-black' : 'text-[#4c4546] border-transparent hover:text-black'}`}
-              onClick={() => setMode('login')}
+              onClick={() => { setMode('login'); setErrorMsg(''); }}
             >
               Login
             </button>
             <button 
               className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'signup' ? 'text-black border-black' : 'text-[#4c4546] border-transparent hover:text-black'}`}
-              onClick={() => setMode('signup')}
+              onClick={() => { setMode('signup'); setErrorMsg(''); }}
             >
               Create Account
             </button>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); onNavigate('admin-overview'); }}>
+          <form className="space-y-5" onSubmit={handleAuth}>
             {mode === 'signup' && (
               <div>
                 <label className="block font-mono text-[13px] font-medium text-black mb-2">Full Name</label>
@@ -55,6 +82,9 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
               <input 
                 type="email" 
                 placeholder="jane@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full bg-white border border-[#cfc4c5] rounded-sm px-4 py-3 text-[14px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow"
               />
             </div>
@@ -63,16 +93,26 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
               <input 
                 type="password" 
                 placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
                 className="w-full bg-white border border-[#cfc4c5] rounded-sm px-4 py-3 text-[14px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow"
               />
             </div>
+
+            {errorMsg && (
+              <p className="text-[13px] text-[#ba1a1a] font-medium mt-2">
+                {errorMsg}
+              </p>
+            )}
             
             <div className="pt-2">
               <button 
                 type="submit"
-                className="w-full bg-black text-white font-mono text-[14px] font-medium rounded-sm px-4 py-3.5 hover:opacity-90 active:translate-y-px transition-all"
+                disabled={loading}
+                className="w-full bg-black text-white font-mono text-[14px] font-medium rounded-sm px-4 py-3.5 hover:opacity-90 active:translate-y-px transition-all disabled:opacity-70"
               >
-                {mode === 'login' ? 'Sign In' : 'Sign Up'}
+                {loading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Sign Up')}
               </button>
             </div>
           </form>
