@@ -1,12 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2 } from 'lucide-react';
 
 export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
+  const [profile, setProfile] = useState<any>(null);
+  const [links, setLinks] = useState<any[]>([]);
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  const fetchProfileData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
+      const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
+
+      if (profileData) {
+        setProfile({ ...profileData, email: user.email });
+        if (profileData.cover_image_url) setCoverUrl(profileData.cover_image_url);
+      } else {
+        // Fallback default profile shape if not found (though trigger should create it)
+        setProfile({
+          full_name: user.user_metadata?.full_name || '',
+          email: user.email || '',
+          headline: '',
+          booking_provider: 'Calendly (Integrated)',
+          calendar_link: '',
+          show_availability: true
+        });
+      }
+      if (linksData) setLinks(linksData);
+      if (socialData) setSocialLinks(socialData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        full_name: profile.full_name,
+        headline: profile.headline,
+        cover_image_url: coverUrl,
+        booking_provider: profile.booking_provider,
+        calendar_link: profile.calendar_link,
+        show_availability: profile.show_availability
+      });
+
+      // Update links (simple clear and insert for now, ideally upsert by id)
+      await supabase.from('links').delete().eq('profile_id', user.id);
+      if (links.length > 0) {
+        await supabase.from('links').insert(links.map((l, i) => ({ ...l, profile_id: user.id, position: i })));
+      }
+
+      await supabase.from('social_links').delete().eq('profile_id', user.id);
+      if (socialLinks.length > 0) {
+        await supabase.from('social_links').insert(socialLinks.map(s => ({ ...s, profile_id: user.id })));
+      }
+
+      alert('Changes saved successfully!');
+    } catch (error) {
+      console.error('Error saving: ', error);
+      alert('Error saving changes');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -45,8 +123,13 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
             <p className="text-[16px] text-[#4c4546]">Manage your professional profile and digital presence.</p>
           </div>
           <div className="flex gap-3">
-            <button className="px-5 py-2.5 bg-black text-white font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center gap-2">
-              <Save className="w-[18px] h-[18px]" /> Save Changes
+            <button 
+              onClick={handleSave} 
+              disabled={saving}
+              className="px-5 py-2.5 bg-black text-white font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center gap-2 disabled:opacity-70"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-[18px] h-[18px]" />} 
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button 
               onClick={() => onNavigate('public-profile')}
@@ -57,90 +140,98 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          
-          {/* Left Column */}
-          <div className="xl:col-span-8 flex flex-col gap-8">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-black" />
+          </div>
+        ) : profile && (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             
-            {/* Identity */}
-            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
-                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Profile Identity</h3>
-                <UserCircle className="w-[20px] h-[20px] text-[#4c4546]" />
-              </div>
-              <div className="p-6 flex flex-col gap-8">
-                <div>
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest mb-3">Cover Image</label>
-                  <div className="relative group h-56 w-full border border-[#cfc4c5] rounded-sm overflow-hidden bg-[#f3f3f4]">
-                    <img 
-                      src={coverUrl} 
-                      alt="Cover" 
-                      className="w-full h-full object-cover grayscale opacity-90"
-                    />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                      <label className="cursor-pointer bg-white text-black px-4 py-2 rounded-sm font-mono text-[12px] font-bold hover:bg-white/90 flex items-center gap-2">
-                        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                        {uploading ? 'Uploading...' : 'Change'}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                          disabled={uploading}
-                        />
-                      </label>
-                      <button 
-                        onClick={() => setCoverUrl("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY")}
-                        className="bg-[#ba1a1a] text-white px-4 py-2 rounded-sm font-mono text-[12px] font-bold hover:bg-[#93000a] flex items-center gap-2"
-                      >
-                        <Trash2 className="w-4 h-4" /> Remove
-                      </button>
+            {/* Left Column */}
+            <div className="xl:col-span-8 flex flex-col gap-8">
+              
+              {/* Identity */}
+              <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
+                <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
+                  <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Profile Identity</h3>
+                  <UserCircle className="w-[20px] h-[20px] text-[#4c4546]" />
+                </div>
+                <div className="p-6 flex flex-col gap-8">
+                  <div>
+                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest mb-3">Cover Image</label>
+                    <div className="relative group h-56 w-full border border-[#cfc4c5] rounded-sm overflow-hidden bg-[#f3f3f4]">
+                      <img 
+                        src={coverUrl} 
+                        alt="Cover" 
+                        className="w-full h-full object-cover grayscale opacity-90"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                        <label className="cursor-pointer bg-white text-black px-4 py-2 rounded-sm font-mono text-[12px] font-bold hover:bg-white/90 flex items-center gap-2">
+                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                          {uploading ? 'Uploading...' : 'Change'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageUpload}
+                            disabled={uploading}
+                          />
+                        </label>
+                        <button 
+                          onClick={() => setCoverUrl("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY")}
+                          className="bg-[#ba1a1a] text-white px-4 py-2 rounded-sm font-mono text-[12px] font-bold hover:bg-[#93000a] flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" /> Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Full Name</label>
+                      <input 
+                        type="text" 
+                        value={profile.full_name || ''}
+                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Email Address</label>
+                      <input 
+                        type="email" 
+                        value={profile.email || ''} 
+                        disabled
+                        className="w-full px-4 py-2.5 bg-[#f3f3f4] text-[#7e7576] border border-[#cfc4c5] rounded-sm outline-none font-sans text-[14px] cursor-not-allowed"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Job Title / Headline</label>
+                      <input 
+                        type="text" 
+                        value={profile.headline || ''}
+                        onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
+                      />
                     </div>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Full Name</label>
-                    <input 
-                      type="text" 
-                      defaultValue="Marcus Sterling" 
-                      className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Email Address</label>
-                    <input 
-                      type="email" 
-                      defaultValue="marcus@chip-ng.io" 
-                      className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Job Title / Headline</label>
-                    <input 
-                      type="text" 
-                      defaultValue="Director of Human Engineering" 
-                      className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
+              </section>
 
             {/* Links */}
             <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
               <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
                 <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">External Links</h3>
-                <button className="text-black hover:underline font-mono text-[12px] font-bold flex items-center gap-1">
+                <button 
+                  onClick={() => setLinks([...links, { label: '', url: '' }])}
+                  className="text-black hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
+                >
                   <Plus className="w-4 h-4" /> Add Link
                 </button>
               </div>
               <div className="p-6 flex flex-col gap-4">
-                {[
-                  { label: "Precision Hardware Handbook", url: "https://chip-ng.io/handbook" },
-                  { label: "Engineering Manifesto", url: "https://chip-ng.io/manifesto" }
-                ].map((item, i) => (
+                {links.map((item, i) => (
                   <div key={i} className="border border-[#cfc4c5] rounded-sm p-4 bg-[#f9f9f9] hover:border-[#7e7576] transition-colors group flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">
                       <div className="cursor-move text-[#7e7576] opacity-40 group-hover:opacity-100">
@@ -149,23 +240,43 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
                         <input 
                           type="text" 
-                          defaultValue={item.label} 
+                          value={item.label}
+                          onChange={(e) => {
+                            const newLinks = [...links];
+                            newLinks[i].label = e.target.value;
+                            setLinks(newLinks);
+                          }}
+                          placeholder="Link Title"
                           className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none font-sans text-[14px] text-black"
                         />
                         <input 
                           type="text" 
-                          defaultValue={item.url} 
+                          value={item.url}
+                          onChange={(e) => {
+                            const newLinks = [...links];
+                            newLinks[i].url = e.target.value;
+                            setLinks(newLinks);
+                          }}
+                          placeholder="https://"
                           className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none font-sans text-[13px] text-[#4c4546]"
                         />
                       </div>
                     </div>
                     <div className="ml-4">
-                      <button className="p-2 text-[#7e7576] hover:text-[#ba1a1a] transition-colors rounded-sm hover:bg-[#ffdad6]">
+                      <button 
+                        onClick={() => setLinks(links.filter((_, idx) => idx !== i))}
+                        className="p-2 text-[#7e7576] hover:text-[#ba1a1a] transition-colors rounded-sm hover:bg-[#ffdad6]"
+                      >
                         <Trash2 className="w-[18px] h-[18px]" />
                       </button>
                     </div>
                   </div>
                 ))}
+                {links.length === 0 && (
+                  <div className="text-center py-6 text-[#7e7576] font-mono text-[13px]">
+                    No links added. Click 'Add Link' to get started.
+                  </div>
+                )}
               </div>
             </section>
           </div>
@@ -180,19 +291,51 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
                 <Link className="w-[18px] h-[18px] text-[#4c4546]" />
               </div>
               <div className="p-6 flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 flex items-center justify-center text-[#4c4546]"><Globe className="w-5 h-5" /></div>
-                  <input type="text" defaultValue="https://chip-ng.io" className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 flex items-center justify-center text-[#4c4546]"><AtSign className="w-5 h-5" /></div>
-                  <input type="text" defaultValue="https://x.com/msterling" className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 flex items-center justify-center text-[#4c4546]"><Rss className="w-5 h-5" /></div>
-                  <input type="text" defaultValue="https://github.com/chip-ng" className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black" />
-                </div>
-                <button className="mt-3 text-black font-mono text-[12px] font-bold hover:underline flex items-center gap-1 justify-center py-1">
+                {socialLinks.map((item, i) => (
+                  <div key={i} className="flex gap-3">
+                    <select 
+                      value={item.platform}
+                      onChange={(e) => {
+                        const newLinks = [...socialLinks];
+                        newLinks[i].platform = e.target.value;
+                        setSocialLinks(newLinks);
+                      }}
+                      className="w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white"
+                    >
+                      <option value="Website">Website</option>
+                      <option value="X">X (Twitter)</option>
+                      <option value="GitHub">GitHub</option>
+                      <option value="LinkedIn">LinkedIn</option>
+                      <option value="Instagram">Instagram</option>
+                    </select>
+                    <input 
+                      type="text" 
+                      value={item.url} 
+                      onChange={(e) => {
+                        const newLinks = [...socialLinks];
+                        newLinks[i].url = e.target.value;
+                        setSocialLinks(newLinks);
+                      }}
+                      placeholder="https://" 
+                      className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black" 
+                    />
+                    <button 
+                      onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}
+                      className="p-2 text-[#7e7576] hover:text-[#ba1a1a]"
+                    >
+                      <Trash2 className="w-[16px] h-[16px]" />
+                    </button>
+                  </div>
+                ))}
+                {socialLinks.length === 0 && (
+                  <div className="text-center py-4 text-[#7e7576] font-mono text-[13px]">
+                    No social links added.
+                  </div>
+                )}
+                <button 
+                  onClick={() => setSocialLinks([...socialLinks, { platform: 'Website', url: '' }])}
+                  className="mt-3 text-black font-mono text-[12px] font-bold hover:underline flex items-center gap-1 justify-center py-1"
+                >
                   <Plus className="w-4 h-4" /> Add Platform
                 </button>
               </div>
@@ -207,18 +350,34 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
               <div className="p-6 flex flex-col gap-5">
                 <div className="space-y-2">
                   <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Booking Provider</label>
-                  <select className="w-full px-3 py-2.5 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[14px] outline-none focus:border-black">
-                    <option>Calendly (Integrated)</option>
-                    <option>SavvyCal</option>
-                    <option>Custom URL</option>
+                  <select 
+                    value={profile.booking_provider || 'Calendly (Integrated)'}
+                    onChange={(e) => setProfile({ ...profile, booking_provider: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[14px] outline-none focus:border-black"
+                  >
+                    <option value="Calendly (Integrated)">Calendly (Integrated)</option>
+                    <option value="SavvyCal">SavvyCal</option>
+                    <option value="Custom URL">Custom URL</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Calendar Link</label>
-                  <input type="text" defaultValue="calendly.com/chip-ng/consultation" className="w-full px-3 py-2.5 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[14px] outline-none focus:border-black" />
+                  <input 
+                    type="text" 
+                    value={profile.calendar_link || ''}
+                    onChange={(e) => setProfile({ ...profile, calendar_link: e.target.value })}
+                    placeholder="Provide your link..." 
+                    className="w-full px-3 py-2.5 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[14px] outline-none focus:border-black" 
+                  />
                 </div>
                 <div className="flex items-center gap-3 bg-[#f9f9f9] p-3 rounded-sm border border-[#e2e2e2]">
-                  <input type="checkbox" defaultChecked id="show-avail" className="w-4 h-4 text-black border-[#cfc4c5] rounded-[2px] focus:ring-black" />
+                  <input 
+                    type="checkbox" 
+                    checked={profile.show_availability !== false} // default true
+                    onChange={(e) => setProfile({ ...profile, show_availability: e.target.checked })}
+                    id="show-avail" 
+                    className="w-4 h-4 text-black border-[#cfc4c5] rounded-[2px] focus:ring-black" 
+                  />
                   <label htmlFor="show-avail" className="text-black text-[13px] font-medium leading-none cursor-pointer pt-0.5">Display availability on bio</label>
                 </div>
               </div>
@@ -246,7 +405,8 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
             </section>
 
           </div>
-        </div>
+          </div>
+        )}
 
       </div>
     </AdminLayout>

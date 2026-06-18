@@ -125,12 +125,12 @@ CREATE POLICY "Cover images are publicly accessible."
 
 CREATE POLICY "Users can upload their own cover."
   ON storage.objects FOR INSERT
-  WITH CHECK ( bucket_id = 'covers' AND auth.uid()::text = owner );
+  WITH CHECK ( bucket_id = 'covers' AND auth.uid() = owner );
 
 CREATE POLICY "Users can update their own cover."
   ON storage.objects FOR UPDATE
-  USING ( bucket_id = 'covers' AND auth.uid()::text = owner );
+  USING ( bucket_id = 'covers' AND auth.uid() = owner );
 
 CREATE POLICY "Users can delete their own cover."
   ON storage.objects FOR DELETE
-  USING ( bucket_id = 'covers' AND auth.uid()::text = owner );
+  USING ( bucket_id = 'covers' AND auth.uid() = owner );
