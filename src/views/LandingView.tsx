@@ -1,0 +1,134 @@
+import React from 'react';
+import { ViewState } from '../App';
+import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3 } from 'lucide-react';
+
+export default function LandingView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-[#f9f9f9]">
+      <nav className="flex justify-between items-center px-8 py-4 w-full sticky top-0 z-50 bg-[#f9f9f9]/80 backdrop-blur-md border-b border-[#e2e2e2]">
+        <div className="flex items-center gap-6">
+          <span className="font-display text-[24px] font-black tracking-tighter text-black">CHIP NG</span>
+          <div className="hidden md:flex gap-6 ml-8">
+            <a href="#" className="font-mono text-[14px] text-[#4c4546] hover:text-black transition-colors font-medium">Features</a>
+            <a href="#" className="font-mono text-[14px] text-[#4c4546] hover:text-black transition-colors font-medium">Solutions</a>
+            <a href="#" className="font-mono text-[14px] text-[#4c4546] hover:text-black transition-colors font-medium">Pricing</a>
+            <a href="#" className="font-mono text-[14px] text-[#4c4546] hover:text-black transition-colors font-medium">Docs</a>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => onNavigate('login')}
+            className="font-mono text-[14px] font-medium text-black hover:opacity-80 transition-opacity hidden md:block px-4 py-2"
+          >
+            Sign In
+          </button>
+          <button 
+            onClick={() => onNavigate('login')}
+            className="bg-black text-white font-mono text-[14px] font-medium px-6 py-2.5 rounded-sm hover:bg-black/90 active:translate-y-px transition-all"
+          >
+            Get Started
+          </button>
+        </div>
+      </nav>
+
+      <main className="flex-grow flex flex-col items-center justify-center pt-24 pb-20 px-8">
+        <section className="max-w-4xl w-full mx-auto text-center flex flex-col items-center gap-10">
+          <div className="w-48 h-48 mb-4 border border-[#e2e2e2] bg-white p-4 rounded-sm shadow-sm">
+            <img 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
+              alt="CHIP NG Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          
+          <h1 className="font-display text-[42px] md:text-[56px] leading-[1.1] font-extrabold text-black max-w-3xl tracking-tight">
+            Your Professional Universe, One Link.
+          </h1>
+          
+          <p className="text-[18px] md:text-[20px] text-[#4c4546] max-w-2xl leading-relaxed">
+            The definitive link-in-bio for engineers, creators, and visionaries. Showcase your assets, verify your skills, and own your digital identity.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <button 
+              onClick={() => onNavigate('login')}
+              className="bg-black text-white font-mono text-[14px] font-medium px-8 py-3.5 rounded-sm border border-black hover:bg-black/90 active:translate-y-px transition-all min-w-[160px]"
+            >
+              Get Started
+            </button>
+            <button className="bg-[#f9f9f9] text-black border border-[#e2e2e2] font-mono text-[14px] font-medium px-8 py-3.5 rounded-sm hover:bg-[#f3f3f4] active:translate-y-px transition-colors flex items-center justify-center gap-2 min-w-[160px]">
+              <BookOpen className="w-[18px] h-[18px]" />
+              View Docs
+            </button>
+          </div>
+        </section>
+
+        <section className="max-w-5xl w-full mx-auto mt-32 mb-16">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-[32px] font-bold text-black mb-3">Engineered for Scale</h2>
+            <p className="text-[16px] text-[#4c4546]">Robust components designed for complex systems.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 border border-[#e2e2e2] bg-white p-8 rounded-sm flex flex-col justify-between min-h-[300px]">
+              <div>
+                <Microchip className="w-8 h-8 text-black mb-4" />
+                <h3 className="font-display text-[24px] font-bold text-black mb-2">Unified Profile</h3>
+                <p className="text-[16px] text-[#4c4546] max-w-sm leading-relaxed">All your links, projects, and credentials in one monolithic precision page.</p>
+              </div>
+              <div className="mt-8 flex items-center gap-2 text-black font-mono text-[14px] font-medium group cursor-pointer w-max">
+                Explore Architecture
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+
+            <div className="border border-[#e2e2e2] bg-white p-8 rounded-sm flex flex-col min-h-[300px]">
+              <ShieldAlert className="w-8 h-8 text-black mb-4" />
+              <h3 className="font-display text-[24px] font-bold text-black mb-2 mt-auto">Verified Skills</h3>
+              <p className="text-[16px] text-[#4c4546] leading-relaxed">Prove your expertise with on-chain verification and peer-reviewed endorsements.</p>
+            </div>
+
+            <div className="border border-[#e2e2e2] bg-white p-8 rounded-sm flex flex-col min-h-[300px]">
+              <Activity className="w-8 h-8 text-black mb-4" />
+              <h3 className="font-display text-[24px] font-bold text-black mb-2 mt-auto">Asset Sharing</h3>
+              <p className="text-[16px] text-[#4c4546] leading-relaxed">Securely share code, specs, and design files directly from your bio.</p>
+            </div>
+
+            <div className="md:col-span-2 border border-[#e2e2e2] bg-[#f3f3f4] p-8 rounded-sm flex flex-col justify-between min-h-[300px] overflow-hidden relative">
+              <div className="relative z-10">
+                <BarChart3 className="w-8 h-8 text-black mb-4" />
+                <h3 className="font-display text-[24px] font-bold text-black mb-2">Real-time Analytics</h3>
+                <p className="text-[16px] text-[#4c4546] max-w-sm leading-relaxed">Gain immediate insights into your system's performance with interactive dashboards.</p>
+              </div>
+              
+              <div className="absolute bottom-0 left-0 w-full h-32 border-t border-[#e2e2e2] flex items-end justify-between px-6 pb-6 opacity-40">
+                <div className="w-6 bg-black h-8 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-16 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-12 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-24 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-10 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-20 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-14 rounded-t-sm"></div>
+                <div className="w-6 bg-black h-[110%] rounded-t-sm"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-white border-t border-[#e2e2e2]">
+        <div className="mb-6 md:mb-0 text-center md:text-left">
+          <span className="font-display text-[20px] font-black text-black block mb-1 tracking-tight">CHIP NG</span>
+          <p className="text-[14px] text-[#4c4546]">© 2026 CHIP NG. Precision Engineering for Humans.</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-6">
+          <a href="#" className="text-[14px] text-[#4c4546] hover:text-black font-medium transition-colors">Privacy Policy</a>
+          <a href="#" className="text-[14px] text-[#4c4546] hover:text-black font-medium transition-colors">Terms of Service</a>
+          <a href="#" className="text-[14px] text-[#4c4546] hover:text-black font-medium transition-colors">Security</a>
+          <a href="#" className="text-[14px] text-[#4c4546] hover:text-black font-medium transition-colors">Status</a>
+          <a href="#" className="text-[14px] text-[#4c4546] hover:text-black font-medium transition-colors">API</a>
+        </div>
+      </footer>
+    </div>
+  );
+}
