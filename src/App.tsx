@@ -8,26 +8,33 @@ import { supabase } from './supabaseClient';
 export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewState>('landing');
+  const [currentView, setCurrentView] = useState<ViewState>(() => {
+    const path = window.location.pathname;
+    if (path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '') {
+      return 'public-profile';
+    }
+    return 'landing';
+  });
   const [sessionLoading, setSessionLoading] = useState(true);
-  const [publicUsername, setPublicUsername] = useState<string | null>(null);
+  const [publicUsername, setPublicUsername] = useState<string | null>(() => {
+    const path = window.location.pathname;
+    if (path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '') {
+      return path.slice(1); // remove leading slash
+    }
+    return null;
+  });
 
   useEffect(() => {
-    let activeView = currentView;
-    const path = window.location.pathname;
-    if (path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile') {
-      const u = path.slice(1); // remove leading slash
-      setPublicUsername(u);
-      setCurrentView('public-profile');
-      activeView = 'public-profile';
-    }
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSessionLoading(false);
-      const isProtected = activeView === 'user-dashboard';
-      if (!session && isProtected) {
-        setCurrentView('login');
-      }
+      // Wait to redirect if going to user-dashboard
+      setCurrentView(prev => {
+        const isProtected = prev === 'user-dashboard';
+        if (!session && isProtected) {
+          return 'login';
+        }
+        return prev;
+      });
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

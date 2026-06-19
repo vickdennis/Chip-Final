@@ -9,6 +9,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function test() {
   const { data, error } = await supabase.from('profiles').select('*').ilike('username', 'chipng').single();
   console.log('ilike:', data, error);
+  if (data) {
+    const { data: social } = await supabase.from('social_links').select('*').eq('profile_id', data.id);
+    console.log('social_links:', social);
+  }
 }
 
 test();

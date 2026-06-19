@@ -22,8 +22,11 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
       if (username) {
         // Fetch public profile by username
+        console.log("Fetching profile for username:", username);
         const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).single();
+        console.log("Fetched data:", data, "Error:", error);
         if (error || !data) {
+          console.error("Failed to fetch public profile:", error);
           setError('User not found');
           setLoading(false);
           return;
