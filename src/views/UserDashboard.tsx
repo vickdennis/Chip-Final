@@ -2,45 +2,47 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, Twitter, Github, Linkedin, Instagram, Facebook, Youtube, Twitch, Dribbble, Figma, Slack, MessageSquare, Coffee, MapPin, Phone, Mail, Share } from 'lucide-react';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share } from 'lucide-react';
+import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
+import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
 export const SOCIAL_PLATFORMS = [
   { name: 'Website', icon: Globe, color: '#000000' },
   { name: 'Email', icon: Mail, color: '#EA4335' },
-  { name: 'X (Twitter)', icon: Twitter, color: '#000000' },
-  { name: 'GitHub', icon: Github, color: '#181717' },
-  { name: 'LinkedIn', icon: Linkedin, color: '#0A66C2' },
-  { name: 'Instagram', icon: Instagram, color: '#E4405F' },
-  { name: 'Facebook', icon: Facebook, color: '#1877F2' },
-  { name: 'YouTube', icon: Youtube, color: '#FF0000' },
-  { name: 'Twitch', icon: Twitch, color: '#9146FF' },
-  { name: 'TikTok', icon: Rss, color: '#000000' },
-  { name: 'Snapchat', icon: Rss, color: '#FFFC00' }, 
-  { name: 'Pinterest', icon: Rss, color: '#E60023' },
-  { name: 'Reddit', icon: Rss, color: '#FF4500' },
-  { name: 'Discord', icon: MessageSquare, color: '#5865F2' },
-  { name: 'Slack', icon: Slack, color: '#4A154B' },
-  { name: 'Telegram', icon: Rss, color: '#26A5E4' },
-  { name: 'WhatsApp', icon: Rss, color: '#25D366' },
-  { name: 'WeChat', icon: Rss, color: '#07C160' },
-  { name: 'Line', icon: Rss, color: '#00C300' },
-  { name: 'Medium', icon: Rss, color: '#000000' },
-  { name: 'Substack', icon: Rss, color: '#FF6719' },
-  { name: 'Dribbble', icon: Dribbble, color: '#EA4C89' },
-  { name: 'Behance', icon: Rss, color: '#1769FF' },
-  { name: 'Figma', icon: Figma, color: '#F24E1E' },
-  { name: 'Dev.to', icon: Rss, color: '#0A0A0A' },
-  { name: 'ProductHunt', icon: Rss, color: '#DA552F' },
-  { name: 'StackOverflow', icon: Rss, color: '#F58025' },
-  { name: 'GitLab', icon: Rss, color: '#FC6D26' },
-  { name: 'Bitbucket', icon: Rss, color: '#0052CC' },
-  { name: 'Spotify', icon: Rss, color: '#1DB954' },
-  { name: 'AppleMusic', icon: Rss, color: '#FA243C' },
-  { name: 'SoundCloud', icon: Rss, color: '#FF3300' },
-  { name: 'Patreon', icon: Rss, color: '#FF424D' },
-  { name: 'BuyMeACoffee', icon: Coffee, color: '#FFDD00' },
-  { name: 'Venmo', icon: Rss, color: '#008CFF' },
-  { name: 'PayPal', icon: Rss, color: '#00457C' }
+  { name: 'X (Twitter)', icon: FaXTwitter, color: '#000000' },
+  { name: 'GitHub', icon: FaGithub, color: '#181717' },
+  { name: 'LinkedIn', icon: FaLinkedin, color: '#0A66C2' },
+  { name: 'Instagram', icon: FaInstagram, color: '#E4405F' },
+  { name: 'Facebook', icon: FaFacebook, color: '#1877F2' },
+  { name: 'YouTube', icon: FaYoutube, color: '#FF0000' },
+  { name: 'Twitch', icon: FaTwitch, color: '#9146FF' },
+  { name: 'TikTok', icon: FaTiktok, color: '#000000' },
+  { name: 'Snapchat', icon: FaSnapchat, color: '#FFFC00' }, 
+  { name: 'Pinterest', icon: FaPinterest, color: '#E60023' },
+  { name: 'Reddit', icon: FaReddit, color: '#FF4500' },
+  { name: 'Discord', icon: FaDiscord, color: '#5865F2' },
+  { name: 'Slack', icon: FaSlack, color: '#4A154B' },
+  { name: 'Telegram', icon: FaTelegram, color: '#26A5E4' },
+  { name: 'WhatsApp', icon: FaWhatsapp, color: '#25D366' },
+  { name: 'WeChat', icon: FaWeixin, color: '#07C160' },
+  { name: 'Line', icon: FaLine, color: '#00C300' },
+  { name: 'Medium', icon: FaMedium, color: '#000000' },
+  { name: 'Substack', icon: SiSubstack, color: '#FF6719' },
+  { name: 'Dribbble', icon: FaDribbble, color: '#EA4C89' },
+  { name: 'Behance', icon: FaBehance, color: '#1769FF' },
+  { name: 'Figma', icon: FaFigma, color: '#F24E1E' },
+  { name: 'Dev.to', icon: FaDev, color: '#0A0A0A' },
+  { name: 'ProductHunt', icon: FaProductHunt, color: '#DA552F' },
+  { name: 'StackOverflow', icon: FaStackOverflow, color: '#F58025' },
+  { name: 'GitLab', icon: FaGitlab, color: '#FC6D26' },
+  { name: 'Bitbucket', icon: FaBitbucket, color: '#0052CC' },
+  { name: 'Spotify', icon: FaSpotify, color: '#1DB954' },
+  { name: 'AppleMusic', icon: SiApplemusic, color: '#FA243C' },
+  { name: 'SoundCloud', icon: FaSoundcloud, color: '#FF3300' },
+  { name: 'Patreon', icon: FaPatreon, color: '#FF424D' },
+  { name: 'BuyMeACoffee', icon: SiBuymeacoffee, color: '#FFDD00' },
+  { name: 'Venmo', icon: SiVenmo, color: '#008CFF' },
+  { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
 ];
 
 export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
@@ -166,7 +168,7 @@ TITLE:${profile.headline}
 EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}
 TEL;TYPE=CELL:${profile.phone_number || ''}
 ADR;TYPE=WORK:;;${profile.address || ''};;;;
-URL:https://chip.ng/${profile.username}
+URL:https://chipng.com/${profile.username}
 END:VCARD`;
     
     const blob = new Blob([vcard], { type: "text/vcard" });
@@ -181,7 +183,7 @@ END:VCARD`;
 
 
   return (
-    <AdminLayout onNavigate={onNavigate} activePath="bio">
+    <AdminLayout onNavigate={onNavigate} activePath="dashboard">
       <div className="max-w-[1200px] mx-auto pb-16">
         
         <div className="flex justify-between items-end mb-8">
@@ -490,8 +492,8 @@ END:VCARD`;
                 <QrCode className="w-[18px] h-[18px] text-[#4c4546]" />
               </div>
               <div className="p-5 flex gap-3">
-                <div className="w-12 h-12 bg-white flex items-center justify-center rounded-sm border border-[#cfc4c5] shrink-0">
-                  <QrCode className="w-7 h-7 text-black" />
+                <div className="w-12 h-12 bg-white flex items-center justify-center rounded-sm border border-[#cfc4c5] shrink-0 overflow-hidden p-1">
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}`} alt="QR Code" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                   <button 
@@ -502,7 +504,7 @@ END:VCARD`;
                   </button>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://chip.ng/${profile.username}`);
+                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
                       alert("Link copied to clipboard!");
                     }}
                     className="w-full px-3 py-2 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors"

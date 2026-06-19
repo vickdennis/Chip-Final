@@ -10,9 +10,7 @@ import {
   History,
   Plus,
   HelpCircle,
-  LogOut,
-  Search,
-  Bell
+  LogOut
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -65,25 +63,9 @@ export default function AdminLayout({ children, onNavigate, activePath }: AdminL
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-20 shrink-0 border-b border-[#e2e2e2] bg-white flex items-center justify-between px-8">
-          <div className="relative w-96 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#4c4546]" />
-            <input 
-              type="text" 
-              placeholder="Search systems, logs, or users..." 
-              className="w-full pl-10 pr-4 py-2 bg-white border border-[#e2e2e2] rounded-sm focus:border-black focus:ring-0 font-mono text-[14px] text-[#1a1c1c] placeholder-[#4c4546] transition-colors outline-none"
-            />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 border border-[#cfc4c5] px-1.5 rounded bg-[#f3f3f4]">
-              <span className="font-mono text-[10px] text-[#4c4546]">⌘K</span>
-            </div>
-          </div>
-          
+        <header className="h-20 shrink-0 border-b border-[#e2e2e2] bg-white flex items-center justify-end px-8">
           <div className="flex items-center gap-4">
-            <button className="w-10 h-10 border border-[#e2e2e2] rounded-sm flex items-center justify-center text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors relative">
-              <Bell className="w-[18px] h-[18px]" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full border border-white"></span>
-            </button>
-            <div className="w-10 h-10 border border-[#e2e2e2] rounded-sm overflow-hidden p-0.5 cursor-pointer">
+            <div className="w-10 h-10 border border-[#e2e2e2] rounded-sm overflow-hidden p-0.5">
               <img 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBETENoMAyXnSAZJQp1wOmlvzEUZStuxLWXLrDU-sDjD5lXJrhSbSnZGKRC7qch_0op3y85qfqCF3vlJ_jXZJtIpCfq9TEBPdYhF5jqL0peMwcQa-VUD1vXgjFUdpGCBTX9nD7zT70xgg-JXcdAln6tIhiNK5GsKIqDn45vUk7c9xakdrnQXhNX0-S475zPSDD2HFTVCvkltD0wfVyqXU6npOBvCRFMWfy8UuqI5pLhlN6ufaD0KBV8oBnbXOnTIxKdg0-UrVHTxUY" 
                 alt="User Avatar" 
