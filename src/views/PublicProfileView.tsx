@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { SocialIcon } from 'react-social-icons';
+import { SOCIAL_PLATFORMS } from './UserDashboard';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
@@ -111,15 +111,23 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
               
               {/* Horizontal Social Links */}
               <div className="flex flex-wrap justify-center gap-3 mt-2">
-                {socialLinks.map((link, i) => (
-                  <SocialIcon 
-                    key={i} 
-                    url={link.url}
-                    target="_blank"
-                    style={{ height: 40, width: 40 }}
-                    className="hover:-translate-y-1 transition-transform"
-                  />
-                ))}
+                {socialLinks.map((link, i) => {
+                  const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
+                  const Icon = platformDef?.icon || Globe;
+                  const color = platformDef?.color || '#000000';
+                  return (
+                    <a 
+                      key={i} 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-10 h-10 flex items-center justify-center rounded-sm hover:-translate-y-1 transition-transform shadow-md"
+                      style={{ backgroundColor: color, color: '#ffffff' }}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </section>

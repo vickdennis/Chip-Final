@@ -3,9 +3,46 @@ import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share } from 'lucide-react';
+import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
+import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
 export const SOCIAL_PLATFORMS = [
-  'Website', 'X (Twitter)', 'GitHub', 'LinkedIn', 'Instagram', 'Facebook', 'YouTube', 'Twitch', 'TikTok', 'Snapchat', 'Pinterest', 'Reddit', 'Discord', 'Slack', 'Telegram', 'WhatsApp', 'WeChat', 'Line', 'Medium', 'Substack', 'Dribbble', 'Behance', 'Figma', 'Dev.to', 'ProductHunt', 'StackOverflow', 'GitLab', 'Bitbucket', 'Spotify', 'AppleMusic', 'SoundCloud', 'Patreon', 'BuyMeACoffee', 'Venmo', 'PayPal'
+  { name: 'Website', icon: Globe, color: '#000000' },
+  { name: 'Email', icon: Mail, color: '#EA4335' },
+  { name: 'X (Twitter)', icon: FaXTwitter, color: '#000000' },
+  { name: 'GitHub', icon: FaGithub, color: '#181717' },
+  { name: 'LinkedIn', icon: FaLinkedin, color: '#0A66C2' },
+  { name: 'Instagram', icon: FaInstagram, color: '#E4405F' },
+  { name: 'Facebook', icon: FaFacebook, color: '#1877F2' },
+  { name: 'YouTube', icon: FaYoutube, color: '#FF0000' },
+  { name: 'Twitch', icon: FaTwitch, color: '#9146FF' },
+  { name: 'TikTok', icon: FaTiktok, color: '#000000' },
+  { name: 'Snapchat', icon: FaSnapchat, color: '#FFFC00' }, 
+  { name: 'Pinterest', icon: FaPinterest, color: '#E60023' },
+  { name: 'Reddit', icon: FaReddit, color: '#FF4500' },
+  { name: 'Discord', icon: FaDiscord, color: '#5865F2' },
+  { name: 'Slack', icon: FaSlack, color: '#4A154B' },
+  { name: 'Telegram', icon: FaTelegram, color: '#26A5E4' },
+  { name: 'WhatsApp', icon: FaWhatsapp, color: '#25D366' },
+  { name: 'WeChat', icon: FaWeixin, color: '#07C160' },
+  { name: 'Line', icon: FaLine, color: '#00C300' },
+  { name: 'Medium', icon: FaMedium, color: '#000000' },
+  { name: 'Substack', icon: SiSubstack, color: '#FF6719' },
+  { name: 'Dribbble', icon: FaDribbble, color: '#EA4C89' },
+  { name: 'Behance', icon: FaBehance, color: '#1769FF' },
+  { name: 'Figma', icon: FaFigma, color: '#F24E1E' },
+  { name: 'Dev.to', icon: FaDev, color: '#0A0A0A' },
+  { name: 'ProductHunt', icon: FaProductHunt, color: '#DA552F' },
+  { name: 'StackOverflow', icon: FaStackOverflow, color: '#F58025' },
+  { name: 'GitLab', icon: FaGitlab, color: '#FC6D26' },
+  { name: 'Bitbucket', icon: FaBitbucket, color: '#0052CC' },
+  { name: 'Spotify', icon: FaSpotify, color: '#1DB954' },
+  { name: 'AppleMusic', icon: SiApplemusic, color: '#FA243C' },
+  { name: 'SoundCloud', icon: FaSoundcloud, color: '#FF3300' },
+  { name: 'Patreon', icon: FaPatreon, color: '#FF424D' },
+  { name: 'BuyMeACoffee', icon: SiBuymeacoffee, color: '#FFDD00' },
+  { name: 'Venmo', icon: SiVenmo, color: '#008CFF' },
+  { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
 ];
 
 export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
@@ -83,7 +120,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
       if (delLinksError) throw delLinksError;
 
       if (links.length > 0) {
-        const { error: insLinksError } = await supabase.from('links').insert(links.map((l, i) => ({ ...l, profile_id: user.id, position: i })));
+        const { error: insLinksError } = await supabase.from('links').insert(links.map(({ id, created_at, ...l }: any, i: number) => ({ ...l, profile_id: user.id, position: i })));
         if (insLinksError) throw insLinksError;
       }
 
@@ -91,7 +128,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
       if (delSocialError) throw delSocialError;
 
       if (socialLinks.length > 0) {
-        const { error: insSocialError } = await supabase.from('social_links').insert(socialLinks.map(s => ({ ...s, profile_id: user.id })));
+        const { error: insSocialError } = await supabase.from('social_links').insert(socialLinks.map(({ id, created_at, ...s }: any) => ({ ...s, profile_id: user.id })));
         if (insSocialError) throw insSocialError;
       }
 
@@ -158,25 +195,25 @@ END:VCARD`;
     <AdminLayout onNavigate={onNavigate} activePath="dashboard">
       <div className="max-w-[1200px] mx-auto pb-16">
         
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
           <div>
             <h2 className="font-display text-[32px] md:text-[40px] font-extrabold text-black tracking-tight mb-1">
               Bio Management
             </h2>
             <p className="text-[16px] text-[#4c4546]">Manage your professional profile and digital presence.</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 w-full md:w-auto">
             <button 
               onClick={handleSave} 
               disabled={saving}
-              className="px-5 py-2.5 bg-black text-white font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center gap-2 disabled:opacity-70"
+              className="flex-1 md:flex-none px-5 py-2.5 bg-black text-white font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-[18px] h-[18px]" />} 
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button 
               onClick={() => onNavigate('public-profile')}
-              className="px-5 py-2.5 border border-[#cfc4c5] text-black bg-white font-mono text-[13px] font-medium hover:bg-[#f3f3f4] transition-colors rounded-sm flex items-center gap-2"
+              className="flex-1 md:flex-none px-5 py-2.5 border border-[#cfc4c5] text-black bg-white font-mono text-[13px] font-medium hover:bg-[#f3f3f4] transition-colors rounded-sm flex items-center justify-center gap-2"
             >
               <Eye className="w-[18px] h-[18px]" /> Preview Bio
             </button>
@@ -379,7 +416,7 @@ END:VCARD`;
                       className="w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white"
                     >
                       {SOCIAL_PLATFORMS.map(p => (
-                        <option key={p} value={p}>{p}</option>
+                        <option key={p.name} value={p.name}>{p.name}</option>
                       ))}
                     </select>
                     <input 
