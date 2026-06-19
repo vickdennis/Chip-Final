@@ -35,6 +35,7 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
         setProfile({
           full_name: user.user_metadata?.full_name || '',
           email: user.email || '',
+          username: user.email?.split('@')[0] || '',
           headline: '',
           booking_provider: 'Calendly (Integrated)',
           calendar_link: '',
@@ -59,6 +60,7 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
       await supabase.from('profiles').upsert({
         id: user.id,
         full_name: profile.full_name,
+        username: profile.username,
         headline: profile.headline,
         cover_image_url: coverUrl,
         booking_provider: profile.booking_provider,
@@ -198,12 +200,12 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Email Address</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Username</label>
                       <input 
-                        type="email" 
-                        value={profile.email || ''} 
-                        disabled
-                        className="w-full px-4 py-2.5 bg-[#f3f3f4] text-[#7e7576] border border-[#cfc4c5] rounded-sm outline-none font-sans text-[14px] cursor-not-allowed"
+                        type="text" 
+                        value={profile.username || ''} 
+                        onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">

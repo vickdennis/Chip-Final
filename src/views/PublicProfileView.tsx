@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { ExternalLink, Mail, Link as LinkIcon, Share } from 'lucide-react';
+import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Twitter, Github, Linkedin, Instagram } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+
+const SocialIconMap: Record<string, React.ReactNode> = {
+  'Website': <Globe className="w-5 h-5" />,
+  'X': <Twitter className="w-5 h-5" />,
+  'GitHub': <Github className="w-5 h-5" />,
+  'LinkedIn': <Linkedin className="w-5 h-5" />,
+  'Instagram': <Instagram className="w-5 h-5" />
+};
 
 export default function PublicProfileView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,11 +28,13 @@ export default function PublicProfileView({ onNavigate }: { onNavigate: (view: V
 
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
+      const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
 
       if (profileData) {
         setProfile({ ...profileData, email: user.email });
       }
       if (linksData) setLinks(linksData);
+      if (socialData) setSocialLinks(socialData);
     } catch (error) {
       console.error(error);
     } finally {
@@ -60,8 +71,23 @@ export default function PublicProfileView({ onNavigate }: { onNavigate: (view: V
             <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent"></div>
             
             <div className="absolute bottom-0 w-full left-0 flex flex-col items-center text-center pb-8 px-6">
-              <h1 className="font-display text-[32px] font-black text-black leading-tight mb-0.5">{profile?.full_name || "[Data Placeholder]"}</h1>
-              <p className="font-mono text-[14px] text-[#7e7576]">@{profile?.headline || "[username]"}</p>
+              <h1 className="font-display text-[32px] font-black text-black leading-tight mb-2">{profile?.full_name || "[Data Placeholder]"}</h1>
+              <p className="font-mono text-[14px] text-[#7e7576] font-bold mb-3">@{profile?.username || "username"}</p>
+              
+              {/* Horizontal Social Links */}
+              <div className="flex gap-4">
+                {socialLinks.map((link, i) => (
+                  <a 
+                    key={i} 
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-10 h-10 bg-black text-white flex items-center justify-center rounded-sm hover:-translate-y-1 transition-transform shadow-md"
+                  >
+                    {SocialIconMap[link.platform] || <Globe className="w-5 h-5" />}
+                  </a>
+                ))}
+              </div>
             </div>
           </section>
 

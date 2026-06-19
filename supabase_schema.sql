@@ -11,6 +11,7 @@ $$ language 'plpgsql';
 CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
   full_name TEXT,
+  username TEXT UNIQUE,
   headline TEXT,
   cover_image_url TEXT,
   booking_provider TEXT DEFAULT 'Calendly (Integrated)',
@@ -105,8 +106,8 @@ CREATE POLICY "Users can delete own social links."
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, headline)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', 'Tech Professional');
+  INSERT INTO public.profiles (id, full_name, username, headline)
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1), 'Tech Professional');
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

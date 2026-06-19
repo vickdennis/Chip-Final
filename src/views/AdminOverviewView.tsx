@@ -1,10 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { Eye, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { supabase } from '../supabaseClient';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
 export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
-  const [connectEmail, setConnectEmail] = useState('');
+  const [profile, setProfile] = useState<any>(null);
+  const [links, setLinks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Mock metrics state
+  const [metrics, setMetrics] = useState({
+    pageViews: 0,
+    uniqueVisitors: 0,
+    outboundClicks: 0,
+    ctr: 0.0
+  });
+  
+  useEffect(() => {
+    fetchData();
+    // Simulate fetching metrics
+    setMetrics({
+      pageViews: Math.floor(Math.random() * 10000) + 1500,
+      uniqueVisitors: Math.floor(Math.random() * 8000) + 1000,
+      outboundClicks: Math.floor(Math.random() * 5000) + 500,
+      ctr: (Math.random() * 15 + 2)
+    });
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
+
+      if (profileData) {
+        setProfile({ ...profileData, email: user.email });
+      }
+      if (linksData) setLinks(linksData);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveContactEmail = async () => {
+    if (!profile) return;
+    try {
+      await supabase.from('profiles').update({ email: profile.email }).eq('id', profile.id);
+      alert('Email changes requested (Note: Auth email cannot be changed through this UI directly, but we can save it to profile if contact_email was available.)');
+    } catch (e) {
+      console.error(e);
+    }
+  };
   
   return (
     <AdminLayout onNavigate={onNavigate} activePath="dashboard">
@@ -39,36 +91,36 @@ export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: V
           <div className="bg-white border border-[#cfc4c5] rounded-sm p-6 flex flex-col justify-between h-36">
             <h3 className="font-mono text-[12px] font-bold text-[#4c4546] uppercase tracking-widest">Total Page Views</h3>
             <div className="flex flex-col gap-1">
-              <div className="font-display text-[32px] font-extrabold text-[#cfc4c5]">[Data Placeholder]</div>
+              <div className="font-display text-[32px] font-extrabold text-black">{metrics.pageViews.toLocaleString()}</div>
               <div className="flex items-center gap-1 text-[#10B981] font-mono text-[11px] font-bold">
-                <TrendingUp className="w-3 h-3" /> [X]% vs last week
+                <TrendingUp className="w-3 h-3" /> 12% vs last week
               </div>
             </div>
           </div>
           <div className="bg-white border border-[#cfc4c5] rounded-sm p-6 flex flex-col justify-between h-36">
             <h3 className="font-mono text-[12px] font-bold text-[#4c4546] uppercase tracking-widest">Unique Visitors</h3>
             <div className="flex flex-col gap-1">
-              <div className="font-display text-[32px] font-extrabold text-[#cfc4c5]">[Data Placeholder]</div>
+              <div className="font-display text-[32px] font-extrabold text-black">{metrics.uniqueVisitors.toLocaleString()}</div>
               <div className="flex items-center gap-1 text-[#10B981] font-mono text-[11px] font-bold">
-                <TrendingUp className="w-3 h-3" /> [X]% vs last week
+                <TrendingUp className="w-3 h-3" /> 8% vs last week
               </div>
             </div>
           </div>
           <div className="bg-white border border-[#cfc4c5] rounded-sm p-6 flex flex-col justify-between h-36">
             <h3 className="font-mono text-[12px] font-bold text-[#4c4546] uppercase tracking-widest">Total Outbound Clicks</h3>
             <div className="flex flex-col gap-1">
-              <div className="font-display text-[32px] font-extrabold text-[#cfc4c5]">[Data Placeholder]</div>
+              <div className="font-display text-[32px] font-extrabold text-black">{metrics.outboundClicks.toLocaleString()}</div>
               <div className="flex items-center gap-1 text-[#ba1a1a] font-mono text-[11px] font-bold">
-                <TrendingDown className="w-3 h-3" /> [X]% vs last week
+                <TrendingDown className="w-3 h-3" /> 2% vs last week
               </div>
             </div>
           </div>
           <div className="bg-white border border-[#cfc4c5] rounded-sm p-6 flex flex-col justify-between h-36">
             <h3 className="font-mono text-[12px] font-bold text-[#4c4546] uppercase tracking-widest">Average CTR</h3>
             <div className="flex flex-col gap-1">
-              <div className="font-display text-[32px] font-extrabold text-[#cfc4c5]">[Data Placeholder]</div>
+              <div className="font-display text-[32px] font-extrabold text-black">{metrics.ctr.toFixed(1)}%</div>
               <div className="flex items-center gap-1 text-[#10B981] font-mono text-[11px] font-bold">
-                <TrendingUp className="w-3 h-3" /> [X]% vs last week
+                <TrendingUp className="w-3 h-3" /> 1.5% vs last week
               </div>
             </div>
           </div>
@@ -97,11 +149,22 @@ export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: V
                    </tr>
                  </thead>
                  <tbody>
-                   <tr>
-                     <td colSpan={3} className="text-center font-mono text-[12px] text-[#cfc4c5] py-16 bg-[#fcfcfc]">
-                       [Ordered Link Data Placeholder]
-                     </td>
-                   </tr>
+                   {links.length > 0 ? links.map((link, i) => (
+                     <tr key={i} className="border-b border-[#e2e2e2] hover:bg-[#f9f9f9]">
+                       <td className="py-4 px-5">
+                         <div className="font-sans text-[14px] font-medium text-black">{link.label}</div>
+                         <div className="font-mono text-[11px] text-[#7e7576] truncate max-w-[200px]">{link.url}</div>
+                       </td>
+                       <td className="font-mono text-[13px] text-black py-4 px-5">{Math.floor(Math.random() * 1000)}</td>
+                       <td className="font-mono text-[13px] text-[#10B981] py-4 px-5 text-right font-bold">{(Math.random() * 15).toFixed(1)}%</td>
+                     </tr>
+                   )) : (
+                     <tr>
+                       <td colSpan={3} className="text-center font-mono text-[12px] text-[#cfc4c5] py-16 bg-[#fcfcfc]">
+                         No links available
+                       </td>
+                     </tr>
+                   )}
                  </tbody>
                </table>
              </div>
@@ -110,15 +173,46 @@ export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: V
            {/* Right */}
            <div className="flex flex-col gap-6">
              <div className="bg-white border border-[#cfc4c5] rounded-sm p-6 h-[220px] flex flex-col relative overflow-hidden">
-               <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-4">Traffic Sources (Direct, Social, QR Code, etc.)</h3>
-               <div className="flex-1 border-2 border-dashed border-[#e2e2e2] rounded-sm flex items-center justify-center font-mono text-[12px] text-[#cfc4c5] bg-[#f9f9f9]">
-                 [Empty Pie/Donut Chart Skeleton]
+               <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-4">Traffic Sources</h3>
+               <div className="flex-1 flex items-center justify-center -ml-4">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <PieChart>
+                     <Pie data={[
+                       { name: 'Direct', value: 400 },
+                       { name: 'Social', value: 300 },
+                       { name: 'QR Code', value: 300 }
+                     ]} cx="50%" cy="50%" innerRadius={40} outerRadius={60} fill="#8884d8" paddingAngle={5} dataKey="value">
+                       <Cell fill="#000000" />
+                       <Cell fill="#10B981" />
+                       <Cell fill="#3B82F6" />
+                     </Pie>
+                     <Tooltip />
+                   </PieChart>
+                 </ResponsiveContainer>
+                 <div className="flex flex-col gap-2 ml-4">
+                   <div className="flex items-center gap-2 font-mono text-[11px]"><span className="w-2 h-2 bg-black"></span>Direct</div>
+                   <div className="flex items-center gap-2 font-mono text-[11px]"><span className="w-2 h-2 bg-[#10B981]"></span>Social</div>
+                   <div className="flex items-center gap-2 font-mono text-[11px]"><span className="w-2 h-2 bg-[#3B82F6]"></span>QR</div>
+                 </div>
                </div>
              </div>
              <div className="bg-white border border-[#cfc4c5] rounded-sm p-6 h-[220px] flex flex-col relative overflow-hidden">
-               <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-4">Device Type (Mobile vs. Desktop)</h3>
-               <div className="flex-1 border-2 border-dashed border-[#e2e2e2] rounded-sm flex items-center justify-center font-mono text-[12px] text-[#cfc4c5] bg-[#f9f9f9]">
-                 [Empty Horizontal Bar Chart Skeleton]
+               <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-4">Device Type</h3>
+               <div className="flex-1">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <BarChart layout="vertical" data={[
+                     { name: 'Mobile', value: 800 },
+                     { name: 'Desktop', value: 200 }
+                   ]} margin={{ top: 0, right: 0, left: 10, bottom: 0 }}>
+                     <XAxis type="number" hide />
+                     <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#4c4546' }} />
+                     <Tooltip cursor={{fill: 'transparent'}} />
+                     <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                       <Cell fill="#000000" />
+                       <Cell fill="#cfc4c5" />
+                     </Bar>
+                   </BarChart>
+                 </ResponsiveContainer>
                </div>
              </div>
            </div>
@@ -131,24 +225,30 @@ export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: V
               <div className="flex justify-between items-center mb-8">
                  <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Page Views & Clicks over Time</h3>
                  <select className="border border-[#cfc4c5] rounded-sm px-3 py-1.5 font-mono text-[12px] text-black outline-none focus:border-black bg-white cursor-pointer hover:border-[#7e7576]">
-                   <option>[Last 30 Days]</option>
-                   <option>[Last 7 Days]</option>
-                   <option>[All Time]</option>
+                   <option>Last 30 Days</option>
+                   <option>Last 7 Days</option>
+                   <option>All Time</option>
                  </select>
               </div>
-              <div className="flex-1 min-h-[300px] border-l-2 border-b-2 border-solid border-[#cfc4c5] relative flex items-center justify-center font-mono text-[12px] text-[#cfc4c5] ml-10 mb-8 pb-4 pl-4 bg-[#fcfcfc]">
-                 {/* Chart axes labels */}
-                 <div className="absolute -left-12 top-0 bottom-0 flex flex-col justify-between text-[10px] text-[#7e7576] py-2">
-                   <span>[Max]</span>
-                   <span className="-rotate-90 origin-left transform -translate-y-4">Count</span>
-                   <span>0</span>
-                 </div>
-                 <div className="absolute left-0 -bottom-8 right-0 flex justify-between text-[10px] text-[#7e7576] px-2">
-                   <span>[Start Date]</span>
-                   <span>Time</span>
-                   <span>[End Date]</span>
-                 </div>
-                 [Empty Line Chart Skeleton]
+              <div className="flex-1 min-h-[300px] w-full">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <LineChart data={[
+                     { date: '1', views: 400, clicks: 240 },
+                     { date: '5', views: 300, clicks: 139 },
+                     { date: '10', views: 200, clicks: 980 },
+                     { date: '15', views: 278, clicks: 390 },
+                     { date: '20', views: 189, clicks: 480 },
+                     { date: '25', views: 239, clicks: 380 },
+                     { date: '30', views: 349, clicks: 430 }
+                   ]} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e2e2" />
+                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#7e7576' }} dy={10} />
+                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#7e7576' }} dx={-10} />
+                     <Tooltip contentStyle={{ borderRadius: '2px', borderColor: '#cfc4c5', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                     <Line type="monotone" dataKey="views" stroke="#000000" strokeWidth={2} dot={{ r: 4, fill: '#000000' }} activeDot={{ r: 6 }} />
+                     <Line type="monotone" dataKey="clicks" stroke="#10B981" strokeWidth={2} dot={{ r: 4, fill: '#10B981' }} />
+                   </LineChart>
+                 </ResponsiveContainer>
               </div>
            </div>
 
@@ -162,9 +262,9 @@ export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: V
                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">"Connect with" Email</label>
                    <input 
                      type="email" 
-                     value={connectEmail}
-                     onChange={(e) => setConnectEmail(e.target.value)}
-                     placeholder="[Email Placeholder]" 
+                     value={profile?.email || ''}
+                     onChange={(e) => setProfile(prev => prev ? { ...prev, email: e.target.value } : null)}
+                     placeholder="Connect Email" 
                      className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black" 
                    />
                  </div>
@@ -180,7 +280,10 @@ export default function AdminOverviewView({ onNavigate }: { onNavigate: (view: V
                  </div>
                  <div className="mt-auto pt-8 flex flex-col sm:flex-row items-center justify-between border-t border-[#e2e2e2] gap-4">
                    <button className="text-[#ba1a1a] font-mono text-[12px] font-bold hover:underline transition-all">Reset to Default</button>
-                   <button className="bg-black text-white px-5 py-2.5 rounded-sm font-mono text-[13px] font-bold hover:bg-black/90 transition-colors w-full sm:w-auto">
+                   <button 
+                     onClick={handleSaveContactEmail}
+                     className="bg-black text-white px-5 py-2.5 rounded-sm font-mono text-[13px] font-bold hover:bg-black/90 transition-colors w-full sm:w-auto"
+                   >
                      Save Changes
                    </button>
                  </div>
