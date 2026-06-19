@@ -2,9 +2,48 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2 } from 'lucide-react';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, Twitter, Github, Linkedin, Instagram, Facebook, Youtube, Twitch, Dribbble, Figma, Slack, MessageSquare, Coffee, MapPin, Phone, Mail, Share } from 'lucide-react';
 
-export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
+export const SOCIAL_PLATFORMS = [
+  { name: 'Website', icon: Globe, color: '#000000' },
+  { name: 'Email', icon: Mail, color: '#EA4335' },
+  { name: 'X (Twitter)', icon: Twitter, color: '#000000' },
+  { name: 'GitHub', icon: Github, color: '#181717' },
+  { name: 'LinkedIn', icon: Linkedin, color: '#0A66C2' },
+  { name: 'Instagram', icon: Instagram, color: '#E4405F' },
+  { name: 'Facebook', icon: Facebook, color: '#1877F2' },
+  { name: 'YouTube', icon: Youtube, color: '#FF0000' },
+  { name: 'Twitch', icon: Twitch, color: '#9146FF' },
+  { name: 'TikTok', icon: Rss, color: '#000000' },
+  { name: 'Snapchat', icon: Rss, color: '#FFFC00' }, 
+  { name: 'Pinterest', icon: Rss, color: '#E60023' },
+  { name: 'Reddit', icon: Rss, color: '#FF4500' },
+  { name: 'Discord', icon: MessageSquare, color: '#5865F2' },
+  { name: 'Slack', icon: Slack, color: '#4A154B' },
+  { name: 'Telegram', icon: Rss, color: '#26A5E4' },
+  { name: 'WhatsApp', icon: Rss, color: '#25D366' },
+  { name: 'WeChat', icon: Rss, color: '#07C160' },
+  { name: 'Line', icon: Rss, color: '#00C300' },
+  { name: 'Medium', icon: Rss, color: '#000000' },
+  { name: 'Substack', icon: Rss, color: '#FF6719' },
+  { name: 'Dribbble', icon: Dribbble, color: '#EA4C89' },
+  { name: 'Behance', icon: Rss, color: '#1769FF' },
+  { name: 'Figma', icon: Figma, color: '#F24E1E' },
+  { name: 'Dev.to', icon: Rss, color: '#0A0A0A' },
+  { name: 'ProductHunt', icon: Rss, color: '#DA552F' },
+  { name: 'StackOverflow', icon: Rss, color: '#F58025' },
+  { name: 'GitLab', icon: Rss, color: '#FC6D26' },
+  { name: 'Bitbucket', icon: Rss, color: '#0052CC' },
+  { name: 'Spotify', icon: Rss, color: '#1DB954' },
+  { name: 'AppleMusic', icon: Rss, color: '#FA243C' },
+  { name: 'SoundCloud', icon: Rss, color: '#FF3300' },
+  { name: 'Patreon', icon: Rss, color: '#FF424D' },
+  { name: 'BuyMeACoffee', icon: Coffee, color: '#FFDD00' },
+  { name: 'Venmo', icon: Rss, color: '#008CFF' },
+  { name: 'PayPal', icon: Rss, color: '#00457C' }
+];
+
+export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
@@ -31,12 +70,14 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
         setProfile({ ...profileData, email: user.email });
         if (profileData.cover_image_url) setCoverUrl(profileData.cover_image_url);
       } else {
-        // Fallback default profile shape if not found (though trigger should create it)
         setProfile({
           full_name: user.user_metadata?.full_name || '',
           email: user.email || '',
           username: user.email?.split('@')[0] || '',
           headline: '',
+          contact_email: '',
+          phone_number: '',
+          address: '',
           booking_provider: 'Calendly (Integrated)',
           calendar_link: '',
           show_availability: true
@@ -63,12 +104,14 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
         username: profile.username,
         headline: profile.headline,
         cover_image_url: coverUrl,
+        contact_email: profile.contact_email,
+        phone_number: profile.phone_number,
+        address: profile.address,
         booking_provider: profile.booking_provider,
         calendar_link: profile.calendar_link,
         show_availability: profile.show_availability
       });
 
-      // Update links (simple clear and insert for now, ideally upsert by id)
       await supabase.from('links').delete().eq('profile_id', user.id);
       if (links.length > 0) {
         await supabase.from('links').insert(links.map((l, i) => ({ ...l, profile_id: user.id, position: i })));
@@ -112,6 +155,30 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
       setUploading(false);
     }
   };
+
+  const handleDownloadVCard = () => {
+    if (!profile) return;
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+N:${profile.full_name}
+FN:${profile.full_name}
+TITLE:${profile.headline}
+EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}
+TEL;TYPE=CELL:${profile.phone_number || ''}
+ADR;TYPE=WORK:;;${profile.address || ''};;;;
+URL:https://chip.ng/${profile.username}
+END:VCARD`;
+    
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${profile.username || 'contact'}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
 
   return (
     <AdminLayout onNavigate={onNavigate} activePath="bio">
@@ -218,6 +285,39 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
                       />
                     </div>
                   </div>
+
+                  <div className="pt-6 border-t border-[#e2e2e2] grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Contact Email</label>
+                      <input 
+                        type="email" 
+                        value={profile.contact_email || ''}
+                        onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
+                        placeholder={profile.email}
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Phone Number</label>
+                      <input 
+                        type="tel" 
+                        value={profile.phone_number || ''}
+                        onChange={(e) => setProfile({ ...profile, phone_number: e.target.value })}
+                        placeholder="+1 (555) 000-0000"
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Address</label>
+                      <input 
+                        type="text" 
+                        value={profile.address || ''}
+                        onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                        placeholder="San Francisco, CA"
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black"
+                      />
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -304,11 +404,9 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
                       }}
                       className="w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white"
                     >
-                      <option value="Website">Website</option>
-                      <option value="X">X (Twitter)</option>
-                      <option value="GitHub">GitHub</option>
-                      <option value="LinkedIn">LinkedIn</option>
-                      <option value="Instagram">Instagram</option>
+                      {SOCIAL_PLATFORMS.map(p => (
+                        <option key={p.name} value={p.name}>{p.name}</option>
+                      ))}
                     </select>
                     <input 
                       type="text" 
@@ -396,11 +494,20 @@ export default function AdminBioView({ onNavigate }: { onNavigate: (view: ViewSt
                   <QrCode className="w-7 h-7 text-black" />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
-                  <button className="w-full px-3 py-1.5 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors">
-                    <Download className="w-4 h-4" /> Download vCard
+                  <button 
+                    onClick={handleDownloadVCard}
+                    className="w-full px-3 py-2 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Download className="w-4 h-4" /> Save Contact vCard
                   </button>
-                  <button className="w-full px-3 py-1.5 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors">
-                    <Settings className="w-4 h-4" /> Advanced Setup
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://chip.ng/${profile.username}`);
+                      alert("Link copied to clipboard!");
+                    }}
+                    className="w-full px-3 py-2 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Share className="w-4 h-4" /> Share @{profile.username || 'username'}
                   </button>
                 </div>
               </div>

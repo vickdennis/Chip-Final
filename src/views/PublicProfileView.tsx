@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Twitter, Github, Linkedin, Instagram } from 'lucide-react';
+import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-
-const SocialIconMap: Record<string, React.ReactNode> = {
-  'Website': <Globe className="w-5 h-5" />,
-  'X': <Twitter className="w-5 h-5" />,
-  'GitHub': <Github className="w-5 h-5" />,
-  'LinkedIn': <Linkedin className="w-5 h-5" />,
-  'Instagram': <Instagram className="w-5 h-5" />
-};
+import { SOCIAL_PLATFORMS } from './UserDashboard';
 
 export default function PublicProfileView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
   const [profile, setProfile] = useState<any>(null);
@@ -75,18 +68,24 @@ export default function PublicProfileView({ onNavigate }: { onNavigate: (view: V
               <p className="font-mono text-[14px] text-[#7e7576] font-bold mb-3">@{profile?.username || "username"}</p>
               
               {/* Horizontal Social Links */}
-              <div className="flex gap-4">
-                {socialLinks.map((link, i) => (
-                  <a 
-                    key={i} 
-                    href={link.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="w-10 h-10 bg-black text-white flex items-center justify-center rounded-sm hover:-translate-y-1 transition-transform shadow-md"
-                  >
-                    {SocialIconMap[link.platform] || <Globe className="w-5 h-5" />}
-                  </a>
-                ))}
+              <div className="flex flex-wrap justify-center gap-4 mt-2">
+                {socialLinks.map((link, i) => {
+                  const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
+                  const Icon = platformDef?.icon || Globe;
+                  const color = platformDef?.color || '#000000';
+                  return (
+                    <a 
+                      key={i} 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-10 h-10 flex items-center justify-center rounded-sm hover:-translate-y-1 transition-transform shadow-md"
+                      style={{ backgroundColor: color, color: '#ffffff' }}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -94,22 +93,66 @@ export default function PublicProfileView({ onNavigate }: { onNavigate: (view: V
           <section className="px-6 flex flex-col items-center pt-2">
             
             <div className="flex flex-col items-center mb-8">
-              <span className="font-display text-[40px] font-extrabold text-black leading-none mb-1">[Data Placeholder]</span>
-              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#7e7576]">Total Followers</span>
+              <span className="font-display text-[40px] font-extrabold text-black leading-none mb-1">{links.length + socialLinks.length}</span>
+              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#7e7576]">Total Links</span>
             </div>
 
             {/* Contact/Connect Action Strip */}
-            <a href={`mailto:${profile?.email || 'placeholder@example.com'}`} className="w-full bg-[#f9f9f9] border border-[#cfc4c5] p-4 flex items-center justify-between rounded-sm cursor-pointer hover:border-black transition-colors mb-8 group">
-               <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-black text-white rounded-sm flex items-center justify-center">
-                   <Mail className="w-4 h-4" />
+            <div className="w-full flex gap-3 mb-8 flex-col sm:flex-row">
+              <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className="flex-1 bg-[#f9f9f9] border border-[#cfc4c5] p-3 flex items-center justify-between rounded-sm cursor-pointer hover:border-black transition-colors group">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-black text-white rounded-sm flex items-center justify-center">
+                     <Mail className="w-4 h-4" />
+                   </div>
+                   <div className="flex flex-col overflow-hidden max-w-[140px]">
+                     <span className="font-mono text-[11px] uppercase tracking-wider text-[#7e7576] font-bold">Email</span>
+                     <span className="font-sans text-[13px] text-black font-semibold truncate">{profile?.contact_email || profile?.email || "[Email Placeholder]"}</span>
+                   </div>
                  </div>
-                 <div className="flex flex-col">
-                   <span className="font-mono text-[11px] uppercase tracking-wider text-[#7e7576] font-bold">Connect with</span>
-                   <span className="font-sans text-[14px] text-black font-semibold">{profile?.email || "[Email Placeholder]"}</span>
+              </a>
+              {profile?.phone_number && (
+                <a href={`tel:${profile.phone_number}`} className="flex-1 bg-[#f9f9f9] border border-[#cfc4c5] p-3 flex items-center justify-between rounded-sm cursor-pointer hover:border-black transition-colors group">
+                   <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 bg-black text-white rounded-sm flex items-center justify-center">
+                       <Phone className="w-4 h-4" />
+                     </div>
+                     <div className="flex flex-col overflow-hidden max-w-[140px]">
+                       <span className="font-mono text-[11px] uppercase tracking-wider text-[#7e7576] font-bold">Call</span>
+                       <span className="font-sans text-[13px] text-black font-semibold truncate">{profile.phone_number}</span>
+                     </div>
+                   </div>
+                </a>
+              )}
+            </div>
+
+            {profile?.address && (
+              <div className="w-full bg-[#f9f9f9] border border-[#cfc4c5] p-4 flex items-center gap-3 rounded-sm mb-8">
+                <div className="w-10 h-10 bg-black text-white rounded-sm flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#7e7576] font-bold">Location</span>
+                  <span className="font-sans text-[14px] text-black font-semibold">{profile.address}</span>
+                </div>
+              </div>
+            )}
+
+            {profile?.calendar_link && profile?.show_availability !== false && (
+              <a 
+                href={profile.calendar_link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full bg-[#1a1c1c] text-white p-4 flex items-center justify-between rounded-sm cursor-pointer hover:bg-black transition-colors mb-8 shadow-md"
+              >
+                 <div className="flex items-center gap-3">
+                   <div className="flex flex-col">
+                     <span className="font-mono text-[11px] uppercase tracking-wider text-[#cfc4c5] font-bold">{profile.booking_provider || 'Book a session'}</span>
+                     <span className="font-sans text-[15px] text-white font-semibold flex items-center gap-2">View Availability</span>
+                   </div>
                  </div>
-               </div>
-            </a>
+                 <ExternalLink className="w-5 h-5 text-white/80" />
+              </a>
+            )}
 
             {/* Outbound Links */}
             <div className="w-full flex flex-col gap-3">

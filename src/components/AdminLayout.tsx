@@ -40,20 +40,13 @@ export default function AdminLayout({ children, onNavigate, activePath }: AdminL
 
         <nav className="flex-1 flex flex-col gap-1 px-4">
           <button 
-            onClick={() => onNavigate('admin-overview')}
+            onClick={() => onNavigate('user-dashboard')}
             className={`flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-150 ease-in-out font-mono text-[14px] font-medium ${activePath === 'dashboard' ? 'bg-black text-white' : 'text-[#4c4546] hover:bg-[#e8e8e8]'}`}
           >
             <LayoutDashboard className="w-[18px] h-[18px]" />
             Dashboard
           </button>
-          
-          <button 
-            onClick={() => onNavigate('admin-bio')}
-            className={`flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-150 ease-in-out font-mono text-[14px] font-medium ${activePath === 'bio' ? 'bg-black text-white' : 'text-[#4c4546] hover:bg-[#e8e8e8]'}`}
-          >
-            <Users className="w-[18px] h-[18px]" />
-            Bio Management
-          </button>
+
           
           <button className="flex items-center gap-3 px-4 py-3 text-[#4c4546] hover:bg-[#e8e8e8] transition-all duration-150 ease-in-out rounded-sm font-mono text-[14px] font-medium">
             <BarChart3 className="w-[18px] h-[18px]" />
