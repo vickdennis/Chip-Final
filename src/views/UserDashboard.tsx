@@ -3,46 +3,9 @@ import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share } from 'lucide-react';
-import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
-import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
 export const SOCIAL_PLATFORMS = [
-  { name: 'Website', icon: Globe, color: '#000000' },
-  { name: 'Email', icon: Mail, color: '#EA4335' },
-  { name: 'X (Twitter)', icon: FaXTwitter, color: '#000000' },
-  { name: 'GitHub', icon: FaGithub, color: '#181717' },
-  { name: 'LinkedIn', icon: FaLinkedin, color: '#0A66C2' },
-  { name: 'Instagram', icon: FaInstagram, color: '#E4405F' },
-  { name: 'Facebook', icon: FaFacebook, color: '#1877F2' },
-  { name: 'YouTube', icon: FaYoutube, color: '#FF0000' },
-  { name: 'Twitch', icon: FaTwitch, color: '#9146FF' },
-  { name: 'TikTok', icon: FaTiktok, color: '#000000' },
-  { name: 'Snapchat', icon: FaSnapchat, color: '#FFFC00' }, 
-  { name: 'Pinterest', icon: FaPinterest, color: '#E60023' },
-  { name: 'Reddit', icon: FaReddit, color: '#FF4500' },
-  { name: 'Discord', icon: FaDiscord, color: '#5865F2' },
-  { name: 'Slack', icon: FaSlack, color: '#4A154B' },
-  { name: 'Telegram', icon: FaTelegram, color: '#26A5E4' },
-  { name: 'WhatsApp', icon: FaWhatsapp, color: '#25D366' },
-  { name: 'WeChat', icon: FaWeixin, color: '#07C160' },
-  { name: 'Line', icon: FaLine, color: '#00C300' },
-  { name: 'Medium', icon: FaMedium, color: '#000000' },
-  { name: 'Substack', icon: SiSubstack, color: '#FF6719' },
-  { name: 'Dribbble', icon: FaDribbble, color: '#EA4C89' },
-  { name: 'Behance', icon: FaBehance, color: '#1769FF' },
-  { name: 'Figma', icon: FaFigma, color: '#F24E1E' },
-  { name: 'Dev.to', icon: FaDev, color: '#0A0A0A' },
-  { name: 'ProductHunt', icon: FaProductHunt, color: '#DA552F' },
-  { name: 'StackOverflow', icon: FaStackOverflow, color: '#F58025' },
-  { name: 'GitLab', icon: FaGitlab, color: '#FC6D26' },
-  { name: 'Bitbucket', icon: FaBitbucket, color: '#0052CC' },
-  { name: 'Spotify', icon: FaSpotify, color: '#1DB954' },
-  { name: 'AppleMusic', icon: SiApplemusic, color: '#FA243C' },
-  { name: 'SoundCloud', icon: FaSoundcloud, color: '#FF3300' },
-  { name: 'Patreon', icon: FaPatreon, color: '#FF424D' },
-  { name: 'BuyMeACoffee', icon: SiBuymeacoffee, color: '#FFDD00' },
-  { name: 'Venmo', icon: SiVenmo, color: '#008CFF' },
-  { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
+  'Website', 'X (Twitter)', 'GitHub', 'LinkedIn', 'Instagram', 'Facebook', 'YouTube', 'Twitch', 'TikTok', 'Snapchat', 'Pinterest', 'Reddit', 'Discord', 'Slack', 'Telegram', 'WhatsApp', 'WeChat', 'Line', 'Medium', 'Substack', 'Dribbble', 'Behance', 'Figma', 'Dev.to', 'ProductHunt', 'StackOverflow', 'GitLab', 'Bitbucket', 'Spotify', 'AppleMusic', 'SoundCloud', 'Patreon', 'BuyMeACoffee', 'Venmo', 'PayPal'
 ];
 
 export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
@@ -153,14 +116,15 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
 
       const { error: uploadError } = await supabase.storage
         .from('covers')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
       setCoverUrl(data.publicUrl);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image: ', error);
+      alert('Error uploading image: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -415,7 +379,7 @@ END:VCARD`;
                       className="w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white"
                     >
                       {SOCIAL_PLATFORMS.map(p => (
-                        <option key={p.name} value={p.name}>{p.name}</option>
+                        <option key={p} value={p}>{p}</option>
                       ))}
                     </select>
                     <input 
@@ -519,6 +483,13 @@ END:VCARD`;
                   >
                     <Share className="w-4 h-4" /> Share @{profile.username || 'username'}
                   </button>
+                  <a 
+                    href={`/${profile.username || ''}`}
+                    target="_blank"
+                    className="mt-1 text-[#0066cc] font-mono text-[11px] text-center hover:underline bg-[#f3f3f4] py-1.5 rounded-sm"
+                  >
+                    https://chipng.com/{profile.username || 'username'}
+                  </a>
                 </div>
               </div>
             </section>

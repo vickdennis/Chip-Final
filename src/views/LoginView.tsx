@@ -38,7 +38,7 @@ export default function LoginView({ onNavigate }: { onNavigate: (view: ViewState
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        onNavigate('admin-overview');
+        onNavigate('user-dashboard');
       }
     } catch (error: any) {
       setErrorMsg(error.message || 'An error occurred during authentication.');

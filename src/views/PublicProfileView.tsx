@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { SocialIcon } from 'react-social-icons';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
@@ -68,10 +68,12 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
         <h1 className="font-display text-4xl font-black mb-2 text-black">Profile Not Found</h1>
         <p className="font-sans text-[#7e7576] mb-6">We couldn't find a user with this username.</p>
         <button 
-          onClick={() => onNavigate && onNavigate('landing')} 
+          onClick={() => {
+            window.location.href = '/';
+          }} 
           className="px-6 py-2 bg-black text-white font-mono text-[13px] font-bold rounded-sm uppercase tracking-widest hover:bg-black/90 transition-colors"
         >
-          Go Home
+          Create your own chip.ng
         </button>
       </div>
     );
@@ -84,11 +86,13 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       <div className="w-full max-w-[480px] bg-white sm:shadow-2xl overflow-hidden relative min-h-screen flex flex-col border-x border-[#e2e2e2]">
         
         {/* Absolute header for return to dashboard if needed */}
-        <div className="absolute top-4 left-4 z-50">
-          <button onClick={() => onNavigate('admin-overview')} className="bg-white/20 backdrop-blur-md text-white border border-white/30 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm">
-            Back to Dashboard
-          </button>
-        </div>
+        {!username && (
+          <div className="absolute top-4 left-4 z-50">
+            <button onClick={() => onNavigate && onNavigate('user-dashboard')} className="bg-black/50 backdrop-blur-md text-white border border-white/30 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-black/70 transition-colors">
+              Back to Dashboard
+            </button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
           {/* Header Section */}
@@ -96,7 +100,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
             <img 
               src={coverUrl}
               alt={profile?.full_name || "Profile"} 
-              className="w-full h-full object-cover object-top opacity-90 grayscale"
+              className="w-full h-full object-cover object-top opacity-90"
             />
             {/* Smooth fade container at top base */}
             <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent"></div>
@@ -106,24 +110,16 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
               <p className="font-mono text-[14px] text-[#7e7576] font-bold mb-3">@{profile?.username || "username"}</p>
               
               {/* Horizontal Social Links */}
-              <div className="flex flex-wrap justify-center gap-4 mt-2">
-                {socialLinks.map((link, i) => {
-                  const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
-                  const Icon = platformDef?.icon || Globe;
-                  const color = platformDef?.color || '#000000';
-                  return (
-                    <a 
-                      key={i} 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="w-10 h-10 flex items-center justify-center rounded-sm hover:-translate-y-1 transition-transform shadow-md"
-                      style={{ backgroundColor: color, color: '#ffffff' }}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </a>
-                  );
-                })}
+              <div className="flex flex-wrap justify-center gap-3 mt-2">
+                {socialLinks.map((link, i) => (
+                  <SocialIcon 
+                    key={i} 
+                    url={link.url}
+                    target="_blank"
+                    style={{ height: 40, width: 40 }}
+                    className="hover:-translate-y-1 transition-transform"
+                  />
+                ))}
               </div>
             </div>
           </section>
