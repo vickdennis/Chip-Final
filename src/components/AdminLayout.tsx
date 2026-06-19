@@ -46,35 +46,9 @@ export default function AdminLayout({ children, onNavigate, activePath }: AdminL
             <LayoutDashboard className="w-[18px] h-[18px]" />
             Dashboard
           </button>
-
-          
-          <button className="flex items-center gap-3 px-4 py-3 text-[#4c4546] hover:bg-[#e8e8e8] transition-all duration-150 ease-in-out rounded-sm font-mono text-[14px] font-medium">
-            <BarChart3 className="w-[18px] h-[18px]" />
-            Analytics
-          </button>
-          
-          <button className="flex items-center gap-3 px-4 py-3 text-[#4c4546] hover:bg-[#e8e8e8] transition-all duration-150 ease-in-out rounded-sm font-mono text-[14px] font-medium">
-            <Settings className="w-[18px] h-[18px]" />
-            System Settings
-          </button>
-          
-          <button className="flex items-center gap-3 px-4 py-3 text-[#4c4546] hover:bg-[#e8e8e8] transition-all duration-150 ease-in-out rounded-sm font-mono text-[14px] font-medium">
-            <History className="w-[18px] h-[18px]" />
-            Audit Logs
-          </button>
         </nav>
 
         <div className="mt-auto p-4 border-t border-[#cfc4c5]">
-          <button className="w-full bg-black text-white py-3 font-mono text-[14px] font-medium flex items-center justify-center gap-2 rounded-sm hover:opacity-90 transition-opacity mb-2">
-            <Plus className="w-[18px] h-[18px]" />
-            New Report
-          </button>
-          
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-[#4c4546] hover:bg-[#e8e8e8] transition-all duration-150 ease-in-out rounded-sm font-mono text-[14px] font-medium">
-            <HelpCircle className="w-[18px] h-[18px]" />
-            Help
-          </button>
-          
           <button 
             onClick={async () => {
               await supabase.auth.signOut();
