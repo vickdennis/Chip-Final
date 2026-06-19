@@ -10,38 +10,61 @@ export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('landing');
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [publicUsername, setPublicUsername] = useState<string | null>(null);
 
   useEffect(() => {
+    let activeView = currentView;
+    const path = window.location.pathname;
+    if (path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile') {
+      const u = path.slice(1); // remove leading slash
+      setPublicUsername(u);
+      setCurrentView('public-profile');
+      activeView = 'public-profile';
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSessionLoading(false);
-      const isProtected = currentView === 'user-dashboard';
+      const isProtected = activeView === 'user-dashboard';
       if (!session && isProtected) {
         setCurrentView('login');
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const isProtected = currentView === 'user-dashboard';
-      if (!session && isProtected) {
-        setCurrentView('login');
-      } else if (session && (currentView === 'login' || currentView === 'landing')) {
-        setCurrentView('user-dashboard');
-      }
+      // Use functional state update to avoid dependency on currentView
+      setCurrentView((prevView) => {
+        const isProtected = prevView === 'user-dashboard';
+        if (!session && isProtected) {
+          return 'login';
+        } else if (session && (prevView === 'login' || prevView === 'landing')) {
+          return 'user-dashboard';
+        }
+        return prevView;
+      });
     });
 
     return () => subscription.unsubscribe();
-  }, [currentView]);
+  }, []);
 
-  if (sessionLoading) {
+  if (sessionLoading && !publicUsername) {
     return <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-sans flex items-center justify-center">Loading...</div>;
   }
 
+  // Set the browser URL back to root when navigating away from a public profile to a core app view.
+  const handleNavigate = (view: ViewState) => {
+    if (view !== 'public-profile' && publicUsername) {
+      window.history.pushState({}, '', '/');
+      setPublicUsername(null);
+    }
+    setCurrentView(view);
+  };
+
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-sans antialiased selection:bg-black selection:text-white">
-      {currentView === 'landing' && <LandingView onNavigate={setCurrentView} />}
-      {currentView === 'login' && <LoginView onNavigate={setCurrentView} />}
-      {currentView === 'user-dashboard' && <UserDashboard onNavigate={setCurrentView} />}
-      {currentView === 'public-profile' && <PublicProfileView onNavigate={setCurrentView} />}
+      {currentView === 'landing' && <LandingView onNavigate={handleNavigate} />}
+      {currentView === 'login' && <LoginView onNavigate={handleNavigate} />}
+      {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} />}
+      {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
     </div>
   );
 }

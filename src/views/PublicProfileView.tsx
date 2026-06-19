@@ -4,32 +4,55 @@ import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin } fro
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 
-export default function PublicProfileView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
+export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [username]);
 
   const fetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      let targetUserId = null;
+      let profileData = null;
 
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
-      const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
+      if (username) {
+        // Fetch public profile by username
+        const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).single();
+        if (error || !data) {
+          setError('User not found');
+          setLoading(false);
+          return;
+        }
+        profileData = data;
+        targetUserId = data.id;
+      } else {
+        // Fetch own profile
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          if (onNavigate) onNavigate('login');
+          return;
+        }
+        targetUserId = user.id;
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        profileData = { ...data, email: user.email };
+      }
+
+      const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', targetUserId).order('position');
+      const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', targetUserId);
 
       if (profileData) {
-        setProfile({ ...profileData, email: user.email });
+        setProfile(profileData);
       }
       if (linksData) setLinks(linksData);
       if (socialData) setSocialLinks(socialData);
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -37,6 +60,21 @@ export default function PublicProfileView({ onNavigate }: { onNavigate: (view: V
 
   if (loading) {
     return <div className="min-h-screen bg-[#f3f3f4] flex items-center justify-center">Loading...</div>;
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen bg-[#f3f3f4] flex flex-col items-center justify-center text-center p-6">
+        <h1 className="font-display text-4xl font-black mb-2 text-black">Profile Not Found</h1>
+        <p className="font-sans text-[#7e7576] mb-6">We couldn't find a user with this username.</p>
+        <button 
+          onClick={() => onNavigate && onNavigate('landing')} 
+          className="px-6 py-2 bg-black text-white font-mono text-[13px] font-bold rounded-sm uppercase tracking-widest hover:bg-black/90 transition-colors"
+        >
+          Go Home
+        </button>
+      </div>
+    );
   }
 
   const coverUrl = profile?.cover_image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuDJdZfBp08ThhJkbous1qpSV80_ElD1o9obSt5AOKNYgq32sqShFsY95dnIhjpFH1wxwvT4gzXvFAZ_IpKEl5CpME0qIY6tV53q3N41VoqzAapRX3JGVjV8t0xHFVojZGp54nQM3lEGjPU5Ju0AxqQw_8APH-7H5hG-vaOeYzXj3cEc4Wj1y2Dlzf4vx24Nocz6VRMn5bSHI36NCSzRpkwk1SSi4ZCVsbVNmmrSByG2hDIeGzM3OSF92uHwBeAQqdzi0PE4r_i8nQQ";

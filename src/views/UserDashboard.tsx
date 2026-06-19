@@ -100,7 +100,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from('profiles').upsert({
+      const { error: profileError } = await supabase.from('profiles').upsert({
         id: user.id,
         full_name: profile.full_name,
         username: profile.username,
@@ -114,20 +114,28 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
         show_availability: profile.show_availability
       });
 
-      await supabase.from('links').delete().eq('profile_id', user.id);
+      if (profileError) throw profileError;
+
+      const { error: delLinksError } = await supabase.from('links').delete().eq('profile_id', user.id);
+      if (delLinksError) throw delLinksError;
+
       if (links.length > 0) {
-        await supabase.from('links').insert(links.map((l, i) => ({ ...l, profile_id: user.id, position: i })));
+        const { error: insLinksError } = await supabase.from('links').insert(links.map((l, i) => ({ ...l, profile_id: user.id, position: i })));
+        if (insLinksError) throw insLinksError;
       }
 
-      await supabase.from('social_links').delete().eq('profile_id', user.id);
+      const { error: delSocialError } = await supabase.from('social_links').delete().eq('profile_id', user.id);
+      if (delSocialError) throw delSocialError;
+
       if (socialLinks.length > 0) {
-        await supabase.from('social_links').insert(socialLinks.map(s => ({ ...s, profile_id: user.id })));
+        const { error: insSocialError } = await supabase.from('social_links').insert(socialLinks.map(s => ({ ...s, profile_id: user.id })));
+        if (insSocialError) throw insSocialError;
       }
 
       alert('Changes saved successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving: ', error);
-      alert('Error saving changes');
+      alert('Error saving changes: ' + error.message);
     } finally {
       setSaving(false);
     }
