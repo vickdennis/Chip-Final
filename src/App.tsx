@@ -9,17 +9,21 @@ export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>(() => {
-    const path = window.location.pathname;
-    if (path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '') {
+    const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile') {
       return 'public-profile';
     }
     return 'landing';
   });
   const [sessionLoading, setSessionLoading] = useState(true);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
-    const path = window.location.pathname;
-    if (path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '') {
-      return path.slice(1); // remove leading slash
+    const path = window.location.pathname.replace(/\/$/, "");
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile') {
+      try {
+        return decodeURIComponent(path.slice(1));
+      } catch (e) {
+        return path.slice(1);
+      }
     }
     return null;
   });

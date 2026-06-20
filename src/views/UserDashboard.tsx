@@ -282,7 +282,7 @@ END:VCARD`;
                       <input 
                         type="text" 
                         value={profile.username || ''} 
-                        onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                        onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
                         className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
                       />
                     </div>
