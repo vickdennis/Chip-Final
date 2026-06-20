@@ -108,9 +108,23 @@ CREATE POLICY "Users can delete own social links."
 -- Function to automatically create a profile after inserting a user
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
+DECLARE
+  base_username text;
+  final_username text;
+  counter integer := 1;
 BEGIN
+  base_username := split_part(new.email, '@', 1);
+  final_username := base_username;
+
+  -- Ensure unique username
+  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
+    final_username := base_username || counter::text;
+    counter := counter + 1;
+  END LOOP;
+
   INSERT INTO public.profiles (id, full_name, username, headline)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1), 'Tech Professional');
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', final_username, 'Tech Professional');
+  
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
