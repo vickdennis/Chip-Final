@@ -15,6 +15,15 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [prodForm, setProdForm] = useState({ name: '', description: '', price: '', image_url: '' });
 
+  // User form state
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '' });
+
+  // Create user state
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '' });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   useEffect(() => {
     checkAdmin();
   }, []);
@@ -25,6 +34,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
       onNavigate('login');
       return;
     }
+    setCurrentUserId(user.id);
 
     let { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
     
@@ -60,6 +70,44 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
   const toggleAdmin = async (id: string, current: boolean) => {
     const { error } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', id);
     if (!error) fetchData();
+  };
+
+  const handleSaveUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingUser) {
+      await supabase.from('profiles').update({
+        full_name: userForm.full_name,
+        username: userForm.username,
+        headline: userForm.headline
+      }).eq('id', editingUser.id);
+      setEditingUser(null);
+      setUserForm({ full_name: '', username: '', headline: '' });
+      fetchData();
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: newUserForm.email,
+        password: newUserForm.password,
+        options: {
+          data: {
+            full_name: newUserForm.full_name
+          }
+        }
+      });
+      if (error) alert(error.message);
+      else {
+        alert("User created successfully! Note: this logged you in as the new user in Supabase auth temporarily. Please log out and back in as admin if you wish to see your original session.");
+        setCreatingUser(false);
+        setNewUserForm({ email: '', password: '', full_name: '' });
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -148,15 +196,23 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
           <div className="bg-white rounded-md shadow-sm border border-[#cfc4c5] p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold font-sans">User Management</h2>
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#7e7576]" />
-                <input 
-                  type="text" 
-                  placeholder="Search users..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 pr-4 py-2 border border-[#cfc4c5] rounded-md outline-none focus:border-black font-sans text-sm"
-                />
+              <div className="flex gap-4 items-center">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#7e7576]" />
+                  <input 
+                    type="text" 
+                    placeholder="Search users..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 pr-4 py-2 border border-[#cfc4c5] rounded-md outline-none focus:border-black font-sans text-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => setCreatingUser(true)}
+                  className="px-4 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Create User
+                </button>
               </div>
             </div>
 
@@ -211,10 +267,19 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                           </button>
                           <button 
                             onClick={() => toggleAdmin(u.id, u.is_admin)}
-                            className="px-3 py-1 bg-[#f3f3f4] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors"
-                            disabled={u.email === 'vickthor.dennis@gmail.com'}
+                            className="px-3 py-1 bg-[#f3f3f4] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors disabled:opacity-50"
+                            disabled={u.id === currentUserId}
                           >
                             {u.is_admin ? 'Revoke Admin' : 'Make Admin'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingUser(u);
+                              setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '' });
+                            }}
+                            className="px-3 py-1 bg-[#f3f3f4] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
                           </button>
                         </div>
                       </td>
@@ -223,6 +288,68 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                 </tbody>
               </table>
             </div>
+
+            {/* Modals for User Management */}
+            {editingUser && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-md p-6 w-full max-w-md shadow-xl">
+                  <h3 className="font-sans font-bold text-lg mb-4">Edit User Profile</h3>
+                  <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Full Name</label>
+                      <input value={userForm.full_name} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Username</label>
+                      <input value={userForm.username} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Bio</label>
+                      <input value={userForm.headline} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <button type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold">
+                        Save Changes
+                      </button>
+                      <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {creatingUser && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-md p-6 w-full max-w-md shadow-xl">
+                  <h3 className="font-sans font-bold text-lg mb-2">Create New User</h3>
+                  <p className="font-sans text-xs text-[#7e7576] mb-4">Warning: Creating a user will log you in as them temporarily.</p>
+                  <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Email</label>
+                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Password</label>
+                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Full Name</label>
+                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <button type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold">
+                        Create
+                      </button>
+                      <button type="button" onClick={() => setCreatingUser(false)} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
