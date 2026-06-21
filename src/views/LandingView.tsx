@@ -126,16 +126,16 @@ export default function LandingView({ onNavigate }: { onNavigate: (view: ViewSta
         </section>
 
         {/* Featured Shop Products */}
-        {products.length > 0 && (
-          <section className="max-w-5xl w-full mx-auto mt-24">
-            <div className="text-center mb-16">
-              <div className="flex justify-center items-center gap-2 mb-4">
-                <ShoppingBag className="w-8 h-8 text-black" />
-              </div>
-              <h2 className="font-display text-[32px] font-bold text-black mb-3">Premium Shop</h2>
-              <p className="text-[16px] text-[#4c4546]">Discover exclusive features, services, and digital products to boost your presence.</p>
+        <section className="max-w-5xl w-full mx-auto mt-24">
+          <div className="text-center mb-16">
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <ShoppingBag className="w-8 h-8 text-black" />
             </div>
-            
+            <h2 className="font-display text-[32px] font-bold text-black mb-3">CHIP NG Shop</h2>
+            <p className="text-[16px] text-[#4c4546]">Discover exclusive features, services, and digital products to boost your presence.</p>
+          </div>
+          
+          {products.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.map(p => (
                 <div key={p.id} className="border border-[#e2e2e2] bg-white rounded-sm overflow-hidden flex flex-col hover:border-black transition-colors group">
@@ -161,8 +161,12 @@ export default function LandingView({ onNavigate }: { onNavigate: (view: ViewSta
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <div className="text-center py-12 border border-dashed border-[#e2e2e2] rounded-sm text-[#7e7576] text-sm">
+              New products coming soon!
+            </div>
+          )}
+        </section>
         
         {/* Pricing */}
         <section className="max-w-5xl w-full mx-auto mt-24">

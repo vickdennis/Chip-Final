@@ -66,7 +66,17 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-[#f3f3f4] flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-[#f3f3f4] flex flex-col items-center justify-center gap-4">
+        <div className="w-24 h-24 border border-[#e2e2e2] bg-white p-3 rounded-sm shadow-sm overflow-hidden animate-pulse">
+          <img 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
+            alt="CHIP NG Logo" 
+            className="w-full h-full object-contain"
+          />
+        </div>
+      </div>
+    );
   }
 
   if (error || !profile) {
@@ -305,10 +315,10 @@ END:VCARD`;
             <img 
               src={coverUrl}
               alt={profile?.full_name || "Profile"} 
-              className="w-full h-full object-cover object-top opacity-70 mask-image:linear-gradient(to_bottom,black,transparent)"
+              className="w-full h-full object-cover object-top opacity-75 mask-image:linear-gradient(to_bottom,black,transparent)"
             />
             {/* Smooth fade container at top base */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/60 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent"></div>
             
             <div className="absolute bottom-0 w-full left-0 flex flex-col items-center text-center pb-2">
               <h1 className="font-display text-[32px] font-black text-white leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">
@@ -430,6 +440,9 @@ END:VCARD`;
 
         {/* Persistent Footer */}
         <footer className="absolute bottom-0 w-full bg-[#0a0a0a] border-t border-[#1a1a1a] px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
+           <a href="/" className="bg-white text-black px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
+             CREATE YOURS
+           </a>
            <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest text-[#a0a0a0] hover:text-white transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium text-[#505050]">Powered by</span> CHIP NG</a>
            <div className="flex justify-center gap-6">
              <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Privacy Policy</a>
