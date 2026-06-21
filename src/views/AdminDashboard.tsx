@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { supabase } from '../supabaseClient';
+import { supabase, adminAuthClient } from '../supabaseClient';
 import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2 } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -101,25 +101,30 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingUser) {
-      await supabase.from('profiles').update({
+      const { error } = await supabase.from('profiles').update({
         full_name: userForm.full_name,
-        username: userForm.username,
-        headline: userForm.headline,
-        bio: userForm.bio,
-        contact_email: userForm.contact_email,
-        phone_number: userForm.phone_number,
-        cover_image_url: userForm.cover_image_url
+        username: userForm.username || null,
+        headline: userForm.headline || null,
+        bio: userForm.bio || null,
+        contact_email: userForm.contact_email || null,
+        phone_number: userForm.phone_number || null,
+        cover_image_url: userForm.cover_image_url || null
       }).eq('id', editingUser.id);
-      setEditingUser(null);
-      setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
-      fetchData();
+      
+      if (error) {
+        alert("Error updating user: " + error.message);
+      } else {
+        setEditingUser(null);
+        setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
+        fetchData();
+      }
     }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await adminAuthClient.auth.signUp({
         email: newUserForm.email,
         password: newUserForm.password,
         options: {
@@ -133,21 +138,28 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       } else if (data.user) {
         // Give the trigger a moment to run
         await new Promise(r => setTimeout(r, 1000));
-        const { error: innerError } = await supabase.from('profiles').update({
+        
+        const payload: any = {
           full_name: newUserForm.full_name,
-          username: newUserForm.username || undefined,
-          headline: newUserForm.headline || undefined,
-          bio: newUserForm.bio || undefined,
+          headline: newUserForm.headline || null,
+          bio: newUserForm.bio || null,
           contact_email: newUserForm.email,
-          phone_number: newUserForm.phone_number || undefined,
-          cover_image_url: newUserForm.cover_image_url || undefined,
+          phone_number: newUserForm.phone_number || null,
+          cover_image_url: newUserForm.cover_image_url || null,
           is_verified: true
-        }).eq('id', data.user.id);
+        };
+        
+        if (newUserForm.username) {
+          payload.username = newUserForm.username;
+        }
+        
+        // Use main supabase client (admin session) to update newly created profile
+        const { error: innerError } = await supabase.from('profiles').update(payload).eq('id', data.user.id);
         
         if (innerError) {
           alert('User created but failed to update profile details: ' + innerError.message);
         } else {
-          alert("User created! NOTE: Supabase Auth will temporarily change your session to the newly created user unless you handle it externally. Please log out and back in as Admin.");
+          alert("User created successfully!");
         }
         setCreatingUser(false);
         setNewUserForm({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '' });
