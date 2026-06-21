@@ -3,6 +3,8 @@ import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../utils/cropImage';
 import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
@@ -57,6 +59,13 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   useEffect(() => {
     fetchProfileData();
@@ -154,19 +163,40 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setTempImageUrl(reader.result?.toString() || null);
+        setCropModalOpen(true);
+      });
+      reader.readAsDataURL(file);
+      e.target.value = ''; // Reset input
+    }
+  };
+
+  const handleCropSave = async () => {
+    if (!tempImageUrl || !croppedAreaPixels) return;
+    
     try {
       setUploading(true);
-      if (!e.target.files || e.target.files.length === 0) return;
+      setCropModalOpen(false);
       
-      const file = e.target.files[0];
-      const fileExt = file.name.split('.').pop();
+      const croppedImageFile = await getCroppedImg(tempImageUrl, croppedAreaPixels, 0);
+      if (!croppedImageFile) throw new Error("Could not crop the image.");
+
+      const fileExt = 'jpeg';
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('covers')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, croppedImageFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -177,6 +207,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
       alert('Error uploading image: ' + error.message);
     } finally {
       setUploading(false);
+      setTempImageUrl(null);
     }
   };
 
@@ -274,7 +305,7 @@ END:VCARD`;
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={handleImageUpload}
+                            onChange={handleImageSelect}
                             disabled={uploading}
                           />
                         </label>
@@ -705,6 +736,55 @@ END:VCARD`;
         )}
 
       </div>
+      {cropModalOpen && tempImageUrl && (
+        <div className="fixed inset-0 z-[100] bg-black bg-opacity-80 flex items-center justify-center p-4">
+          <div className="bg-white p-4 rounded-md w-full max-w-3xl flex flex-col h-[80vh]">
+            <h3 className="font-display font-bold text-xl mb-4">Crop Cover Image</h3>
+            <div className="relative flex-1 bg-gray-100">
+              <Cropper
+                image={tempImageUrl}
+                crop={crop}
+                zoom={zoom}
+                aspect={16 / 9}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+            <div className="flex items-center gap-4 mt-4">
+              <label className="text-sm font-medium">Zoom</label>
+              <input
+                type="range"
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-labelledby="Zoom"
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                className="px-4 py-2 border border-gray-300 rounded font-medium text-sm hover:bg-gray-50"
+                onClick={() => {
+                  setCropModalOpen(false);
+                  setTempImageUrl(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-black text-white rounded font-medium text-sm flex items-center justify-center min-w-[100px] hover:bg-black/90"
+                disabled={uploading}
+                onClick={handleCropSave}
+              >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply Crop'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
