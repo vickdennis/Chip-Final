@@ -87,21 +87,23 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   };
 
   const toggleVerification = async (id: string, current: boolean) => {
-    const { error } = await supabase.from('profiles').update({ is_verified: !current }).eq('id', id);
+    const { error, count, data } = await supabase.from('profiles').update({ is_verified: !current }).eq('id', id).select('*');
     if (error) alert("Error verifying: " + error.message);
+    else if (!data || data.length === 0) alert("Action failed constraint checks in DB (RLS). Please apply the latest permissions in Supabase SQL editor.");
     else fetchData();
   };
 
   const toggleAdmin = async (id: string, current: boolean) => {
-    const { error } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', id);
+    const { error, count, data } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', id).select('*');
     if (error) alert("Error making admin: " + error.message);
+    else if (!data || data.length === 0) alert("Action failed constraint checks in DB (RLS). Please apply the latest permissions in Supabase SQL editor.");
     else fetchData();
   };
 
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingUser) {
-      const { error } = await supabase.from('profiles').update({
+      const { error, count, data } = await supabase.from('profiles').update({
         full_name: userForm.full_name,
         username: userForm.username || null,
         headline: userForm.headline || null,
@@ -109,10 +111,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         contact_email: userForm.contact_email || null,
         phone_number: userForm.phone_number || null,
         cover_image_url: userForm.cover_image_url || null
-      }).eq('id', editingUser.id);
+      }).eq('id', editingUser.id).select('*');
       
       if (error) {
         alert("Error updating user: " + error.message);
+      } else if (!data || data.length === 0) {
+        alert("Update failed! Row-level security prevented modification. Please apply the updated supabase_schema.sql policies.");
       } else {
         setEditingUser(null);
         setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });

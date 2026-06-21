@@ -49,7 +49,7 @@ CREATE POLICY "Users can insert their own profile."
 
 CREATE POLICY "Users can update own profile."
   ON public.profiles FOR UPDATE
-  USING ( auth.uid() = id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+  USING ( auth.uid() = id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 -- Products Table
 CREATE TABLE public.products (
@@ -71,15 +71,15 @@ CREATE POLICY "Products are viewable by everyone."
 
 CREATE POLICY "Admins can insert products."
   ON public.products FOR INSERT
-  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 CREATE POLICY "Admins can update products."
   ON public.products FOR UPDATE
-  USING ( EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 CREATE POLICY "Admins can delete products."
   ON public.products FOR DELETE
-  USING ( EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 -- Links Table
 CREATE TABLE public.links (
