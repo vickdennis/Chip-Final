@@ -62,8 +62,8 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black dark:bg-white relative">
-      <div className="w-full md:w-1/2 lg:w-5/12 flex flex-col justify-center px-8 sm:px-16 py-12 md:py-0 relative z-10 bg-white dark:bg-black dark:bg-white">
+    <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black relative">
+      <div className="w-full md:w-1/2 lg:w-5/12 flex flex-col justify-center px-8 sm:px-16 py-12 md:py-0 relative z-10 bg-white dark:bg-black">
         <div className="max-w-md w-full mx-auto">
           
           <div className="absolute top-8 right-8 z-50">
@@ -152,7 +152,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black dark:bg-white dark:bg-white text-white dark:text-black font-mono text-[14px] font-medium rounded-sm px-4 py-3.5 hover:opacity-90 active:translate-y-px transition-all disabled:opacity-70"
+                className="w-full bg-black dark:bg-white text-white dark:text-black font-mono text-[14px] font-medium rounded-sm px-4 py-3.5 hover:opacity-90 active:translate-y-px transition-all disabled:opacity-70"
               >
                 {loading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Sign Up')}
               </button>
