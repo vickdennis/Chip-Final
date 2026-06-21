@@ -437,15 +437,16 @@ END:VCARD`;
               <div className="p-6 flex flex-col gap-4">
                 <div className="space-y-4 mb-4">
                   <div className="space-y-2">
-                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Display Style</label>
+                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Icon Style</label>
                     <select 
-                      value={profile.social_links_style || 'inline'}
+                      value={profile.social_links_style || 'color-circle'}
                       onChange={(e) => setProfile({ ...profile, social_links_style: e.target.value })}
                       className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[13px] outline-none focus:border-black"
                     >
-                      <option value="inline">Inline (Icons only)</option>
-                      <option value="list">List (Stacked boxes)</option>
-                      <option value="grid">Grid</option>
+                      <option value="color-circle">Color Circle</option>
+                      <option value="white-circle">White Circle</option>
+                      <option value="white-icon">Solid White</option>
+                      <option value="original">Original Colors</option>
                     </select>
                   </div>
                   <div className="flex items-center gap-3 bg-[#f9f9f9] p-3 rounded-sm border border-[#e2e2e2]">
@@ -462,8 +463,36 @@ END:VCARD`;
                 
                 <div className="border-t border-[#e2e2e2] pt-4"></div>
 
-                {socialLinks.map((item, i) => (
+                {socialLinks.map((item, i) => {
+                  const platformDef = SOCIAL_PLATFORMS.find(p => p.name === item.platform) || SOCIAL_PLATFORMS[0];
+                  const Icon = platformDef.icon;
+                  const color = platformDef.color;
+                  const style = profile.social_links_style || 'color-circle';
+                  
+                  return (
                   <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                    <div className="shrink-0 flex items-center justify-center bg-[#f3f3f4] rounded-sm p-1">
+                      {style === 'color-circle' && (
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full" style={{ backgroundColor: color, color: '#ffffff' }}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      )}
+                      {style === 'white-circle' && (
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm" style={{ color: color }}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      )}
+                      {style === 'white-icon' && (
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-black" style={{ color: '#ffffff' }}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      )}
+                      {style === 'original' && (
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white" style={{ color: color }}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      )}
+                    </div>
                     <select 
                       value={item.platform}
                       onChange={(e) => {
@@ -506,7 +535,8 @@ END:VCARD`;
                       <Trash2 className="w-[16px] h-[16px]" />
                     </button>
                   </div>
-                ))}
+                  );
+                })}
                 {socialLinks.length === 0 && (
                   <div className="text-center py-4 text-[#7e7576] font-mono text-[13px]">
                     No social links added.

@@ -119,81 +119,71 @@ END:VCARD`;
   };
 
   const renderSocialLinks = () => {
-    const style = profile?.social_links_style || 'inline';
+    const style = profile?.social_links_style || 'color-circle';
 
-    if (style === 'grid') {
-      return (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4 w-full px-6">
-          {socialLinks.map((link, i) => {
-            const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
-            const Icon = platformDef?.icon || Globe;
-            const color = platformDef?.color || '#333333';
-            return (
-              <a 
-                key={i} 
-                href={link.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="aspect-square flex flex-col items-center justify-center gap-2 rounded-xl transition-transform hover:-translate-y-1"
-                style={{ backgroundColor: color, color: '#ffffff' }}
-              >
-                <Icon className="w-6 h-6" />
-                <span className="font-mono text-[10px] uppercase font-bold tracking-wider">{link.platform}</span>
-              </a>
-            );
-          })}
-        </div>
-      );
-    }
-
-    if (style === 'list') {
-      return (
-        <div className="flex flex-col gap-3 mt-4 w-full px-6">
-          {socialLinks.map((link, i) => {
-            const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
-            const Icon = platformDef?.icon || Globe;
-            const color = platformDef?.color || '#333333';
-            return (
-              <a 
-                key={i} 
-                href={link.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center p-3 rounded-xl transition-transform hover:-translate-y-1 shadow-md w-full"
-                style={{ backgroundColor: color, color: '#ffffff' }}
-              >
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-3">
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="font-sans text-[15px] font-bold flex-1">{link.platform}</span>
-                {link.follower_count > 0 && profile?.show_total_followers && (
-                  <span className="font-mono text-[11px] font-bold opacity-80">{formatFollowers(link.follower_count)} followers</span>
-                )}
-                <ExternalLink className="w-4 h-4 opacity-50 ml-2" />
-              </a>
-            );
-          })}
-        </div>
-      );
-    }
-
-    // Default inline
     return (
-      <div className="flex flex-wrap justify-center gap-3 mt-4 px-6">
+      <div className="flex flex-wrap justify-center gap-3 mt-4 px-6 z-10 relative">
         {socialLinks.map((link, i) => {
           const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
           const Icon = platformDef?.icon || Globe;
           const color = platformDef?.color || '#333333';
+          
+          let iconContent;
+          if (style === 'color-circle') {
+            iconContent = (
+              <div 
+                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md"
+                style={{ backgroundColor: color, color: '#ffffff' }}
+              >
+                <Icon className="w-6 h-6" />
+              </div>
+            );
+          } else if (style === 'white-circle') {
+             iconContent = (
+              <div 
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-white hover:-translate-y-1 transition-transform shadow-md"
+                style={{ color: color }}
+              >
+                <Icon className="w-6 h-6" />
+              </div>
+            );
+          } else if (style === 'white-icon') {
+             iconContent = (
+              <div 
+                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform text-white opacity-90 hover:opacity-100"
+              >
+                <Icon className="w-8 h-8" />
+              </div>
+            );
+          } else if (style === 'original') {
+             iconContent = (
+              <div 
+                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                style={{ color: color }}
+              >
+                <Icon className="w-6 h-6" />
+              </div>
+            );
+          } else {
+            // Default
+            iconContent = (
+              <div 
+                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md"
+                style={{ backgroundColor: color, color: '#ffffff' }}
+              >
+                <Icon className="w-6 h-6" />
+              </div>
+            );
+          }
+
           return (
             <a 
               key={i} 
               href={link.url} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="w-12 h-12 flex items-center justify-center rounded-2xl hover:-translate-y-1 transition-transform shadow-md"
-              style={{ backgroundColor: color, color: '#ffffff' }}
             >
-              <Icon className="w-6 h-6" />
+              {iconContent}
             </a>
           );
         })}
