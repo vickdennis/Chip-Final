@@ -1,8 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle } from 'lucide-react';
+import { supabase } from '../supabaseClient';
+import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle, ShoppingBag } from 'lucide-react';
 
 export default function LandingView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false }).limit(4);
+    if (data) setProducts(data);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f9f9f9]">
       <nav className="flex justify-between items-center px-8 py-4 w-full sticky top-0 z-50 bg-[#f9f9f9]/80 backdrop-blur-md border-b border-[#e2e2e2]">
@@ -112,6 +124,45 @@ export default function LandingView({ onNavigate }: { onNavigate: (view: ViewSta
             </div>
           </div>
         </section>
+
+        {/* Featured Shop Products */}
+        {products.length > 0 && (
+          <section className="max-w-5xl w-full mx-auto mt-24">
+            <div className="text-center mb-16">
+              <div className="flex justify-center items-center gap-2 mb-4">
+                <ShoppingBag className="w-8 h-8 text-black" />
+              </div>
+              <h2 className="font-display text-[32px] font-bold text-black mb-3">Premium Shop</h2>
+              <p className="text-[16px] text-[#4c4546]">Discover exclusive features, services, and digital products to boost your presence.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map(p => (
+                <div key={p.id} className="border border-[#e2e2e2] bg-white rounded-sm overflow-hidden flex flex-col hover:border-black transition-colors group">
+                  <div className="h-48 bg-[#f3f3f4] relative overflow-hidden">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-[#7e7576]">
+                        <ShoppingBag className="w-8 h-8 opacity-20" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5 flex flex-col flex-grow">
+                    <h3 className="font-bold font-sans text-[16px] text-black mb-2">{p.name}</h3>
+                    <p className="text-[13px] text-[#7e7576] mb-4 flex-grow line-clamp-2">{p.description}</p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="font-display font-bold text-[18px]">₦{p.price.toLocaleString()}</span>
+                      <button onClick={() => onNavigate('login')} className="bg-black text-white px-3 py-1.5 rounded-sm font-mono text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         
         {/* Pricing */}
         <section className="max-w-5xl w-full mx-auto mt-24">

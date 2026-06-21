@@ -17,12 +17,36 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
 
   // User form state
   const [editingUser, setEditingUser] = useState<any>(null);
-  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '' });
+  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', contact_email: '', phone_number: '', cover_image_url: '' });
 
   // Create user state
   const [creatingUser, setCreatingUser] = useState(false);
-  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '' });
+  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '', username: '', headline: '', phone_number: '', cover_image_url: '' });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, bucket: string = 'covers') => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    setUploadingImage(true);
+    try {
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file);
+      if (uploadError) {
+        throw uploadError;
+      }
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      setter(data.publicUrl);
+    } catch (error: any) {
+      alert("Error uploading image: " + error.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     checkAdmin();
@@ -78,10 +102,13 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
       await supabase.from('profiles').update({
         full_name: userForm.full_name,
         username: userForm.username,
-        headline: userForm.headline
+        headline: userForm.headline,
+        contact_email: userForm.contact_email,
+        phone_number: userForm.phone_number,
+        cover_image_url: userForm.cover_image_url
       }).eq('id', editingUser.id);
       setEditingUser(null);
-      setUserForm({ full_name: '', username: '', headline: '' });
+      setUserForm({ full_name: '', username: '', headline: '', contact_email: '', phone_number: '', cover_image_url: '' });
       fetchData();
     }
   };
@@ -99,10 +126,22 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
         }
       });
       if (error) alert(error.message);
-      else {
-        alert("User created successfully! Note: this logged you in as the new user in Supabase auth temporarily. Please log out and back in as admin if you wish to see your original session.");
+      else if (data.user) {
+        // Give the trigger a moment to run
+        await new Promise(r => setTimeout(r, 1000));
+        await supabase.from('profiles').update({
+          full_name: newUserForm.full_name,
+          username: newUserForm.username || undefined,
+          headline: newUserForm.headline,
+          contact_email: newUserForm.email,
+          phone_number: newUserForm.phone_number,
+          cover_image_url: newUserForm.cover_image_url,
+          is_verified: true // Optional: might default to true if created by admin
+        }).eq('id', data.user.id);
+        
+        alert("User created! NOTE: Supabase Auth will temporarily change your session to the newly created user unless you handle it externally. Please log out and back in as Admin.");
         setCreatingUser(false);
-        setNewUserForm({ email: '', password: '', full_name: '' });
+        setNewUserForm({ email: '', password: '', full_name: '', username: '', headline: '', phone_number: '', cover_image_url: '' });
         fetchData();
       }
     } catch (err) {
@@ -291,25 +330,46 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
 
             {/* Modals for User Management */}
             {editingUser && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-md p-6 w-full max-w-md shadow-xl">
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white rounded-md p-6 w-full max-w-md shadow-xl my-8">
                   <h3 className="font-sans font-bold text-lg mb-4">Edit User Profile</h3>
                   <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Full Name</label>
-                      <input value={userForm.full_name} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Username</label>
-                      <input value={userForm.username} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Bio</label>
-                      <input value={userForm.headline} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Contact Email</label>
+                      <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Phone Number</label>
+                      <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Cover Image</label>
+                      {userForm.cover_image_url && <img src={userForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-sm" />}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, (url) => setUserForm({...userForm, cover_image_url: url}))}
+                        className="w-full text-[13px]" 
+                      />
+                      {userForm.cover_image_url && (
+                        <input value={userForm.cover_image_url || ''} onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} className="w-full mt-2 px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" placeholder="Or paste image URL..." />
+                      )}
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <button type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold">
-                        Save Changes
+                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
+                        {uploadingImage ? 'Uploading...' : 'Save Changes'}
                       </button>
                       <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">
                         Cancel
@@ -321,26 +381,48 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
             )}
 
             {creatingUser && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-md p-6 w-full max-w-md shadow-xl">
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white rounded-md p-6 w-full max-w-md shadow-xl my-8">
                   <h3 className="font-sans font-bold text-lg mb-2">Create New User</h3>
                   <p className="font-sans text-xs text-[#7e7576] mb-4">Warning: Creating a user will log you in as them temporarily.</p>
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Email</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Email *</label>
                       <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Password</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Password *</label>
                       <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Full Name</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Full Name *</label>
                       <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Username</label>
+                      <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Phone Number</label>
+                      <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Bio</label>
+                      <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Cover Image</label>
+                      {newUserForm.cover_image_url && <img src={newUserForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-sm" />}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, (url) => setNewUserForm({...newUserForm, cover_image_url: url}))}
+                        className="w-full text-[13px]" 
+                      />
+                    </div>
                     <div className="flex gap-2 mt-4">
-                      <button type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold">
-                        Create
+                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
+                        {uploadingImage ? 'Uploading...' : 'Create User'}
                       </button>
                       <button type="button" onClick={() => setCreatingUser(false)} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">
                         Cancel
@@ -367,16 +449,26 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                   <input required type="number" step="0.01" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Image URL</label>
-                  <input value={prodForm.image_url} onChange={e=>setProdForm({...prodForm, image_url: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Image Upload</label>
+                  {prodForm.image_url && <img src={prodForm.image_url} className="w-full h-24 object-cover mb-2 rounded-sm border border-[#cfc4c5]" />}
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, (url) => setProdForm({...prodForm, image_url: url}), 'products')}
+                    className="w-full text-[13px]" 
+                  />
+                  <div className="mt-2">
+                    <label className="block font-mono text-[10px] font-bold text-[#7e7576] uppercase mb-1">Or Image URL</label>
+                    <input value={prodForm.image_url} onChange={e=>setProdForm({...prodForm, image_url: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[12px] font-sans" />
+                  </div>
                 </div>
                 <div>
                   <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Description</label>
                   <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold">
-                    {editingProduct ? 'Update' : 'Create'}
+                  <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
+                    {uploadingImage ? 'Uploading...' : (editingProduct ? 'Update' : 'Create')}
                   </button>
                   {editingProduct && (
                     <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', image_url:''}); }} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">

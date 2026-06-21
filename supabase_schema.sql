@@ -171,19 +171,22 @@ CREATE TRIGGER on_auth_user_created
 
 -- Storage setup for Profile Covers
 INSERT INTO storage.buckets (id, name, public) VALUES ('covers', 'covers', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('products', 'products', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT DO NOTHING;
 
-CREATE POLICY "Cover images are publicly accessible."
+CREATE POLICY "Storage is publicly accessible."
   ON storage.objects FOR SELECT
-  USING ( bucket_id = 'covers' );
+  USING ( bucket_id IN ('covers', 'products', 'avatars') );
 
-CREATE POLICY "Users can upload their own cover."
+CREATE POLICY "Authenticated users can upload."
   ON storage.objects FOR INSERT
-  WITH CHECK ( bucket_id = 'covers' AND auth.uid() = owner );
+  WITH CHECK ( bucket_id IN ('covers', 'products', 'avatars') AND auth.uid() IS NOT NULL );
 
-CREATE POLICY "Users can update their own cover."
+CREATE POLICY "Authenticated users can update."
   ON storage.objects FOR UPDATE
-  USING ( bucket_id = 'covers' AND auth.uid() = owner );
+  USING ( bucket_id IN ('covers', 'products', 'avatars') AND auth.uid() IS NOT NULL );
 
-CREATE POLICY "Users can delete their own cover."
+CREATE POLICY "Authenticated users can delete."
   ON storage.objects FOR DELETE
-  USING ( bucket_id = 'covers' AND auth.uid() = owner );
+  USING ( bucket_id IN ('covers', 'products', 'avatars') AND auth.uid() IS NOT NULL );
+
