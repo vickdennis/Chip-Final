@@ -17,11 +17,11 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
 
   // User form state
   const [editingUser, setEditingUser] = useState<any>(null);
-  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', contact_email: '', phone_number: '', cover_image_url: '' });
+  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
 
   // Create user state
   const [creatingUser, setCreatingUser] = useState(false);
-  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '', username: '', headline: '', phone_number: '', cover_image_url: '' });
+  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '' });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -88,12 +88,14 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
 
   const toggleVerification = async (id: string, current: boolean) => {
     const { error } = await supabase.from('profiles').update({ is_verified: !current }).eq('id', id);
-    if (!error) fetchData();
+    if (error) alert("Error verifying: " + error.message);
+    else fetchData();
   };
 
   const toggleAdmin = async (id: string, current: boolean) => {
     const { error } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', id);
-    if (!error) fetchData();
+    if (error) alert("Error making admin: " + error.message);
+    else fetchData();
   };
 
   const handleSaveUser = async (e: React.FormEvent) => {
@@ -103,12 +105,13 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
         full_name: userForm.full_name,
         username: userForm.username,
         headline: userForm.headline,
+        bio: userForm.bio,
         contact_email: userForm.contact_email,
         phone_number: userForm.phone_number,
         cover_image_url: userForm.cover_image_url
       }).eq('id', editingUser.id);
       setEditingUser(null);
-      setUserForm({ full_name: '', username: '', headline: '', contact_email: '', phone_number: '', cover_image_url: '' });
+      setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
       fetchData();
     }
   };
@@ -125,23 +128,29 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
           }
         }
       });
-      if (error) alert(error.message);
-      else if (data.user) {
+      if (error) {
+        alert("Sign up error: " + error.message);
+      } else if (data.user) {
         // Give the trigger a moment to run
         await new Promise(r => setTimeout(r, 1000));
-        await supabase.from('profiles').update({
+        const { error: innerError } = await supabase.from('profiles').update({
           full_name: newUserForm.full_name,
           username: newUserForm.username || undefined,
-          headline: newUserForm.headline,
+          headline: newUserForm.headline || undefined,
+          bio: newUserForm.bio || undefined,
           contact_email: newUserForm.email,
-          phone_number: newUserForm.phone_number,
-          cover_image_url: newUserForm.cover_image_url,
-          is_verified: true // Optional: might default to true if created by admin
+          phone_number: newUserForm.phone_number || undefined,
+          cover_image_url: newUserForm.cover_image_url || undefined,
+          is_verified: true
         }).eq('id', data.user.id);
         
-        alert("User created! NOTE: Supabase Auth will temporarily change your session to the newly created user unless you handle it externally. Please log out and back in as Admin.");
+        if (innerError) {
+          alert('User created but failed to update profile details: ' + innerError.message);
+        } else {
+          alert("User created! NOTE: Supabase Auth will temporarily change your session to the newly created user unless you handle it externally. Please log out and back in as Admin.");
+        }
         setCreatingUser(false);
-        setNewUserForm({ email: '', password: '', full_name: '', username: '', headline: '', phone_number: '', cover_image_url: '' });
+        setNewUserForm({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '' });
         fetchData();
       }
     } catch (err) {
@@ -314,7 +323,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                           <button
                             onClick={() => {
                               setEditingUser(u);
-                              setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '' });
+                              setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '', bio: u.bio || '', contact_email: u.contact_email || '', phone_number: u.phone_number || '', cover_image_url: u.cover_image_url || '' });
                             }}
                             className="px-3 py-1 bg-[#f3f3f4] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
                           >
@@ -343,8 +352,12 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                       <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Bio</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Job Title</label>
                       <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Bio</label>
+                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Contact Email</label>
@@ -407,8 +420,12 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                       <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Bio</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Headline/Job Title</label>
                       <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Bio</label>
+                      <textarea rows={3} value={newUserForm.bio} onChange={e => setNewUserForm({...newUserForm, bio: e.target.value})} placeholder="Optional bio" className="w-full px-3 py-2 border border-[#cfc4c5] rounded-sm text-[13px] font-sans" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase mb-1">Cover Image</label>
@@ -454,7 +471,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                   <input 
                     type="file" 
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(e, (url) => setProdForm({...prodForm, image_url: url}), 'products')}
+                    onChange={(e) => handleImageUpload(e, (url) => setProdForm({...prodForm, image_url: url}), 'covers')}
                     className="w-full text-[13px]" 
                   />
                   <div className="mt-2">

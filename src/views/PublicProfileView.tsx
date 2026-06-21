@@ -337,6 +337,12 @@ END:VCARD`;
           <section className="px-6 flex flex-col items-center pt-8">
             <div className="flex flex-col items-center mb-10 w-full">
               <div className="w-full h-px bg-gradient-to-r from-transparent via-[#333] to-transparent my-6"></div>
+              
+              {profile?.bio && (
+                <div className="mb-4 text-center max-w-sm">
+                  <p className="font-sans text-[14px] text-[#e0e0e0] leading-relaxed">{profile.bio}</p>
+                </div>
+              )}
             </div>
 
             {/* Contact/Connect Action Strip */}

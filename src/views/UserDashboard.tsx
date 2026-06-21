@@ -90,6 +90,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
           email: user.email || '',
           username: user.email?.split('@')[0] || '',
           headline: '',
+          bio: '',
           contact_email: '',
           phone_number: '',
           address: '',
@@ -123,6 +124,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
         full_name: profile.full_name,
         username: profile.username,
         headline: profile.headline,
+        bio: profile.bio || '',
         cover_image_url: coverUrl,
         contact_email: profile.contact_email,
         phone_number: profile.phone_number,
@@ -345,6 +347,15 @@ END:VCARD`;
                         value={profile.headline || ''}
                         onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
                         className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Bio / About Me</label>
+                      <textarea 
+                        rows={3}
+                        value={profile.bio || ''}
+                        onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black resize-none"
                       />
                     </div>
                   </div>

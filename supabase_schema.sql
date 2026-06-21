@@ -13,6 +13,7 @@ CREATE TABLE public.profiles (
   full_name TEXT,
   username TEXT UNIQUE,
   headline TEXT,
+  bio TEXT,
   cover_image_url TEXT,
   contact_email TEXT,
   phone_number TEXT,
