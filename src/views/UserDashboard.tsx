@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share } from 'lucide-react';
+import { PaystackButton } from 'react-paystack';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -356,22 +357,34 @@ END:VCARD`;
                         <h4 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-1">Verification Badge</h4>
                         <p className="text-[13px] text-[#4c4546]">Get verified for ₦3000/month</p>
                       </div>
-                      <button
-                        onClick={() => {
-                          if (!profile.is_verified) {
-                            if (window.confirm('Confirm mock payment of ₦3000 to get verified?')) {
+                      <div>
+                        {profile.is_verified ? (
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Cancel your verification subscription?')) {
+                                setProfile({ ...profile, is_verified: false });
+                              }
+                            }}
+                            className="px-4 py-2 font-mono text-[12px] font-bold rounded-sm transition-colors bg-white border border-[#cfc4c5] text-black hover:bg-[#f3f3f4]"
+                          >
+                            Cancel Subscription
+                          </button>
+                        ) : (
+                          <PaystackButton
+                            reference={(new Date()).getTime().toString()}
+                            email={profile.contact_email || profile.email || 'user@example.com'}
+                            amount={3000 * 100}
+                            publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                            text="Get Verified"
+                            onSuccess={(ref) => {
                               setProfile({ ...profile, is_verified: true });
-                            }
-                          } else {
-                            if (window.confirm('Cancel your verification subscription?')) {
-                              setProfile({ ...profile, is_verified: false });
-                            }
-                          }
-                        }}
-                        className={`px-4 py-2 font-mono text-[12px] font-bold rounded-sm transition-colors ${profile.is_verified ? 'bg-white border border-[#cfc4c5] text-black hover:bg-[#f3f3f4]' : 'bg-[#0052CC] text-white hover:bg-[#0047b3]'}`}
-                      >
-                        {profile.is_verified ? 'Cancel Subscription' : 'Get Verified'}
-                      </button>
+                              alert('Payment successful! You are now verified.');
+                            }}
+                            onClose={() => {}}
+                            className="px-4 py-2 font-mono text-[12px] font-bold rounded-sm transition-colors text-white hover:bg-[#0047b3] bg-[#0052CC]"
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -660,12 +673,18 @@ END:VCARD`;
                         <span className="font-mono text-[11px] font-bold text-black bg-[#f3f3f4] px-1.5 py-0.5 rounded-sm self-start mb-1 leading-none">₦{p.price}</span>
                         <p className="text-[12px] text-[#7e7576] line-clamp-2">{p.description}</p>
                       </div>
-                      <button 
-                         onClick={() => alert(`Purchasing ${p.name}... This feature will process payment.`)}
+                      <PaystackButton
+                         reference={(new Date()).getTime().toString() + '_' + p.id}
+                         email={profile.contact_email || profile.email || 'user@example.com'}
+                         amount={Math.round(p.price * 100)}
+                         publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                         text="Buy"
+                         onSuccess={(ref) => {
+                           alert(`Thank you for purchasing ${p.name}! Your payment was successful.`);
+                         }}
+                         onClose={() => {}}
                          className="self-center px-4 py-1.5 bg-black text-white font-mono text-[11px] font-bold rounded-sm whitespace-nowrap hover:bg-black/80"
-                      >
-                         Buy
-                      </button>
+                      />
                     </div>
                   ))}
                   {products.length === 0 && (

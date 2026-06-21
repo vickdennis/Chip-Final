@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewState } from '../App';
-import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star } from 'lucide-react';
+import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle } from 'lucide-react';
 
 export default function LandingView({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
   return (
@@ -113,6 +113,73 @@ export default function LandingView({ onNavigate }: { onNavigate: (view: ViewSta
           </div>
         </section>
         
+        {/* Pricing */}
+        <section className="max-w-5xl w-full mx-auto mt-24">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-[32px] font-bold text-black mb-3">Simple, Transparent Pricing</h2>
+            <p className="text-[16px] text-[#4c4546]">Start for free, upgrade when you need more power.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Tier */}
+            <div className="border border-[#e2e2e2] bg-white p-8 rounded-sm flex flex-col">
+              <h3 className="font-mono text-[14px] font-bold text-[#4c4546] uppercase tracking-widest mb-4">Basic</h3>
+              <div className="mb-6 flex items-baseline gap-2">
+                <span className="font-display text-[48px] font-black text-black leading-none">Free</span>
+              </div>
+              <p className="text-[16px] text-[#4c4546] mb-8">Everything you need to launch your digital presence.</p>
+              <ul className="flex flex-col gap-4 mb-8 flex-grow">
+                <li className="flex items-center gap-3 text-[15px] text-black">
+                   <div className="w-5 h-5 rounded-full bg-[#f3f3f4] flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-black"></div></div>
+                   Unlimited Links
+                </li>
+                <li className="flex items-center gap-3 text-[15px] text-black">
+                   <div className="w-5 h-5 rounded-full bg-[#f3f3f4] flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-black"></div></div>
+                   Custom chipng.com/username
+                </li>
+                <li className="flex items-center gap-3 text-[15px] text-black">
+                   <div className="w-5 h-5 rounded-full bg-[#f3f3f4] flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-black"></div></div>
+                   Basic Analytics
+                </li>
+              </ul>
+              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#f3f3f4] text-black font-mono text-[14px] font-bold rounded-sm hover:bg-[#e2e2e2] transition-colors">
+                Get Started
+              </button>
+            </div>
+
+            {/* Pro Tier */}
+            <div className="border-2 border-black bg-black text-white p-8 rounded-sm flex flex-col relative">
+              <div className="absolute top-0 right-0 bg-[#FFB800] text-black font-mono text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-sm">Popular</div>
+              <h3 className="font-mono text-[14px] font-bold text-white/70 uppercase tracking-widest mb-4">Pro</h3>
+              <div className="mb-6 flex items-baseline gap-2">
+                <span className="font-display text-[48px] font-black text-white leading-none">₦3000</span>
+                <span className="text-[16px] text-white/70">/ month</span>
+              </div>
+              <p className="text-[16px] text-white/80 mb-8">Unlock verification, premium features, and shop integration.</p>
+              <ul className="flex flex-col gap-4 mb-8 flex-grow">
+                <li className="flex items-center gap-3 text-[15px] text-white">
+                   <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
+                   Everything in Basic
+                </li>
+                <li className="flex items-center gap-3 text-[15px] text-white">
+                   <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
+                   Verification Badge
+                </li>
+                <li className="flex items-center gap-3 text-[15px] text-white">
+                   <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
+                   Sell Products in Shop
+                </li>
+                <li className="flex items-center gap-3 text-[15px] text-white">
+                   <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
+                   Advanced Analytics
+                </li>
+              </ul>
+              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#FFB800] text-black font-mono text-[14px] font-bold rounded-sm hover:bg-[#e6a600] transition-colors">
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Testimonials */}
         <section className="max-w-5xl w-full mx-auto mt-24 mb-16">
           <div className="text-center mb-16">
@@ -195,8 +262,19 @@ export default function LandingView({ onNavigate }: { onNavigate: (view: ViewSta
 
       <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-white border-t border-[#e2e2e2]">
         <div className="mb-6 md:mb-0 text-center md:text-left">
-          <span className="font-display text-[20px] font-black text-black block mb-1 tracking-tight">ChipNG</span>
-          <p className="text-[14px] text-[#4c4546]">© 2026 ChipNG. Elevating African Professionals.</p>
+          <span className="font-display text-[20px] font-black text-black block mb-1 tracking-tight">CHIP NG</span>
+          <p className="text-[14px] text-[#4c4546] mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
+          <div className="flex items-center justify-center md:justify-start gap-4 text-[#4c4546]">
+            <a href="tel:08100764154" className="flex items-center gap-1.5 hover:text-black transition-colors">
+              <Phone className="w-4 h-4" />
+              <span className="text-[14px] font-medium font-mono">08100764154</span>
+            </a>
+            <a href="https://tiktok.com/@chipng_app" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-black transition-colors">
+              {/* Premium TikTok SVG Icon */}
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
+              <span className="text-[14px] font-medium font-mono">@chipng_app</span>
+            </a>
+          </div>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
           <a href="#" className="text-[14px] text-[#4c4546] hover:text-black font-medium transition-colors">Privacy Policy</a>

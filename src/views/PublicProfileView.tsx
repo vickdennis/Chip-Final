@@ -422,10 +422,13 @@ END:VCARD`;
         </div>
 
         {/* Persistent Footer */}
-        <footer className="absolute bottom-0 w-full bg-[#0a0a0a] border-t border-[#1a1a1a] px-6 py-5 flex justify-center gap-6 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
-           <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Privacy Policy</a>
-           <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Terms</a>
-           <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Report</a>
+        <footer className="absolute bottom-0 w-full bg-[#0a0a0a] border-t border-[#1a1a1a] px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
+           <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest text-[#a0a0a0] hover:text-white transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium text-[#505050]">Powered by</span> CHIP NG</a>
+           <div className="flex justify-center gap-6">
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Privacy Policy</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Terms</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Report</a>
+           </div>
         </footer>
 
       </div>
