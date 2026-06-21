@@ -82,7 +82,10 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
           address: '',
           booking_provider: 'Calendly (Integrated)',
           calendar_link: '',
-          show_availability: true
+          show_availability: true,
+          show_total_followers: false,
+          social_links_style: 'inline',
+          is_verified: false
         });
       }
       if (linksData) setLinks(linksData);
@@ -111,7 +114,10 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
         address: profile.address,
         booking_provider: profile.booking_provider,
         calendar_link: profile.calendar_link,
-        show_availability: profile.show_availability
+        show_availability: profile.show_availability,
+        show_total_followers: profile.show_total_followers,
+        social_links_style: profile.social_links_style,
+        is_verified: profile.is_verified
       });
 
       if (profileError) throw profileError;
@@ -329,6 +335,31 @@ END:VCARD`;
                       />
                     </div>
                   </div>
+                  
+                  <div className="pt-6 border-t border-[#e2e2e2]">
+                    <div className="flex items-center justify-between p-4 bg-[#f9f9f9] border border-[#e2e2e2] rounded-sm">
+                      <div>
+                        <h4 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-1">Verification Badge</h4>
+                        <p className="text-[13px] text-[#4c4546]">Get verified for ₦3000/month</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (!profile.is_verified) {
+                            if (window.confirm('Confirm mock payment of ₦3000 to get verified?')) {
+                              setProfile({ ...profile, is_verified: true });
+                            }
+                          } else {
+                            if (window.confirm('Cancel your verification subscription?')) {
+                              setProfile({ ...profile, is_verified: false });
+                            }
+                          }
+                        }}
+                        className={`px-4 py-2 font-mono text-[12px] font-bold rounded-sm transition-colors ${profile.is_verified ? 'bg-white border border-[#cfc4c5] text-black hover:bg-[#f3f3f4]' : 'bg-[#0052CC] text-white hover:bg-[#0047b3]'}`}
+                      >
+                        {profile.is_verified ? 'Cancel Subscription' : 'Get Verified'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -404,8 +435,35 @@ END:VCARD`;
                 <Link className="w-[18px] h-[18px] text-[#4c4546]" />
               </div>
               <div className="p-6 flex flex-col gap-4">
+                <div className="space-y-4 mb-4">
+                  <div className="space-y-2">
+                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Display Style</label>
+                    <select 
+                      value={profile.social_links_style || 'inline'}
+                      onChange={(e) => setProfile({ ...profile, social_links_style: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[13px] outline-none focus:border-black"
+                    >
+                      <option value="inline">Inline (Icons only)</option>
+                      <option value="list">List (Stacked boxes)</option>
+                      <option value="grid">Grid</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3 bg-[#f9f9f9] p-3 rounded-sm border border-[#e2e2e2]">
+                    <input 
+                      type="checkbox" 
+                      checked={profile.show_total_followers || false}
+                      onChange={(e) => setProfile({ ...profile, show_total_followers: e.target.checked })}
+                      id="show-followers" 
+                      className="w-4 h-4 text-black border-[#cfc4c5] rounded-[2px] focus:ring-black" 
+                    />
+                    <label htmlFor="show-followers" className="text-black text-[13px] font-medium leading-none cursor-pointer pt-0.5">Show Total Followers Count</label>
+                  </div>
+                </div>
+                
+                <div className="border-t border-[#e2e2e2] pt-4"></div>
+
                 {socialLinks.map((item, i) => (
-                  <div key={i} className="flex gap-3">
+                  <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
                     <select 
                       value={item.platform}
                       onChange={(e) => {
@@ -413,7 +471,7 @@ END:VCARD`;
                         newLinks[i].platform = e.target.value;
                         setSocialLinks(newLinks);
                       }}
-                      className="w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white"
+                      className="w-full sm:w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white h-10"
                     >
                       {SOCIAL_PLATFORMS.map(p => (
                         <option key={p.name} value={p.name}>{p.name}</option>
@@ -428,11 +486,22 @@ END:VCARD`;
                         setSocialLinks(newLinks);
                       }}
                       placeholder="https://" 
-                      className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black" 
+                      className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black w-full min-w-[120px] h-10" 
+                    />
+                    <input 
+                      type="number" 
+                      value={item.follower_count || ''} 
+                      onChange={(e) => {
+                        const newLinks = [...socialLinks];
+                        newLinks[i].follower_count = parseInt(e.target.value) || 0;
+                        setSocialLinks(newLinks);
+                      }}
+                      placeholder="Followers" 
+                      className="w-24 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black h-10" 
                     />
                     <button 
                       onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}
-                      className="p-2 text-[#7e7576] hover:text-[#ba1a1a]"
+                      className="p-2 text-[#7e7576] hover:text-[#ba1a1a] h-10 flex items-center justify-center shrink-0"
                     >
                       <Trash2 className="w-[16px] h-[16px]" />
                     </button>
@@ -444,7 +513,7 @@ END:VCARD`;
                   </div>
                 )}
                 <button 
-                  onClick={() => setSocialLinks([...socialLinks, { platform: 'Website', url: '' }])}
+                  onClick={() => setSocialLinks([...socialLinks, { platform: 'Website', url: '', follower_count: 0 }])}
                   className="mt-3 text-black font-mono text-[12px] font-bold hover:underline flex items-center gap-1 justify-center py-1"
                 >
                   <Plus className="w-4 h-4" /> Add Platform

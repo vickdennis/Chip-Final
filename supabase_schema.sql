@@ -20,6 +20,9 @@ CREATE TABLE public.profiles (
   booking_provider TEXT DEFAULT 'Calendly (Integrated)',
   calendar_link TEXT,
   show_availability BOOLEAN DEFAULT true,
+  show_total_followers BOOLEAN DEFAULT false,
+  social_links_style TEXT DEFAULT 'inline',
+  is_verified BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -82,6 +85,7 @@ CREATE TABLE public.social_links (
   profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   platform TEXT NOT NULL,
   url TEXT NOT NULL,
+  follower_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
