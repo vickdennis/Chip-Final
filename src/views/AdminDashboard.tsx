@@ -252,7 +252,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate: (view: View
                     {editingProduct ? 'Update' : 'Create'}
                   </button>
                   {editingProduct && (
-                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', desc:'', image_url:''}); }} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">
+                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', image_url:''}); }} className="px-4 py-2 bg-[#f3f3f4] text-black rounded-sm font-mono text-[13px] font-bold">
                       Cancel
                     </button>
                   )}

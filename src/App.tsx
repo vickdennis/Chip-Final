@@ -12,7 +12,9 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
     if (path === '/admin') return 'admin-dashboard';
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '/admin') {
+    if (path === '/login') return 'login';
+    if (path === '/dashboard') return 'user-dashboard';
+    if (path !== '' && path !== '/') {
       return 'public-profile';
     }
     return 'landing';
@@ -20,7 +22,7 @@ export default function App() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '/admin') {
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin') {
       try {
         return decodeURIComponent(path.slice(1));
       } catch (e) {
