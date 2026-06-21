@@ -23,6 +23,7 @@ CREATE TABLE public.profiles (
   show_total_followers BOOLEAN DEFAULT false,
   social_links_style TEXT DEFAULT 'inline',
   is_verified BOOLEAN DEFAULT false,
+  is_admin BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -47,7 +48,37 @@ CREATE POLICY "Users can insert their own profile."
 
 CREATE POLICY "Users can update own profile."
   ON public.profiles FOR UPDATE
-  USING ( auth.uid() = id );
+  USING ( auth.uid() = id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+
+-- Products Table
+CREATE TABLE public.products (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  price DECIMAL(10, 2) NOT NULL,
+  image_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for products
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+-- Products Policies
+CREATE POLICY "Products are viewable by everyone."
+  ON public.products FOR SELECT
+  USING ( true );
+
+CREATE POLICY "Admins can insert products."
+  ON public.products FOR INSERT
+  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+
+CREATE POLICY "Admins can update products."
+  ON public.products FOR UPDATE
+  USING ( EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
+
+CREATE POLICY "Admins can delete products."
+  ON public.products FOR DELETE
+  USING ( EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) );
 
 -- Links Table
 CREATE TABLE public.links (

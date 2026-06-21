@@ -49,6 +49,8 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
   const [uploading, setUploading] = useState(false);
@@ -67,6 +69,7 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
+      const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
 
       if (profileData) {
         setProfile({ ...profileData, email: user.email });
@@ -85,11 +88,13 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
           show_availability: true,
           show_total_followers: false,
           social_links_style: 'inline',
-          is_verified: false
+          is_verified: false,
+          is_admin: false
         });
       }
       if (linksData) setLinks(linksData);
       if (socialData) setSocialLinks(socialData);
+      if (productsData) setProducts(productsData);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -117,7 +122,8 @@ export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewS
         show_availability: profile.show_availability,
         show_total_followers: profile.show_total_followers,
         social_links_style: profile.social_links_style,
-        is_verified: profile.is_verified
+        is_verified: profile.is_verified,
+        is_admin: profile.is_admin
       });
 
       if (profileError) throw profileError;
@@ -209,6 +215,14 @@ END:VCARD`;
             <p className="text-[16px] text-[#4c4546]">Manage your professional profile and digital presence.</p>
           </div>
           <div className="flex flex-wrap gap-3 w-full md:w-auto">
+            {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (
+              <button 
+                onClick={() => onNavigate('admin-dashboard')}
+                className="flex-1 md:flex-none px-5 py-2.5 bg-yellow-400 text-black font-mono text-[13px] font-medium hover:bg-yellow-500 transition-colors rounded-sm flex items-center justify-center gap-2"
+              >
+                <Shield className="w-[18px] h-[18px]" /> Super Admin
+              </button>
+            )}
             <button 
               onClick={handleSave} 
               disabled={saving}
@@ -626,6 +640,39 @@ END:VCARD`;
                   >
                     https://chipng.com/{profile.username || 'username'}
                   </a>
+                </div>
+              </div>
+            </section>
+
+            {/* Shop Products */}
+            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] p-4 flex justify-between items-center bg-[#f9f9f9]">
+                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Shop (Admin Approved)</h3>
+                <Globe className="w-[18px] h-[18px] text-[#4c4546]" />
+              </div>
+              <div className="p-5 overflow-auto max-h-[400px]">
+                <div className="flex flex-col gap-4">
+                  {products.map(p => (
+                    <div key={p.id} className="border border-[#cfc4c5] rounded-sm p-3 flex gap-3 text-left">
+                      {p.image_url && <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded-[2px] shrink-0" />}
+                      <div className="flex flex-col flex-1">
+                        <span className="font-sans font-bold text-[14px] leading-tight mb-1">{p.name}</span>
+                        <span className="font-mono text-[11px] font-bold text-black bg-[#f3f3f4] px-1.5 py-0.5 rounded-sm self-start mb-1 leading-none">₦{p.price}</span>
+                        <p className="text-[12px] text-[#7e7576] line-clamp-2">{p.description}</p>
+                      </div>
+                      <button 
+                         onClick={() => alert(`Purchasing ${p.name}... This feature will process payment.`)}
+                         className="self-center px-4 py-1.5 bg-black text-white font-mono text-[11px] font-bold rounded-sm whitespace-nowrap hover:bg-black/80"
+                      >
+                         Buy
+                      </button>
+                    </div>
+                  ))}
+                  {products.length === 0 && (
+                    <div className="text-center py-6 text-[#7e7576] font-mono text-[13px]">
+                      No products available in shop yet.
+                    </div>
+                  )}
                 </div>
               </div>
             </section>

@@ -3,14 +3,16 @@ import LandingView from './views/LandingView';
 import LoginView from './views/LoginView';
 import UserDashboard from './views/UserDashboard';
 import PublicProfileView from './views/PublicProfileView';
+import AdminDashboard from './views/AdminDashboard';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile';
+export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile') {
+    if (path === '/admin') return 'admin-dashboard';
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '/admin') {
       return 'public-profile';
     }
     return 'landing';
@@ -18,7 +20,7 @@ export default function App() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile') {
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/public-profile' && path !== '/admin') {
       try {
         return decodeURIComponent(path.slice(1));
       } catch (e) {
@@ -33,7 +35,7 @@ export default function App() {
       setSessionLoading(false);
       // Wait to redirect if going to user-dashboard
       setCurrentView(prev => {
-        const isProtected = prev === 'user-dashboard';
+        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard';
         if (!session && isProtected) {
           return 'login';
         }
@@ -44,7 +46,7 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       // Use functional state update to avoid dependency on currentView
       setCurrentView((prevView) => {
-        const isProtected = prevView === 'user-dashboard';
+        const isProtected = prevView === 'user-dashboard' || prevView === 'admin-dashboard';
         if (!session && isProtected) {
           return 'login';
         } else if (session && (prevView === 'login' || prevView === 'landing')) {
@@ -76,6 +78,7 @@ export default function App() {
       {currentView === 'login' && <LoginView onNavigate={handleNavigate} />}
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
+      {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} />}
     </div>
   );
 }
