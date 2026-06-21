@@ -6,3 +6,5 @@
   --font-display: "Hanken Grotesk", sans-serif;
   --font-mono: "Geist", monospace;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));

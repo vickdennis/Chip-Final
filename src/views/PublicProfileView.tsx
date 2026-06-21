@@ -203,7 +203,7 @@ END:VCARD`;
 
   return (
     <div className="h-[100dvh] sm:min-h-screen bg-black flex flex-col items-center">
-      <div className="w-full max-w-[480px] bg-[#0a0a0a] sm:shadow-2xl overflow-hidden relative h-[100dvh] flex flex-col border-x border-[#1a1a1a]">
+      <div className="w-full max-w-[480px] bg-black sm:shadow-2xl overflow-hidden relative h-[100dvh] flex flex-col border-x border-[#1a1a1a]">
         
         {/* Buttons at Top */}
         <div className="absolute top-4 w-full flex justify-between items-start px-4 z-50 pointer-events-none">
@@ -309,16 +309,16 @@ END:VCARD`;
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto pb-48 scrollbar-hide shrink-0">
+        <div className="flex-1 overflow-y-auto pb-10 scrollbar-hide shrink-0">
           {/* Header Section */}
           <section className="relative w-full aspect-square md:aspect-[4/5] bg-black">
             <img 
               src={coverUrl}
               alt={profile?.full_name || "Profile"} 
-              className="w-full h-full object-cover object-top opacity-80"
+              className="w-full h-full object-cover object-top opacity-85"
             />
             {/* Smooth fade container at top base */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/45 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
             
             <div className="absolute bottom-0 w-full left-0 flex flex-col items-center text-center pb-2">
               <h1 className="font-display text-[32px] font-black text-white leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">
@@ -430,7 +430,7 @@ END:VCARD`;
                   <ExternalLink className="w-4 h-4 text-[#707070] flex-shrink-0 ml-2 group-hover:text-white transition-colors" />
                 </a>
               )) : (
-                 <div className="w-full border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 flex flex-col items-center justify-center gap-2 mb-3 bg-[#0a0a0a]">
+                 <div className="w-full border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 flex flex-col items-center justify-center gap-2 mb-3 bg-black">
                    <span className="font-mono text-[12px] text-[#505050]">[Ordered Link Data Placeholder]</span>
                  </div>
               )}
@@ -439,10 +439,10 @@ END:VCARD`;
         </div>
 
         {/* Persistent Footer */}
-        <footer className="absolute bottom-0 w-full bg-[#0a0a0a] border-t border-[#1a1a1a] px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
-           <a href="/" className="bg-white text-black px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
+        <footer className="w-full bg-black border-t border-[#1a1a1a] px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0">
+           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className="bg-white text-black px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
              CREATE YOURS
-           </a>
+           </button>
            <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest text-[#a0a0a0] hover:text-white transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium text-[#505050]">Powered by</span> CHIP NG</a>
            <div className="flex justify-center gap-6">
              <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-white transition-colors">Privacy Policy</a>
