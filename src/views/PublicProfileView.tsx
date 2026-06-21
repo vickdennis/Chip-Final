@@ -314,8 +314,9 @@ END:VCARD`;
               <h1 className="font-display text-[32px] font-black text-white leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">
                 {profile?.full_name || "[Data Placeholder]"}
                 {profile?.is_verified && (
-                  <svg className="w-6 h-6 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M11.996 22q-2.072 0-3.905-.783q-1.834-.783-3.176-2.125Q3.572 17.75 2.788 15.917Q2.005 14.083 2.005 12.01q0-2.072.783-3.905q.784-1.834 2.127-3.176Q6.257 3.587 8.09 2.804q1.834-.783 3.906-.783q2.072 0 3.905.783q1.833.783 3.175 2.125Q20.418 6.27 21.202 8.104Q21.985 9.938 21.985 12.01q0 2.072-.783 3.905q-.784 1.834-2.126 3.176Q17.734 20.434 15.9 21.217q-1.833.783-3.904.783Zm3.844-14.341-5.753 5.752-2.529-2.53-1.042 1.042 3.571 3.572 6.795-6.794Z"/>
+                  <svg aria-label="Verified" className="w-[18px] h-[18px] lg:w-5 lg:h-5 text-[#0095f6] flex-shrink-0" fill="currentColor" role="img" viewBox="0 0 40 40">
+                    <title>Verified</title>
+                    <path d="M19.998 3.094 14.638 0l-2.972 5.15H5.432v6.354L0 14.64 3.094 20 0 25.359l5.432 3.137v5.905h5.975L14.638 40l5.36-3.094L25.358 40l3.232-5.6h6.162v-6.01L40 25.359 36.905 20 40 14.641l-5.248-3.03v-6.46h-6.419L25.358 0l-5.36 3.094Zm7.415 11.225 2.254 2.287-11.43 11.5-6.835-6.93 2.244-2.258 4.587 4.581 9.18-9.18Z" fillRule="evenodd"></path>
                   </svg>
                 )}
               </h1>

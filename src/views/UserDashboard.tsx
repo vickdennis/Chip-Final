@@ -376,8 +376,12 @@ END:VCARD`;
                             amount={3000 * 100}
                             publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
                             text="Get Verified"
-                            onSuccess={(ref) => {
+                            onSuccess={async (ref) => {
                               setProfile({ ...profile, is_verified: true });
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (user) {
+                                await supabase.from('profiles').update({ is_verified: true }).eq('id', user.id);
+                              }
                               alert('Payment successful! You are now verified.');
                             }}
                             onClose={() => {}}
