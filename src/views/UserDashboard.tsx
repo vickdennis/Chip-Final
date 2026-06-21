@@ -48,7 +48,7 @@ export const SOCIAL_PLATFORMS = [
   { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
 ];
 
-export default function UserDashboard({ onNavigate }: { onNavigate: (view: ViewState) => void }) {
+export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
@@ -238,21 +238,21 @@ END:VCARD`;
 
 
   return (
-    <AdminLayout onNavigate={onNavigate} activePath="dashboard">
+    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode}>
       <div className="max-w-[1200px] mx-auto pb-16">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
           <div>
-            <h2 className="font-display text-[32px] md:text-[40px] font-extrabold text-black tracking-tight mb-1">
+            <h2 className="font-display text-[32px] md:text-[40px] font-extrabold text-black dark:text-white tracking-tight mb-1">
               Bio Management
             </h2>
-            <p className="text-[16px] text-[#4c4546]">Manage your professional profile and digital presence.</p>
+            <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0]">Manage your professional profile and digital presence.</p>
           </div>
           <div className="flex flex-wrap gap-3 w-full md:w-auto">
             {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (
               <button 
                 onClick={() => onNavigate('admin-dashboard')}
-                className="flex-1 md:flex-none px-5 py-2.5 bg-yellow-400 text-black font-mono text-[13px] font-medium hover:bg-yellow-500 transition-colors rounded-sm flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-5 py-2.5 bg-yellow-400 text-black dark:text-white font-mono text-[13px] font-medium hover:bg-yellow-500 transition-colors rounded-sm flex items-center justify-center gap-2"
               >
                 <Shield className="w-[18px] h-[18px]" /> Super Admin
               </button>
@@ -260,14 +260,14 @@ END:VCARD`;
             <button 
               onClick={handleSave} 
               disabled={saving}
-              className="flex-1 md:flex-none px-5 py-2.5 bg-black text-white font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center justify-center gap-2 disabled:opacity-70"
+              className="flex-1 md:flex-none px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-[18px] h-[18px]" />} 
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button 
               onClick={() => onNavigate('public-profile')}
-              className="flex-1 md:flex-none px-5 py-2.5 border border-[#cfc4c5] text-black bg-white font-mono text-[13px] font-medium hover:bg-[#f3f3f4] transition-colors rounded-sm flex items-center justify-center gap-2"
+              className="flex-1 md:flex-none px-5 py-2.5 border border-[#cfc4c5] dark:border-[#333] text-black dark:text-white bg-white dark:bg-[#111] font-mono text-[13px] font-medium hover:bg-[#f3f3f4] dark:bg-[#222] transition-colors rounded-sm flex items-center justify-center gap-2"
             >
               <Eye className="w-[18px] h-[18px]" /> Preview Bio
             </button>
@@ -276,7 +276,7 @@ END:VCARD`;
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-black" />
+            <Loader2 className="w-8 h-8 animate-spin text-black dark:text-white" />
           </div>
         ) : profile && (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -285,22 +285,22 @@ END:VCARD`;
             <div className="xl:col-span-8 flex flex-col gap-8">
               
               {/* Identity */}
-              <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-                <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
-                  <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Profile Identity</h3>
-                  <UserCircle className="w-[20px] h-[20px] text-[#4c4546]" />
+              <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+                <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Profile Identity</h3>
+                  <UserCircle className="w-[20px] h-[20px] text-[#4c4546] dark:text-[#a0a0a0]" />
                 </div>
                 <div className="p-6 flex flex-col gap-8">
                   <div>
-                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest mb-3">Cover Image</label>
-                    <div className="relative group h-56 w-full border border-[#cfc4c5] rounded-sm overflow-hidden bg-[#f3f3f4]">
+                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest mb-3">Cover Image</label>
+                    <div className="relative group h-56 w-full border border-[#cfc4c5] dark:border-[#333] rounded-sm overflow-hidden bg-[#f3f3f4] dark:bg-[#222]">
                       <img 
                         src={coverUrl} 
                         alt="Cover" 
                         className="w-full h-full object-cover grayscale opacity-90"
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                        <label className="cursor-pointer bg-white text-black px-4 py-2 rounded-sm font-mono text-[12px] font-bold hover:bg-white/90 flex items-center gap-2">
+                        <label className="cursor-pointer bg-white dark:bg-[#111] /90 flex items-center gap-2">
                           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                           {uploading ? 'Uploading...' : 'Change'}
                           <input
@@ -323,81 +323,81 @@ END:VCARD`;
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Full Name</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Full Name</label>
                       <input 
                         type="text" 
                         value={profile.full_name || ''}
                         onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Username</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Username</label>
                       <input 
                         type="text" 
                         value={profile.username || ''} 
                         onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Job Title / Headline</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Job Title / Headline</label>
                       <input 
                         type="text" 
                         value={profile.headline || ''}
                         onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Bio / About Me</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Bio / About Me</label>
                       <textarea 
                         rows={3}
                         value={profile.bio || ''}
                         onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow font-sans text-[14px] text-black resize-none"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white resize-none"
                       />
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-[#e2e2e2] grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="pt-6 border-t border-[#e2e2e2] dark:border-[#333] grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Contact Email</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Contact Email</label>
                       <input 
                         type="email" 
                         value={profile.contact_email || ''}
                         onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
                         placeholder={profile.email}
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Phone Number</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Phone Number</label>
                       <input 
                         type="tel" 
                         value={profile.phone_number || ''}
                         onChange={(e) => setProfile({ ...profile, phone_number: e.target.value })}
                         placeholder="+1 (555) 000-0000"
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Address</label>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Address</label>
                       <input 
                         type="text" 
                         value={profile.address || ''}
                         onChange={(e) => setProfile({ ...profile, address: e.target.value })}
                         placeholder="San Francisco, CA"
-                        className="w-full px-4 py-2.5 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none transition-shadow font-sans text-[14px] text-black"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
                       />
                     </div>
                   </div>
                   
-                  <div className="pt-6 border-t border-[#e2e2e2]">
-                    <div className="flex items-center justify-between p-4 bg-[#f9f9f9] border border-[#e2e2e2] rounded-sm">
+                  <div className="pt-6 border-t border-[#e2e2e2] dark:border-[#333]">
+                    <div className="flex items-center justify-between p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] rounded-sm">
                       <div>
-                        <h4 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest mb-1">Verification Badge</h4>
-                        <p className="text-[13px] text-[#4c4546]">Get verified for ₦3000/month</p>
+                        <h4 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest mb-1">Verification Badge</h4>
+                        <p className="text-[13px] text-[#4c4546] dark:text-[#a0a0a0]">Get verified for ₦3000/month</p>
                       </div>
                       <div>
                         {profile.is_verified ? (
@@ -407,7 +407,7 @@ END:VCARD`;
                                 setProfile({ ...profile, is_verified: false });
                               }
                             }}
-                            className="px-4 py-2 font-mono text-[12px] font-bold rounded-sm transition-colors bg-white border border-[#cfc4c5] text-black hover:bg-[#f3f3f4]"
+                            className="px-4 py-2 font-mono text-[12px] font-bold rounded-sm transition-colors bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] text-black dark:text-white hover:bg-[#f3f3f4] dark:bg-[#222]"
                           >
                             Cancel Subscription
                           </button>
@@ -437,19 +437,19 @@ END:VCARD`;
               </section>
 
             {/* Links */}
-            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
-                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">External Links</h3>
+            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">External Links</h3>
                 <button 
                   onClick={() => setLinks([...links, { label: '', url: '' }])}
-                  className="text-black hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
+                  className="text-black dark:text-white hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" /> Add Link
                 </button>
               </div>
               <div className="p-6 flex flex-col gap-4">
                 {links.map((item, i) => (
-                  <div key={i} className="border border-[#cfc4c5] rounded-sm p-4 bg-[#f9f9f9] hover:border-[#7e7576] transition-colors group flex items-center justify-between">
+                  <div key={i} className="border border-[#cfc4c5] dark:border-[#333] rounded-sm p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">
                       <div className="cursor-move text-[#7e7576] opacity-40 group-hover:opacity-100">
                         <GripVertical className="w-5 h-5" />
@@ -464,7 +464,7 @@ END:VCARD`;
                             setLinks(newLinks);
                           }}
                           placeholder="Link Title"
-                          className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none font-sans text-[14px] text-black"
+                          className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none font-sans text-[14px] text-black dark:text-white"
                         />
                         <input 
                           type="text" 
@@ -475,7 +475,7 @@ END:VCARD`;
                             setLinks(newLinks);
                           }}
                           placeholder="https://"
-                          className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm focus:border-black outline-none font-sans text-[13px] text-[#4c4546]"
+                          className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none font-sans text-[13px] text-[#4c4546] dark:text-[#a0a0a0]"
                         />
                       </div>
                     </div>
@@ -502,19 +502,19 @@ END:VCARD`;
           <div className="xl:col-span-4 flex flex-col gap-8">
             
             {/* Social Media */}
-            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
-                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Social Media</h3>
-                <Link className="w-[18px] h-[18px] text-[#4c4546]" />
+            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Social Media</h3>
+                <Link className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
               </div>
               <div className="p-6 flex flex-col gap-4">
                 <div className="space-y-4 mb-4">
                   <div className="space-y-2">
-                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Icon Style</label>
+                    <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Icon Style</label>
                     <select 
                       value={profile.social_links_style || 'color-circle'}
                       onChange={(e) => setProfile({ ...profile, social_links_style: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[13px] outline-none focus:border-black"
+                      className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm font-sans text-[13px] outline-none focus:border-black dark:focus:border-white"
                     >
                       <option value="color-circle">Color Circle</option>
                       <option value="white-circle">White Circle</option>
@@ -522,19 +522,19 @@ END:VCARD`;
                       <option value="original">Original Colors</option>
                     </select>
                   </div>
-                  <div className="flex items-center gap-3 bg-[#f9f9f9] p-3 rounded-sm border border-[#e2e2e2]">
+                  <div className="flex items-center gap-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-sm border border-[#e2e2e2] dark:border-[#333]">
                     <input 
                       type="checkbox" 
                       checked={profile.show_total_followers || false}
                       onChange={(e) => setProfile({ ...profile, show_total_followers: e.target.checked })}
                       id="show-followers" 
-                      className="w-4 h-4 text-black border-[#cfc4c5] rounded-[2px] focus:ring-black" 
+                      className="w-4 h-4 text-black dark:text-white border-[#cfc4c5] dark:border-[#333] rounded-[2px] focus:ring-black dark:focus:ring-white" 
                     />
-                    <label htmlFor="show-followers" className="text-black text-[13px] font-medium leading-none cursor-pointer pt-0.5">Show Total Followers Count</label>
+                    <label htmlFor="show-followers" className="text-black dark:text-white text-[13px] font-medium leading-none cursor-pointer pt-0.5">Show Total Followers Count</label>
                   </div>
                 </div>
                 
-                <div className="border-t border-[#e2e2e2] pt-4"></div>
+                <div className="border-t border-[#e2e2e2] dark:border-[#333] pt-4"></div>
 
                 {socialLinks.map((item, i) => {
                   const platformDef = SOCIAL_PLATFORMS.find(p => p.name === item.platform) || SOCIAL_PLATFORMS[0];
@@ -544,14 +544,14 @@ END:VCARD`;
                   
                   return (
                   <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                    <div className="shrink-0 flex items-center justify-center bg-[#f3f3f4] rounded-sm p-1">
+                    <div className="shrink-0 flex items-center justify-center bg-[#f3f3f4] dark:bg-[#222] rounded-sm p-1">
                       {style === 'color-circle' && (
                         <div className="w-8 h-8 flex items-center justify-center rounded-full" style={{ backgroundColor: color, color: '#ffffff' }}>
                           <Icon className="w-4 h-4" />
                         </div>
                       )}
                       {style === 'white-circle' && (
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm" style={{ color: color }}>
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#111] shadow-sm" style={{ color: color }}>
                           <Icon className="w-4 h-4" />
                         </div>
                       )}
@@ -561,7 +561,7 @@ END:VCARD`;
                         </div>
                       )}
                       {style === 'original' && (
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white" style={{ color: color }}>
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#111]" style={{ color: color }}>
                           <Icon className="w-4 h-4" />
                         </div>
                       )}
@@ -573,7 +573,7 @@ END:VCARD`;
                         newLinks[i].platform = e.target.value;
                         setSocialLinks(newLinks);
                       }}
-                      className="w-full sm:w-1/3 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-sans text-[13px] bg-white h-10"
+                      className="w-full sm:w-1/3 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-sans text-[13px] bg-white dark:bg-[#111] h-10"
                     >
                       {SOCIAL_PLATFORMS.map(p => (
                         <option key={p.name} value={p.name}>{p.name}</option>
@@ -588,7 +588,7 @@ END:VCARD`;
                         setSocialLinks(newLinks);
                       }}
                       placeholder="https://" 
-                      className="flex-1 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black w-full min-w-[120px] h-10" 
+                      className="flex-1 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-mono text-[12px] text-black dark:text-white w-full min-w-[120px] h-10" 
                     />
                     <input 
                       type="number" 
@@ -599,7 +599,7 @@ END:VCARD`;
                         setSocialLinks(newLinks);
                       }}
                       placeholder="Followers" 
-                      className="w-24 px-3 py-2 border border-[#cfc4c5] focus:border-black outline-none rounded-sm font-mono text-[12px] text-black h-10" 
+                      className="w-24 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-mono text-[12px] text-black dark:text-white h-10" 
                     />
                     <button 
                       onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}
@@ -617,7 +617,7 @@ END:VCARD`;
                 )}
                 <button 
                   onClick={() => setSocialLinks([...socialLinks, { platform: 'Website', url: '', follower_count: 0 }])}
-                  className="mt-3 text-black font-mono text-[12px] font-bold hover:underline flex items-center gap-1 justify-center py-1"
+                  className="mt-3 text-black dark:text-white font-mono text-[12px] font-bold hover:underline flex items-center gap-1 justify-center py-1"
                 >
                   <Plus className="w-4 h-4" /> Add Platform
                 </button>
@@ -625,18 +625,18 @@ END:VCARD`;
             </section>
 
             {/* Appointments */}
-            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] p-5 flex justify-between items-center bg-[#f9f9f9]">
-                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Appointments</h3>
-                <Calendar className="w-[18px] h-[18px] text-[#4c4546]" />
+            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Appointments</h3>
+                <Calendar className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
               </div>
               <div className="p-6 flex flex-col gap-5">
                 <div className="space-y-2">
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Booking Provider</label>
+                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Booking Provider</label>
                   <select 
                     value={profile.booking_provider || 'Calendly (Integrated)'}
                     onChange={(e) => setProfile({ ...profile, booking_provider: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[14px] outline-none focus:border-black"
+                    className="w-full px-3 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm font-sans text-[14px] outline-none focus:border-black dark:focus:border-white"
                   >
                     <option value="Calendly (Integrated)">Calendly (Integrated)</option>
                     <option value="SavvyCal">SavvyCal</option>
@@ -644,42 +644,42 @@ END:VCARD`;
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] uppercase tracking-widest">Calendar Link</label>
+                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest">Calendar Link</label>
                   <input 
                     type="text" 
                     value={profile.calendar_link || ''}
                     onChange={(e) => setProfile({ ...profile, calendar_link: e.target.value })}
                     placeholder="Provide your link..." 
-                    className="w-full px-3 py-2.5 bg-white border border-[#cfc4c5] rounded-sm font-sans text-[14px] outline-none focus:border-black" 
+                    className="w-full px-3 py-2.5 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm font-sans text-[14px] outline-none focus:border-black dark:focus:border-white" 
                   />
                 </div>
-                <div className="flex items-center gap-3 bg-[#f9f9f9] p-3 rounded-sm border border-[#e2e2e2]">
+                <div className="flex items-center gap-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-sm border border-[#e2e2e2] dark:border-[#333]">
                   <input 
                     type="checkbox" 
                     checked={profile.show_availability !== false} // default true
                     onChange={(e) => setProfile({ ...profile, show_availability: e.target.checked })}
                     id="show-avail" 
-                    className="w-4 h-4 text-black border-[#cfc4c5] rounded-[2px] focus:ring-black" 
+                    className="w-4 h-4 text-black dark:text-white border-[#cfc4c5] dark:border-[#333] rounded-[2px] focus:ring-black dark:focus:ring-white" 
                   />
-                  <label htmlFor="show-avail" className="text-black text-[13px] font-medium leading-none cursor-pointer pt-0.5">Display availability on bio</label>
+                  <label htmlFor="show-avail" className="text-black dark:text-white text-[13px] font-medium leading-none cursor-pointer pt-0.5">Display availability on bio</label>
                 </div>
               </div>
             </section>
 
             {/* Export */}
-            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] p-4 flex justify-between items-center bg-[#f9f9f9]">
-                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">vCard Export</h3>
-                <QrCode className="w-[18px] h-[18px] text-[#4c4546]" />
+            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">vCard Export</h3>
+                <QrCode className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
               </div>
               <div className="p-5 flex gap-3">
-                <div className="w-12 h-12 bg-white flex items-center justify-center rounded-sm border border-[#cfc4c5] shrink-0 overflow-hidden p-1">
+                <div className="w-12 h-12 bg-white dark:bg-[#111] flex items-center justify-center rounded-sm border border-[#cfc4c5] dark:border-[#333] shrink-0 overflow-hidden p-1">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}`} alt="QR Code" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                   <button 
                     onClick={handleDownloadVCard}
-                    className="w-full px-3 py-2 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                    className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] text-black dark:text-white font-mono text-[12px] font-bold hover:bg-[#f3f3f4] dark:bg-[#222] rounded-[2px] flex items-center justify-center gap-2 transition-colors"
                   >
                     <Download className="w-4 h-4" /> Save Contact vCard
                   </button>
@@ -688,14 +688,14 @@ END:VCARD`;
                       navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
                       alert("Link copied to clipboard!");
                     }}
-                    className="w-full px-3 py-2 border border-[#cfc4c5] text-black font-mono text-[12px] font-bold hover:bg-[#f3f3f4] rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                    className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] text-black dark:text-white font-mono text-[12px] font-bold hover:bg-[#f3f3f4] dark:bg-[#222] rounded-[2px] flex items-center justify-center gap-2 transition-colors"
                   >
                     <Share className="w-4 h-4" /> Share @{profile.username || 'username'}
                   </button>
                   <a 
                     href={`/${profile.username || ''}`}
                     target="_blank"
-                    className="mt-1 text-[#0066cc] font-mono text-[11px] text-center hover:underline bg-[#f3f3f4] py-1.5 rounded-sm"
+                    className="mt-1 text-[#0066cc] font-mono text-[11px] text-center hover:underline bg-[#f3f3f4] dark:bg-[#222] py-1.5 rounded-sm"
                   >
                     https://chipng.com/{profile.username || 'username'}
                   </a>
@@ -704,19 +704,19 @@ END:VCARD`;
             </section>
 
             {/* Shop Products */}
-            <section className="bg-white border border-[#cfc4c5] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] p-4 flex justify-between items-center bg-[#f9f9f9]">
-                <h3 className="font-mono text-[13px] font-bold text-black uppercase tracking-widest">Shop (Admin Approved)</h3>
-                <Globe className="w-[18px] h-[18px] text-[#4c4546]" />
+            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Shop (Admin Approved)</h3>
+                <Globe className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
               </div>
               <div className="p-5 overflow-auto max-h-[400px]">
                 <div className="flex flex-col gap-4">
                   {products.map(p => (
-                    <div key={p.id} className="border border-[#cfc4c5] rounded-sm p-3 flex gap-3 text-left">
+                    <div key={p.id} className="border border-[#cfc4c5] dark:border-[#333] rounded-sm p-3 flex gap-3 text-left">
                       {p.image_url && <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded-[2px] shrink-0" />}
                       <div className="flex flex-col flex-1">
                         <span className="font-sans font-bold text-[14px] leading-tight mb-1">{p.name}</span>
-                        <span className="font-mono text-[11px] font-bold text-black bg-[#f3f3f4] px-1.5 py-0.5 rounded-sm self-start mb-1 leading-none">₦{p.price}</span>
+                        <span className="font-mono text-[11px] font-bold text-black dark:text-white bg-[#f3f3f4] dark:bg-[#222] px-1.5 py-0.5 rounded-sm self-start mb-1 leading-none">₦{p.price}</span>
                         <p className="text-[12px] text-[#7e7576] line-clamp-2">{p.description}</p>
                       </div>
                       <PaystackButton
@@ -729,7 +729,7 @@ END:VCARD`;
                            alert(`Thank you for purchasing ${p.name}! Your payment was successful.`);
                          }}
                          onClose={() => {}}
-                         className="self-center px-4 py-1.5 bg-black text-white font-mono text-[11px] font-bold rounded-sm whitespace-nowrap hover:bg-black/80"
+                         className="self-center px-4 py-1.5 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 font-mono text-[11px] font-bold rounded-sm whitespace-nowrap hover:bg-black/80"
                       />
                     </div>
                   ))}
@@ -749,7 +749,7 @@ END:VCARD`;
       </div>
       {cropModalOpen && tempImageUrl && (
         <div className="fixed inset-0 z-[100] bg-black bg-opacity-80 flex items-center justify-center p-4">
-          <div className="bg-white p-4 rounded-md w-full max-w-3xl flex flex-col h-[80vh]">
+          <div className="bg-white dark:bg-[#111] p-4 rounded-md w-full max-w-3xl flex flex-col h-[80vh]">
             <h3 className="font-display font-bold text-xl mb-4">Crop Cover Image</h3>
             <div className="relative flex-1 bg-gray-100">
               <Cropper
@@ -786,7 +786,7 @@ END:VCARD`;
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-black text-white rounded font-medium text-sm flex items-center justify-center min-w-[100px] hover:bg-black/90"
+                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 rounded font-medium text-sm flex items-center justify-center min-w-[100px] hover:bg-black/90"
                 disabled={uploading}
                 onClick={handleCropSave}
               >

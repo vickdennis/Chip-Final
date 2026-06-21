@@ -67,7 +67,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f3f3f4] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="w-24 h-24 border border-[#e2e2e2] bg-white p-3 rounded-sm shadow-sm overflow-hidden animate-pulse">
           <img 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
@@ -81,7 +81,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[#f3f3f4] flex flex-col items-center justify-center text-center p-6">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-6">
         <h1 className="font-display text-4xl font-black mb-2 text-black">Profile Not Found</h1>
         <p className="font-sans text-[#7e7576] mb-6">We couldn't find a user with this username.</p>
         <button 

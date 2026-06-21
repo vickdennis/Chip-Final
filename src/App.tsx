@@ -9,6 +9,23 @@ import { supabase } from './supabaseClient';
 export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard';
 
 export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
     if (path === '/admin') return 'admin-dashboard';
@@ -62,7 +79,7 @@ export default function App() {
   }, []);
 
   if (sessionLoading && !publicUsername) {
-    return <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-sans flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] font-sans flex items-center justify-center">Loading...</div>;
   }
 
   // Set the browser URL back to root when navigating away from a public profile to a core app view.
@@ -75,12 +92,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-sans antialiased selection:bg-black selection:text-white">
-      {currentView === 'landing' && <LandingView onNavigate={handleNavigate} />}
-      {currentView === 'login' && <LoginView onNavigate={handleNavigate} />}
-      {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} />}
+    <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] font-sans antialiased selection:bg-black selection:text-white">
+      {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
-      {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} />}
+      {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
     </div>
   );
 }
