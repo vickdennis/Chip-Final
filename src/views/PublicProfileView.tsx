@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin } from 'lucide-react';
+import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 
@@ -10,6 +10,10 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -90,6 +94,28 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
     if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
     return count.toString();
+  };
+
+  const downloadVCard = () => {
+    if (!profile) return;
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${profile.full_name || ''}
+TITLE:${profile.headline || ''}
+EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}
+TEL;TYPE=CELL:${profile.phone_number || ''}
+ADR;TYPE=WORK:;;${profile.address || ''};;;;
+URL:https://chipng.com/${profile.username}
+END:VCARD`;
+    
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${profile.username || 'contact'}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const renderSocialLinks = () => {
@@ -179,12 +205,107 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
     <div className="min-h-screen bg-black flex flex-col items-center">
       <div className="w-full max-w-[480px] bg-[#0a0a0a] sm:shadow-2xl overflow-hidden relative min-h-screen flex flex-col border-x border-[#1a1a1a]">
         
-        {/* Absolute header for return to dashboard if needed */}
-        {!username && (
-          <div className="absolute top-4 left-4 z-50">
-            <button onClick={() => onNavigate && onNavigate('user-dashboard')} className="bg-white/10 backdrop-blur-md text-white border border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white/20 transition-colors">
-              Back to Dashboard
+        {/* Buttons at Top */}
+        <div className="absolute top-4 w-full flex justify-between items-start px-4 z-50 pointer-events-none">
+          <div className="flex flex-col gap-2 pointer-events-auto">
+            <button 
+              onClick={() => setIsBioModalOpen(true)} 
+              className="bg-white text-black font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg hover:bg-[#f3f3f4] transition-colors flex items-center gap-2"
+            >
+              <LinkIcon className="w-3.5 h-3.5" /> Bio Link
             </button>
+            {!username && (
+              <button 
+                onClick={() => onNavigate && onNavigate('user-dashboard')} 
+                className="bg-white/10 backdrop-blur-md text-white border border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white/20 transition-colors"
+               >
+                Dashboard
+              </button>
+            )}
+          </div>
+          <button 
+            onClick={downloadVCard}
+            className="w-10 h-10 bg-white text-black rounded-full shadow-lg flex items-center justify-center hover:bg-[#f3f3f4] transition-colors pointer-events-auto"
+            title="Save Contact"
+          >
+            <UserPlus className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Bio Link Modal */}
+        {isBioModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/80 backdrop-blur-sm sm:pb-4 pb-12">
+            <div className="bg-[#1a1a1a] w-full max-w-[400px] rounded-[32px] overflow-hidden flex flex-col relative animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 shadow-2xl border border-[#333]">
+              <button 
+                onClick={() => setIsBioModalOpen(false)}
+                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="p-8 flex flex-col items-center">
+                <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden mb-6 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-white/10 relative">
+                   <img src={showQR ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}` : coverUrl} alt="Cover/QR" className={`w-full h-full ${showQR ? 'object-contain bg-white p-2' : 'object-cover'}`} />
+                </div>
+                
+                <h2 className="text-2xl font-bold text-white mb-2 text-center">This is your<br/>ChipNG bio link!</h2>
+                <p className="text-[#a0a0a0] text-center text-[13px] mb-8 max-w-[280px]">
+                  You can copy and paste it into all your social media accounts to help increase your exposure and showcase your profile.
+                </p>
+
+                <div className="w-full bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3 px-3 overflow-hidden">
+                     <div className="w-6 h-6 rounded-md bg-white text-black flex items-center justify-center font-bold text-[10px] shrink-0">
+                       NG
+                     </div>
+                     <span className="text-white text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000);
+                    }}
+                    className="px-4 py-2 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+                  >
+                    {isCopied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <button 
+                    onClick={() => setShowQR(!showQR)}
+                    className="w-full py-4 rounded-2xl text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <QrCode className="w-4 h-4" /> {showQR ? 'Show Profile Image' : 'Show QR Code'}
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `${profile.full_name}'s Profile`,
+                          url: `https://chipng.com/${profile.username}`
+                        });
+                      } else {
+                        navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
+                        alert("Link copied to clipboard!");
+                      }
+                    }}
+                    className="w-full py-4 rounded-2xl text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
+                  >
+                    <Share className="w-4 h-4" /> SHARE BIO LINK
+                  </button>
+
+                  <button 
+                    onClick={() => setIsBioModalOpen(false)}
+                    className="w-full py-3 text-[#a0a0a0] font-bold text-[14px] hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
