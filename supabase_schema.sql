@@ -212,3 +212,36 @@ CREATE POLICY "Authenticated users can delete."
   ON storage.objects FOR DELETE
   USING ( bucket_id IN ('covers', 'products', 'avatars') AND auth.uid() IS NOT NULL );
 
+-- Platform Social Links Table
+CREATE TABLE IF NOT EXISTS public.platform_social_links (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  platform TEXT NOT NULL,
+  url TEXT NOT NULL,
+  position INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for platform_social_links
+ALTER TABLE public.platform_social_links ENABLE ROW LEVEL SECURITY;
+
+-- Platform Social Links Policies
+DROP POLICY IF EXISTS "Platform social links are viewable by everyone." ON public.platform_social_links;
+CREATE POLICY "Platform social links are viewable by everyone."
+  ON public.platform_social_links FOR SELECT
+  USING ( true );
+
+DROP POLICY IF EXISTS "Admins can insert platform social links." ON public.platform_social_links;
+CREATE POLICY "Admins can insert platform social links."
+  ON public.platform_social_links FOR INSERT
+  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can update platform social links." ON public.platform_social_links;
+CREATE POLICY "Admins can update platform social links."
+  ON public.platform_social_links FOR UPDATE
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can delete platform social links." ON public.platform_social_links;
+CREATE POLICY "Admins can delete platform social links."
+  ON public.platform_social_links FOR DELETE
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
