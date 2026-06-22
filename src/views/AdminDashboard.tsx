@@ -18,7 +18,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   // User form state
   const [editingUser, setEditingUser] = useState<any>(null);
-  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
+  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '', social_links_style: 'color-circle' });
   const [userSocialLinks, setUserSocialLinks] = useState<any[]>([]);
 
   // Create user state
@@ -112,7 +112,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         bio: userForm.bio || null,
         contact_email: userForm.contact_email || null,
         phone_number: userForm.phone_number || null,
-        cover_image_url: userForm.cover_image_url || null
+        cover_image_url: userForm.cover_image_url || null,
+        social_links_style: userForm.social_links_style || 'color-circle'
       }).eq('id', editingUser.id).select('*');
       
       if (error) {
@@ -120,16 +121,22 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       } else if (!data || data.length === 0) {
         alert("Update failed! Row-level security prevented modification. Please apply the updated supabase_schema.sql policies.");
       } else {
-        await supabase.from('social_links').delete().eq('profile_id', editingUser.id);
+        const { error: delError } = await supabase.from('social_links').delete().eq('profile_id', editingUser.id);
+        if (delError) {
+          console.error("Error deleting social links:", delError);
+        }
         if (userSocialLinks.length > 0) {
-          await supabase.from('social_links').insert(userSocialLinks.map(s => ({
+          const { error: insError } = await supabase.from('social_links').insert(userSocialLinks.map(s => ({
             profile_id: editingUser.id,
             platform: s.platform,
             url: s.url
           })));
+          if (insError) {
+            alert("Error saving social links: " + insError.message);
+          }
         }
         setEditingUser(null);
-        setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
+        setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '', social_links_style: 'color-circle' });
         setUserSocialLinks([]);
         fetchData();
       }
@@ -350,7 +357,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           <button
                             onClick={() => {
                               setEditingUser(u);
-                              setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '', bio: u.bio || '', contact_email: u.contact_email || '', phone_number: u.phone_number || '', cover_image_url: u.cover_image_url || '' });
+                              setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '', bio: u.bio || '', contact_email: u.contact_email || '', phone_number: u.phone_number || '', cover_image_url: u.cover_image_url || '', social_links_style: u.social_links_style || 'color-circle' });
                               setUserSocialLinks([]);
                               supabase.from('social_links').select('*').eq('profile_id', u.id).then(({data}) => {
                                 if(data) setUserSocialLinks(data);
@@ -410,6 +417,18 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       {userForm.cover_image_url && (
                         <input value={userForm.cover_image_url || ''} onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} className="w-full mt-2 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="Or paste image URL..." />
                       )}
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Social Links Style</label>
+                      <select 
+                        value={userForm.social_links_style || 'color-circle'}
+                        onChange={(e) => setUserForm({...userForm, social_links_style: e.target.value})}
+                        className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm font-sans text-[13px] outline-none focus:border-black dark:focus:border-white"
+                      >
+                        <option value="color-circle">Color Circle</option>
+                        <option value="white-circle">White Circle</option>
+                        <option value="white-icon">Solid White</option>
+                      </select>
                     </div>
                     
                     <div className="pt-2 border-t border-[#cfc4c5] dark:border-[#333]">
