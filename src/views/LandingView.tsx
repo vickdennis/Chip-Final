@@ -6,21 +6,14 @@ import { SOCIAL_PLATFORMS } from './UserDashboard';
 
 export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
     const [products, setProducts] = useState<any[]>([]);
-    const [socialLinks, setSocialLinks] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProducts();
-    fetchSocialLinks();
   }, []);
 
   const fetchProducts = async () => {
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false }).limit(4);
     if (data) setProducts(data);
-  };
-  
-  const fetchSocialLinks = async () => {
-    const { data } = await supabase.from('platform_social_links').select('*').order('position', { ascending: true });
-    if (data) setSocialLinks(data);
   };
 
   return (
@@ -335,16 +328,11 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               <Phone className="w-4 h-4" />
               <span className="text-[14px] font-medium font-mono">08100764154</span>
             </a>
-            {socialLinks.map(link => {
-              const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform) || SOCIAL_PLATFORMS[0];
-              const Icon = platformDef.icon;
-              return (
-                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
-                  <Icon className="w-4 h-4" />
-                  <span className="text-[14px] font-medium font-mono">{link.platform}</span>
-                </a>
-              );
-            })}
+            <a href="https://tiktok.com/@chipng_app" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
+              {/* Premium TikTok SVG Icon */}
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
+              <span className="text-[14px] font-medium font-mono">@chipng_app</span>
+            </a>
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-6">

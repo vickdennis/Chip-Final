@@ -145,17 +145,17 @@ CREATE POLICY "Social links are viewable by everyone."
 DROP POLICY IF EXISTS "Users can insert own social links." ON public.social_links;
 CREATE POLICY "Users can insert own social links."
   ON public.social_links FOR INSERT
-  WITH CHECK ( auth.uid() = profile_id );
+  WITH CHECK ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 DROP POLICY IF EXISTS "Users can update own social links." ON public.social_links;
 CREATE POLICY "Users can update own social links."
   ON public.social_links FOR UPDATE
-  USING ( auth.uid() = profile_id );
+  USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 DROP POLICY IF EXISTS "Users can delete own social links." ON public.social_links;
 CREATE POLICY "Users can delete own social links."
   ON public.social_links FOR DELETE
-  USING ( auth.uid() = profile_id );
+  USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 -- Function to automatically create a profile after inserting a user
 CREATE OR REPLACE FUNCTION public.handle_new_user()

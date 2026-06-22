@@ -9,8 +9,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'users' | 'products' | 'social_media'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'products'>('users');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -20,6 +19,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   // User form state
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
+  const [userSocialLinks, setUserSocialLinks] = useState<any[]>([]);
 
   // Create user state
   const [creatingUser, setCreatingUser] = useState(false);
@@ -83,11 +83,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const fetchData = async () => {
     const { data: usersData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
     const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-    const { data: socialData } = await supabase.from('platform_social_links').select('*').order('position', { ascending: true });
     
     if (usersData) setUsers(usersData);
     if (productsData) setProducts(productsData);
-    if (socialData) setSocialLinks(socialData);
   };
 
   const toggleVerification = async (id: string, current: boolean) => {
@@ -122,8 +120,17 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       } else if (!data || data.length === 0) {
         alert("Update failed! Row-level security prevented modification. Please apply the updated supabase_schema.sql policies.");
       } else {
+        await supabase.from('social_links').delete().eq('profile_id', editingUser.id);
+        if (userSocialLinks.length > 0) {
+          await supabase.from('social_links').insert(userSocialLinks.map(s => ({
+            profile_id: editingUser.id,
+            platform: s.platform,
+            url: s.url
+          })));
+        }
         setEditingUser(null);
         setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '' });
+        setUserSocialLinks([]);
         fetchData();
       }
     }
@@ -198,30 +205,6 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     fetchData();
   };
 
-  const handleSaveSocialLinks = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // clear old links
-      const { error: delError } = await supabase.from('platform_social_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      if (delError) {
-        // Fallback for empty where
-      }
-      
-      if (socialLinks.length > 0) {
-        const payload = socialLinks.map((s, i) => ({
-          platform: s.platform,
-          url: s.url,
-          position: i
-        }));
-        await supabase.from('platform_social_links').insert(payload);
-      }
-      alert("Platform social links saved successfully!");
-      fetchData();
-    } catch(err) {
-      alert("Error saving: " + String(err));
-    }
-  };
-
   const deleteProduct = async (id: string) => {
     if (!window.confirm('Delete this product?')) return;
     await supabase.from('products').delete().eq('id', id);
@@ -281,12 +264,6 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             onClick={() => setActiveTab('products')}
           >
             <Package className="w-4 h-4 inline mr-1" /> Shop Products
-          </button>
-          <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'social_media' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
-            onClick={() => setActiveTab('social_media')}
-          >
-            <Globe className="w-4 h-4 inline mr-1" /> Social Media
           </button>
         </div>
 
@@ -374,6 +351,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                             onClick={() => {
                               setEditingUser(u);
                               setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '', bio: u.bio || '', contact_email: u.contact_email || '', phone_number: u.phone_number || '', cover_image_url: u.cover_image_url || '' });
+                              setUserSocialLinks([]);
+                              supabase.from('social_links').select('*').eq('profile_id', u.id).then(({data}) => {
+                                if(data) setUserSocialLinks(data);
+                              });
                             }}
                             className="px-3 py-1 bg-[#f3f3f4] dark:bg-[#222] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
                           >
@@ -430,6 +411,57 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         <input value={userForm.cover_image_url || ''} onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} className="w-full mt-2 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="Or paste image URL..." />
                       )}
                     </div>
+                    
+                    <div className="pt-2 border-t border-[#cfc4c5] dark:border-[#333]">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase">User Social Links</label>
+                        <button 
+                          type="button"
+                          onClick={() => setUserSocialLinks([...userSocialLinks, { platform: SOCIAL_PLATFORMS[0].name, url: '' }])}
+                          className="text-black dark:text-white hover:underline font-mono text-[11px] font-bold flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> Add Link
+                        </button>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {userSocialLinks.map((item, i) => (
+                          <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                            <select 
+                              value={item.platform}
+                              onChange={(e) => {
+                                const newLinks = [...userSocialLinks];
+                                newLinks[i].platform = e.target.value;
+                                setUserSocialLinks(newLinks);
+                              }}
+                              className="w-full sm:w-1/3 px-2 py-1.5 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-sans text-[12px] bg-white dark:bg-[#111]"
+                            >
+                              {SOCIAL_PLATFORMS.map(p => (
+                                <option key={p.name} value={p.name}>{p.name}</option>
+                              ))}
+                            </select>
+                            <input 
+                              type="text" 
+                              value={item.url} 
+                              onChange={(e) => {
+                                const newLinks = [...userSocialLinks];
+                                newLinks[i].url = e.target.value;
+                                setUserSocialLinks(newLinks);
+                              }}
+                              placeholder="https://" 
+                              className="flex-1 px-2 py-1.5 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-mono text-[11px] text-black dark:text-white w-full" 
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => setUserSocialLinks(userSocialLinks.filter((_, idx) => idx !== i))}
+                              className="p-1.5 text-[#7e7576] hover:text-[#ba1a1a] transition-colors rounded-sm hover:bg-[#ffdad6] shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="flex gap-2 mt-4">
                       <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
                         {uploadingImage ? 'Uploading...' : 'Save Changes'}
@@ -585,66 +617,6 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 )}
               </div>
             </div>
-          </div>
-        )}
-        {activeTab === 'social_media' && (
-          <div className="bg-white dark:bg-[#111] rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] p-6 mb-8 max-w-3xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold font-sans">Platform Social Media</h2>
-              <button 
-                onClick={() => setSocialLinks([...socialLinks, { platform: SOCIAL_PLATFORMS[0].name, url: '' }])}
-                className="text-black dark:text-white hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
-              >
-                <Plus className="w-4 h-4" /> Add Link
-              </button>
-            </div>
-            <form onSubmit={handleSaveSocialLinks} className="flex flex-col gap-4">
-              {socialLinks.map((item, i) => (
-                <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap border border-[#cfc4c5] dark:border-[#333] p-3 rounded-sm bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <select 
-                    value={item.platform}
-                    onChange={(e) => {
-                      const newLinks = [...socialLinks];
-                      newLinks[i].platform = e.target.value;
-                      setSocialLinks(newLinks);
-                    }}
-                    className="w-full sm:w-1/3 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-sans text-[13px] bg-white dark:bg-[#111] h-10"
-                  >
-                    {SOCIAL_PLATFORMS.map(p => (
-                      <option key={p.name} value={p.name}>{p.name}</option>
-                    ))}
-                  </select>
-                  <input 
-                    type="text" 
-                    value={item.url} 
-                    onChange={(e) => {
-                      const newLinks = [...socialLinks];
-                      newLinks[i].url = e.target.value;
-                      setSocialLinks(newLinks);
-                    }}
-                    placeholder="https://" 
-                    className="flex-1 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-mono text-[12px] text-black dark:text-white w-full min-w-[120px] h-10" 
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}
-                    className="p-2 text-[#7e7576] hover:text-[#ba1a1a] transition-colors rounded-sm hover:bg-[#ffdad6] shrink-0"
-                  >
-                    <Trash2 className="w-[18px] h-[18px]" />
-                  </button>
-                </div>
-              ))}
-              {socialLinks.length === 0 && (
-                <div className="text-center py-6 text-[#7e7576] font-mono text-[13px]">
-                  No platform social links. Click 'Add Link'.
-                </div>
-              )}
-              {socialLinks.length > 0 && (
-                <button type="submit" className="mt-4 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold">
-                  Save Social Links
-                </button>
-              )}
-            </form>
           </div>
         )}
 
