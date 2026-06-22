@@ -41,7 +41,11 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
         onNavigate('user-dashboard');
       }
     } catch (error: any) {
-      setErrorMsg(error.message || 'An error occurred during authentication.');
+      if (error.message && error.message.toLowerCase().includes('rate limit')) {
+        setErrorMsg('Sign up error: email rate limit exceeded. Please wait a while before trying again, or try logging in if you already created an account.');
+      } else {
+        setErrorMsg(error.message || 'An error occurred during authentication.');
+      }
     } finally {
       setLoading(false);
     }

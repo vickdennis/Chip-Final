@@ -156,7 +156,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         }
       });
       if (error) {
-        alert("Sign up error: " + error.message);
+        if (error.message && error.message.toLowerCase().includes('rate limit')) {
+          alert('Sign up error: email rate limit exceeded. Please try again later.');
+        } else {
+          alert("Sign up error: " + error.message);
+        }
       } else if (data.user) {
         // Give the trigger a moment to run
         await new Promise(r => setTimeout(r, 1000));
