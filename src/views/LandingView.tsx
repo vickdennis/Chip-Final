@@ -210,7 +210,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               <div className="absolute top-0 right-0 bg-[#FFB800] text-black dark:text-white font-mono text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-sm">Popular</div>
               <h3 className="font-mono text-[14px] font-bold text-white/70 uppercase tracking-widest mb-4">Pro</h3>
               <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-display text-[48px] font-black text-white leading-none">₦3000</span>
+                <span className="font-display text-[48px] font-black text-white leading-none">₦5,000</span>
                 <span className="text-[16px] text-white/70">/ month</span>
               </div>
               <p className="text-[16px] text-white/80 mb-8">Unlock verification, premium features, and shop integration.</p>

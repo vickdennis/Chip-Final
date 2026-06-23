@@ -221,7 +221,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
               Go Back
             </button>
             <button onClick={handleCreateEnterprise} className="flex-1 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-[13px] font-bold uppercase transition-transform hover:scale-[1.02]">
-              Buy Now ($99/mo)
+              Buy Now (₦99,000/mo)
             </button>
           </div>
         </div>
@@ -472,7 +472,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                  <div className="flex items-center justify-between border-b border-[#cfc4c5] dark:border-[#333] pb-6">
                    <div>
                      <div className="font-sans font-bold text-xl mb-1">Enterprise Tier</div>
-                     <div className="font-mono text-[12px] text-[#7e7576] uppercase">Billed Monthly ($99.00)</div>
+                     <div className="font-mono text-[12px] text-[#7e7576] uppercase">Billed Monthly (₦99,000.00)</div>
                    </div>
                    <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-mono text-[10px] font-bold uppercase rounded-sm">Active</span>
                  </div>
