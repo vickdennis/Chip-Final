@@ -4,6 +4,35 @@ import { supabase } from '../supabaseClient';
 import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle, ShoppingBag } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 
+const BRANDS = [
+  "ThomasBoydWhyte Solicitors",
+  "EMC Legal Limited",
+  "Rinovato Studio",
+  "Zenthura",
+  "Buy Lekki Now Now",
+  "Novation Legal Practice",
+  "Five Paper",
+  "Noir Prestige",
+  "Luxe Trends",
+  "VC10 GROUP",
+  "The Bloom Affair",
+  "Zenithedge Consulting"
+];
+
+const BrandTicker = () => (
+  <div className="w-full bg-white dark:bg-[#111] border-y border-[#e2e2e2] dark:border-[#333] overflow-hidden py-4 md:py-6 flex items-center relative z-10 select-none">
+    <div className="flex w-max animate-ticker hover:[animation-play-state:paused]">
+      {[...BRANDS, ...BRANDS].map((brand, i) => (
+        <div key={i} className="flex-1 min-w-max flex justify-center items-center px-10 shrink-0">
+          <span className="font-display font-bold text-[18px] md:text-[20px] text-[#7e7576] dark:text-[#7e7576] tracking-tight whitespace-nowrap opacity-60 hover:opacity-100 transition-opacity cursor-default">
+            {brand}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
     const [products, setProducts] = useState<any[]>([]);
 
@@ -46,6 +75,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           </button>
         </div>
       </nav>
+
+      <BrandTicker />
 
       <main className="flex-grow flex flex-col items-center justify-center pt-24 pb-20 px-8">
         <section className="max-w-4xl w-full mx-auto text-center flex flex-col items-center gap-10">
@@ -318,6 +349,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
         </section>
 
       </main>
+
+      <BrandTicker />
 
       <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-white dark:bg-[#111] border-t border-[#e2e2e2] dark:border-[#333]">
         <div className="mb-6 md:mb-0 text-center md:text-left">

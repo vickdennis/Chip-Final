@@ -5,6 +5,13 @@
   --font-sans: "Inter", sans-serif;
   --font-display: "Hanken Grotesk", sans-serif;
   --font-mono: "Geist", monospace;
+  
+  --animate-ticker: ticker 40s linear infinite;
+  
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
