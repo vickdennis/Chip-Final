@@ -201,7 +201,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     const payload = {
       name: prodForm.name,
       description: prodForm.description,
-      price: parseFloat(prodForm.price),
+      price: parseFloat(prodForm.price.toString().replace(/,/g, '')),
       image_url: prodForm.image_url
     };
 
@@ -568,7 +568,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 </div>
                 <div>
                   <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Price (₦)</label>
-                  <input required type="number" step="0.01" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
                 </div>
                 <div>
                   <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Image Upload</label>
