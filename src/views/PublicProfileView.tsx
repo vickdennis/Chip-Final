@@ -103,6 +103,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   const coverUrl = profile?.cover_image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuDJdZfBp08ThhJkbous1qpSV80_ElD1o9obSt5AOKNYgq32sqShFsY95dnIhjpFH1wxwvT4gzXvFAZ_IpKEl5CpME0qIY6tV53q3N41VoqzAapRX3JGVjV8t0xHFVojZGp54nQM3lEGjPU5Ju0AxqQw_8APH-7H5hG-vaOeYzXj3cEc4Wj1y2Dlzf4vx24Nocz6VRMn5bSHI36NCSzRpkwk1SSi4ZCVsbVNmmrSByG2hDIeGzM3OSF92uHwBeAQqdzi0PE4r_i8nQQ";
 
   const totalFollowers = socialLinks.reduce((sum, link) => sum + (link.follower_count || 0), 0);
+  const enterpriseColor = profile?.enterprise?.brand_color;
 
   const formatFollowers = (count: number) => {
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';

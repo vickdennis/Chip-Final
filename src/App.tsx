@@ -41,7 +41,7 @@ export default function App() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin') {
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise') {
       try {
         return decodeURIComponent(path.slice(1));
       } catch (e) {
