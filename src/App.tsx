@@ -4,9 +4,10 @@ import LoginView from './views/LoginView';
 import UserDashboard from './views/UserDashboard';
 import PublicProfileView from './views/PublicProfileView';
 import AdminDashboard from './views/AdminDashboard';
+import EnterpriseDashboard from './views/EnterpriseDashboard';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard';
+export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -29,6 +30,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
     if (path === '/admin') return 'admin-dashboard';
+    if (path === '/enterprise') return 'enterprise-dashboard';
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
     if (path !== '' && path !== '/') {
@@ -65,7 +67,7 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       // Use functional state update to avoid dependency on currentView
       setCurrentView((prevView) => {
-        const isProtected = prevView === 'user-dashboard' || prevView === 'admin-dashboard';
+        const isProtected = prevView === 'user-dashboard' || prevView === 'admin-dashboard' || prevView === 'enterprise-dashboard';
         if (!session && isProtected) {
           return 'login';
         } else if (session && (prevView === 'login' || prevView === 'landing')) {
@@ -98,6 +100,7 @@ export default function App() {
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
       {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
     </div>
   );
 }

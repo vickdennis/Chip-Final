@@ -7,6 +7,36 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Enterprises Table
+CREATE TABLE IF NOT EXISTS public.enterprises (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  owner_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  total_seats INTEGER DEFAULT 20,
+  logo_url TEXT,
+  brand_color TEXT DEFAULT '#000000',
+  brand_font TEXT DEFAULT 'sans',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for enterprises
+ALTER TABLE public.enterprises ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Enterprises are viewable by everyone." ON public.enterprises;
+CREATE POLICY "Enterprises are viewable by everyone."
+  ON public.enterprises FOR SELECT
+  USING ( true );
+
+DROP POLICY IF EXISTS "Enterprise owners can insert." ON public.enterprises;
+CREATE POLICY "Enterprise owners can insert."
+  ON public.enterprises FOR INSERT
+  WITH CHECK ( auth.uid() = owner_id );
+
+DROP POLICY IF EXISTS "Enterprise owners can update." ON public.enterprises;
+CREATE POLICY "Enterprise owners can update."
+  ON public.enterprises FOR UPDATE
+  USING ( auth.uid() = owner_id );
+
 -- Profiles Table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
@@ -25,6 +55,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   social_links_style TEXT DEFAULT 'inline',
   is_verified BOOLEAN DEFAULT false,
   is_admin BOOLEAN DEFAULT false,
+  enterprise_id UUID,
+  is_enterprise_owner BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -53,7 +85,11 @@ CREATE POLICY "Users can insert their own profile."
 DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
 CREATE POLICY "Users can update own profile."
   ON public.profiles FOR UPDATE
-  USING ( auth.uid() = id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING ( 
+    auth.uid() = id 
+    OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR EXISTS (SELECT 1 FROM public.enterprises AS e WHERE e.id = enterprise_id AND e.owner_id = auth.uid())
+  );
 
 -- Products Table
 CREATE TABLE IF NOT EXISTS public.products (

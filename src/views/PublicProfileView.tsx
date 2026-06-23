@@ -54,6 +54,10 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
       if (profileData) {
         setProfile(profileData);
+        if (profileData.enterprise_id) {
+          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).single();
+          if (ent) profileData.enterprise = ent;
+        }
       }
       if (linksData) setLinks(linksData);
       if (socialData) setSocialLinks(socialData);
@@ -128,6 +132,14 @@ END:VCARD`;
     document.body.removeChild(a);
   };
 
+  const getFontFamily = () => {
+    switch (profile?.enterprise?.brand_font) {
+      case 'mono': return '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
+      case 'serif': return '"Playfair Display", ui-serif, Georgia, serif';
+      default: return undefined; // use tailwind default
+    }
+  };
+
   const renderSocialLinks = () => {
     const style = profile?.social_links_style || 'color-circle';
 
@@ -143,7 +155,7 @@ END:VCARD`;
             iconContent = (
               <div 
                 className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md"
-                style={{ backgroundColor: color, color: '#ffffff' }}
+                style={{ backgroundColor: profile?.enterprise?.brand_color || color, color: '#ffffff' }}
               >
                 <Icon className="w-6 h-6" />
               </div>
@@ -152,7 +164,7 @@ END:VCARD`;
              iconContent = (
               <div 
                 className="w-12 h-12 flex items-center justify-center rounded-full bg-white hover:-translate-y-1 transition-transform shadow-md"
-                style={{ color: color }}
+                style={{ color: profile?.enterprise?.brand_color || color }}
               >
                 <Icon className="w-6 h-6" />
               </div>
@@ -202,7 +214,7 @@ END:VCARD`;
   };
 
   return (
-    <div className="h-[100dvh] sm:min-h-screen bg-black flex flex-col items-center">
+    <div className="h-[100dvh] sm:min-h-screen bg-black flex flex-col items-center" style={{ fontFamily: getFontFamily() }}>
       <div className="w-full max-w-[480px] bg-black sm:shadow-2xl overflow-hidden relative h-[100dvh] flex flex-col border-x border-[#1a1a1a]">
         
         {/* Buttons at Top */}
@@ -359,11 +371,11 @@ END:VCARD`;
             <div className="w-full flex flex-col gap-3 mb-8">
               <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className="w-full bg-white rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors">
                 <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
-                  <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate">
+                  <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
                     {profile?.contact_email || profile?.email || "your@email.com"}
                   </span>
                 </div>
-                <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0">
+                <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
                   <span className="text-white font-sans text-[16px] font-bold tracking-tight">Connect with</span>
                   <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
                 </div>
@@ -371,7 +383,7 @@ END:VCARD`;
               {profile?.phone_number && (
                 <a href={`tel:${profile.phone_number}`} className="w-full bg-[#141414] border border-[#2a2a2a] p-3 flex items-center justify-between rounded-xl cursor-pointer hover:border-[#4a4a4a] transition-colors group">
                    <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-[#2a2a2a] text-white rounded-lg flex items-center justify-center group-hover:bg-[#3a3a3a] transition-colors">
+                     <div className="w-10 h-10 bg-[#2a2a2a] text-white rounded-lg flex items-center justify-center group-hover:bg-[#3a3a3a] transition-colors" style={{ backgroundColor: enterpriseColor || undefined }}>
                        <Phone className="w-4 h-4" />
                      </div>
                      <div className="flex flex-col overflow-hidden max-w-[140px]">
@@ -385,7 +397,7 @@ END:VCARD`;
 
             {profile?.address && (
               <div className="w-full bg-[#141414] border border-[#2a2a2a] p-4 flex items-center gap-4 rounded-xl mb-8">
-                <div className="w-10 h-10 bg-[#2a2a2a] text-white rounded-lg flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-[#2a2a2a] text-white rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: enterpriseColor || undefined }}>
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
@@ -423,8 +435,8 @@ END:VCARD`;
                   rel="noopener noreferrer"
                   className="bg-[#141414] border border-[#2a2a2a] text-white p-4 rounded-xl shadow-sm hover:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center w-full group"
                 >
-                  <div className="w-10 h-10 bg-[#2a2a2a] rounded-lg flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors">
-                    <LinkIcon className="w-4 h-4 text-white" />
+                  <div className="w-10 h-10 bg-[#2a2a2a] rounded-lg flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors" style={{ backgroundColor: enterpriseColor ? `${enterpriseColor}40` : undefined, color: enterpriseColor || undefined }}>
+                    <LinkIcon className="w-4 h-4 text-white" style={{ color: enterpriseColor || undefined }} />
                   </div>
                   <h2 className="font-sans text-[15px] font-medium flex-1 truncate">{link.label}</h2>
                   <ExternalLink className="w-4 h-4 text-[#707070] flex-shrink-0 ml-2 group-hover:text-white transition-colors" />
@@ -435,6 +447,14 @@ END:VCARD`;
                  </div>
               )}
             </div>
+
+            {profile?.enterprise && (
+              <div className="mt-12 flex items-center gap-2 justify-center opacity-60">
+                 {profile.enterprise.logo_url && <img src={profile.enterprise.logo_url} className="w-4 h-4 object-contain grayscale" alt="" />}
+                 <span className="font-mono text-[10px] uppercase tracking-wider text-white">Part of {profile.enterprise.name}</span>
+              </div>
+            )}
+            
           </section>
         </div>
 

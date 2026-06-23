@@ -67,6 +67,16 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
             <LayoutDashboard className="w-[18px] h-[18px]" />
             Dashboard
           </button>
+          <button 
+            onClick={() => {
+              onNavigate('enterprise-dashboard');
+              setMobileMenuOpen(false);
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-sm text-[#4c4546] dark:text-[#a0a0a0] hover:bg-[#e8e8e8] dark:hover:bg-[#222] transition-all duration-150 ease-in-out font-mono text-[14px] font-medium"
+          >
+            <Users className="w-[18px] h-[18px]" />
+            Enterprise Edition
+          </button>
         </nav>
 
         <div className="mt-auto p-4 border-t border-[#cfc4c5] dark:border-[#333]">
