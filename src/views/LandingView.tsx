@@ -32,7 +32,7 @@ const BrandTicker = () => (
               e.currentTarget.src = `https://placehold.co/200x80/transparent/7e7576?text=${encodeURIComponent(brand.name.split(' ').slice(0,2).join(' '))}`;
             }}
             alt={brand.name}
-            className="h-8 md:h-12 object-contain opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0" 
+            className="h-8 md:h-12 object-contain opacity-60 hover:opacity-100 transition-opacity" 
           />
         </div>
       ))}

@@ -610,10 +610,10 @@ END:VCARD`;
                     <div className="flex items-center gap-2 w-24 relative group">
                       <input 
                         type="number" 
-                        value={item.follower_count || ''} 
+                        value={item.follower_count} 
                         onChange={(e) => {
                           const newLinks = [...socialLinks];
-                          newLinks[i].follower_count = parseInt(e.target.value) || 0;
+                          newLinks[i].follower_count = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
                           setSocialLinks(newLinks);
                         }}
                         placeholder="Followers" 
