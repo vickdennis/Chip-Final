@@ -5,18 +5,19 @@ import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 
 const BRANDS = [
-  "ThomasBoydWhyte Solicitors",
-  "EMC Legal Limited",
-  "Rinovato Studio",
-  "Zenthura",
-  "Buy Lekki Now Now",
-  "Novation Legal Practice",
-  "Five Paper",
-  "Noir Prestige",
-  "Luxe Trends",
-  "VC10 GROUP",
-  "The Bloom Affair",
-  "Zenithedge Consulting"
+  { name: "ThomasBoydWhyte Solicitors", file: "IMG_0502.jpeg" },
+  { name: "EMC Legal Limited", file: "IMG_0503.jpeg" },
+  { name: "Rinovato Studio", file: "IMG_0504.jpeg" },
+  { name: "Zenthura", file: "IMG_0505.jpeg" },
+  { name: "Buy Lekki Now Now", file: "IMG_0506.jpeg" },
+  { name: "Novation Legal Practice", file: "IMG_0507.jpeg" },
+  { name: "Five Paper", file: "IMG_0508.jpeg" },
+  { name: "Noir Prestige", file: "IMG_0509.jpeg" },
+  { name: "Luxe Trends", file: "IMG_0510.jpeg" },
+  { name: "VC10 GROUP", file: "IMG_0511.jpeg" },
+  { name: "The Bloom Affair", file: "IMG_0512.jpeg" },
+  { name: "Zenithedge Consulting", file: "IMG_0513.jpeg" },
+  { name: "Partner", file: "IMG_0514.jpeg" }
 ];
 
 const BrandTicker = () => (
@@ -24,9 +25,15 @@ const BrandTicker = () => (
     <div className="flex w-max animate-ticker hover:[animation-play-state:paused]">
       {[...BRANDS, ...BRANDS].map((brand, i) => (
         <div key={i} className="flex-1 min-w-max flex justify-center items-center px-10 shrink-0">
-          <span className="font-display font-bold text-[18px] md:text-[20px] text-[#7e7576] dark:text-[#7e7576] tracking-tight whitespace-nowrap opacity-60 hover:opacity-100 transition-opacity cursor-default">
-            {brand}
-          </span>
+          <img 
+            src={`/${brand.file}`} 
+            onError={(e) => {
+              // Fallback to placeholder if image not uploaded yet
+              e.currentTarget.src = `https://placehold.co/200x80/transparent/7e7576?text=${encodeURIComponent(brand.name.split(' ').slice(0,2).join(' '))}`;
+            }}
+            alt={brand.name}
+            className="h-8 md:h-12 object-contain opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0" 
+          />
         </div>
       ))}
     </div>
