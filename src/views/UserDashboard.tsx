@@ -842,28 +842,89 @@ END:VCARD`;
                         placeholder="Product Description"
                         className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors min-h-[80px]" 
                       />
-                      <input 
-                        type="text" 
-                        value={p.file_url || ''}
-                        onChange={(e) => {
-                          const newP = [...products];
-                          newP[i].file_url = e.target.value;
-                          setProducts(newP);
-                        }}
-                        placeholder="Link to file (Google Drive, Dropbox, etc.)" 
-                        className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
-                      />
-                      <input 
-                        type="text" 
-                        value={p.image_url || ''}
-                        onChange={(e) => {
-                          const newP = [...products];
-                          newP[i].image_url = e.target.value;
-                          setProducts(newP);
-                        }}
-                        placeholder="Product Image URL (Optional)" 
-                        className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
-                      />
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={p.file_url || ''}
+                          onChange={(e) => {
+                            const newP = [...products];
+                            newP[i].file_url = e.target.value;
+                            setProducts(newP);
+                          }}
+                          placeholder="Link to file (Google Drive, Dropbox, etc.)" 
+                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
+                        />
+                        <label className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-sm cursor-pointer flex items-center justify-center font-mono text-[11px] font-bold whitespace-nowrap hover:bg-black/80 dark:hover:bg-white/80 transition-colors">
+                          <Upload className="w-3 h-3 mr-1.5" />
+                          Upload
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            onChange={async (e) => {
+                              if (!e.target.files || e.target.files.length === 0) return;
+                              const file = e.target.files[0];
+                              setUploading(true);
+                              try {
+                                const fileExt = file.name.split('.').pop();
+                                const filePath = `${profile.id}/files/${Math.random()}.${fileExt}`;
+                                const { error: uploadError } = await supabase.storage.from('products').upload(filePath, file);
+                                if (uploadError) throw uploadError;
+                                const { data } = supabase.storage.from('products').getPublicUrl(filePath);
+                                const newP = [...products];
+                                newP[i].file_url = data.publicUrl;
+                                setProducts(newP);
+                              } catch (err: any) {
+                                console.error(err);
+                                alert('Error uploading: ' + err.message);
+                              } finally {
+                                setUploading(false);
+                              }
+                            }} 
+                          />
+                        </label>
+                      </div>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={p.image_url || ''}
+                          onChange={(e) => {
+                            const newP = [...products];
+                            newP[i].image_url = e.target.value;
+                            setProducts(newP);
+                          }}
+                          placeholder="Product Image URL (Optional)" 
+                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
+                        />
+                        <label className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-sm cursor-pointer flex items-center justify-center font-mono text-[11px] font-bold whitespace-nowrap hover:bg-black/80 dark:hover:bg-white/80 transition-colors">
+                          <Upload className="w-3 h-3 mr-1.5" />
+                          Upload
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={async (e) => {
+                              if (!e.target.files || e.target.files.length === 0) return;
+                              const file = e.target.files[0];
+                              setUploading(true);
+                              try {
+                                const fileExt = file.name.split('.').pop();
+                                const filePath = `${profile.id}/${Math.random()}.${fileExt}`;
+                                const { error: uploadError } = await supabase.storage.from('products').upload(filePath, file);
+                                if (uploadError) throw uploadError;
+                                const { data } = supabase.storage.from('products').getPublicUrl(filePath);
+                                const newP = [...products];
+                                newP[i].image_url = data.publicUrl;
+                                setProducts(newP);
+                              } catch (err: any) {
+                                console.error(err);
+                                alert('Error uploading: ' + err.message);
+                              } finally {
+                                setUploading(false);
+                              }
+                            }} 
+                          />
+                        </label>
+                      </div>
                     </div>
                   ))}
                   {products.length === 0 && (
