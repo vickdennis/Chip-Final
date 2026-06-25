@@ -866,10 +866,10 @@ END:VCARD`;
                               setUploading(true);
                               try {
                                 const fileExt = file.name.split('.').pop();
-                                const filePath = `${profile.id}/files/${Math.random()}.${fileExt}`;
-                                const { error: uploadError } = await supabase.storage.from('products').upload(filePath, file);
+                                const filePath = `products/${profile.id}/files/${Math.random()}.${fileExt}`;
+                                const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
                                 if (uploadError) throw uploadError;
-                                const { data } = supabase.storage.from('products').getPublicUrl(filePath);
+                                const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
                                 const newP = [...products];
                                 newP[i].file_url = data.publicUrl;
                                 setProducts(newP);
@@ -908,10 +908,10 @@ END:VCARD`;
                               setUploading(true);
                               try {
                                 const fileExt = file.name.split('.').pop();
-                                const filePath = `${profile.id}/${Math.random()}.${fileExt}`;
-                                const { error: uploadError } = await supabase.storage.from('products').upload(filePath, file);
+                                const filePath = `products/${profile.id}/${Math.random()}.${fileExt}`;
+                                const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
                                 if (uploadError) throw uploadError;
-                                const { data } = supabase.storage.from('products').getPublicUrl(filePath);
+                                const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
                                 const newP = [...products];
                                 newP[i].image_url = data.publicUrl;
                                 setProducts(newP);

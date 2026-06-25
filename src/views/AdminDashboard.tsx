@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase, adminAuthClient } from '../supabaseClient';
-import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -9,7 +9,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'users' | 'products'>('users');
+  const [purchases, setPurchases] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -83,9 +84,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const fetchData = async () => {
     const { data: usersData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
     const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data: purchasesData } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
     
     if (usersData) setUsers(usersData);
     if (productsData) setProducts(productsData);
+    if (purchasesData) setPurchases(purchasesData);
   };
 
   const toggleVerification = async (id: string, current: boolean) => {
@@ -243,6 +246,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     (u.id?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
+  const totalUsers = users.length;
+  const verifiedUsers = users.filter(u => u.is_verified).length;
+  const totalShopRevenue = purchases.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const totalPlatformFees = totalShopRevenue * 0.05; // 5% fee on digital products
+  const proPlanUsers = users.filter(u => u.enterprise_id).length; // Rough mock of premium users if they have enterprise
+
   return (
     <div className="min-h-screen bg-[#f3f3f4] dark:bg-[#222] pb-20">
       <header className="bg-black text-white p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
@@ -265,7 +274,13 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-[#cfc4c5] dark:border-[#333]">
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flexItems-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'analytics' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            <BarChart2 className="w-4 h-4 inline mr-1" /> Analytics
+          </button>
+          <button 
+            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('users')}
           >
             <Users className="w-4 h-4 inline mr-1" /> Users
@@ -277,6 +292,38 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             <Package className="w-4 h-4 inline mr-1" /> Shop Products
           </button>
         </div>
+
+        {activeTab === 'analytics' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
+              <Users className="w-8 h-8 text-[#7e7576] mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Total Users</h3>
+              <p className="text-4xl font-sans font-bold">{totalUsers}</p>
+              <p className="text-[12px] text-green-600 mt-2 flex items-center gap-1 font-mono">
+                <CheckCircle className="w-3 h-3" /> {verifiedUsers} Verified
+              </p>
+            </div>
+            
+            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
+              <Package className="w-8 h-8 text-[#7e7576] mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Total Shop Sales</h3>
+              <p className="text-4xl font-sans font-bold">₦{totalShopRevenue.toLocaleString()}</p>
+              <p className="text-[12px] text-[#7e7576] mt-2 font-mono">
+                From {purchases.length} digital product sales
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
+              <DollarSign className="w-8 h-8 text-[#7e7576] mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Platform Earnings</h3>
+              <p className="text-4xl font-sans font-bold">₦{totalPlatformFees.toLocaleString()}</p>
+              <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex flex-col items-center">
+                <span>Shop Fees (5%): ₦{totalPlatformFees.toLocaleString()}</span>
+                <span>Pro Plan Fees: ₦0 (Pending)</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {activeTab === 'users' && (
           <div className="bg-white dark:bg-[#111] rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] p-6 mb-8">
