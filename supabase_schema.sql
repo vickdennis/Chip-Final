@@ -103,6 +103,10 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Safely add columns if they don't exist
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS file_url TEXT;
+
 -- Enable RLS for products
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
