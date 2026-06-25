@@ -94,10 +94,12 @@ CREATE POLICY "Users can update own profile."
 -- Products Table
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
   price DECIMAL(10, 2) NOT NULL,
   image_url TEXT,
+  file_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -110,20 +112,53 @@ CREATE POLICY "Products are viewable by everyone."
   ON public.products FOR SELECT
   USING ( true );
 
-DROP POLICY IF EXISTS "Admins can insert products." ON public.products;
-CREATE POLICY "Admins can insert products."
+DROP POLICY IF EXISTS "Users can insert own products." ON public.products;
+CREATE POLICY "Users can insert own products."
   ON public.products FOR INSERT
-  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  WITH CHECK ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
-DROP POLICY IF EXISTS "Admins can update products." ON public.products;
-CREATE POLICY "Admins can update products."
+DROP POLICY IF EXISTS "Users can update own products." ON public.products;
+CREATE POLICY "Users can update own products."
   ON public.products FOR UPDATE
-  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
-DROP POLICY IF EXISTS "Admins can delete products." ON public.products;
-CREATE POLICY "Admins can delete products."
+DROP POLICY IF EXISTS "Users can delete own products." ON public.products;
+CREATE POLICY "Users can delete own products."
   ON public.products FOR DELETE
-  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+-- Purchases Table
+CREATE TABLE IF NOT EXISTS public.purchases (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
+  seller_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  buyer_email TEXT NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  platform_fee DECIMAL(10, 2) NOT NULL,
+  net_earnings DECIMAL(10, 2) NOT NULL,
+  reference TEXT NOT NULL UNIQUE,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for purchases
+ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
+
+-- Purchases Policies
+DROP POLICY IF EXISTS "Users can view own sales." ON public.purchases;
+CREATE POLICY "Users can view own sales."
+  ON public.purchases FOR SELECT
+  USING ( auth.uid() = seller_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Anyone can insert purchases (webhooks)." ON public.purchases;
+CREATE POLICY "Anyone can insert purchases (webhooks)."
+  ON public.purchases FOR INSERT
+  WITH CHECK ( true );
+
+DROP POLICY IF EXISTS "Anyone can update purchases (webhooks)." ON public.purchases;
+CREATE POLICY "Anyone can update purchases (webhooks)."
+  ON public.purchases FOR UPDATE
+  USING ( true );
 
 -- Links Table
 CREATE TABLE IF NOT EXISTS public.links (

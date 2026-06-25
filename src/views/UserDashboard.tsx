@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity } from 'lucide-react';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -53,6 +53,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
@@ -79,7 +80,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
-      const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+      const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
+      const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', user.id).order('created_at', { ascending: false });
 
       if (profileData) {
         setProfile({ ...profileData, email: user.email });
@@ -106,6 +108,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       if (linksData) setLinks(linksData);
       if (socialData) setSocialLinks(socialData);
       if (productsData) setProducts(productsData);
+      if (purchasesData) setSales(purchasesData);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -154,6 +157,24 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       if (socialLinks.length > 0) {
         const { error: insSocialError } = await supabase.from('social_links').insert(socialLinks.map(({ id, created_at, ...s }: any) => ({ ...s, profile_id: user.id })));
         if (insSocialError) throw insSocialError;
+      }
+
+      const existingProducts = await supabase.from('products').select('id').eq('profile_id', user.id);
+      const stateProductIds = products.map(p => p.id).filter(id => !id.startsWith('new_'));
+      const toDelete = existingProducts.data?.filter(p => !stateProductIds.includes(p.id)).map(p => p.id) || [];
+      if (toDelete.length > 0) {
+        await supabase.from('products').delete().in('id', toDelete);
+      }
+      
+      if (products.length > 0) {
+        const productsToUpsert = products.map(({ id, created_at, ...p }: any) => {
+          if (id && id.toString().startsWith('new_')) {
+            return { ...p, profile_id: user.id };
+          }
+          return { id, ...p, profile_id: user.id };
+        });
+        const { error: upsertProductsError } = await supabase.from('products').upsert(productsToUpsert);
+        if (upsertProductsError) throw upsertProductsError;
       }
 
       alert('Changes saved successfully!');
@@ -274,11 +295,26 @@ END:VCARD`;
           </div>
         </div>
 
+        <div className="flex border-b border-[#cfc4c5] dark:border-[#333] mb-8">
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'profile' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+          >
+            Profile Links
+          </button>
+          <button 
+            onClick={() => setActiveTab('shop')}
+            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'shop' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+          >
+            Digital Products
+          </button>
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-black dark:text-white" />
           </div>
-        ) : profile && (
+        ) : profile && activeTab === 'profile' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             
             {/* Left Column */}
@@ -738,48 +774,146 @@ END:VCARD`;
               </div>
             </section>
 
-            {/* Shop Products */}
-            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
-              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Shop (Admin Approved)</h3>
-                <Globe className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
-              </div>
-              <div className="p-5 overflow-auto max-h-[400px]">
-                <div className="flex flex-col gap-4">
-                  {products.map(p => (
-                    <div key={p.id} className="border border-[#cfc4c5] dark:border-[#333] rounded-sm p-3 flex gap-3 text-left">
-                      {p.image_url && <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded-[2px] shrink-0" />}
-                      <div className="flex flex-col flex-1">
-                        <span className="font-sans font-bold text-[14px] leading-tight mb-1">{p.name}</span>
-                        <span className="font-mono text-[11px] font-bold text-black dark:text-white bg-[#f3f3f4] dark:bg-[#222] px-1.5 py-0.5 rounded-sm self-start mb-1 leading-none">₦{p.price}</span>
-                        <p className="text-[12px] text-[#7e7576] line-clamp-2">{p.description}</p>
+            {/* End of right column */}
+          </div>
+          </div>
+        ) : profile && activeTab === 'shop' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-8 flex flex-col gap-8">
+              <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+                <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Digital Products</h3>
+                  <button 
+                    onClick={() => {
+                      setProducts([{ id: 'new_' + Date.now(), name: '', description: '', price: 0, file_url: '', image_url: '' }, ...products])
+                    }}
+                    className="font-mono text-[11px] font-bold bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-sm hover:bg-black/90 transition-colors"
+                  >
+                    + Add Product
+                  </button>
+                </div>
+                <div className="p-6 flex flex-col gap-6">
+                  {products.map((p, i) => (
+                    <div key={p.id} className="border border-[#cfc4c5] dark:border-[#333] p-4 rounded-sm flex flex-col gap-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-mono text-[12px] font-bold text-black dark:text-white uppercase tracking-widest">Product Details</span>
+                        <button 
+                          onClick={() => {
+                            const newProducts = [...products];
+                            newProducts.splice(i, 1);
+                            setProducts(newProducts);
+                          }}
+                          className="font-mono text-[11px] font-bold text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
                       </div>
-                      <PaystackButton
-                         reference={(new Date()).getTime().toString() + '_' + p.id}
-                         email={profile.contact_email || profile.email || 'user@example.com'}
-                         amount={Math.round(p.price * 100)}
-                         publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                         text="Buy"
-                         onSuccess={(ref) => {
-                           alert(`Thank you for purchasing ${p.name}! Your payment was successful.`);
-                         }}
-                         onClose={() => {}}
-                         className="self-center px-4 py-1.5 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 font-mono text-[11px] font-bold rounded-sm whitespace-nowrap hover:bg-black/80"
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input 
+                          type="text" 
+                          value={p.name}
+                          onChange={(e) => {
+                            const newP = [...products];
+                            newP[i].name = e.target.value;
+                            setProducts(newP);
+                          }}
+                          placeholder="Product Name" 
+                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
+                        />
+                        <input 
+                          type="number" 
+                          value={p.price}
+                          onChange={(e) => {
+                            const newP = [...products];
+                            newP[i].price = parseFloat(e.target.value) || 0;
+                            setProducts(newP);
+                          }}
+                          placeholder="Price (₦)" 
+                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
+                        />
+                      </div>
+                      <textarea
+                        value={p.description || ''}
+                        onChange={(e) => {
+                          const newP = [...products];
+                          newP[i].description = e.target.value;
+                          setProducts(newP);
+                        }}
+                        placeholder="Product Description"
+                        className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors min-h-[80px]" 
+                      />
+                      <input 
+                        type="text" 
+                        value={p.file_url || ''}
+                        onChange={(e) => {
+                          const newP = [...products];
+                          newP[i].file_url = e.target.value;
+                          setProducts(newP);
+                        }}
+                        placeholder="Link to file (Google Drive, Dropbox, etc.)" 
+                        className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
+                      />
+                      <input 
+                        type="text" 
+                        value={p.image_url || ''}
+                        onChange={(e) => {
+                          const newP = [...products];
+                          newP[i].image_url = e.target.value;
+                          setProducts(newP);
+                        }}
+                        placeholder="Product Image URL (Optional)" 
+                        className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] text-black dark:text-white text-[14px] px-3 py-2 rounded-sm outline-none focus:border-black dark:focus:border-white transition-colors" 
                       />
                     </div>
                   ))}
                   {products.length === 0 && (
-                    <div className="text-center py-6 text-[#7e7576] font-mono text-[13px]">
-                      No products available in shop yet.
+                    <div className="text-center py-12 text-[#7e7576] font-mono text-[13px]">
+                      No products added yet. Click "+ Add Product" to get started.
                     </div>
                   )}
                 </div>
-              </div>
-            </section>
-
+              </section>
+            </div>
+            
+            <div className="xl:col-span-4 flex flex-col gap-8">
+              <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+                <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Sales Earnings</h3>
+                  <Wallet className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
+                </div>
+                <div className="p-6">
+                  <div className="flex flex-col gap-2 mb-6">
+                    <span className="font-mono text-[11px] text-[#7e7576] uppercase tracking-widest">Total Earned</span>
+                    <span className="font-display text-3xl font-extrabold text-black dark:text-white">
+                      ₦{sales.reduce((acc, curr) => acc + (curr.net_earnings || 0), 0).toLocaleString()}
+                    </span>
+                    <span className="font-mono text-[10px] text-[#7e7576]">After 5% ChipNG platform fee</span>
+                  </div>
+                  
+                  <h4 className="font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest mb-3">Recent Sales</h4>
+                  <div className="flex flex-col gap-3">
+                    {sales.length > 0 ? sales.slice(0, 5).map(s => {
+                      const p = products.find(p => p.id === s.product_id);
+                      return (
+                        <div key={s.id} className="flex justify-between items-center p-3 border border-[#cfc4c5] dark:border-[#333] rounded-sm bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                          <div className="flex flex-col">
+                            <span className="font-sans text-[13px] font-bold text-black dark:text-white truncate max-w-[150px]">{p ? p.name : 'Product'}</span>
+                            <span className="font-mono text-[10px] text-[#7e7576]">{new Date(s.created_at).toLocaleDateString()}</span>
+                          </div>
+                          <span className="font-mono text-[13px] font-bold text-green-600 dark:text-green-400">+₦{s.net_earnings}</span>
+                        </div>
+                      )
+                    }) : (
+                      <div className="text-[#7e7576] font-mono text-[11px] text-center py-4 border border-dashed border-[#cfc4c5] dark:border-[#333] rounded-sm">
+                        No sales yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
-          </div>
-        )}
+        ) : null}
 
       </div>
       {cropModalOpen && tempImageUrl && (

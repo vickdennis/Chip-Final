@@ -3,11 +3,14 @@ import { ViewState } from '../App';
 import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { PaystackButton } from 'react-paystack';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'links' | 'shop'>('links');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +54,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
       const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', targetUserId).order('position');
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', targetUserId);
+      const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', targetUserId).order('created_at', { ascending: false });
 
       if (profileData) {
         setProfile(profileData);
@@ -61,6 +65,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       }
       if (linksData) setLinks(linksData);
       if (socialData) setSocialLinks(socialData);
+      if (productsData) setProducts(productsData);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -425,29 +430,91 @@ END:VCARD`;
               </a>
             )}
 
-            {/* Outbound Links */}
-            <div className="w-full flex flex-col gap-3">
-              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-2 px-1">Featured Links</span>
-              {links.length > 0 ? links.map((link, i) => (
-                <a 
-                  key={i} 
-                  href={link.url?.startsWith('http') ? link.url : `https://${link.url}`}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-[#141414] border border-[#2a2a2a] text-white p-4 rounded-xl shadow-sm hover:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center w-full group"
+            {products.length > 0 && (
+              <div className="w-full flex bg-[#141414] border border-[#2a2a2a] p-1 rounded-full mb-6">
+                <button
+                  onClick={() => setActiveTab('links')}
+                  className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'links' ? 'bg-white text-black' : 'text-[#707070] hover:text-white'}`}
                 >
-                  <div className="w-10 h-10 bg-[#2a2a2a] rounded-lg flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors" style={{ backgroundColor: enterpriseColor ? `${enterpriseColor}40` : undefined, color: enterpriseColor || undefined }}>
-                    <LinkIcon className="w-4 h-4 text-white" style={{ color: enterpriseColor || undefined }} />
+                  Links
+                </button>
+                <button
+                  onClick={() => setActiveTab('shop')}
+                  className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'shop' ? 'bg-white text-black' : 'text-[#707070] hover:text-white'}`}
+                >
+                  Products
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'links' ? (
+              <div className="w-full flex flex-col gap-3">
+                <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-2 px-1">Featured Links</span>
+                {links.length > 0 ? links.map((link, i) => (
+                  <a 
+                    key={i} 
+                    href={link.url?.startsWith('http') ? link.url : `https://${link.url}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-[#141414] border border-[#2a2a2a] text-white p-4 rounded-xl shadow-sm hover:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center w-full group"
+                  >
+                    <div className="w-10 h-10 bg-[#2a2a2a] rounded-lg flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors" style={{ backgroundColor: enterpriseColor ? `${enterpriseColor}40` : undefined, color: enterpriseColor || undefined }}>
+                      <LinkIcon className="w-4 h-4 text-white" style={{ color: enterpriseColor || undefined }} />
+                    </div>
+                    <h2 className="font-sans text-[15px] font-medium flex-1 truncate">{link.label}</h2>
+                    <ExternalLink className="w-4 h-4 text-[#707070] flex-shrink-0 ml-2 group-hover:text-white transition-colors" />
+                  </a>
+                )) : (
+                   <div className="w-full border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 flex flex-col items-center justify-center gap-2 mb-3 bg-black">
+                     <span className="font-mono text-[12px] text-[#505050]">[Ordered Link Data Placeholder]</span>
+                   </div>
+                )}
+              </div>
+            ) : (
+              <div className="w-full flex flex-col gap-4">
+                <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-1 px-1">Digital Products</span>
+                {products.map((p) => (
+                  <div key={p.id} className="bg-[#141414] border border-[#2a2a2a] rounded-xl p-4 flex flex-col sm:flex-row gap-4 text-left">
+                    {p.image_url && <img src={p.image_url} alt={p.name} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-lg shrink-0" />}
+                    <div className="flex flex-col flex-1">
+                      <span className="font-sans font-bold text-white text-[16px] leading-tight mb-1">{p.name}</span>
+                      <span className="font-mono text-[12px] font-bold text-black bg-white px-2 py-1 rounded-sm self-start mb-2 leading-none">₦{p.price}</span>
+                      <p className="text-[13px] text-[#a0a0a0] mb-4 flex-1 line-clamp-3">{p.description}</p>
+                      <PaystackButton
+                        reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
+                        email='guest@chipng.com'
+                        amount={Math.round(p.price * 100)}
+                        publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                        text="Buy Now"
+                        onSuccess={async (response: any) => {
+                          try {
+                            await supabase.from('purchases').insert({
+                              product_id: p.id,
+                              seller_id: p.profile_id,
+                              buyer_email: 'guest@chipng.com',
+                              amount: p.price,
+                              platform_fee: p.price * 0.05,
+                              net_earnings: p.price * 0.95,
+                              reference: response.reference,
+                              status: 'success'
+                            });
+                            alert('Payment complete! Reference: ' + response.reference + '. Your product is being delivered.');
+                            if (p.file_url) {
+                              window.open(p.file_url, '_blank');
+                            }
+                          } catch(err) {
+                            console.error(err);
+                            alert('Error processing purchase.');
+                          }
+                        }}
+                        onClose={() => {}}
+                        className="w-full bg-white text-black hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto"
+                      />
+                    </div>
                   </div>
-                  <h2 className="font-sans text-[15px] font-medium flex-1 truncate">{link.label}</h2>
-                  <ExternalLink className="w-4 h-4 text-[#707070] flex-shrink-0 ml-2 group-hover:text-white transition-colors" />
-                </a>
-              )) : (
-                 <div className="w-full border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 flex flex-col items-center justify-center gap-2 mb-3 bg-black">
-                   <span className="font-mono text-[12px] text-[#505050]">[Ordered Link Data Placeholder]</span>
-                 </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
 
             {profile?.enterprise && (
               <div className="mt-12 flex items-center gap-2 justify-center opacity-60">
