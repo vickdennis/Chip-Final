@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
@@ -219,9 +219,16 @@ END:VCARD`;
     );
   };
 
+  const currentTheme = PREMIUM_THEMES.find(t => t.id === profile?.theme) || PREMIUM_THEMES[0];
+  const customBg = profile?.bg_color;
+  const customText = profile?.text_color;
+
+  const bgStyle = customBg ? { backgroundColor: customBg } : {};
+  const textStyle = customText ? { color: customText } : {};
+
   return (
-    <div className="h-[100dvh] sm:min-h-screen bg-black flex flex-col items-center" style={{ fontFamily: getFontFamily() }}>
-      <div className="w-full max-w-[480px] bg-black sm:shadow-2xl overflow-hidden relative h-[100dvh] flex flex-col border-x border-[#1a1a1a]">
+    <div className={`h-[100dvh] sm:min-h-screen flex flex-col items-center ${!customBg ? currentTheme.bgClass : ''}`} style={{ fontFamily: getFontFamily(), ...bgStyle }}>
+      <div className={`w-full max-w-[480px] sm:shadow-2xl overflow-hidden relative h-[100dvh] flex flex-col border-x ${!customBg ? currentTheme.bgClass : ''} ${!customText ? currentTheme.textClass : ''}`} style={{ ...bgStyle, ...textStyle, borderColor: 'rgba(255,255,255,0.1)' }}>
         
         {/* Buttons at Top */}
         <div className="absolute top-4 w-full flex justify-between items-start px-4 z-50 pointer-events-none">
@@ -527,7 +534,7 @@ END:VCARD`;
         </div>
 
         {/* Persistent Footer */}
-        <footer className="w-full bg-black border-t border-[#1a1a1a] px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0">
+        <footer className="w-full bg-black/20 backdrop-blur-md border-t border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0">
            <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className="bg-white text-black px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
              CREATE YOURS
            </button>

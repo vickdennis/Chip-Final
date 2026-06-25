@@ -57,6 +57,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   is_admin BOOLEAN DEFAULT false,
   enterprise_id UUID,
   is_enterprise_owner BOOLEAN DEFAULT false,
+  theme TEXT DEFAULT 'default',
+  bg_color TEXT,
+  text_color TEXT,
+  use_gradient BOOLEAN DEFAULT false,
+  unlocked_themes TEXT[] DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -70,6 +75,12 @@ EXECUTE FUNCTION update_modified_column();
 
 -- Enable RLS for profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'default';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS bg_color TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS text_color TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS use_gradient BOOLEAN DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS unlocked_themes TEXT[] DEFAULT '{}';
 
 -- Profiles Policies
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
@@ -135,15 +146,19 @@ CREATE POLICY "Users can delete own products."
 CREATE TABLE IF NOT EXISTS public.purchases (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
-  seller_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  seller_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   buyer_email TEXT NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
   platform_fee DECIMAL(10, 2) NOT NULL,
   net_earnings DECIMAL(10, 2) NOT NULL,
   reference TEXT NOT NULL UNIQUE,
   status TEXT DEFAULT 'pending',
+  purchase_type TEXT DEFAULT 'digital_product',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+ALTER TABLE public.purchases ALTER COLUMN seller_id DROP NOT NULL;
+ALTER TABLE public.purchases ADD COLUMN IF NOT EXISTS purchase_type TEXT DEFAULT 'digital_product';
 
 -- Enable RLS for purchases
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;

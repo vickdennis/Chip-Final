@@ -48,13 +48,24 @@ export const SOCIAL_PLATFORMS = [
   { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
 ];
 
+export const PREMIUM_THEMES = [
+  { id: 'default', name: 'Default Minimal', price: 0, description: 'Clean, light, standard layout.', bgClass: 'bg-white', textClass: 'text-black' },
+  { id: 'glassmorphism', name: 'Premium Glassmorphism', price: 1500, description: 'Sleek, transparent glass effects with vibrant backdrops.', bgClass: 'bg-gradient-to-br from-indigo-500 to-purple-600', textClass: 'text-white' },
+  { id: 'tech_3d', name: 'Minimalist 3D Tech', price: 2500, description: 'Futuristic 3D elements with clean, modern typography.', bgClass: 'bg-gradient-to-br from-zinc-800 to-black', textClass: 'text-[#e5e5e5]' },
+  { id: 'dark_neon', name: 'Dark Neon Cyber', price: 1500, description: 'High contrast dark mode with neon accents.', bgClass: 'bg-black', textClass: 'text-green-400' }
+];
+
+export const COLOR_PRESETS = [
+  '#000000', '#ffffff', '#19192F', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'
+];
+
 export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop' | 'appearance'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
   const [uploading, setUploading] = useState(false);
@@ -138,7 +149,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         show_total_followers: profile.show_total_followers,
         social_links_style: profile.social_links_style,
         is_verified: profile.is_verified,
-        is_admin: profile.is_admin
+        is_admin: profile.is_admin,
+        theme: profile.theme,
+        bg_color: profile.bg_color,
+        text_color: profile.text_color,
+        use_gradient: profile.use_gradient,
+        unlocked_themes: profile.unlocked_themes
       });
 
       if (profileError) throw profileError;
@@ -234,6 +250,46 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     }
   };
 
+  const activateTheme = (themeId: string) => {
+    setProfile({ ...profile, theme: themeId });
+  };
+
+  const handlePurchaseTheme = async (theme: any) => {
+    if (!profile) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const newUnlocked = [...(profile.unlocked_themes || []), theme.id];
+      
+      const reference = `THEME_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      const { error: purchaseError } = await supabase.from('purchases').insert([{
+        buyer_email: profile.email || 'user@example.com',
+        amount: theme.price,
+        platform_fee: theme.price,
+        net_earnings: 0,
+        reference,
+        status: 'completed',
+        purchase_type: 'theme'
+      }]);
+      
+      if (purchaseError) throw purchaseError;
+
+      const { error: updateError } = await supabase.from('profiles').update({
+        unlocked_themes: newUnlocked,
+        theme: theme.id
+      }).eq('id', user.id);
+
+      if (updateError) throw updateError;
+      
+      setProfile({ ...profile, unlocked_themes: newUnlocked, theme: theme.id });
+      alert('Theme purchased successfully!');
+    } catch (err: any) {
+      console.error(err);
+      alert('Error purchasing theme: ' + err.message);
+    }
+  };
+
   const handleDownloadVCard = () => {
     if (!profile) return;
     const vcard = `BEGIN:VCARD
@@ -307,6 +363,12 @@ END:VCARD`;
             className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'shop' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
           >
             Digital Products
+          </button>
+          <button 
+            onClick={() => setActiveTab('appearance')}
+            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'appearance' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+          >
+            Appearance
           </button>
         </div>
 
@@ -969,6 +1031,96 @@ END:VCARD`;
                         No sales yet.
                       </div>
                     )}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        ) : profile && activeTab === 'appearance' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-12 flex flex-col gap-8">
+              <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+                <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Premium Themes & Layouts</h3>
+                </div>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {PREMIUM_THEMES.map(theme => {
+                    const isUnlocked = theme.price === 0 || (profile.unlocked_themes && profile.unlocked_themes.includes(theme.id));
+                    const isActive = profile.theme === theme.id;
+                    return (
+                      <div key={theme.id} className={`border p-4 rounded-sm flex flex-col justify-between ${isActive ? 'border-black dark:border-white ring-1 ring-black dark:ring-white' : 'border-[#cfc4c5] dark:border-[#333]'}`}>
+                        <div>
+                          <div className={`h-24 w-full rounded-sm mb-3 ${theme.bgClass} flex items-center justify-center`}>
+                            <span className={`${theme.textClass} font-bold font-display`}>Preview</span>
+                          </div>
+                          <h4 className="font-bold text-lg">{theme.name}</h4>
+                          <p className="text-sm text-[#7e7576] mb-3">{theme.description}</p>
+                        </div>
+                        <div className="flex justify-between items-center mt-4">
+                          <span className="font-mono font-bold">{theme.price === 0 ? 'Free' : `₦${theme.price}`}</span>
+                          {isActive ? (
+                            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                          ) : isUnlocked ? (
+                            <button onClick={() => activateTheme(theme.id)} className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-sm text-xs font-bold hover:bg-black/80 transition">Activate</button>
+                          ) : (
+                            <button onClick={() => handlePurchaseTheme(theme)} className="px-4 py-2 bg-yellow-400 text-black rounded-sm text-xs font-bold hover:bg-yellow-500 transition">Purchase</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+                <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Customize Color</h3>
+                </div>
+                <div className="p-6 flex flex-col gap-6">
+                  <div>
+                    <label className="font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest mb-2 block">Background Color</label>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      {COLOR_PRESETS.map(color => (
+                        <button 
+                          key={color} 
+                          onClick={() => setProfile({ ...profile, bg_color: color })}
+                          className={`w-8 h-8 rounded-full border-2 ${profile.bg_color === color ? 'border-blue-500' : 'border-transparent ring-1 ring-gray-300 dark:ring-gray-700'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="color" 
+                        value={profile.bg_color || '#ffffff'} 
+                        onChange={(e) => setProfile({ ...profile, bg_color: e.target.value })}
+                        className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                      />
+                      <span className="font-mono text-sm">{profile.bg_color || '#ffffff'}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest mb-2 block">Text Color</label>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      {COLOR_PRESETS.map(color => (
+                        <button 
+                          key={color} 
+                          onClick={() => setProfile({ ...profile, text_color: color })}
+                          className={`w-8 h-8 rounded-full border-2 ${profile.text_color === color ? 'border-blue-500' : 'border-transparent ring-1 ring-gray-300 dark:ring-gray-700'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="color" 
+                        value={profile.text_color || '#000000'} 
+                        onChange={(e) => setProfile({ ...profile, text_color: e.target.value })}
+                        className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                      />
+                      <span className="font-mono text-sm">{profile.text_color || '#000000'}</span>
+                    </div>
                   </div>
                 </div>
               </section>

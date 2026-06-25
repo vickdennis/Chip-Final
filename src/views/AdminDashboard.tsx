@@ -248,8 +248,15 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   const totalUsers = users.length;
   const verifiedUsers = users.filter(u => u.is_verified).length;
-  const totalShopRevenue = purchases.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-  const totalPlatformFees = totalShopRevenue * 0.05; // 5% fee on digital products
+  
+  const digitalProductPurchases = purchases.filter(p => p.purchase_type === 'digital_product' || !p.purchase_type);
+  const themePurchases = purchases.filter(p => p.purchase_type === 'theme');
+  
+  const totalShopRevenue = digitalProductPurchases.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const digitalProductFees = digitalProductPurchases.reduce((sum, p) => sum + Number(p.platform_fee || (p.amount * 0.05) || 0), 0);
+  const themeSalesRevenue = themePurchases.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  
+  const totalPlatformFees = digitalProductFees + themeSalesRevenue;
   const proPlanUsers = users.filter(u => u.enterprise_id).length; // Rough mock of premium users if they have enterprise
 
   return (
@@ -309,7 +316,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Total Shop Sales</h3>
               <p className="text-4xl font-sans font-bold">₦{totalShopRevenue.toLocaleString()}</p>
               <p className="text-[12px] text-[#7e7576] mt-2 font-mono">
-                From {purchases.length} digital product sales
+                From {digitalProductPurchases.length} digital product sales
               </p>
             </div>
 
@@ -317,8 +324,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               <DollarSign className="w-8 h-8 text-[#7e7576] mb-3" />
               <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Platform Earnings</h3>
               <p className="text-4xl font-sans font-bold">₦{totalPlatformFees.toLocaleString()}</p>
-              <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex flex-col items-center">
-                <span>Shop Fees (5%): ₦{totalPlatformFees.toLocaleString()}</span>
+              <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex flex-col items-center gap-1">
+                <span>Shop Fees (5%): ₦{digitalProductFees.toLocaleString()}</span>
+                <span>Theme Sales: ₦{themeSalesRevenue.toLocaleString()}</span>
                 <span>Pro Plan Fees: ₦0 (Pending)</span>
               </p>
             </div>
