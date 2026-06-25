@@ -5,11 +5,13 @@ import {
   Building2, Users, CreditCard, Palette, BarChart, 
   Settings, LogOut, ArrowLeft, Plus, Check, Trash2, X, Activity, Eye, MousePointerClick
 } from 'lucide-react';
+import { PaystackButton } from 'react-paystack';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [loading, setLoading] = useState(true);
   const [enterprise, setEnterprise] = useState<any>(null);
   const [employees, setEmployees] = useState<any[]>([]);
+  const [networkViews, setNetworkViews] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'branding' | 'billing'>('overview');
   
   // Create / Edit Employee State
@@ -23,6 +25,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
   const [brandForm, setBrandForm] = useState({
     name: '', brand_color: '#000000', logo_url: '', brand_font: 'sans'
   });
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     fetchEnterpriseData();
@@ -36,10 +39,11 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       return;
     }
 
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if (userProfile) setProfile(userProfile);
     
-    if (profile && profile.enterprise_id) {
-      const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profile.enterprise_id).single();
+    if (userProfile && userProfile.enterprise_id) {
+      const { data: ent } = await supabase.from('enterprises').select('*').eq('id', userProfile.enterprise_id).single();
       if (ent) {
         if (ent.owner_id !== user.id) {
           alert("You belong to an enterprise, but you are not the owner. Access denied to Enterprise Dashboard.");
@@ -56,19 +60,27 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
         
         // Fetch employees
         const { data: emps } = await supabase.from('profiles').select('*').eq('enterprise_id', ent.id);
-        if (emps) setEmployees(emps);
+        if (emps) {
+          setEmployees(emps);
+          // Fetch analytics for employees
+          const empIds = emps.map(e => e.id);
+          if (empIds.length > 0) {
+            const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).in('profile_id', empIds);
+            if (!viewErr && viewsData) {
+               setNetworkViews(viewsData.length || 0);
+            }
+          }
+        }
       }
     }
     setLoading(false);
   };
 
-  const handleCreateEnterprise = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateEnterpriseSuccess = async (response: any) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // "Purchase" flow
-    const newEntName = prompt("Enter your company name to buy the Enterprise Tier (20+ seats):");
+    const newEntName = prompt("Payment successful! Enter your company name:");
     if (!newEntName) return;
 
     try {
@@ -220,9 +232,15 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
             <button onClick={() => onNavigate('user-dashboard')} className="flex-1 py-3 border border-black dark:border-white font-mono text-[13px] font-bold uppercase transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black">
               Go Back
             </button>
-            <button onClick={handleCreateEnterprise} className="flex-1 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-[13px] font-bold uppercase transition-transform hover:scale-[1.02]">
-              Buy Now (₦99,000/mo)
-            </button>
+            <PaystackButton
+              reference={`ENT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
+              email={profile?.contact_email || profile?.email || 'user@example.com'}
+              amount={99000 * 100}
+              publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+              text="Buy Now (₦99,000/mo)"
+              onSuccess={handleCreateEnterpriseSuccess}
+              className="flex-1 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-[13px] font-bold uppercase transition-transform hover:scale-[1.02]"
+            />
           </div>
         </div>
       </div>
@@ -279,9 +297,9 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                   <div className="text-5xl font-sans font-bold">{employees.length}<span className="text-xl text-[#7e7576]">/{enterprise.total_seats}</span></div>
                 </div>
                 <div className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] p-6 rounded-sm">
-                  <div className="text-[#7e7576] font-mono text-[11px] font-bold uppercase tracking-widest mb-4">Network Views (30d)</div>
+                  <div className="text-[#7e7576] font-mono text-[11px] font-bold uppercase tracking-widest mb-4">Network Views</div>
                   <div className="text-5xl font-sans font-bold flex items-center gap-2">
-                    24.5k <Activity className="w-6 h-6 text-green-500" />
+                    {networkViews} <Activity className="w-6 h-6 text-green-500" />
                   </div>
                 </div>
                 <div className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] p-6 rounded-sm">
@@ -488,9 +506,25 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                  </div>
 
                  <div className="pt-4">
-                   <button className="w-full py-2 border border-black dark:border-white font-mono text-[12px] font-bold uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors">
-                     Purchase Additional Seats
-                   </button>
+                   <PaystackButton
+                     reference={`SEAT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
+                     email={profile?.contact_email || profile?.email || 'user@example.com'}
+                     amount={25000 * 100}
+                     publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                     text="Purchase Additional Seats (₦25,000 / 10 seats)"
+                     onSuccess={async () => {
+                        const { error } = await supabase.from('enterprises').update({
+                           total_seats: enterprise.total_seats + 10
+                        }).eq('id', enterprise.id);
+                        if (!error) {
+                           alert('Seats added successfully!');
+                           fetchEnterpriseData();
+                        } else {
+                           alert('Failed to add seats. Contact support.');
+                        }
+                     }}
+                     className="w-full py-2 border border-black dark:border-white font-mono text-[12px] font-bold uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                   />
                  </div>
               </div>
             </div>

@@ -335,3 +335,23 @@ CREATE POLICY "Admins can delete platform social links."
   ON public.platform_social_links FOR DELETE
   USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
+-- Profile Views Table for Analytics
+CREATE TABLE IF NOT EXISTS public.profile_views (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  viewer_ip TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.profile_views ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can insert views" ON public.profile_views;
+CREATE POLICY "Anyone can insert views"
+  ON public.profile_views FOR INSERT
+  WITH CHECK ( true );
+
+DROP POLICY IF EXISTS "Users can read own profile views" ON public.profile_views;
+CREATE POLICY "Users can read own profile views"
+  ON public.profile_views FOR SELECT
+  USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) OR EXISTS (SELECT 1 FROM public.enterprises AS e JOIN public.profiles AS ep ON e.id = ep.enterprise_id WHERE e.owner_id = auth.uid() AND ep.id = public.profile_views.profile_id) );
+

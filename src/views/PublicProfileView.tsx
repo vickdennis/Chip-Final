@@ -68,6 +68,15 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
           const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).single();
           if (ent) profileData.enterprise = ent;
         }
+
+        // Track profile view
+        if (username) {
+          supabase.from('profile_views').insert({
+             profile_id: targetUserId
+          }).then(({error}) => {
+             if (error) console.error("View tracking error:", error);
+          });
+        }
       }
       if (linksData) setLinks(linksData);
       if (socialData) setSocialLinks(socialData);

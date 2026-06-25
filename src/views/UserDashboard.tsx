@@ -65,6 +65,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
+  const [profileViews, setProfileViews] = useState(0);
   const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop' | 'appearance'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
@@ -93,6 +94,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
       const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', user.id).order('created_at', { ascending: false });
+      const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id);
 
       if (profileData) {
         setProfile({ ...profileData, email: user.email });
@@ -120,6 +122,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       if (socialData) setSocialLinks(socialData);
       if (productsData) setProducts(productsData);
       if (purchasesData) setSales(purchasesData);
+      if (viewsData) setProfileViews(viewsData.length);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -642,6 +645,20 @@ END:VCARD`;
           {/* Right Column */}
           <div className="xl:col-span-4 flex flex-col gap-8">
             
+            {/* Profile Views */}
+            <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
+              <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Analytics</h3>
+                <Activity className="w-[18px] h-[18px] text-[#4c4546] dark:text-[#a0a0a0]" />
+              </div>
+              <div className="p-6">
+                <div className="text-[#7e7576] font-mono text-[11px] font-bold uppercase tracking-widest mb-4">Total Profile Views</div>
+                <div className="text-5xl font-sans font-bold flex items-center gap-2 text-black dark:text-white">
+                  {profileViews} <Eye className="w-6 h-6 text-blue-500" />
+                </div>
+              </div>
+            </section>
+
             {/* Social Media */}
             <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col">
               <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
