@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode } from 'lucide-react';
+import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
@@ -17,6 +17,12 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+  // Cart & Checkout States
+  const [cart, setCart] = useState<any[]>([]);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutName, setCheckoutName] = useState('');
+  const [checkoutPhone, setCheckoutPhone] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -487,36 +493,14 @@ END:VCARD`;
                       <span className="font-sans font-bold text-white text-[16px] leading-tight mb-1">{p.name}</span>
                       <span className="font-mono text-[12px] font-bold text-black bg-white px-2 py-1 rounded-sm self-start mb-2 leading-none">₦{p.price}</span>
                       <p className="text-[13px] text-[#a0a0a0] mb-4 flex-1 line-clamp-3">{p.description}</p>
-                      <PaystackButton
-                        reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
-                        email='guest@chipng.com'
-                        amount={Math.round(p.price * 100)}
-                        publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                        text="Buy Now"
-                        onSuccess={async (response: any) => {
-                          try {
-                            await supabase.from('purchases').insert({
-                              product_id: p.id,
-                              seller_id: p.profile_id,
-                              buyer_email: 'guest@chipng.com',
-                              amount: p.price,
-                              platform_fee: p.price * 0.05,
-                              net_earnings: p.price * 0.95,
-                              reference: response.reference,
-                              status: 'success'
-                            });
-                            alert('Payment complete! Reference: ' + response.reference + '. Your product is being delivered.');
-                            if (p.file_url) {
-                              window.open(p.file_url, '_blank');
-                            }
-                          } catch(err) {
-                            console.error(err);
-                            alert('Error processing purchase.');
-                          }
+                      <button
+                        onClick={() => {
+                          setCart([...cart, p]);
                         }}
-                        onClose={() => {}}
                         className="w-full bg-white text-black hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto"
-                      />
+                      >
+                        Add to Cart
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -547,6 +531,104 @@ END:VCARD`;
         </footer>
 
       </div>
+
+      {cart.length > 0 && (
+        <button
+          onClick={() => setIsCheckoutModalOpen(true)}
+          className="fixed bottom-6 right-6 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center"
+        >
+          <ShoppingCart className="w-6 h-6" />
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+            {cart.length}
+          </span>
+        </button>
+      )}
+
+      {isCheckoutModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl overflow-hidden relative">
+            <div className="flex justify-between items-center p-4 border-b border-[#333]">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2"><ShoppingCart className="w-5 h-5"/> Checkout</h3>
+              <button onClick={() => setIsCheckoutModalOpen(false)} className="text-[#a0a0a0] hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                {cart.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                    <span className="text-sm font-semibold text-white">{item.name}</span>
+                    <span className="text-sm font-mono text-[#a0a0a0]">₦{item.price}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between items-center py-2 border-t border-b border-[#333]">
+                <span className="font-bold text-white uppercase text-sm">Total</span>
+                <span className="font-bold text-white font-mono text-lg">₦{cart.reduce((sum, item) => sum + Number(item.price), 0)}</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <input 
+                  type="text" 
+                  placeholder="Your Full Name" 
+                  value={checkoutName}
+                  onChange={(e) => setCheckoutName(e.target.value)}
+                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white text-sm focus:outline-none focus:border-white transition-colors"
+                />
+                <input 
+                  type="text" 
+                  placeholder="Your Phone Number" 
+                  value={checkoutPhone}
+                  onChange={(e) => setCheckoutPhone(e.target.value)}
+                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white text-sm focus:outline-none focus:border-white transition-colors"
+                />
+              </div>
+              
+              <PaystackButton
+                reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
+                email={profile?.contact_email || profile?.email || 'guest@chipng.com'}
+                amount={Math.round(cart.reduce((sum, item) => sum + Number(item.price), 0) * 100)}
+                publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                text="Pay Now"
+                onSuccess={async (response: any) => {
+                  try {
+                    // Save purchases in DB
+                    for (const item of cart) {
+                      await supabase.from('purchases').insert({
+                        product_id: item.id,
+                        seller_id: item.profile_id,
+                        buyer_email: checkoutName || 'Guest',
+                        amount: item.price,
+                        platform_fee: item.price * 0.05,
+                        net_earnings: item.price * 0.95,
+                        reference: response.reference + '-' + Math.random().toString(36).substr(2, 5),
+                        status: 'success'
+                      });
+                    }
+                    alert('Payment complete! Redirecting to WhatsApp to claim your order...');
+                    
+                    const message = `*New Order from ${checkoutName || 'Guest'} (${checkoutPhone || 'No phone'})*\n\n*Items:*\n` + 
+                                    cart.map(item => `- ${item.name} (₦${item.price})`).join('\n') + 
+                                    `\n\n*Total:* ₦${cart.reduce((sum, item) => sum + Number(item.price), 0)}\n` +
+                                    `*Reference:* ${response.reference}`;
+                    
+                    const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
+                    window.open(waUrl, '_blank');
+                    
+                    setCart([]);
+                    setIsCheckoutModalOpen(false);
+                  } catch(err) {
+                    console.error(err);
+                    alert('Error processing purchase.');
+                  }
+                }}
+                onClose={() => {}}
+                className="w-full bg-white text-black hover:bg-gray-200 transition-colors font-mono text-[14px] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!checkoutName || !checkoutPhone || cart.length === 0}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
