@@ -1059,7 +1059,14 @@ END:VCARD`;
                         <div className="flex justify-between items-center mt-4">
                           <span className="font-mono font-bold">{theme.price === 0 ? 'Free' : `₦${theme.price}`}</span>
                           {isActive ? (
-                            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                            theme.id === 'default' ? (
+                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                            ) : (
+                              <div className="flex gap-2 items-center">
+                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                                <button onClick={() => activateTheme('default')} className="px-3 py-1 bg-red-100 text-red-700 rounded-sm text-xs font-bold hover:bg-red-200 transition">Deactivate</button>
+                              </div>
+                            )
                           ) : isUnlocked ? (
                             <button onClick={() => activateTheme(theme.id)} className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-sm text-xs font-bold hover:bg-black/80 transition">Activate</button>
                           ) : (
