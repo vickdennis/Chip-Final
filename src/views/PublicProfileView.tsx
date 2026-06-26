@@ -235,10 +235,80 @@ END:VCARD`;
   const bgStyle = customBg ? { backgroundColor: customBg } : {};
   const textStyle = customText ? { color: customText } : {};
 
+  const renderThemeAnimation = () => {
+    if (customBg) return null;
+    
+    switch (profile?.theme) {
+      case 'default':
+        return (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-black">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-neutral-800/10 blur-[60px] animate-glow-breath"></div>
+            <div className="absolute inset-0 opacity-25">
+              <div className="absolute top-1/4 left-1/3 w-1 h-1 bg-white rounded-full animate-ping [animation-duration:4s]"></div>
+              <div className="absolute top-1/2 left-2/3 w-1.5 h-1.5 bg-white/80 rounded-full animate-ping [animation-duration:6s]"></div>
+              <div className="absolute top-3/4 left-1/4 w-0.5 h-0.5 bg-white rounded-full animate-ping [animation-duration:8s]"></div>
+              <div className="absolute top-1/3 left-3/4 w-1 h-1 bg-white/60 rounded-full animate-ping [animation-duration:5s]"></div>
+            </div>
+          </div>
+        );
+
+      case 'glassmorphism':
+        return (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#0c0a0f]">
+            <div className="absolute top-[-10%] left-[-10%] w-[250px] h-[250px] rounded-full bg-indigo-600/50 blur-[50px] animate-drift-slow"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] rounded-full bg-fuchsia-600/40 blur-[60px] animate-drift-medium"></div>
+            <div className="absolute top-1/2 left-1/3 w-[200px] h-[200px] rounded-full bg-cyan-500/30 blur-[45px] animate-drift-slow [animation-delay:-5s]"></div>
+            <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[24px]"></div>
+          </div>
+        );
+
+      case 'tech_3d':
+        return (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#09090b]">
+            <div 
+              className="absolute inset-0 animate-grid-pan opacity-[0.07]" 
+              style={{
+                backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px), linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            ></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] border border-zinc-700/10 rounded-full animate-pulse [animation-duration:4s]"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] border border-zinc-800/20 rounded-full animate-pulse [animation-duration:6s]"></div>
+            <div className="absolute top-1/3 right-10 w-2 h-2 bg-emerald-500 rounded-full animate-ping [animation-duration:3s]"></div>
+          </div>
+        );
+
+      case 'dark_neon':
+        return (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#030712]">
+            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 via-transparent to-green-500/5 bg-[length:100%_4px] opacity-40"></div>
+            <div className="absolute -left-[10%] top-[20%] w-[180px] h-[180px] rounded-full bg-green-500/10 blur-[40px] animate-neon-pulse"></div>
+            <div className="absolute -right-[10%] bottom-[20%] w-[220px] h-[220px] rounded-full bg-green-500/15 blur-[50px] animate-neon-pulse [animation-delay:1.5s]"></div>
+            <div className="absolute top-4 left-6 text-[8px] font-mono text-green-500/20">SYSTEM: ACTIVE</div>
+            <div className="absolute bottom-16 right-6 text-[8px] font-mono text-green-500/20">GRID: 9:16 SECURE</div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className={`h-[100dvh] sm:min-h-screen flex flex-col items-center ${!customBg ? currentTheme.bgClass : ''}`} style={{ fontFamily: getFontFamily(), ...bgStyle }}>
-      <div className={`w-full max-w-[480px] sm:shadow-2xl overflow-hidden relative h-[100dvh] flex flex-col border-x ${!customBg ? currentTheme.bgClass : ''} ${!customText ? currentTheme.textClass : ''}`} style={{ ...bgStyle, ...textStyle, borderColor: 'rgba(255,255,255,0.1)' }}>
-        
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#09090b] text-white p-0 sm:p-6 md:p-8 relative overflow-hidden" style={{ fontFamily: getFontFamily() }}>
+      {/* Ambient glass blur backdrop on desktop screens matching current theme background */}
+      <div className="absolute inset-0 pointer-events-none filter blur-[140px] opacity-25 hidden sm:block">
+        <div className={`w-full h-full ${!customBg ? currentTheme.bgClass : ''}`} style={bgStyle}></div>
+      </div>
+      
+      {/* 9:16 Portrait Viewport Frame on Desktop, full screen on mobile */}
+      <div 
+        className={`w-full h-[100dvh] sm:h-[780px] md:h-[820px] sm:w-[420px] md:w-[450px] sm:rounded-[36px] sm:shadow-[0_25px_60px_rgba(0,0,0,0.85)] sm:border sm:border-neutral-800/80 overflow-hidden relative flex flex-col ${!customBg ? currentTheme.bgClass : ''} ${!customText ? currentTheme.textClass : ''}`} 
+        style={{ ...bgStyle, ...textStyle }}
+      >
+        {/* Theme Relating Animation Layer */}
+        {renderThemeAnimation()}
+
         {/* Buttons at Top */}
         <div className="absolute top-4 w-full flex justify-between items-start px-4 z-50 pointer-events-none">
           <div className="flex flex-col gap-2 pointer-events-auto">
@@ -343,7 +413,7 @@ END:VCARD`;
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto pb-10 scrollbar-hide shrink-0">
+        <div className="flex-1 overflow-y-auto pb-10 scrollbar-hide shrink-0 relative z-10">
           {/* Header Section */}
           <section className="relative w-full aspect-square md:aspect-[4/5] bg-black">
             <img 

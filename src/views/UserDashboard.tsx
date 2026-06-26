@@ -49,10 +49,10 @@ export const SOCIAL_PLATFORMS = [
 ];
 
 export const PREMIUM_THEMES = [
-  { id: 'default', name: 'Default Minimal', price: 0, description: 'Clean, light, standard layout.', bgClass: 'bg-white', textClass: 'text-black' },
-  { id: 'glassmorphism', name: 'Premium Glassmorphism', price: 1500, description: 'Sleek, transparent glass effects with vibrant backdrops.', bgClass: 'bg-gradient-to-br from-indigo-500 to-purple-600', textClass: 'text-white' },
-  { id: 'tech_3d', name: 'Minimalist 3D Tech', price: 2500, description: 'Futuristic 3D elements with clean, modern typography.', bgClass: 'bg-gradient-to-br from-zinc-800 to-black', textClass: 'text-[#e5e5e5]' },
-  { id: 'dark_neon', name: 'Dark Neon Cyber', price: 1500, description: 'High contrast dark mode with neon accents.', bgClass: 'bg-black', textClass: 'text-green-400' }
+  { id: 'default', name: 'Obsidian Black', price: 0, description: 'Sleek, pitch-black canvas with a smooth breathing ambient glow.', bgClass: 'bg-black', textClass: 'text-white' },
+  { id: 'glassmorphism', name: 'Premium Glassmorphism', price: 1500, description: 'Sleek glass panel overlaying highly animated, drifting colorful fluid elements.', bgClass: 'bg-neutral-950', textClass: 'text-white' },
+  { id: 'tech_3d', name: 'Minimalist 3D Tech', price: 2500, description: 'Futuristic animated blueprint cyber-grid background with perspective nodes.', bgClass: 'bg-zinc-950', textClass: 'text-[#e5e5e5]' },
+  { id: 'dark_neon', name: 'Dark Neon Cyber', price: 1500, description: 'High contrast black mode with a pulsing, retro-glowing digital matrix effect.', bgClass: 'bg-black', textClass: 'text-green-400' }
 ];
 
 export const COLOR_PRESETS = [

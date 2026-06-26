@@ -7,10 +7,36 @@
   --font-mono: "Geist", monospace;
   
   --animate-ticker: ticker 40s linear infinite;
+  --animate-drift-slow: driftSlow 25s ease-in-out infinite;
+  --animate-drift-medium: driftMedium 18s ease-in-out infinite;
+  --animate-grid-pan: gridPan 20s linear infinite;
+  --animate-neon-pulse: neonPulse 3s ease-in-out infinite;
+  --animate-glow-breath: glowBreath 6s ease-in-out infinite;
   
   @keyframes ticker {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
+  }
+  @keyframes driftSlow {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.15); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+  @keyframes driftMedium {
+    0%, 100% { transform: translate(0px, 0px) scale(1.1); }
+    50% { transform: translate(-40px, 40px) scale(0.95); }
+  }
+  @keyframes gridPan {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+  }
+  @keyframes neonPulse {
+    0%, 100% { opacity: 0.35; filter: drop-shadow(0 0 5px rgba(74,222,128,0.4)); }
+    50% { opacity: 0.85; filter: drop-shadow(0 0 15px rgba(74,222,128,0.8)); }
+  }
+  @keyframes glowBreath {
+    0%, 100% { transform: scale(1) translate(-50%, -50%); opacity: 0.25; }
+    50% { transform: scale(1.2) translate(-50%, -50%); opacity: 0.55; }
   }
 }
 
