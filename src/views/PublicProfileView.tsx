@@ -295,7 +295,7 @@ END:VCARD`;
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#09090b] text-white p-0 sm:p-6 md:p-8 relative overflow-hidden" style={{ fontFamily: getFontFamily() }}>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#09090b] text-white p-0 sm:p-6 md:p-8 relative overflow-x-hidden" style={{ fontFamily: getFontFamily() }}>
       {/* Ambient glass blur backdrop on desktop screens matching current theme background */}
       <div className="absolute inset-0 pointer-events-none filter blur-[140px] opacity-25 hidden sm:block">
         <div className={`w-full h-full ${!customBg ? currentTheme.bgClass : ''}`} style={bgStyle}></div>
@@ -303,7 +303,7 @@ END:VCARD`;
       
       {/* 9:16 Portrait Viewport Frame on Desktop, full screen on mobile */}
       <div 
-        className={`w-full h-[100dvh] sm:h-[780px] md:h-[820px] sm:w-[420px] md:w-[450px] sm:rounded-[36px] sm:shadow-[0_25px_60px_rgba(0,0,0,0.85)] sm:border sm:border-neutral-800/80 overflow-hidden relative flex flex-col ${!customBg ? currentTheme.bgClass : ''} ${!customText ? currentTheme.textClass : ''}`} 
+        className={`w-full min-h-screen sm:min-h-0 sm:h-[780px] md:h-[820px] sm:w-[420px] md:w-[450px] sm:rounded-[36px] sm:shadow-[0_25px_60px_rgba(0,0,0,0.85)] sm:border sm:border-neutral-800/80 overflow-y-auto scrollbar-hide relative flex flex-col ${!customBg ? currentTheme.bgClass : ''} ${!customText ? currentTheme.textClass : ''}`} 
         style={{ ...bgStyle, ...textStyle }}
       >
         {/* Theme Relating Animation Layer */}
@@ -413,7 +413,7 @@ END:VCARD`;
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto pb-10 scrollbar-hide shrink-0 relative z-10">
+        <div className="flex-grow pb-10 relative z-10 flex flex-col">
           {/* Header Section */}
           <section className="relative w-full aspect-square md:aspect-[4/5] bg-black">
             <img 
@@ -624,8 +624,8 @@ END:VCARD`;
           </section>
         </div>
 
-        {/* Persistent Footer */}
-        <footer className="w-full bg-black/20 backdrop-blur-md border-t border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0">
+        {/* Footer at the bottom of the page */}
+        <footer className="w-full bg-black/40 backdrop-blur-md border-t border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0 mt-auto">
            <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className="bg-white text-black px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
              CREATE YOURS
            </button>
