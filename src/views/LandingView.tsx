@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle, ShoppingBag } from 'lucide-react';
+import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle, ShoppingBag, ShoppingCart, X } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { PaystackButton } from 'react-paystack';
 
 const BRANDS = [
   { name: "ThomasBoydWhyte Solicitors", file: "IMG_0502.jpeg" },
@@ -41,7 +42,11 @@ const BrandTicker = () => (
 );
 
 export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
-    const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[]>([]);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutName, setCheckoutName] = useState('');
+  const [checkoutPhone, setCheckoutPhone] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -195,8 +200,21 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                     <p className="text-[13px] text-[#7e7576] mb-4 flex-grow line-clamp-2">{p.description}</p>
                     <div className="flex items-center justify-between mt-auto">
                       <span className="font-display font-bold text-[18px]">₦{p.price.toLocaleString()}</span>
-                      <button onClick={() => onNavigate('login')} className="bg-black text-white px-3 py-1.5 rounded-sm font-mono text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                        Buy Now
+                      <button 
+                        onClick={() => {
+                          setCart(prev => {
+                            const alreadyInCart = prev.some(item => item.id === p.id);
+                            if (alreadyInCart) {
+                              alert(`${p.name} is already in your cart!`);
+                              return prev;
+                            }
+                            alert(`${p.name} added to cart!`);
+                            return [...prev, p];
+                          });
+                        }} 
+                        className="bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-sm font-mono text-[12px] font-bold md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
+                      >
+                        Add to Cart
                       </button>
                     </div>
                   </div>
@@ -382,6 +400,118 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           <a href="#" className="text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white font-medium transition-colors">Help Center</a>
         </div>
       </footer>
+
+      {cart.length > 0 && (
+        <button
+          onClick={() => setIsCheckoutModalOpen(true)}
+          className="fixed bottom-6 right-6 bg-black dark:bg-white text-white dark:text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center cursor-pointer border border-neutral-300 dark:border-neutral-700"
+        >
+          <ShoppingCart className="w-6 h-6" />
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+            {cart.length}
+          </span>
+        </button>
+      )}
+
+      {isCheckoutModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111] border border-[#e2e2e2] dark:border-[#333] w-full max-w-md rounded-xl overflow-hidden relative text-left">
+            <div className="flex justify-between items-center p-4 border-b border-[#e2e2e2] dark:border-[#333]">
+              <h3 className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5"/> Checkout
+              </h3>
+              <button onClick={() => setIsCheckoutModalOpen(false)} className="text-[#7e7576] hover:text-black dark:hover:text-white cursor-pointer">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                {cart.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-lg border border-[#e2e2e2] dark:border-[#333]">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-black dark:text-white">{item.name}</span>
+                      <span className="text-xs text-[#7e7576]">₦{Number(item.price).toLocaleString()}</span>
+                    </div>
+                    <button 
+                      onClick={() => setCart(cart.filter((_, i) => i !== idx))} 
+                      className="text-red-500 hover:text-red-400 text-xs font-mono cursor-pointer font-bold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between items-center py-2 border-t border-b border-[#e2e2e2] dark:border-[#333]">
+                <span className="font-bold text-black dark:text-white uppercase text-sm">Total</span>
+                <span className="font-bold text-black dark:text-white font-mono text-lg">
+                  ₦{cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <input 
+                  type="text" 
+                  placeholder="Your Full Name" 
+                  value={checkoutName}
+                  onChange={(e) => setCheckoutName(e.target.value)}
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] rounded-lg p-3 text-black dark:text-white text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                />
+                <input 
+                  type="text" 
+                  placeholder="Your Phone Number" 
+                  value={checkoutPhone}
+                  onChange={(e) => setCheckoutPhone(e.target.value)}
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] rounded-lg p-3 text-black dark:text-white text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                />
+              </div>
+              
+              <PaystackButton
+                reference={`SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
+                email='guest@chipng.com'
+                amount={Math.round(cart.reduce((sum, item) => sum + Number(item.price), 0) * 100)}
+                publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                text="Pay Now"
+                onSuccess={async (response: any) => {
+                  try {
+                    // Save purchases in DB
+                    for (const item of cart) {
+                      await supabase.from('purchases').insert({
+                        product_id: item.id,
+                        seller_id: item.profile_id,
+                        buyer_email: checkoutName || 'Guest',
+                        amount: item.price,
+                        platform_fee: item.price * 0.05,
+                        net_earnings: item.price * 0.95,
+                        reference: response.reference + '-' + Math.random().toString(36).substr(2, 5),
+                        status: 'success'
+                      });
+                    }
+                    alert('Payment complete! Opening WhatsApp to send order information...');
+                    
+                    const message = `*New Order from ${checkoutName || 'Guest'} (${checkoutPhone || 'No phone'})*\n\n*Items:*\n` + 
+                                    cart.map(item => `- ${item.name} (₦${Number(item.price).toLocaleString()})`).join('\n') + 
+                                    `\n\n*Total:* ₦${cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}\n` +
+                                    `*Reference:* ${response.reference}`;
+                    
+                    const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
+                    window.open(waUrl, '_blank');
+                    
+                    setCart([]);
+                    setIsCheckoutModalOpen(false);
+                    setCheckoutName('');
+                    setCheckoutPhone('');
+                  } catch(err) {
+                    console.error(err);
+                    alert('Error processing purchase.');
+                  }
+                }}
+                onClose={() => {}}
+                className="w-full bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-colors font-mono text-[14px] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
+                disabled={!checkoutName || !checkoutPhone || cart.length === 0}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
