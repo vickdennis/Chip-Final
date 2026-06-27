@@ -151,7 +151,7 @@ END:VCARD`;
     switch (profile?.enterprise?.brand_font) {
       case 'mono': return '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
       case 'serif': return '"Playfair Display", ui-serif, Georgia, serif';
-      default: return undefined; // use tailwind default
+      default: return '"Hanken Grotesk", "Inter", sans-serif'; // Revert to previous default font on public profile
     }
   };
 
@@ -294,8 +294,17 @@ END:VCARD`;
     }
   };
 
+  const profileFont = getFontFamily();
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#09090b] text-white p-0 sm:p-6 md:p-8 relative overflow-x-hidden" style={{ fontFamily: getFontFamily() }}>
+    <div 
+      className="min-h-screen w-full flex items-center justify-center bg-[#09090b] text-white p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
+      style={{ 
+        fontFamily: profileFont,
+        ['--font-sans' as any]: profileFont,
+        ['--font-display' as any]: profileFont
+      }}
+    >
       {/* Ambient glass blur backdrop on desktop screens matching current theme background */}
       <div className="absolute inset-0 pointer-events-none filter blur-[140px] opacity-25 hidden sm:block">
         <div className={`w-full h-full ${!customBg ? currentTheme.bgClass : ''}`} style={bgStyle}></div>

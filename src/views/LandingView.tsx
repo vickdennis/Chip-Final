@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
+import { LinkMeMotionGraphics } from '../components/LinkMeMotionGraphics';
 import { 
   ShoppingCart, 
   X, 
@@ -290,19 +291,19 @@ const MarqueeSection = () => {
 // BrandSlideshow component displaying names and logo brands recently attached
 const BrandSlideshow = () => {
   const images = [
-    { url: "/IMG_0502.jpeg", title: "Prestige Executive", desc: "Corporate branding & bespoke wordmark styling" },
-    { url: "/IMG_0503.jpeg", title: "Aero Logistics", desc: "Sleek, aerodynamic brand logo and icon set" },
-    { url: "/IMG_0504.jpeg", title: "Apex Creators", desc: "Vibrant custom square identity badge" },
-    { url: "/IMG_0505.jpeg", title: "Elysian Wellness", desc: "High-end luxury serif logotype and emblem" },
-    { url: "/IMG_0506.jpeg", title: "Zenith Digital", desc: "Futuristic digital-first brand asset system" },
-    { url: "/IMG_0507.jpeg", title: "Prime Estate", desc: "Corporate minimalist architectural real estate symbol" },
-    { url: "/IMG_0508.jpeg", title: "Vortex Labs", desc: "Tech-forward modular geometric symbol set" },
-    { url: "/IMG_0509.jpeg", title: "Nova Entertainment", desc: "Bold display lettering and cinematic logo design" },
-    { url: "/IMG_0510.jpeg", title: "Origin Studio", desc: "Symmetric badge icon styling for creative agencies" },
-    { url: "/IMG_0511.jpeg", title: "Quantum Computing", desc: "Clean linear monogram design and premium branding" },
-    { url: "/IMG_0512.jpeg", title: "Helix MedTech", desc: "Modern organic science-forward medical brandmark" },
-    { url: "/IMG_0513.jpeg", title: "Solstice Energy", desc: "Eco-conscious branding & sustainable style guides" },
-    { url: "/IMG_0514.jpeg", title: "Vanguard Partners", desc: "Wide display banner wordmark and official seal" }
+    { url: "/IMG_0502.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Bespoke identity concept, custom wordmark, and logo asset styling." },
+    { url: "/IMG_0503.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Sleek typography, custom brand mark, and curated color palettes." },
+    { url: "/IMG_0504.jpeg", title: "LOGO CONCEPTS", desc: "Vibrant custom vector badges, geometry, and creative styling." },
+    { url: "/IMG_0505.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "High-end luxury serif wordmarks, emblems, and visual systems." },
+    { url: "/IMG_0506.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Modern digital-first layouts, minimalist marks, and grid styling." },
+    { url: "/IMG_0507.jpeg", title: "LOGO CONCEPTS", desc: "Minimalist corporate symbols, architectural marks, and geometry." },
+    { url: "/IMG_0508.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Tech-forward branding, modular graphics, and icon suites." },
+    { url: "/IMG_0509.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Bold display lettering, premium wordmarks, and typography art." },
+    { url: "/IMG_0510.jpeg", title: "LOGO CONCEPTS", desc: "Symmetric badge designs, brand vectors, and high-impact layouts." },
+    { url: "/IMG_0511.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Clean linear monogram styling, custom typography, and emblems." },
+    { url: "/IMG_0512.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Modern organic layouts, science-forward shapes, and typography." },
+    { url: "/IMG_0513.jpeg", title: "LOGO CONCEPTS", desc: "Eco-conscious branding guidelines, custom palettes, and marks." },
+    { url: "/IMG_0514.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Wide display banners, wordmark styling, and creative visual suites." }
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -457,7 +458,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
     <div className="bg-[#0C0C0C] min-h-screen text-[#D7E2EA] font-sans overflow-x-clip relative">
       
       {/* 1. HERO SECTION */}
-      <section className="h-screen flex flex-col justify-between overflow-hidden relative z-20 px-6 md:px-10 pb-10">
+      <section className="min-h-screen lg:h-screen flex flex-col justify-between overflow-hidden relative z-20 px-6 md:px-10 pb-10">
         
         {/* Navbar */}
         <FadeIn y={-20} delay={0} className="w-full flex justify-between items-center pt-6 md:pt-8">
@@ -493,26 +494,17 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
         </FadeIn>
 
         {/* Hero Heading Section */}
-        <div className="w-full flex-1 flex flex-col justify-center relative mt-4 md:mt-0">
+        <div className="w-full flex-1 flex flex-col justify-center relative mt-6 md:mt-0 py-8 lg:py-0">
           
-          {/* Centered Magnetized Portrait Frame */}
-          <div className="absolute left-1/2 -translate-x-1/2 z-10 top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0">
-            <FadeIn y={30} delay={0.6} duration={0.9}>
-              <Magnet padding={150} strength={3}>
-                <div className="w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] select-none pointer-events-none">
-                  <img 
-                    src="/src/assets/images/gold_card_3d_1782526776892.jpg" 
-                    alt="CHIP NG interactive 3D mock preview card" 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-auto rounded-[24px] md:rounded-[36px] drop-shadow-[0_25px_50px_rgba(0,0,0,0.95)] transition-transform duration-500 hover:rotate-2 hover:scale-[1.03]"
-                  />
-                </div>
-              </Magnet>
+          {/* Centered Dynamic LinkMe Motion Graphics System */}
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <FadeIn y={30} delay={0.4} duration={0.9} className="w-full">
+              <LinkMeMotionGraphics />
             </FadeIn>
           </div>
 
-          {/* Massively Scaled Title */}
-          <div className="overflow-hidden w-full select-none z-0 mt-6 sm:mt-4 md:-mt-5">
+          {/* Massively Scaled Title (Z-0, background watermarked banner behind the active screen simulator) */}
+          <div className="overflow-hidden w-full select-none z-0 mt-6 sm:mt-4 md:-mt-5 opacity-25 lg:opacity-30">
             <FadeIn y={40} delay={0.15}>
               <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[11vw] sm:text-[12vw] md:text-[13vw] lg:text-[14vw] xl:text-[15vw] w-full block">
                 Welcome to chipng
@@ -538,9 +530,6 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
         </div>
 
       </section>
-
-      {/* 2. MARQUEE SECTION */}
-      <MarqueeSection />
 
       {/* 3. ABOUT SECTION */}
       <section ref={aboutRef} className="min-h-screen flex flex-col justify-center items-center relative py-20 px-5 sm:px-8 md:px-10 overflow-hidden bg-[#0C0C0C]">
