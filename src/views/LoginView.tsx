@@ -66,8 +66,18 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black relative">
-      <div className="w-full md:w-1/2 lg:w-5/12 flex flex-col justify-center px-8 sm:px-16 py-12 md:py-0 relative z-10 bg-white dark:bg-black">
+    <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black relative overflow-hidden">
+      {/* Background radial soft light halo matching the signature color pattern */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30 dark:opacity-50 z-0">
+        <div 
+          className="absolute w-[320px] md:w-[650px] h-[320px] md:h-[650px] rounded-full filter blur-[100px] md:blur-[140px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(182, 0, 168, 0.25) 0%, rgba(118, 33, 176, 0.15) 50%, rgba(24, 1, 31, 0.05) 100%)'
+          }}
+        />
+      </div>
+
+      <div className="w-full md:w-1/2 lg:w-5/12 flex flex-col justify-center px-8 sm:px-16 py-12 md:py-0 relative z-10 bg-white/80 dark:bg-black/85 backdrop-blur-sm">
         <div className="max-w-md w-full mx-auto">
           
           <div className="absolute top-8 right-8 z-50">
@@ -76,7 +86,12 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
 </button>
 </div>
 <div className="mb-10 flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
-            <div className="w-8 h-8 rounded-sm bg-black dark:bg-white flex items-center justify-center">
+            <div 
+              style={{
+                background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+              }}
+              className="w-8 h-8 rounded-sm flex items-center justify-center border border-white/20 shadow-[0_2px_10px_rgba(182,0,168,0.3)]"
+            >
               <MemoryStick className="w-5 h-5 text-white" />
             </div>
             <span className="font-display text-[24px] font-black tracking-tighter text-black dark:text-white">CHIP NG</span>
@@ -91,13 +106,13 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
 
           <div className="flex border-b border-[#e2e2e2] dark:border-[#333] mb-8 relative">
             <button 
-              className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'login' ? 'text-black dark:text-white border-black dark:border-white' : 'text-[#4c4546] dark:text-[#a0a0a0] border-transparent hover:text-black dark:text-white'}`}
+              className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'login' ? 'text-black dark:text-white border-black dark:border-white font-bold' : 'text-[#4c4546] dark:text-[#a0a0a0] border-transparent hover:text-black dark:text-white'}`}
               onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
             >
               Login
             </button>
             <button 
-              className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'signup' ? 'text-black dark:text-white border-black dark:border-white' : 'text-[#4c4546] dark:text-[#a0a0a0] border-transparent hover:text-black dark:text-white'}`}
+              className={`flex-1 pb-3 font-mono text-[14px] font-medium transition-colors text-left border-b-2 ${mode === 'signup' ? 'text-black dark:text-white border-black dark:border-white font-bold' : 'text-[#4c4546] dark:text-[#a0a0a0] border-transparent hover:text-black dark:text-white'}`}
               onClick={() => { setMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
             >
               Create Account
@@ -156,7 +171,11 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: { 
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black dark:bg-white text-white dark:text-black font-mono text-[14px] font-medium rounded-sm px-4 py-3.5 hover:opacity-90 active:translate-y-px transition-all disabled:opacity-70"
+                style={{
+                  background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+                  boxShadow: '0px 4px 4px rgba(181, 1, 167, 0.25), inset 4px 4px 12px #7721B1',
+                }}
+                className="w-full text-white font-mono text-[14px] font-bold rounded-sm px-4 py-3.5 hover:scale-[1.01] hover:brightness-110 active:translate-y-px transition-all disabled:opacity-70 cursor-pointer border border-white/10"
               >
                 {loading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Sign Up')}
               </button>

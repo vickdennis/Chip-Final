@@ -40,8 +40,13 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-[#e2e2e2] dark:border-[#333] bg-[#f3f3f4] dark:bg-[#111] flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 pb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-black flex items-center justify-center rounded-sm">
-              <MemoryStick className="w-6 h-6 text-white dark:text-black" />
+            <div 
+              style={{
+                background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+              }}
+              className="w-10 h-10 flex items-center justify-center rounded-sm border border-white/20 shadow-[0_2px_10px_rgba(182,0,168,0.25)]"
+            >
+              <MemoryStick className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="font-display font-bold text-[#1a1c1c] dark:text-white text-lg tracking-tight leading-tight">Admin Console</h1>
@@ -62,7 +67,11 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
               onNavigate('user-dashboard');
               setMobileMenuOpen(false);
             }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-150 ease-in-out font-mono text-[14px] font-medium ${activePath === 'dashboard' ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80' : 'text-[#4c4546] dark:text-[#a0a0a0] hover:bg-[#e8e8e8] dark:hover:bg-[#222]'}`}
+            style={activePath === 'dashboard' ? {
+              background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+              boxShadow: '0px 2px 4px rgba(181, 1, 167, 0.2)',
+            } : undefined}
+            className={`flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-150 ease-in-out font-mono text-[14px] font-medium ${activePath === 'dashboard' ? 'text-white border border-white/10' : 'text-[#4c4546] dark:text-[#a0a0a0] hover:bg-[#e8e8e8] dark:hover:bg-[#222]'}`}
           >
             <LayoutDashboard className="w-[18px] h-[18px]" />
             Dashboard

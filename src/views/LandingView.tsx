@@ -43,7 +43,7 @@ const MARQUEE_GIFS = [
   "https://motionsites.ai/assets/hero-celestia-preview-0yO3jXO8.gif"
 ];
 
-// Reusable ContactButton Component
+// Reusable ContactButton Component (now Signup Button)
 const ContactButton = ({ onClick }: { onClick?: () => void }) => (
   <button 
     onClick={onClick}
@@ -53,9 +53,9 @@ const ContactButton = ({ onClick }: { onClick?: () => void }) => (
       outline: '2px solid white',
       outlineOffset: '-3px'
     }}
-    className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-[11px] sm:text-[12px] md:text-sm font-medium uppercase tracking-widest text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+    className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-[11px] sm:text-[12px] md:text-sm font-semibold uppercase tracking-widest text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
   >
-    Contact Me
+    Signup
   </button>
 );
 
@@ -291,19 +291,19 @@ const MarqueeSection = () => {
 // BrandSlideshow component displaying names and logo brands recently attached
 const BrandSlideshow = () => {
   const images = [
-    { url: "/IMG_0502.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Bespoke identity concept, custom wordmark, and logo asset styling." },
-    { url: "/IMG_0503.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Sleek typography, custom brand mark, and curated color palettes." },
-    { url: "/IMG_0504.jpeg", title: "LOGO CONCEPTS", desc: "Vibrant custom vector badges, geometry, and creative styling." },
-    { url: "/IMG_0505.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "High-end luxury serif wordmarks, emblems, and visual systems." },
-    { url: "/IMG_0506.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Modern digital-first layouts, minimalist marks, and grid styling." },
-    { url: "/IMG_0507.jpeg", title: "LOGO CONCEPTS", desc: "Minimalist corporate symbols, architectural marks, and geometry." },
-    { url: "/IMG_0508.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Tech-forward branding, modular graphics, and icon suites." },
-    { url: "/IMG_0509.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Bold display lettering, premium wordmarks, and typography art." },
-    { url: "/IMG_0510.jpeg", title: "LOGO CONCEPTS", desc: "Symmetric badge designs, brand vectors, and high-impact layouts." },
-    { url: "/IMG_0511.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Clean linear monogram styling, custom typography, and emblems." },
-    { url: "/IMG_0512.jpeg", title: "IDENTITY DESIGN SYSTEM", desc: "Modern organic layouts, science-forward shapes, and typography." },
-    { url: "/IMG_0513.jpeg", title: "LOGO CONCEPTS", desc: "Eco-conscious branding guidelines, custom palettes, and marks." },
-    { url: "/IMG_0514.jpeg", title: "BRAND IDENTITY & LOGOTYPE", desc: "Wide display banners, wordmark styling, and creative visual suites." }
+    { url: "/IMG_0502.jpeg", title: "Prestige Executive", desc: "Bespoke identity concept, custom wordmark, and logo asset styling." },
+    { url: "/IMG_0503.jpeg", title: "Aero Logistics", desc: "Sleek typography, custom brand mark, and curated color palettes." },
+    { url: "/IMG_0504.jpeg", title: "Apex Creators", desc: "Vibrant custom vector badges, geometry, and creative styling." },
+    { url: "/IMG_0505.jpeg", title: "Elysian Wellness", desc: "High-end luxury serif wordmarks, emblems, and visual systems." },
+    { url: "/IMG_0506.jpeg", title: "Zenith Digital", desc: "Modern digital-first layouts, minimalist marks, and grid styling." },
+    { url: "/IMG_0507.jpeg", title: "Prime Estate", desc: "Minimalist corporate symbols, architectural marks, and geometry." },
+    { url: "/IMG_0508.jpeg", title: "Vortex Labs", desc: "Tech-forward branding, modular graphics, and icon suites." },
+    { url: "/IMG_0509.jpeg", title: "Nova Entertainment", desc: "Bold display lettering, premium wordmarks, and typography art." },
+    { url: "/IMG_0510.jpeg", title: "Origin Studio", desc: "Symmetric badge designs, brand vectors, and high-impact layouts." },
+    { url: "/IMG_0511.jpeg", title: "Quantum Computing", desc: "Clean linear monogram styling, custom typography, and emblems." },
+    { url: "/IMG_0512.jpeg", title: "Helix MedTech", desc: "Modern organic layouts, science-forward shapes, and typography." },
+    { url: "/IMG_0513.jpeg", title: "Solstice Energy", desc: "Eco-conscious branding guidelines, custom palettes, and marks." },
+    { url: "/IMG_0514.jpeg", title: "Vanguard Partners", desc: "Wide display banners, wordmark styling, and creative visual suites." }
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -324,68 +324,72 @@ const BrandSlideshow = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-8">
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
       {/* Active slide display frame */}
-      <div className="relative aspect-[16/10] md:aspect-[16/9] w-full bg-neutral-900 border-2 border-white/10 rounded-[32px] sm:rounded-[40px] md:rounded-[50px] overflow-hidden group shadow-2xl flex items-center justify-center p-6 sm:p-10 md:p-14">
+      <div className="relative aspect-[16/11] md:aspect-[16/10] w-full bg-neutral-950 border border-white/10 rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-2xl flex flex-col items-center justify-between p-6 sm:p-10 md:p-12">
         
-        {/* Animated image container */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeIndex}
-            initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-            transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
-            className="w-full h-full flex items-center justify-center"
-          >
-            <img
-              src={images[activeIndex].url}
-              alt={images[activeIndex].title}
-              referrerPolicy="no-referrer"
-              className="max-w-full max-h-full object-contain rounded-2xl drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-700"
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Content Overlay */}
-        <div className="absolute bottom-6 left-6 right-6 sm:bottom-10 sm:left-10 sm:right-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 z-10 bg-black/60 backdrop-blur-md border border-white/10 p-5 sm:p-6 rounded-[24px] pointer-events-auto">
-          <div>
-            <span className="font-mono text-xs text-[#B600A8] uppercase tracking-widest font-bold">
-              PROJECT {String(activeIndex + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}
-            </span>
-            <h3 className="font-sans font-black text-xl sm:text-2xl md:text-3xl text-white uppercase tracking-tight mt-1">
-              {images[activeIndex].title}
-            </h3>
-            <p className="font-sans text-xs sm:text-sm text-white/60 mt-1 max-w-md">
-              {images[activeIndex].desc}
-            </p>
-          </div>
-
-          {/* Sibling navigation controls */}
-          <div className="flex gap-3 mt-2 sm:mt-0">
-            <button
-              onClick={prevSlide}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 bg-black/40 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-sm sm:text-base font-bold"
+        {/* Animated Slide Content (Brand Name ABOVE, Logo BELOW) */}
+        <div className="w-full flex-1 flex flex-col items-center justify-between">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0, y: 15, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -15, filter: "blur(4px)" }}
+              transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+              className="w-full h-full flex flex-col items-center justify-between"
             >
-              ←
-            </button>
-            <button
-              onClick={nextSlide}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 bg-black/40 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-sm sm:text-base font-bold"
-            >
-              →
-            </button>
-          </div>
+              {/* BRAND NAME ABOVE THE LOGO */}
+              <div className="text-center w-full mb-6 relative z-10">
+                <span className="font-mono text-[10px] sm:text-xs text-[#B600A8] uppercase tracking-[0.25em] font-bold block mb-2">
+                  PROJECT {String(activeIndex + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}
+                </span>
+                <h3 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl text-white uppercase tracking-tight">
+                  {images[activeIndex].title}
+                </h3>
+                <p className="font-sans text-xs sm:text-sm text-white/50 mt-2 max-w-xl mx-auto px-4 leading-relaxed">
+                  {images[activeIndex].desc}
+                </p>
+              </div>
+
+              {/* LOGO BELOW THE NAME */}
+              <div className="flex-1 w-full flex items-center justify-center overflow-hidden py-2">
+                <img
+                  src={images[activeIndex].url}
+                  alt={images[activeIndex].title}
+                  referrerPolicy="no-referrer"
+                  className="max-w-full max-h-[180px] sm:max-h-[280px] md:max-h-[340px] object-contain rounded-xl drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] group-hover:scale-102 transition-transform duration-700"
+                />
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
+
+        {/* Navigation Buttons floating or positioned inside the frame */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-4 right-4 flex justify-between pointer-events-none z-20">
+          <button
+            onClick={prevSlide}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 bg-black/60 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 pointer-events-auto cursor-pointer text-sm sm:text-base font-bold shadow-lg"
+          >
+            ←
+          </button>
+          <button
+            onClick={nextSlide}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 bg-black/60 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 pointer-events-auto cursor-pointer text-sm sm:text-base font-bold shadow-lg"
+          >
+            →
+          </button>
+        </div>
+
       </div>
 
       {/* Thumbnails scroller strip */}
-      <div className="flex gap-3 overflow-x-auto py-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent px-2">
+      <div className="flex gap-3 overflow-x-auto py-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent px-2">
         {images.map((img, idx) => (
           <button
             key={idx}
             onClick={() => setActiveIndex(idx)}
-            className={`relative rounded-xl overflow-hidden aspect-[4/3] w-24 sm:w-28 border-2 shrink-0 transition-all duration-300 hover:scale-105 cursor-pointer p-1 bg-neutral-900 ${activeIndex === idx ? 'border-[#B600A8] scale-105 shadow-[0_0_15px_rgba(182,0,168,0.4)]' : 'border-white/10 opacity-50 hover:opacity-100'}`}
+            className={`relative rounded-xl overflow-hidden aspect-[4/3] w-20 sm:w-24 border-2 shrink-0 transition-all duration-300 hover:scale-105 cursor-pointer p-1 bg-neutral-900 ${activeIndex === idx ? 'border-[#B600A8] scale-105 shadow-[0_0_12px_rgba(182,0,168,0.3)]' : 'border-white/10 opacity-50 hover:opacity-100'}`}
           >
             <img
               src={img.url}
@@ -524,7 +528,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           </FadeIn>
 
           <FadeIn y={20} delay={0.5}>
-            <ContactButton onClick={() => alert('Message CHIP NG on WhatsApp: 08100764154')} />
+            <ContactButton onClick={() => onNavigate('login')} />
           </FadeIn>
 
         </div>
@@ -595,7 +599,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
             />
 
             <FadeIn y={20} delay={0.1}>
-              <ContactButton onClick={() => alert('Opening WhatsApp message link with CHIP NG...')} />
+              <ContactButton onClick={() => onNavigate('login')} />
             </FadeIn>
           </div>
 

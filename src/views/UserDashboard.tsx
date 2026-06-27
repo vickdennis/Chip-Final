@@ -383,7 +383,11 @@ END:VCARD`;
             <button 
               onClick={handleSave} 
               disabled={saving}
-              className="flex-1 md:flex-none px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 font-mono text-[13px] font-medium hover:bg-black/90 transition-colors rounded-sm flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{
+                background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+                boxShadow: '0px 4px 4px rgba(181, 1, 167, 0.25), inset 4px 4px 12px #7721B1',
+              }}
+              className="flex-1 md:flex-none px-5 py-2.5 text-white font-mono text-[13px] font-bold hover:scale-[1.02] hover:brightness-110 transition-all rounded-sm flex items-center justify-center gap-2 disabled:opacity-70 border border-white/10 cursor-pointer"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-[18px] h-[18px]" />} 
               {saving ? 'Saving...' : 'Save Changes'}
@@ -909,7 +913,10 @@ END:VCARD`;
                     onClick={() => {
                       setProducts([{ id: 'new_' + Date.now(), name: '', description: '', price: 0, file_url: '', image_url: '' }, ...products])
                     }}
-                    className="font-mono text-[11px] font-bold bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-sm hover:bg-black/90 transition-colors"
+                    style={{
+                      background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+                    }}
+                    className="font-mono text-[11px] font-bold text-white px-3 py-1.5 rounded-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer border border-white/15"
                   >
                     + Add Product
                   </button>
