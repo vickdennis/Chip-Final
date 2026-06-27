@@ -1,45 +1,403 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { BookOpen, ArrowRight, Microchip, ShieldAlert, Activity, BarChart3, Star, Phone, MessageCircle, ShoppingBag, ShoppingCart, X } from 'lucide-react';
-import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
+import { 
+  ShoppingCart, 
+  X, 
+  Phone, 
+  ShoppingBag, 
+  ChevronRight, 
+  ArrowUpRight, 
+  Star, 
+  MapPin, 
+  Layers, 
+  Cpu, 
+  CreditCard 
+} from 'lucide-react';
 
-const BRANDS = [
-  { name: "ThomasBoydWhyte Solicitors", file: "IMG_0502.jpeg" },
-  { name: "EMC Legal Limited", file: "IMG_0503.jpeg" },
-  { name: "Rinovato Studio", file: "IMG_0504.jpeg" },
-  { name: "Zenthura", file: "IMG_0505.jpeg" },
-  { name: "Buy Lekki Now Now", file: "IMG_0506.jpeg" },
-  { name: "Novation Legal Practice", file: "IMG_0507.jpeg" },
-  { name: "Five Paper", file: "IMG_0508.jpeg" },
-  { name: "Noir Prestige", file: "IMG_0509.jpeg" },
-  { name: "Luxe Trends", file: "IMG_0510.jpeg" },
-  { name: "VC10 GROUP", file: "IMG_0511.jpeg" },
-  { name: "The Bloom Affair", file: "IMG_0512.jpeg" },
-  { name: "Zenithedge Consulting", file: "IMG_0513.jpeg" },
-  { name: "Partner", file: "IMG_0514.jpeg" }
+// Exact motionsites.ai GIF URLs for the Marquee Section
+const MARQUEE_GIFS = [
+  "https://motionsites.ai/assets/hero-space-voyage-preview-eECLH3Yc.gif",
+  "https://motionsites.ai/assets/hero-codenest-preview-Cgppc2qV.gif",
+  "https://motionsites.ai/assets/hero-vex-ventures-preview-BczMFIiw.gif",
+  "https://motionsites.ai/assets/hero-stellar-ai-v2-preview-DjvxjG3C.gif",
+  "https://motionsites.ai/assets/hero-asme-preview-B_nGDnTP.gif",
+  "https://motionsites.ai/assets/hero-transform-data-preview-Cx5OU29N.gif",
+  "https://motionsites.ai/assets/hero-vitara-preview-Cjz2QYyU.gif",
+  "https://motionsites.ai/assets/hero-terra-preview-BFjrCr7T.gif",
+  "https://motionsites.ai/assets/hero-skyelite-preview-DHaZIgUv.gif",
+  "https://motionsites.ai/assets/hero-aethera-preview-DknSlcTa.gif",
+  "https://motionsites.ai/assets/hero-designpro-preview-D8c5_een.gif",
+  "https://motionsites.ai/assets/hero-stellar-ai-preview-D3HL6bw1.gif",
+  "https://motionsites.ai/assets/hero-xportfolio-preview-D4A8maiC.gif",
+  "https://motionsites.ai/assets/hero-orbit-web3-preview-BXt4OttD.gif",
+  "https://motionsites.ai/assets/hero-nexora-preview-cx5HmUgo.gif",
+  "https://motionsites.ai/assets/hero-evr-ventures-preview-DZxeVFEX.gif",
+  "https://motionsites.ai/assets/hero-planet-orbit-preview-DWAP8Z1P.gif",
+  "https://motionsites.ai/assets/hero-new-era-preview-CocuDUm9.gif",
+  "https://motionsites.ai/assets/hero-wealth-preview-B70idl_u.gif",
+  "https://motionsites.ai/assets/hero-luminex-preview-CxOP7ce6.gif",
+  "https://motionsites.ai/assets/hero-celestia-preview-0yO3jXO8.gif"
 ];
 
-const BrandTicker = () => (
-  <div className="w-full bg-white dark:bg-[#111] border-y border-[#e2e2e2] dark:border-[#333] overflow-hidden py-4 md:py-6 flex items-center relative z-10 select-none">
-    <div className="flex w-max animate-ticker hover:[animation-play-state:paused]">
-      {[...BRANDS, ...BRANDS].map((brand, i) => (
-        <div key={i} className="flex-1 min-w-max flex justify-center items-center px-10 shrink-0">
-          <img 
-            src={`/${brand.file}`} 
-            onError={(e) => {
-              // Fallback to placeholder if image not uploaded yet
-              e.currentTarget.src = `https://placehold.co/200x80/transparent/7e7576?text=${encodeURIComponent(brand.name.split(' ').slice(0,2).join(' '))}`;
-            }}
-            alt={brand.name}
-            className="h-8 md:h-12 object-contain opacity-60 hover:opacity-100 transition-opacity" 
-          />
-        </div>
-      ))}
-    </div>
-  </div>
+// Reusable ContactButton Component
+const ContactButton = ({ onClick }: { onClick?: () => void }) => (
+  <button 
+    onClick={onClick}
+    style={{
+      background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
+      boxShadow: '0px 4px 4px rgba(181, 1, 167, 0.25), inset 4px 4px 12px #7721B1',
+      outline: '2px solid white',
+      outlineOffset: '-3px'
+    }}
+    className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-[11px] sm:text-[12px] md:text-sm font-medium uppercase tracking-widest text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+  >
+    Contact Me
+  </button>
 );
+
+// Reusable LiveProjectButton Component
+const LiveProjectButton = ({ onClick, label = "Live Project" }: { onClick?: () => void, label?: string }) => (
+  <button 
+    onClick={onClick}
+    className="rounded-full border-2 border-[#D7E2EA] text-[#D7E2EA] bg-transparent hover:bg-[#D7E2EA]/10 transition-colors px-8 py-3 sm:px-10 sm:py-3.5 text-xs sm:text-sm md:text-base font-medium uppercase tracking-widest cursor-pointer"
+  >
+    {label}
+  </button>
+);
+
+// Reusable FadeIn Component using framer-motion behavior specified in instructions
+interface FadeInProps {
+  children: React.ReactNode;
+  delay?: number;
+  duration?: number;
+  x?: number;
+  y?: number;
+  className?: string;
+  as?: string;
+  key?: any;
+}
+
+const FadeIn = ({ children, delay = 0, duration = 0.7, x = 0, y = 30, className = '', as = 'div' }: FadeInProps) => {
+  const Tag = (motion as any)[as] || motion.div;
+  return (
+    <Tag
+      initial={{ opacity: 0, x, y }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, margin: "50px", amount: 0 }}
+      transition={{ delay, duration, ease: [0.25, 0.1, 0.25, 1] }}
+      className={className}
+    >
+      {children}
+    </Tag>
+  );
+};
+
+// Reusable Magnet Component
+interface MagnetProps {
+  children: React.ReactNode;
+  padding?: number;
+  strength?: number;
+  activeTransition?: string;
+  inactiveTransition?: string;
+  className?: string;
+}
+
+const Magnet = ({
+  children,
+  padding = 150,
+  strength = 3,
+  activeTransition = "transform 0.3s ease-out",
+  inactiveTransition = "transform 0.6s ease-in-out",
+  className = ""
+}: MagnetProps) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState("translate3d(0px, 0px, 0px)");
+  const [transition, setTransition] = useState(inactiveTransition);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const distanceX = e.clientX - centerX;
+      const distanceY = e.clientY - centerY;
+      const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+      if (distance < padding) {
+        setTransition(activeTransition);
+        const x = distanceX / strength;
+        const y = distanceY / strength;
+        setTransform(`translate3d(${x}px, ${y}px, 0px)`);
+      } else {
+        setTransition(inactiveTransition);
+        setTransform("translate3d(0px, 0px, 0px)");
+      }
+    };
+
+    const handleMouseLeave = () => {
+      setTransition(inactiveTransition);
+      setTransform("translate3d(0px, 0px, 0px)");
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    el.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [padding, strength, activeTransition, inactiveTransition]);
+
+  return (
+    <div 
+      ref={ref} 
+      style={{ transform, transition, willChange: 'transform' }} 
+      className={className}
+    >
+      {children}
+    </div>
+  );
+};
+
+// Reusable Character Scroll Reveal Text Animation Component
+const AnimatedText = ({ text, className = "" }: { text: string; className?: string }) => {
+  const containerRef = useRef<HTMLParagraphElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 0.8", "end 0.2"]
+  });
+
+  const characters = text.split("");
+
+  return (
+    <p ref={containerRef} className={`${className} flex flex-wrap justify-center`}>
+      {characters.map((char, index) => {
+        const start = index / characters.length;
+        const end = (index + 1) / characters.length;
+        const opacity = useTransform(scrollYProgress, [start, end], [0.2, 1]);
+
+        return (
+          <span key={index} className="relative inline-block">
+            <span className="opacity-0">{char === " " ? "\u00A0" : char}</span>
+            <motion.span style={{ opacity }} className="absolute inset-0">
+              {char === " " ? "\u00A0" : char}
+            </motion.span>
+          </span>
+        );
+      })}
+    </p>
+  );
+};
+
+// Scroll-driven Marquee Section Component
+const MarqueeSection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [scrollOffset, setScrollOffset] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const sectionTop = window.scrollY + rect.top;
+      const offset = (window.scrollY - sectionTop + window.innerHeight) * 0.3;
+      setScrollOffset(offset);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const row1Offset = scrollOffset - 200;
+  const row2Offset = -(scrollOffset - 200);
+
+  const row1Images = MARQUEE_GIFS.slice(0, 11);
+  const row2Images = MARQUEE_GIFS.slice(11);
+
+  const tripledRow1 = [...row1Images, ...row1Images, ...row1Images];
+  const tripledRow2 = [...row2Images, ...row2Images, ...row2Images];
+
+  return (
+    <div ref={sectionRef} className="bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden relative z-10 select-none">
+      {/* Row 1: moves RIGHT on scroll */}
+      <div className="mb-3">
+        <div 
+          className="flex gap-3"
+          style={{ 
+            transform: `translateX(${row1Offset}px)`, 
+            willChange: 'transform',
+            transition: 'transform 0.1s ease-out'
+          }}
+        >
+          {tripledRow1.map((url, i) => (
+            <div key={`r1-${i}`} className="relative group overflow-hidden rounded-2xl">
+              <img 
+                src={url}
+                alt="3D NFC template representational render"
+                loading="lazy"
+                className="w-[420px] h-[270px] object-cover shrink-0 grayscale hover:grayscale-0 transition-all duration-500"
+                onError={(e) => {
+                  e.currentTarget.src = `https://placehold.co/420x270/222/white?text=CHIP+NG+Portfolio+${(i % 11) + 1}`;
+                }}
+              />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                <p className="font-mono text-[10px] tracking-widest text-white uppercase">PREMIUM PROFILE TEMPLATE</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Row 2: moves LEFT on scroll */}
+      <div>
+        <div 
+          className="flex gap-3"
+          style={{ 
+            transform: `translateX(${row2Offset}px)`, 
+            willChange: 'transform',
+            transition: 'transform 0.1s ease-out'
+          }}
+        >
+          {tripledRow2.map((url, i) => (
+            <div key={`r2-${i}`} className="relative group overflow-hidden rounded-2xl">
+              <img 
+                src={url}
+                alt="NFC interactive digital view model"
+                loading="lazy"
+                className="w-[420px] h-[270px] object-cover shrink-0 grayscale hover:grayscale-0 transition-all duration-500"
+                onError={(e) => {
+                  e.currentTarget.src = `https://placehold.co/420x270/222/white?text=NFC+Showcase+${(i % 10) + 1}`;
+                }}
+              />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                <p className="font-mono text-[10px] tracking-widest text-white uppercase">NFC CHIP INTERFACE</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// BrandSlideshow component displaying names and logo brands recently attached
+const BrandSlideshow = () => {
+  const images = [
+    { url: "/IMG_0502.jpeg", title: "Prestige Executive", desc: "Corporate branding & bespoke wordmark styling" },
+    { url: "/IMG_0503.jpeg", title: "Aero Logistics", desc: "Sleek, aerodynamic brand logo and icon set" },
+    { url: "/IMG_0504.jpeg", title: "Apex Creators", desc: "Vibrant custom square identity badge" },
+    { url: "/IMG_0505.jpeg", title: "Elysian Wellness", desc: "High-end luxury serif logotype and emblem" },
+    { url: "/IMG_0506.jpeg", title: "Zenith Digital", desc: "Futuristic digital-first brand asset system" },
+    { url: "/IMG_0507.jpeg", title: "Prime Estate", desc: "Corporate minimalist architectural real estate symbol" },
+    { url: "/IMG_0508.jpeg", title: "Vortex Labs", desc: "Tech-forward modular geometric symbol set" },
+    { url: "/IMG_0509.jpeg", title: "Nova Entertainment", desc: "Bold display lettering and cinematic logo design" },
+    { url: "/IMG_0510.jpeg", title: "Origin Studio", desc: "Symmetric badge icon styling for creative agencies" },
+    { url: "/IMG_0511.jpeg", title: "Quantum Computing", desc: "Clean linear monogram design and premium branding" },
+    { url: "/IMG_0512.jpeg", title: "Helix MedTech", desc: "Modern organic science-forward medical brandmark" },
+    { url: "/IMG_0513.jpeg", title: "Solstice Energy", desc: "Eco-conscious branding & sustainable style guides" },
+    { url: "/IMG_0514.jpeg", title: "Vanguard Partners", desc: "Wide display banner wordmark and official seal" }
+  ];
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const nextSlide = () => {
+    setActiveIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevSlide = () => {
+    setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 4500); // Rotate every 4.5s
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-8">
+      {/* Active slide display frame */}
+      <div className="relative aspect-[16/10] md:aspect-[16/9] w-full bg-neutral-900 border-2 border-white/10 rounded-[32px] sm:rounded-[40px] md:rounded-[50px] overflow-hidden group shadow-2xl flex items-center justify-center p-6 sm:p-10 md:p-14">
+        
+        {/* Animated image container */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeIndex}
+            initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
+            transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
+            className="w-full h-full flex items-center justify-center"
+          >
+            <img
+              src={images[activeIndex].url}
+              alt={images[activeIndex].title}
+              referrerPolicy="no-referrer"
+              className="max-w-full max-h-full object-contain rounded-2xl drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-700"
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Content Overlay */}
+        <div className="absolute bottom-6 left-6 right-6 sm:bottom-10 sm:left-10 sm:right-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 z-10 bg-black/60 backdrop-blur-md border border-white/10 p-5 sm:p-6 rounded-[24px] pointer-events-auto">
+          <div>
+            <span className="font-mono text-xs text-[#B600A8] uppercase tracking-widest font-bold">
+              PROJECT {String(activeIndex + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}
+            </span>
+            <h3 className="font-sans font-black text-xl sm:text-2xl md:text-3xl text-white uppercase tracking-tight mt-1">
+              {images[activeIndex].title}
+            </h3>
+            <p className="font-sans text-xs sm:text-sm text-white/60 mt-1 max-w-md">
+              {images[activeIndex].desc}
+            </p>
+          </div>
+
+          {/* Sibling navigation controls */}
+          <div className="flex gap-3 mt-2 sm:mt-0">
+            <button
+              onClick={prevSlide}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 bg-black/40 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-sm sm:text-base font-bold"
+            >
+              ←
+            </button>
+            <button
+              onClick={nextSlide}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 bg-black/40 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-sm sm:text-base font-bold"
+            >
+              →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Thumbnails scroller strip */}
+      <div className="flex gap-3 overflow-x-auto py-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent px-2">
+        {images.map((img, idx) => (
+          <button
+            key={idx}
+            onClick={() => setActiveIndex(idx)}
+            className={`relative rounded-xl overflow-hidden aspect-[4/3] w-24 sm:w-28 border-2 shrink-0 transition-all duration-300 hover:scale-105 cursor-pointer p-1 bg-neutral-900 ${activeIndex === idx ? 'border-[#B600A8] scale-105 shadow-[0_0_15px_rgba(182,0,168,0.4)]' : 'border-white/10 opacity-50 hover:opacity-100'}`}
+          >
+            <img
+              src={img.url}
+              alt={`Thumbnail ${idx + 1}`}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [products, setProducts] = useState<any[]>([]);
@@ -47,6 +405,11 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [checkoutName, setCheckoutName] = useState('');
   const [checkoutPhone, setCheckoutPhone] = useState('');
+
+  // Refs for scrolling navigation
+  const aboutRef = useRef<HTMLDivElement>(null);
+  const shopRef = useRef<HTMLDivElement>(null);
+  const projectsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -57,149 +420,311 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
     if (data) setProducts(data);
   };
 
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const projectData = [
+    {
+      number: "01",
+      category: "CLIENT WORK",
+      name: "Nextlevel Studio",
+      img1: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055344_5eff02e0-87a5-41ce-b64f-eb08da8f33db.png&w=1280&q=85",
+      img2: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055431_11d841fd-8b41-46a5-82e4-b04f2407a7d8.png&w=1280&q=85",
+      img3: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055451_e317bf2d-28d4-48cc-86b0-6f72f25b6327.png&w=1280&q=85",
+    },
+    {
+      number: "02",
+      category: "PERSONAL PROJECT",
+      name: "Aura Brand Identity",
+      img1: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055654_911201c5-36d9-4bc6-bac7-331adfce159f.png&w=1280&q=85",
+      img2: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055723_5ceda0b8-d9c2-4665-b2e3-83ba19ba76d1.png&w=1280&q=85",
+      img3: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055753_adc5dcbd-a8e6-49c0-b43a-9b030d835cea.png&w=1280&q=85",
+    },
+    {
+      number: "03",
+      category: "CLIENT WORK",
+      name: "Solaris Digital",
+      img1: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055759_963cfb0b-4bd1-4b0f-9d0a-09bd6cf95b2f.png&w=1280&q=85",
+      img2: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_060108_438f781a-9846-4dcc-89ab-c4e6cb830f5b.png&w=1280&q=85",
+      img3: "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055818_9d062121-ad7e-46b9-999a-1a6a692ef1ee.png&w=1280&q=85",
+    }
+  ];
+
   return (
-    <div className={`min-h-screen flex flex-col bg-[#f9f9f9] dark:bg-black ${isDarkMode ? 'dark' : ''}`}>
-      <nav className="flex justify-between items-center px-8 py-4 w-full sticky top-0 z-50 bg-[#f9f9f9] dark:bg-black/80 backdrop-blur-md border-b border-[#e2e2e2] dark:border-[#333]">
-        <div className="flex items-center gap-6">
-          <span className="font-display text-[24px] font-black tracking-tighter text-black dark:text-white">ChipNG</span>
-          <div className="hidden md:flex gap-6 ml-8">
-            <a href="#" className="font-mono text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white transition-colors font-medium">Features</a>
-            <a href="#" className="font-mono text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white transition-colors font-medium">Use Cases</a>
-            <a href="#" className="font-mono text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white transition-colors font-medium">Pricing</a>
-            <a href="#" className="font-mono text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white transition-colors font-medium">Blog</a>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-<button onClick={toggleDarkMode} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-black dark:text-white transition-colors">
-            {isDarkMode ? <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> : <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>}
-          </button>
-          <button 
-            onClick={() => onNavigate('login')}
-            className="font-mono text-[14px] font-medium text-black dark:text-white hover:opacity-80 transition-opacity hidden md:block px-4 py-2"
-          >
-            Log In
-          </button>
-          <button 
-            onClick={() => onNavigate('login')}
-            className="bg-black text-white font-mono text-[14px] font-medium px-6 py-2.5 rounded-sm hover:bg-black/90 active:translate-y-px transition-all"
-          >
-            Claim Your Link
-          </button>
-        </div>
-      </nav>
-
-      <BrandTicker />
-
-      <main className="flex-grow flex flex-col items-center justify-center pt-24 pb-20 px-8">
-        <section className="max-w-4xl w-full mx-auto text-center flex flex-col items-center gap-10">
-          <div className="w-48 h-48 mb-4 border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-4 rounded-sm shadow-sm overflow-hidden">
-            <img 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
-              alt="CHIP NG Logo" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-          
-          <h1 className="font-display text-[42px] md:text-[56px] leading-[1.1] font-extrabold text-black dark:text-white max-w-3xl tracking-tight">
-            One Link to Power Your Digital Presence
-          </h1>
-          
-          <p className="text-[18px] md:text-[20px] text-[#4c4546] dark:text-[#a0a0a0] max-w-2xl leading-relaxed">
-            ChipNG is the definitive link-in-bio platform for African creators, professionals, and businesses. Consolidate your portfolio, book appointments, and share your world with one smart link.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+    <div className="bg-[#0C0C0C] min-h-screen text-[#D7E2EA] font-sans overflow-x-clip relative">
+      
+      {/* 1. HERO SECTION */}
+      <section className="h-screen flex flex-col justify-between overflow-hidden relative z-20 px-6 md:px-10 pb-10">
+        
+        {/* Navbar */}
+        <FadeIn y={-20} delay={0} className="w-full flex justify-between items-center pt-6 md:pt-8">
+          <span className="font-sans font-black tracking-tighter text-lg md:text-2xl text-white uppercase">
+            CHIP NG
+          </span>
+          <div className="flex gap-6 sm:gap-10 items-center justify-end">
+            <button 
+              onClick={() => scrollToSection(aboutRef)}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+            >
+              Why Us
+            </button>
+            <button 
+              onClick={() => scrollToSection(shopRef)}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+            >
+              Price
+            </button>
+            <button 
+              onClick={() => scrollToSection(projectsRef)}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+            >
+              Projects
+            </button>
             <button 
               onClick={() => onNavigate('login')}
-              className="bg-black text-white font-mono text-[14px] font-medium px-8 py-3.5 rounded-sm border border-black dark:border-white hover:bg-black/90 active:translate-y-px transition-all min-w-[160px]"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer border border-white/20"
             >
-              Start for Free
-            </button>
-            <button className="bg-[#f9f9f9] dark:bg-black text-black dark:text-white border border-[#e2e2e2] dark:border-[#333] font-mono text-[14px] font-medium px-8 py-3.5 rounded-sm hover:bg-[#f3f3f4] dark:bg-[#222] active:translate-y-px transition-colors flex items-center justify-center gap-2 min-w-[160px]">
-              See Examples
+              Login
             </button>
           </div>
-        </section>
+        </FadeIn>
 
-        <section className="max-w-5xl w-full mx-auto mt-32 mb-16">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-[32px] font-bold text-black dark:text-white mb-3">Designed for Growth</h2>
-            <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0]">Everything you need to showcase who you are and what you do.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col justify-between min-h-[300px]">
-              <div>
-                <Microchip className="w-8 h-8 text-black dark:text-white mb-4" />
-                <h3 className="font-display text-[24px] font-bold text-black dark:text-white mb-2">Beautiful Profiles</h3>
-                <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0] max-w-sm leading-relaxed">Create a stunning landing page in minutes. Add all your critical links, embedded players, and past work to one single hub.</p>
-              </div>
-              <div className="mt-8 flex items-center gap-2 text-black dark:text-white font-mono text-[14px] font-medium group cursor-pointer w-max">
-                Customize yours today
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-
-            <div className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col min-h-[300px]">
-              <Activity className="w-8 h-8 text-black dark:text-white mb-4" />
-              <h3 className="font-display text-[24px] font-bold text-black dark:text-white mb-2 mt-auto">Seamless Integration</h3>
-              <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0] leading-relaxed">Connect over 30+ social networks, messaging apps, and custom platforms instantly without coding.</p>
-            </div>
-
-            <div className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col min-h-[300px]">
-              <ShieldAlert className="w-8 h-8 text-black dark:text-white mb-4" />
-              <h3 className="font-display text-[24px] font-bold text-black dark:text-white mb-2 mt-auto">Instant Bookings</h3>
-              <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0] leading-relaxed">Let clients schedule meetings directly on your profile with Calendly and SavvyCal integration.</p>
-            </div>
-
-            <div className="md:col-span-2 border border-[#e2e2e2] dark:border-[#333] bg-[#f3f3f4] dark:bg-[#222] p-8 rounded-sm flex flex-col justify-between min-h-[300px] overflow-hidden relative">
-              <div className="relative z-10">
-                <BarChart3 className="w-8 h-8 text-black dark:text-white mb-4" />
-                <h3 className="font-display text-[24px] font-bold text-black dark:text-white mb-2">Smart Analytics</h3>
-                <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0] max-w-sm leading-relaxed">Understand your audience. Track clicks, profile views, and engagement metrics to optimize your online footprint.</p>
-              </div>
-              <div className="absolute bottom-0 left-0 w-full h-32 border-t border-[#e2e2e2] dark:border-[#333] flex items-end justify-between px-6 pb-6 opacity-40">
-                <div className="w-6 bg-black h-8 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-16 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-12 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-24 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-10 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-20 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-14 rounded-t-sm"></div>
-                <div className="w-6 bg-black h-[110%] rounded-t-sm"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Featured Shop Products */}
-        <section className="max-w-5xl w-full mx-auto mt-24">
-          <div className="text-center mb-16">
-            <div className="flex justify-center items-center gap-2 mb-4">
-              <ShoppingBag className="w-8 h-8 text-black dark:text-white" />
-            </div>
-            <h2 className="font-display text-[32px] font-bold text-black dark:text-white mb-3">CHIP NG Shop</h2>
-            <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0]">Discover exclusive features, services, and digital products to boost your presence.</p>
-          </div>
+        {/* Hero Heading Section */}
+        <div className="w-full flex-1 flex flex-col justify-center relative mt-4 md:mt-0">
           
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map(p => (
-                <div key={p.id} className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] rounded-sm overflow-hidden flex flex-col hover:border-black dark:hover:border-white transition-colors group">
-                  <div className="h-48 bg-[#f3f3f4] dark:bg-[#222] relative overflow-hidden">
+          {/* Centered Magnetized Portrait Frame */}
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0">
+            <FadeIn y={30} delay={0.6} duration={0.9}>
+              <Magnet padding={150} strength={3}>
+                <div className="w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] select-none pointer-events-none">
+                  <img 
+                    src="/src/assets/images/gold_card_3d_1782526776892.jpg" 
+                    alt="CHIP NG interactive 3D mock preview card" 
+                    referrerPolicy="no-referrer"
+                    className="w-full h-auto rounded-[24px] md:rounded-[36px] drop-shadow-[0_25px_50px_rgba(0,0,0,0.95)] transition-transform duration-500 hover:rotate-2 hover:scale-[1.03]"
+                  />
+                </div>
+              </Magnet>
+            </FadeIn>
+          </div>
+
+          {/* Massively Scaled Title */}
+          <div className="overflow-hidden w-full select-none z-0 mt-6 sm:mt-4 md:-mt-5">
+            <FadeIn y={40} delay={0.15}>
+              <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[11vw] sm:text-[12vw] md:text-[13vw] lg:text-[14vw] xl:text-[15vw] w-full block">
+                Welcome to chipng
+              </h1>
+            </FadeIn>
+          </div>
+
+        </div>
+
+        {/* Bottom Bar Section */}
+        <div className="w-full flex justify-between items-end gap-4 relative z-20 pb-4 sm:pb-6 md:pb-10">
+          
+          <FadeIn y={20} delay={0.35} className="flex-1 max-w-[160px] sm:max-w-[220px] md:max-w-[260px]">
+            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-left text-[11px] sm:text-xs md:text-sm lg:text-base">
+              a 3d business card known for creating unforgettable connections
+            </p>
+          </FadeIn>
+
+          <FadeIn y={20} delay={0.5}>
+            <ContactButton onClick={() => alert('Message CHIP NG on WhatsApp: 08100764154')} />
+          </FadeIn>
+
+        </div>
+
+      </section>
+
+      {/* 2. MARQUEE SECTION */}
+      <MarqueeSection />
+
+      {/* 3. ABOUT SECTION */}
+      <section ref={aboutRef} className="min-h-screen flex flex-col justify-center items-center relative py-20 px-5 sm:px-8 md:px-10 overflow-hidden bg-[#0C0C0C]">
+        
+        {/* Absolute 3D Corner Decor Items */}
+        {/* Top-Left Moon */}
+        <div className="absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%] z-0 select-none pointer-events-none">
+          <FadeIn x={-80} y={0} delay={0.1} duration={0.9}>
+            <img 
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png" 
+              alt="Decorative 3D moon icon" 
+              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto opacity-75 animate-bounce [animation-duration:8s]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Bottom-Left 3D Object */}
+        <div className="absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%] z-0 select-none pointer-events-none">
+          <FadeIn x={-80} y={0} delay={0.25} duration={0.9}>
+            <img 
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png" 
+              alt="Decorative 3D design node object" 
+              className="w-[100px] sm:w-[140px] md:w-[180px] h-auto opacity-60 animate-pulse [animation-duration:5s]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Top-Right Lego */}
+        <div className="absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%] z-0 select-none pointer-events-none">
+          <FadeIn x={80} y={0} delay={0.15} duration={0.9}>
+            <img 
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png" 
+              alt="Decorative 3D lego brick icon" 
+              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto opacity-75 animate-bounce [animation-duration:6s]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Bottom-Right 3D Group */}
+        <div className="absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%] z-0 select-none pointer-events-none">
+          <FadeIn x={80} y={0} delay={0.3} duration={0.9}>
+            <img 
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png" 
+              alt="Decorative 3D grid layout elements" 
+              className="w-[130px] sm:w-[170px] md:w-[220px] h-auto opacity-60 animate-pulse [animation-duration:7s]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Center Text Block Container */}
+        <div className="max-w-4xl w-full mx-auto flex flex-col justify-center items-center gap-10 sm:gap-14 md:gap-16 relative z-10 text-center">
+          
+          <FadeIn y={40} delay={0}>
+            <h2 className="hero-heading font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl lg:text-[140px] xl:text-[160px] tracking-tight leading-none">
+              Why you need us
+            </h2>
+          </FadeIn>
+
+          <div className="flex flex-col items-center gap-16 sm:gap-20 md:gap-24 w-full">
+            <AnimatedText 
+              text="Your first impression is everything. A Link in Bio serves as your 24/7 digital hub, aggregating all your portfolios, services, socials, and contact touchpoints into one seamless, high-converting destination. Paired with a tactile NFC business card, you can instantly share this entire interactive experience directly to anyone's phone with a simple physical tap. No paper waste, no friction—just unforgettable, high-impact connections."
+              className="text-[#D7E2EA] font-medium text-center leading-relaxed text-base sm:text-lg md:text-xl lg:text-2xl max-w-3xl"
+            />
+
+            <FadeIn y={20} delay={0.1}>
+              <ContactButton onClick={() => alert('Opening WhatsApp message link with CHIP NG...')} />
+            </FadeIn>
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* 4. SERVICES SECTION */}
+      <section className="bg-white text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32 relative z-30">
+        
+        <div className="max-w-5xl mx-auto w-full">
+          <h2 className="font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl lg:text-[140px] xl:text-[160px] tracking-tight leading-none mb-16 sm:mb-20 md:mb-28">
+            Services
+          </h2>
+
+          {/* List of 5 Service Items */}
+          <div className="flex flex-col border-t border-[#0C0C0C]/15">
+            {[
+              {
+                num: "01",
+                name: "Smart NFC Cards",
+                desc: "Premium physical contactless business cards. Stand out instantly with custom metal, classic matte, or wood cards embedded with smart NFC chips."
+              },
+              {
+                num: "02",
+                name: "Link-in-Bio Profiles",
+                desc: "Beautiful, fully responsive 3D-enhanced landing pages designed to hold all your portfolio links, socials, payment info, and products in one location."
+              },
+              {
+                num: "03",
+                name: "Real-time Analytics",
+                desc: "Gain deep insight into your networking performance. Track direct link clicks, dynamic profile views, device types, and visitor locations instantly."
+              },
+              {
+                num: "04",
+                name: "Brand Customization",
+                desc: "Fully customize your digital profile. Tailor layout shapes, fine typography, custom buttons, high-fidelity color presets, and rich animations."
+              },
+              {
+                num: "05",
+                name: "Integrated Commerce",
+                desc: "Seamless Paystack integrations. Accept donations, sell premium digital files, receive bookings, and process payments directly from your bio link page."
+              }
+            ].map((service, idx) => (
+              <FadeIn 
+                key={service.num} 
+                y={20} 
+                delay={idx * 0.1}
+                className="flex flex-col md:flex-row items-start md:items-center justify-between py-8 sm:py-10 md:py-12 border-b border-[#0C0C0C]/15 gap-4 md:gap-10"
+              >
+                {/* Left Number */}
+                <div className="font-sans font-black text-5xl sm:text-7xl md:text-8xl lg:text-[140px] text-[#0C0C0C] leading-none shrink-0">
+                  {service.num}
+                </div>
+
+                {/* Right Stack */}
+                <div className="flex-grow flex flex-col justify-center text-left">
+                  <h3 className="font-sans font-medium uppercase text-lg sm:text-xl md:text-2xl lg:text-[2.1rem] tracking-tight text-[#0C0C0C] mb-2">
+                    {service.name}
+                  </h3>
+                  <p className="font-sans font-light leading-relaxed text-xs sm:text-sm md:text-base lg:text-[1.25rem] max-w-2xl text-[#0C0C0C]/60">
+                    {service.desc}
+                  </p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+
+      </section>
+
+      {/* BRANDING SHOP & NFC CARDS SECTION (Price Navbar anchor) */}
+      <section ref={shopRef} className="bg-neutral-950 text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-white/5">
+        
+        <div className="max-w-5xl mx-auto w-full">
+          <div className="text-center mb-16 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full mb-4">
+              <ShoppingBag className="w-4 h-4 text-[#B600A8]" />
+              <span className="font-mono text-xs tracking-widest text-white/80 uppercase">CHIP NG STORE</span>
+            </div>
+            <h2 className="hero-heading font-sans font-black uppercase text-3xl sm:text-5xl md:text-7xl lg:text-8xl tracking-tight mb-4">
+              NFC Business Cards
+            </h2>
+            <p className="font-sans text-sm sm:text-base md:text-lg text-white/60 max-w-2xl leading-relaxed">
+              Unlock the next level of networking. Purchase physical smart cards loaded with beautiful 3D digital profiles. Simply tap to share your world.
+            </p>
+          </div>
+
+          {/* Shop items from Supabase */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+            {products.length > 0 ? (
+              products.map((p, idx) => (
+                <FadeIn 
+                  key={p.id} 
+                  y={30} 
+                  delay={idx * 0.15}
+                  className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-[#B600A8] transition-all group p-4"
+                >
+                  <div className="aspect-square bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-white/5">
                     {p.image_url ? (
                       <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-[#7e7576]">
-                        <ShoppingBag className="w-8 h-8 opacity-20" />
+                      <div className="absolute inset-0 flex items-center justify-center text-white/20">
+                        <CreditCard className="w-12 h-12 stroke-[1.5]" />
                       </div>
                     )}
+                    {/* Badge */}
+                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-md border border-white/10">
+                      INSTANT SETUP
+                    </div>
                   </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="font-bold font-sans text-[16px] text-black dark:text-white mb-2">{p.name}</h3>
-                    <p className="text-[13px] text-[#7e7576] mb-4 flex-grow line-clamp-2">{p.description}</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="font-display font-bold text-[18px]">₦{p.price.toLocaleString()}</span>
+                  
+                  <div className="flex flex-col flex-grow">
+                    <h3 className="font-sans font-bold text-base text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
+                    <p className="text-xs text-white/50 mb-4 flex-grow line-clamp-2">{p.description}</p>
+                    
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                      <span className="font-mono font-bold text-lg text-white">₦{Number(p.price).toLocaleString()}</span>
                       <button 
                         onClick={() => {
                           setCart(prev => {
@@ -208,310 +733,295 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                               alert(`${p.name} is already in your cart!`);
                               return prev;
                             }
-                            alert(`${p.name} added to cart!`);
                             return [...prev, p];
                           });
                         }} 
-                        className="bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-sm font-mono text-[12px] font-bold md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
+                        className="bg-white hover:bg-white/90 text-black px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all hover:scale-105 cursor-pointer flex items-center gap-1.5"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </FadeIn>
+              ))
+            ) : (
+              // Beautiful Placeholder Products
+              [
+                { id: "1", name: "CHIP Classic Card", desc: "Matte black smart card with clean printed NFC tech.", price: 7500 },
+                { id: "2", name: "CHIP Pro Premium", desc: "Premium textured composite hybrid card with gold embossed detailing.", price: 12000 },
+                { id: "3", name: "CHIP Metal Limited", desc: "Pure aluminum heavy metal luxury smart card with custom laser engraving.", price: 25000 },
+                { id: "4", name: "CHIP Micro Sticker", desc: "Mini adhesive smart tag that attaches directly behind any phone casing.", price: 4000 }
+              ].map((p, idx) => (
+                <FadeIn 
+                  key={p.id} 
+                  y={30} 
+                  delay={idx * 0.1}
+                  className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-[#B600A8] transition-all group p-4"
+                >
+                  <div className="aspect-square bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-white/5 flex items-center justify-center">
+                    <CreditCard className="w-12 h-12 text-[#B600A8] stroke-[1.5] group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-md border border-white/10">
+                      NFC ENABLED
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col flex-grow">
+                    <h3 className="font-sans font-bold text-base text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
+                    <p className="text-xs text-white/50 mb-4 flex-grow line-clamp-2">{p.desc}</p>
+                    
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                      <span className="font-mono font-bold text-base text-white">₦{p.price.toLocaleString()}</span>
+                      <button 
+                        onClick={() => {
+                          setCart(prev => {
+                            const alreadyInCart = prev.some(item => item.id === p.id);
+                            if (alreadyInCart) {
+                              alert(`${p.name} is already in your cart!`);
+                              return prev;
+                            }
+                            return [...prev, p];
+                          });
+                        }} 
+                        className="bg-white hover:bg-[#B600A8] hover:text-white text-black px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer"
                       >
                         Add to Cart
                       </button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 border border-dashed border-[#e2e2e2] dark:border-[#333] rounded-sm text-[#7e7576] text-sm">
-              New products coming soon!
-            </div>
-          )}
-        </section>
-        
-        {/* Pricing */}
-        <section className="max-w-5xl w-full mx-auto mt-24">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-[32px] font-bold text-black dark:text-white mb-3">Simple, Transparent Pricing</h2>
-            <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0]">Start for free, upgrade when you need more power.</p>
+                </FadeIn>
+              ))
+            )}
           </div>
+
+          {/* Pricing tiers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Free Tier */}
-            <div className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col">
-              <h3 className="font-mono text-[14px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase tracking-widest mb-4">Basic</h3>
+            <FadeIn y={30} delay={0.1} className="border border-white/10 bg-black/40 p-8 rounded-3xl flex flex-col hover:border-white/20 transition-all">
+              <h3 className="font-mono text-[12px] font-bold text-white/50 uppercase tracking-widest mb-4">BASIC DIGITAL HUB</h3>
               <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-display text-[48px] font-black text-black dark:text-white leading-none">Free</span>
+                <span className="font-sans text-[48px] font-black text-white leading-none">Free</span>
               </div>
-              <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0] mb-8">Everything you need to launch your digital presence.</p>
-              <ul className="flex flex-col gap-4 mb-8 flex-grow">
-                <li className="flex items-center gap-3 text-[15px] text-black dark:text-white">
-                   <div className="w-5 h-5 rounded-full bg-[#f3f3f4] dark:bg-[#222] flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-black"></div></div>
-                   Unlimited Links
+              <p className="text-sm text-white/60 mb-8">Establish your professional digital home on CHIP NG instantly.</p>
+              <ul className="flex flex-col gap-4 mb-8 flex-grow text-sm">
+                <li className="flex items-center gap-3 text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                  Unlimited social bio links
                 </li>
-                <li className="flex items-center gap-3 text-[15px] text-black dark:text-white">
-                   <div className="w-5 h-5 rounded-full bg-[#f3f3f4] dark:bg-[#222] flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-black"></div></div>
-                   Custom chipng.com/username
+                <li className="flex items-center gap-3 text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                  Custom chipng.com/username bio path
                 </li>
-                <li className="flex items-center gap-3 text-[15px] text-black dark:text-white">
-                   <div className="w-5 h-5 rounded-full bg-[#f3f3f4] dark:bg-[#222] flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-black"></div></div>
-                   Basic Analytics
+                <li className="flex items-center gap-3 text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                  Basic profile hit analytics
                 </li>
               </ul>
-              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#f3f3f4] dark:bg-[#222] text-black dark:text-white font-mono text-[14px] font-bold rounded-sm hover:bg-[#e2e2e2] transition-colors">
-                Get Started
+              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-white/5 text-white hover:bg-white hover:text-black transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
+                Get Free Account
               </button>
-            </div>
+            </FadeIn>
 
             {/* Pro Tier */}
-            <div className="border-2 border-black dark:border-white bg-black text-white p-8 rounded-sm flex flex-col relative">
-              <div className="absolute top-0 right-0 bg-[#FFB800] text-black dark:text-white font-mono text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-sm">Popular</div>
-              <h3 className="font-mono text-[14px] font-bold text-white/70 uppercase tracking-widest mb-4">Pro</h3>
+            <FadeIn y={30} delay={0.2} className="border-2 border-[#B600A8] bg-black p-8 rounded-3xl flex flex-col relative overflow-hidden shadow-[0_0_50px_rgba(182,0,168,0.15)]">
+              <div className="absolute top-0 right-0 bg-[#B600A8] text-white font-mono text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-bl-xl">POPULAR</div>
+              <h3 className="font-mono text-[12px] font-bold text-[#B600A8] uppercase tracking-widest mb-4">PRO MEMBERSHIP</h3>
               <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-display text-[48px] font-black text-white leading-none">₦5,000</span>
-                <span className="text-[16px] text-white/70">/ month</span>
+                <span className="font-sans text-[48px] font-black text-white leading-none">₦5,000</span>
+                <span className="text-xs text-white/50">/ month</span>
               </div>
-              <p className="text-[16px] text-white/80 mb-8">Unlock verification, premium features, and shop integration.</p>
-              <ul className="flex flex-col gap-4 mb-8 flex-grow">
-                <li className="flex items-center gap-3 text-[15px] text-white">
-                   <div className="w-5 h-5 rounded-full bg-white dark:bg-[#111]/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
-                   Everything in Basic
+              <p className="text-sm text-white/70 mb-8">Unlock exclusive verified checkmark, custom 3D themes, and digital store.</p>
+              <ul className="flex flex-col gap-4 mb-8 flex-grow text-sm">
+                <li className="flex items-center gap-3 text-white/90">
+                  <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
+                  Everything in Basic
                 </li>
-                <li className="flex items-center gap-3 text-[15px] text-white">
-                   <div className="w-5 h-5 rounded-full bg-white dark:bg-[#111]/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
-                   Verification Badge
+                <li className="flex items-center gap-3 text-white/90">
+                  <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
+                  Gold Verified Profile Badge
                 </li>
-                <li className="flex items-center gap-3 text-[15px] text-white">
-                   <div className="w-5 h-5 rounded-full bg-white dark:bg-[#111]/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
-                   Sell Products in Shop
+                <li className="flex items-center gap-3 text-white/90">
+                  <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
+                  Sell digital items & services on your card
                 </li>
-                <li className="flex items-center gap-3 text-[15px] text-white">
-                   <div className="w-5 h-5 rounded-full bg-white dark:bg-[#111]/10 flex items-center justify-center shrink-0"><div className="w-2 h-2 rounded-full bg-[#FFB800]"></div></div>
-                   Advanced Analytics
+                <li className="flex items-center gap-3 text-white/90">
+                  <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
+                  Deep real-time geographic hits analysis
                 </li>
               </ul>
-              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#FFB800] text-black dark:text-white font-mono text-[14px] font-bold rounded-sm hover:bg-[#e6a600] transition-colors">
-                Upgrade to Pro
+              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#B600A8] text-white hover:bg-[#a10095] transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
+                Go Pro Now
               </button>
-            </div>
+            </FadeIn>
           </div>
-        </section>
+        </div>
 
-        {/* Testimonials */}
-        <section className="max-w-5xl w-full mx-auto mt-24 mb-16">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-[32px] font-bold text-black dark:text-white mb-3">Loved by professionals across Nigeria</h2>
-            <p className="text-[16px] text-[#4c4546] dark:text-[#a0a0a0]">Join thousands using ChipNG to empower their digital business.</p>
-          </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col">
-              <div className="flex gap-1 mb-4 text-[#FFB800]">
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-              </div>
-              <p className="text-[16px] text-black dark:text-white leading-relaxed mb-6 font-medium">
-                "Since switching to ChipNG, my clients can easily find my latest articles and book strategy sessions. The setup took less than 5 minutes."
-              </p>
-              <div className="mt-auto flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#f3f3f4] dark:bg-[#222] border border-[#e2e2e2] dark:border-[#333] flex items-center justify-center font-bold text-[#4c4546] dark:text-[#a0a0a0]">
-                  CA
-                </div>
-                <div>
-                  <h4 className="font-mono text-[14px] font-bold text-black dark:text-white leading-tight">Chinedu Abiodun</h4>
-                  <p className="text-[13px] text-[#4c4546] dark:text-[#a0a0a0]">Digital Strategy Consultant</p>
-                </div>
-              </div>
-            </div>
+      {/* 5. PROJECTS SECTION */}
+      <section ref={projectsRef} className="bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 relative z-40">
+        
+        <div className="max-w-5xl mx-auto w-full mb-16">
+          <h2 className="hero-heading font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl lg:text-[140px] xl:text-[160px] tracking-tight leading-none">
+            Project
+          </h2>
+        </div>
 
-            <div className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col">
-              <div className="flex gap-1 mb-4 text-[#FFB800]">
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-              </div>
-              <p className="text-[16px] text-black dark:text-white leading-relaxed mb-6 font-medium">
-                "Having all my design portfolios and social links in one professional hub has elevated how I pitch to international clients. Clean and flawless."
-              </p>
-              <div className="mt-auto flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#f3f3f4] dark:bg-[#222] border border-[#e2e2e2] dark:border-[#333] flex items-center justify-center font-bold text-[#4c4546] dark:text-[#a0a0a0]">
-                  AB
-                </div>
-                <div>
-                  <h4 className="font-mono text-[14px] font-bold text-black dark:text-white leading-tight">Aisha Bello</h4>
-                  <p className="text-[13px] text-[#4c4546] dark:text-[#a0a0a0]">Freelance UI/UX Designer</p>
-                </div>
-              </div>
-            </div>
+        {/* Interactive Bold Brand Slideshow */}
+        <div className="w-full relative">
+          <BrandSlideshow />
+        </div>
 
-            <div className="border border-[#e2e2e2] dark:border-[#333] bg-white dark:bg-[#111] p-8 rounded-sm flex flex-col">
-              <div className="flex gap-1 mb-4 text-[#FFB800]">
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-                <Star className="w-5 h-5 fill-current" />
-              </div>
-              <p className="text-[16px] text-black dark:text-white leading-relaxed mb-6 font-medium">
-                "The unified profile acts as our team's digital business card. The integrated analytics help us figure out exactly what content resonates."
-              </p>
-              <div className="mt-auto flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#f3f3f4] dark:bg-[#222] border border-[#e2e2e2] dark:border-[#333] flex items-center justify-center font-bold text-[#4c4546] dark:text-[#a0a0a0]">
-                  TO
-                </div>
-                <div>
-                  <h4 className="font-mono text-[14px] font-bold text-black dark:text-white leading-tight">Toluwanimi Olayinka</h4>
-                  <p className="text-[13px] text-[#4c4546] dark:text-[#a0a0a0]">Tech Founder</p>
-                </div>
-              </div>
-            </div>
+      </section>
 
-          </div>
-        </section>
-
-      </main>
-
-      <BrandTicker />
-
-      <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-white dark:bg-[#111] border-t border-[#e2e2e2] dark:border-[#333]">
+      {/* Bottom Footer Section */}
+      <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-black border-t border-white/5 relative z-50">
         <div className="mb-6 md:mb-0 text-center md:text-left">
-          <span className="font-display text-[20px] font-black text-black dark:text-white block mb-1 tracking-tight">CHIP NG</span>
-          <p className="text-[14px] text-[#4c4546] dark:text-[#a0a0a0] mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
-          <div className="flex items-center justify-center md:justify-start gap-4 text-[#4c4546] dark:text-[#a0a0a0]">
-            <a href="tel:08100764154" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
+          <span className="font-sans text-[20px] font-black text-white block mb-1 tracking-tight">CHIP NG</span>
+          <p className="text-[14px] text-white/50 mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
+          <div className="flex items-center justify-center md:justify-start gap-4 text-white/50">
+            <a href="tel:08100764154" className="flex items-center gap-1.5 hover:text-white transition-colors">
               <Phone className="w-4 h-4" />
               <span className="text-[14px] font-medium font-mono">08100764154</span>
             </a>
-            <a href="https://tiktok.com/@chipng_app" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
-              {/* Premium TikTok SVG Icon */}
+            <a href="https://tiktok.com/@chipng_app" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-white transition-colors">
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
               <span className="text-[14px] font-medium font-mono">@chipng_app</span>
             </a>
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
-          <a href="#" className="text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white font-medium transition-colors">Privacy Policy</a>
-          <a href="#" className="text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white font-medium transition-colors">Terms of Service</a>
-          <a href="#" className="text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white font-medium transition-colors">Security</a>
-          <a href="#" className="text-[14px] text-[#4c4546] dark:text-[#a0a0a0] hover:text-black dark:text-white font-medium transition-colors">Help Center</a>
+          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Privacy Policy</a>
+          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Terms of Service</a>
+          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Security</a>
+          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Help Center</a>
         </div>
       </footer>
 
-      {cart.length > 0 && (
-        <button
-          onClick={() => setIsCheckoutModalOpen(true)}
-          className="fixed bottom-6 right-6 bg-black dark:bg-white text-white dark:text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center cursor-pointer border border-neutral-300 dark:border-neutral-700"
-        >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
-            {cart.length}
-          </span>
-        </button>
-      )}
+      {/* Cart Float Button */}
+      <AnimatePresence>
+        {cart.length > 0 && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            onClick={() => setIsCheckoutModalOpen(true)}
+            className="fixed bottom-6 right-6 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center cursor-pointer border border-neutral-800"
+          >
+            <ShoppingCart className="w-6 h-6 text-black" />
+            <span className="absolute -top-2 -right-2 bg-[#B600A8] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-pulse">
+              {cart.length}
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      {isCheckoutModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111] border border-[#e2e2e2] dark:border-[#333] w-full max-w-md rounded-xl overflow-hidden relative text-left">
-            <div className="flex justify-between items-center p-4 border-b border-[#e2e2e2] dark:border-[#333]">
-              <h3 className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5"/> Checkout
-              </h3>
-              <button onClick={() => setIsCheckoutModalOpen(false)} className="text-[#7e7576] hover:text-black dark:hover:text-white cursor-pointer">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6 flex flex-col gap-4">
-              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
-                {cart.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-lg border border-[#e2e2e2] dark:border-[#333]">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-black dark:text-white">{item.name}</span>
-                      <span className="text-xs text-[#7e7576]">₦{Number(item.price).toLocaleString()}</span>
+      {/* Paystack Checkout Modal */}
+      <AnimatePresence>
+        {isCheckoutModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-[#111] border border-white/10 w-full max-w-md rounded-2xl overflow-hidden relative text-left"
+            >
+              <div className="flex justify-between items-center p-4 border-b border-white/10">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-[#B600A8]"/> Checkout
+                </h3>
+                <button onClick={() => setIsCheckoutModalOpen(false)} className="text-white/50 hover:text-white cursor-pointer transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-6 flex flex-col gap-4">
+                <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                  {cart.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/5">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-white">{item.name}</span>
+                        <span className="text-xs text-white/50">₦{Number(item.price).toLocaleString()}</span>
+                      </div>
+                      <button 
+                        onClick={() => setCart(cart.filter((_, i) => i !== idx))} 
+                        className="text-red-400 hover:text-red-300 text-xs font-mono cursor-pointer font-bold transition-colors"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => setCart(cart.filter((_, i) => i !== idx))} 
-                      className="text-red-500 hover:text-red-400 text-xs font-mono cursor-pointer font-bold"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-between items-center py-2 border-t border-b border-[#e2e2e2] dark:border-[#333]">
-                <span className="font-bold text-black dark:text-white uppercase text-sm">Total</span>
-                <span className="font-bold text-black dark:text-white font-mono text-lg">
-                  ₦{cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex flex-col gap-3">
-                <input 
-                  type="text" 
-                  placeholder="Your Full Name" 
-                  value={checkoutName}
-                  onChange={(e) => setCheckoutName(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] rounded-lg p-3 text-black dark:text-white text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
-                />
-                <input 
-                  type="text" 
-                  placeholder="Your Phone Number" 
-                  value={checkoutPhone}
-                  onChange={(e) => setCheckoutPhone(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1a1a1a] border border-[#e2e2e2] dark:border-[#333] rounded-lg p-3 text-black dark:text-white text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
-                />
-              </div>
-              
-              <PaystackButton
-                reference={`SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
-                email='guest@chipng.com'
-                amount={Math.round(cart.reduce((sum, item) => sum + Number(item.price), 0) * 100)}
-                publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                text="Pay Now"
-                onSuccess={async (response: any) => {
-                  try {
-                    // Save purchases in DB
-                    for (const item of cart) {
-                      await supabase.from('purchases').insert({
-                        product_id: item.id,
-                        seller_id: item.profile_id,
-                        buyer_email: checkoutName || 'Guest',
-                        amount: item.price,
-                        platform_fee: item.price * 0.05,
-                        net_earnings: item.price * 0.95,
-                        reference: response.reference + '-' + Math.random().toString(36).substr(2, 5),
-                        status: 'success'
-                      });
+                  ))}
+                </div>
+                <div className="flex justify-between items-center py-2 border-t border-b border-white/10">
+                  <span className="font-bold text-white uppercase text-sm">Total</span>
+                  <span className="font-bold text-[#B600A8] font-mono text-lg">
+                    ₦{cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <input 
+                    type="text" 
+                    placeholder="Your Full Name" 
+                    value={checkoutName}
+                    onChange={(e) => setCheckoutName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-[#B600A8] transition-colors"
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Your Phone Number" 
+                    value={checkoutPhone}
+                    onChange={(e) => setCheckoutPhone(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-[#B600A8] transition-colors"
+                  />
+                </div>
+                
+                <PaystackButton
+                  reference={`SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
+                  email='guest@chipng.com'
+                  amount={Math.round(cart.reduce((sum, item) => sum + Number(item.price), 0) * 100)}
+                  publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                  text="Pay Now"
+                  onSuccess={async (response: any) => {
+                    try {
+                      for (const item of cart) {
+                        await supabase.from('purchases').insert({
+                          product_id: item.id,
+                          seller_id: item.profile_id || null,
+                          buyer_email: checkoutName || 'Guest',
+                          amount: item.price,
+                          platform_fee: item.price * 0.05,
+                          net_earnings: item.price * 0.95,
+                          reference: response.reference + '-' + Math.random().toString(36).substring(2, 7),
+                          status: 'success'
+                        });
+                      }
+                      alert('Payment complete! Opening WhatsApp to send order information...');
+                      
+                      const message = `*New Order from ${checkoutName || 'Guest'} (${checkoutPhone || 'No phone'})*\n\n*Items:*\n` + 
+                                      cart.map(item => `- ${item.name} (₦${Number(item.price).toLocaleString()})`).join('\n') + 
+                                      `\n\n*Total:* ₦${cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}\n` +
+                                      `*Reference:* ${response.reference}`;
+                      
+                      const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
+                      window.open(waUrl, '_blank');
+                      
+                      setCart([]);
+                      setIsCheckoutModalOpen(false);
+                      setCheckoutName('');
+                      setCheckoutPhone('');
+                    } catch(err) {
+                      console.error(err);
+                      alert('Error processing purchase.');
                     }
-                    alert('Payment complete! Opening WhatsApp to send order information...');
-                    
-                    const message = `*New Order from ${checkoutName || 'Guest'} (${checkoutPhone || 'No phone'})*\n\n*Items:*\n` + 
-                                    cart.map(item => `- ${item.name} (₦${Number(item.price).toLocaleString()})`).join('\n') + 
-                                    `\n\n*Total:* ₦${cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}\n` +
-                                    `*Reference:* ${response.reference}`;
-                    
-                    const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
-                    window.open(waUrl, '_blank');
-                    
-                    setCart([]);
-                    setIsCheckoutModalOpen(false);
-                    setCheckoutName('');
-                    setCheckoutPhone('');
-                  } catch(err) {
-                    console.error(err);
-                    alert('Error processing purchase.');
-                  }
-                }}
-                onClose={() => {}}
-                className="w-full bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-colors font-mono text-[14px] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
-                disabled={!checkoutName || !checkoutPhone || cart.length === 0}
-              />
-            </div>
+                  }}
+                  onClose={() => {}}
+                  className="w-full bg-[#B600A8] hover:bg-[#a10095] text-white transition-colors font-mono text-[14px] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
+                  disabled={!checkoutName || !checkoutPhone || cart.length === 0}
+                />
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
