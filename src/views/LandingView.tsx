@@ -288,117 +288,85 @@ const MarqueeSection = () => {
   );
 };
 
-// BrandSlideshow component displaying names and logo brands recently attached
+// BrandSlideshow component displaying names and logo brands scrolling nonstop
 const BrandSlideshow = () => {
   const images = [
-    { url: "/IMG_0502.jpeg", title: "Prestige Executive", desc: "Bespoke identity concept, custom wordmark, and logo asset styling." },
-    { url: "/IMG_0503.jpeg", title: "Aero Logistics", desc: "Sleek typography, custom brand mark, and curated color palettes." },
-    { url: "/IMG_0504.jpeg", title: "Apex Creators", desc: "Vibrant custom vector badges, geometry, and creative styling." },
-    { url: "/IMG_0505.jpeg", title: "Elysian Wellness", desc: "High-end luxury serif wordmarks, emblems, and visual systems." },
-    { url: "/IMG_0506.jpeg", title: "Zenith Digital", desc: "Modern digital-first layouts, minimalist marks, and grid styling." },
-    { url: "/IMG_0507.jpeg", title: "Prime Estate", desc: "Minimalist corporate symbols, architectural marks, and geometry." },
-    { url: "/IMG_0508.jpeg", title: "Vortex Labs", desc: "Tech-forward branding, modular graphics, and icon suites." },
-    { url: "/IMG_0509.jpeg", title: "Nova Entertainment", desc: "Bold display lettering, premium wordmarks, and typography art." },
-    { url: "/IMG_0510.jpeg", title: "Origin Studio", desc: "Symmetric badge designs, brand vectors, and high-impact layouts." },
-    { url: "/IMG_0511.jpeg", title: "Quantum Computing", desc: "Clean linear monogram styling, custom typography, and emblems." },
-    { url: "/IMG_0512.jpeg", title: "Helix MedTech", desc: "Modern organic layouts, science-forward shapes, and typography." },
-    { url: "/IMG_0513.jpeg", title: "Solstice Energy", desc: "Eco-conscious branding guidelines, custom palettes, and marks." },
-    { url: "/IMG_0514.jpeg", title: "Vanguard Partners", desc: "Wide display banners, wordmark styling, and creative visual suites." }
+    { url: "/IMG_0502.jpeg", title: "ZENITHEDGE CONSULTING", desc: "Bespoke corporate consulting, custom operations, and strategy assets." },
+    { url: "/IMG_0503.jpeg", title: "THE BLOOM AFFAIR", desc: "Bespoke floral design, luxury events, and customized experiences." },
+    { url: "/IMG_0504.jpeg", title: "VC10 GROUP", desc: "Vanguard asset group, custom investment, and portfolio planning." },
+    { url: "/IMG_0505.jpeg", title: "LUXE TRENDS", desc: "High-end luxury fashion curators, trends, and lifestyle styles." },
+    { url: "/IMG_0506.jpeg", title: "NOIR PRESTIGE", desc: "Elite luxury concierge, premium member access, and brand styling." },
+    { url: "/IMG_0507.jpeg", title: "FIVE PAPER", desc: "Creative corporate stationery, bespoke papercraft, and brand systems." },
+    { url: "/IMG_0508.jpeg", title: "NOVATION LEGAL PRACTICE", desc: "Innovative legal consulting, dispute resolution, and practice advisory." },
+    { url: "/IMG_0509.jpeg", title: "BUY LEKKI NOW NOW REALTY", desc: "Premium Lekki real estate advisors, luxury properties, and smart acquisition." },
+    { url: "/IMG_0510.jpeg", title: "ZENTHURA", desc: "Symmetric brand design, wellness aesthetics, and corporate marks." },
+    { url: "/IMG_0511.jpeg", title: "THOMAS BOYD WHYTE", desc: "Bespoke advisory partners, executive development, and strategic growth." },
+    { url: "/IMG_0512.jpeg", title: "RINOVATO", desc: "Modern organic layouts, premium property renovations, and designs." },
+    { url: "/IMG_0513.jpeg", title: "EMC LEGAL LIMITED", desc: "Corporate legal compliance, commercial law, and dispute resolution." },
+    { url: "/IMG_0514.jpeg", title: "THOMAS BOYD WHYTE", desc: "Premium executive consultancy, global networking, and brand assets." }
   ];
 
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const nextSlide = () => {
-    setActiveIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevSlide = () => {
-    setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 4500); // Rotate every 4.5s
-    return () => clearInterval(interval);
-  }, []);
+  // Duplicate images three times to guarantee an absolutely seamless screen-spanning loop
+  const doubleImages = [...images, ...images, ...images];
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
-      {/* Active slide display frame */}
-      <div className="relative aspect-[16/11] md:aspect-[16/10] w-full bg-neutral-950 border border-white/10 rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-2xl flex flex-col items-center justify-between p-6 sm:p-10 md:p-12">
-        
-        {/* Animated Slide Content (Brand Name ABOVE, Logo BELOW) */}
-        <div className="w-full flex-1 flex flex-col items-center justify-between">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0, y: 15, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -15, filter: "blur(4px)" }}
-              transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
-              className="w-full h-full flex flex-col items-center justify-between"
+    <div className="w-screen relative left-1/2 right-1/2 -translate-x-1/2 overflow-hidden py-12 bg-black/40 border-y border-white/5 backdrop-blur-md">
+      <style>{`
+        @keyframes marquee-scroll-left {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.3333%);
+          }
+        }
+        .animate-marquee-infinite {
+          display: flex;
+          width: max-content;
+          animation: marquee-scroll-left 40s linear infinite;
+        }
+      `}</style>
+
+      {/* Dark premium edge overlay shading for perfect theatrical fading */}
+      <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-[#0C0C0C] via-[#0C0C0C]/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-[#0C0C0C] via-[#0C0C0C]/80 to-transparent z-10 pointer-events-none" />
+
+      {/* Scrolling Content Track */}
+      <div className="w-full overflow-hidden">
+        <div className="animate-marquee-infinite gap-6 px-4">
+          {doubleImages.map((img, idx) => (
+            <div 
+              key={idx}
+              className="w-[260px] sm:w-[310px] shrink-0 bg-gradient-to-b from-[#141417] to-[#0A0A0B] border border-white/10 rounded-[24px] p-5 flex flex-col gap-5 shadow-2xl hover:border-[#B600A8]/60 hover:shadow-[0_0_25px_rgba(182,0,168,0.2)] transition-all duration-300 group relative overflow-hidden"
             >
-              {/* BRAND NAME ABOVE THE LOGO */}
-              <div className="text-center w-full mb-6 relative z-10">
-                <span className="font-mono text-[10px] sm:text-xs text-[#B600A8] uppercase tracking-[0.25em] font-bold block mb-2">
-                  PROJECT {String(activeIndex + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}
+              {/* Internal neon ambient light glow on card hover */}
+              <div className="absolute -inset-10 bg-[radial-gradient(circle_at_center,rgba(182,0,168,0.08)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none blur-xl" />
+
+              {/* Brand Typography Details (ABOVE the logo) */}
+              <div className="flex flex-col gap-1 relative z-10 flex-grow">
+                <span className="font-mono text-[9px] text-[#B600A8] uppercase tracking-[0.2em] font-bold">
+                  PROJECT ASSET
                 </span>
-                <h3 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl text-white uppercase tracking-tight">
-                  {images[activeIndex].title}
-                </h3>
-                <p className="font-sans text-xs sm:text-sm text-white/50 mt-2 max-w-xl mx-auto px-4 leading-relaxed">
-                  {images[activeIndex].desc}
+                <h4 className="font-sans font-black text-sm sm:text-base text-white uppercase tracking-tight group-hover:text-[#B600A8] transition-colors duration-300">
+                  {img.title}
+                </h4>
+                <p className="font-sans text-[11px] sm:text-xs text-white/50 leading-relaxed mt-0.5">
+                  {img.desc}
                 </p>
               </div>
 
-              {/* LOGO BELOW THE NAME */}
-              <div className="flex-1 w-full flex items-center justify-center overflow-hidden py-2">
+              {/* Bold high-contrast Logo Container (BELOW the name) */}
+              <div className="h-[150px] sm:h-[185px] w-full bg-black/70 rounded-2xl flex items-center justify-center p-5 border border-white/5 relative overflow-hidden group-hover:bg-black/90 transition-colors duration-300">
                 <img
-                  src={images[activeIndex].url}
-                  alt={images[activeIndex].title}
+                  src={img.url}
+                  alt={img.title}
                   referrerPolicy="no-referrer"
-                  className="max-w-full max-h-[180px] sm:max-h-[280px] md:max-h-[340px] object-contain rounded-xl drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] group-hover:scale-102 transition-transform duration-700"
+                  className="max-h-full max-w-full object-contain filter brightness-110 drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
               </div>
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          ))}
         </div>
-
-        {/* Navigation Buttons floating or positioned inside the frame */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-4 right-4 flex justify-between pointer-events-none z-20">
-          <button
-            onClick={prevSlide}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 bg-black/60 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 pointer-events-auto cursor-pointer text-sm sm:text-base font-bold shadow-lg"
-          >
-            ←
-          </button>
-          <button
-            onClick={nextSlide}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 bg-black/60 text-white flex items-center justify-center hover:bg-white hover:text-black hover:border-white transition-all duration-300 pointer-events-auto cursor-pointer text-sm sm:text-base font-bold shadow-lg"
-          >
-            →
-          </button>
-        </div>
-
-      </div>
-
-      {/* Thumbnails scroller strip */}
-      <div className="flex gap-3 overflow-x-auto py-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent px-2">
-        {images.map((img, idx) => (
-          <button
-            key={idx}
-            onClick={() => setActiveIndex(idx)}
-            className={`relative rounded-xl overflow-hidden aspect-[4/3] w-20 sm:w-24 border-2 shrink-0 transition-all duration-300 hover:scale-105 cursor-pointer p-1 bg-neutral-900 ${activeIndex === idx ? 'border-[#B600A8] scale-105 shadow-[0_0_12px_rgba(182,0,168,0.3)]' : 'border-white/10 opacity-50 hover:opacity-100'}`}
-          >
-            <img
-              src={img.url}
-              alt={`Thumbnail ${idx + 1}`}
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-contain rounded-lg"
-            />
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -742,7 +710,6 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               [
                 { id: "1", name: "CHIP Classic Card", desc: "Matte black smart card with clean printed NFC tech.", price: 7500 },
                 { id: "2", name: "CHIP Pro Premium", desc: "Premium textured composite hybrid card with gold embossed detailing.", price: 12000 },
-                { id: "3", name: "CHIP Metal Limited", desc: "Pure aluminum heavy metal luxury smart card with custom laser engraving.", price: 25000 },
                 { id: "4", name: "CHIP Micro Sticker", desc: "Mini adhesive smart tag that attaches directly behind any phone casing.", price: 4000 }
               ].map((p, idx) => (
                 <FadeIn 

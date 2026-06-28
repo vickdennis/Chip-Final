@@ -128,8 +128,19 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
         </header>
         
         {/* Scrollable Canvas Output */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 relative">
-          {children}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10">
+          {/* Background radial soft light halo matching the signature color pattern */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-15 dark:opacity-25 z-0">
+            <div 
+              className="absolute w-[350px] md:w-[650px] h-[350px] md:h-[650px] rounded-full filter blur-[100px] md:blur-[140px]"
+              style={{
+                background: 'radial-gradient(circle, rgba(182, 0, 168, 0.25) 0%, rgba(118, 33, 176, 0.15) 50%, rgba(24, 1, 31, 0.05) 100%)'
+              }}
+            />
+          </div>
+          <div className="relative z-10">
+            {children}
+          </div>
         </div>
       </div>
     </div>
