@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 // @ts-ignore
-import chipngCoverImage from "../assets/images/chipng_exact_logo_1782718038571.jpg";
+import chipngCoverImage from "../assets/images/chipng_dark_logo_1782735665295.jpg";
 import { 
   Smartphone, 
   Wifi, 
@@ -264,11 +264,11 @@ export const LinkMeMotionGraphics = () => {
           <div className="relative flex-1 w-full h-full rounded-[34px] overflow-hidden flex flex-col justify-between pb-4 transition-all duration-700 select-none bg-neutral-950">
             
             {/* 1. Cover Image Section at the top (exact public profile style) */}
-            <div className="relative w-full aspect-[4/3] bg-black overflow-hidden shrink-0">
+            <div className="relative w-full aspect-[4/3] bg-neutral-950 overflow-hidden shrink-0">
               <img 
                 src={chipngCoverImage} 
                 alt="CHIP NG" 
-                className="w-full h-full object-cover object-center opacity-90"
+                className="w-full h-full object-contain p-2.5 opacity-95"
                 referrerPolicy="no-referrer"
               />
               {/* Smooth dark overlay vignette */}
