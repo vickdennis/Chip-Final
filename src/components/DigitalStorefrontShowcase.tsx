@@ -14,6 +14,16 @@ import {
   Download
 } from "lucide-react";
 
+// Import custom high-fidelity generated covers
+// @ts-ignore
+import afrobeatsCover from "../assets/images/afrobeats_playbook_cover_1782716732861.jpg";
+// @ts-ignore
+import industrializingCover from "../assets/images/industrializing_africa_cover_1782716749515.jpg";
+// @ts-ignore
+import streetSmartCover from "../assets/images/street_smart_marketing_cover_1782716765883.jpg";
+// @ts-ignore
+import legacyCover from "../assets/images/legacy_philanthropist_cover_1782716781493.jpg";
+
 interface Product {
   id: string;
   title: string;
@@ -24,6 +34,7 @@ interface Product {
   salesGoal: number;
   revenueGoal: number;
   coverGradient: string;
+  coverImage: string;
   accentColor: string;
   category: string;
   icon: React.ReactNode;
@@ -47,6 +58,7 @@ export const DigitalStorefrontShowcase = () => {
       salesGoal: 14820,
       revenueGoal: 74100000,
       coverGradient: "from-amber-500 via-rose-500 to-red-600",
+      coverImage: afrobeatsCover,
       accentColor: "#F43F5E",
       category: "MUSIC & BRANDING",
       icon: <Sparkles className="w-5 h-5 text-rose-400" />
@@ -61,6 +73,7 @@ export const DigitalStorefrontShowcase = () => {
       salesGoal: 8420,
       revenueGoal: 126300000,
       coverGradient: "from-cyan-500 via-blue-600 to-indigo-700",
+      coverImage: industrializingCover,
       accentColor: "#3B82F6",
       category: "BUSINESS LEADERSHIP",
       icon: <TrendingUp className="w-5 h-5 text-blue-400" />
@@ -75,6 +88,7 @@ export const DigitalStorefrontShowcase = () => {
       salesGoal: 19250,
       revenueGoal: 86625000,
       coverGradient: "from-emerald-400 via-teal-500 to-cyan-600",
+      coverImage: streetSmartCover,
       accentColor: "#10B981",
       category: "CREATIVE STRATEGY",
       icon: <Coins className="w-5 h-5 text-emerald-400" />
@@ -89,6 +103,7 @@ export const DigitalStorefrontShowcase = () => {
       salesGoal: 6110,
       revenueGoal: 76375000,
       coverGradient: "from-purple-500 via-indigo-600 to-pink-600",
+      coverImage: legacyCover,
       accentColor: "#8B5CF6",
       category: "WEALTH & PHILANTHROPY",
       icon: <BookOpen className="w-5 h-5 text-purple-400" />
@@ -317,33 +332,44 @@ export const DigitalStorefrontShowcase = () => {
 
                   {/* LEFT: Ebook Cover Illustration */}
                   <div className="w-full md:w-2/5 aspect-[3/4] rounded-2xl p-[1px] bg-gradient-to-br from-white/10 to-white/5 shadow-inner relative overflow-hidden flex-shrink-0">
-                    <div className={`w-full h-full rounded-[15px] bg-gradient-to-br ${p.coverGradient} p-5 flex flex-col justify-between text-left relative overflow-hidden`}>
+                    <div className="w-full h-full rounded-[15px] bg-neutral-900 p-5 flex flex-col justify-between text-left relative overflow-hidden">
                       
+                      {/* High-fidelity generated cover image */}
+                      <img 
+                        src={p.coverImage} 
+                        alt={p.title} 
+                        className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+
+                      {/* Smooth dark overlay vignette to pop text typography and design metadata */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/20 z-10 pointer-events-none" />
+
                       {/* Geometric grid design behind ebook cover */}
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(255,255,255,0.15),transparent)] pointer-events-none" />
-                      <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:16px_16px]" />
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(255,255,255,0.15),transparent)] pointer-events-none z-10" />
+                      <div className="absolute inset-0 opacity-5 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:16px_16px] z-10" />
 
                       {/* Cover Header */}
-                      <div className="flex items-center justify-between relative z-10">
-                        <span className="font-mono text-[8px] sm:text-[9px] font-bold tracking-widest text-white/80 bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded">
+                      <div className="flex items-center justify-between relative z-20">
+                        <span className="font-mono text-[8px] sm:text-[9px] font-bold tracking-widest text-white/95 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
                           {p.category}
                         </span>
-                        <BookOpen className="w-4 h-4 text-white/80" />
+                        <BookOpen className="w-4 h-4 text-white/95" />
                       </div>
 
                       {/* Cover Book Details */}
-                      <div className="relative z-10 flex flex-col gap-1.5 mt-auto">
-                        <h3 className="font-sans font-black uppercase text-base sm:text-lg text-white leading-tight tracking-tight drop-shadow-md">
+                      <div className="relative z-20 flex flex-col gap-1.5 mt-auto">
+                        <h3 className="font-sans font-black uppercase text-base sm:text-lg text-white leading-tight tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                           {p.title}
                         </h3>
-                        <p className="font-mono text-[9px] sm:text-[10px] text-white/70 font-semibold tracking-wider">
+                        <p className="font-mono text-[9px] sm:text-[10px] text-white/90 font-semibold tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                           BY {p.author}
                         </p>
                         <div className="w-10 h-1 bg-white/40 rounded-full mt-1" />
                       </div>
 
                       {/* Ebook Spine Line Accent */}
-                      <div className="absolute top-0 bottom-0 left-0 w-2.5 bg-black/10 border-r border-white/10" />
+                      <div className="absolute top-0 bottom-0 left-0 w-2.5 bg-black/30 border-r border-white/10 z-20" />
                     </div>
                   </div>
 
