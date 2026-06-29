@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+// @ts-ignore
+import davidoCover from "../assets/images/davido_pfp_1782717494343.jpg";
+// @ts-ignore
+import wizkidCover from "../assets/images/wizkid_pfp_1782717505200.jpg";
+// @ts-ignore
+import olamideCover from "../assets/images/olamide_pfp_1782717518477.jpg";
+// @ts-ignore
+import dangoteCover from "../assets/images/dangote_pfp_1782717532705.jpg";
+// @ts-ignore
+import otedolaCover from "../assets/images/otedola_pfp_1782717546544.jpg";
 import { 
   TrendingUp, 
   Eye, 
@@ -19,7 +29,10 @@ import {
   Tv,
   Globe,
   ShieldCheck,
-  UserPlus
+  UserPlus,
+  BadgeCheck,
+  Twitter,
+  Youtube
 } from "lucide-react";
 
 interface FloatingItemProps {
@@ -66,6 +79,7 @@ interface ProfileData {
   handle: string;
   title: string;
   headline: string;
+  coverImage: string;
   followers: string;
   followersNumber: number;
   themeColor: string; // Tailwind gradient classes
@@ -114,6 +128,7 @@ export const NigeriaAnalyticsShowcase = () => {
       handle: "@davido",
       title: "Afrobeats Legend & DMW Boss",
       headline: "We rise by lifting others. Creating hits & paving ways globally.",
+      coverImage: davidoCover,
       followers: "28.7M",
       followersNumber: 28740210,
       themeColor: "from-amber-500 via-rose-500 to-red-600",
@@ -156,6 +171,7 @@ export const NigeriaAnalyticsShowcase = () => {
       handle: "@wizkidayo",
       title: "Grammy Winner & Starboy CEO",
       headline: "Spread love, make music. Pioneering Afrobeats to the universe.",
+      coverImage: wizkidCover,
       followers: "19.4M",
       followersNumber: 19412890,
       themeColor: "from-indigo-500 via-purple-600 to-pink-500",
@@ -198,6 +214,7 @@ export const NigeriaAnalyticsShowcase = () => {
       handle: "@olamide",
       title: "Street-Pop King & YBNL Founder",
       headline: "Voice of the streets, mentoring the next generation of African giants.",
+      coverImage: olamideCover,
       followers: "12.3M",
       followersNumber: 12328100,
       themeColor: "from-emerald-400 via-teal-500 to-cyan-600",
@@ -240,6 +257,7 @@ export const NigeriaAnalyticsShowcase = () => {
       handle: "@aliko_dangote",
       title: "President, Dangote Group",
       headline: "Industrializing Africa. Building self-sufficiency and economic pride.",
+      coverImage: dangoteCover,
       followers: "3.5M",
       followersNumber: 3520000,
       themeColor: "from-cyan-600 via-blue-700 to-indigo-800",
@@ -282,6 +300,7 @@ export const NigeriaAnalyticsShowcase = () => {
       handle: "@femiotedola",
       title: "Philanthropist & Energy Titan",
       headline: "Legacy, strategic philanthropy, and investing in sustainable growth.",
+      coverImage: otedolaCover,
       followers: "2.2M",
       followersNumber: 2210400,
       themeColor: "from-slate-400 via-zinc-600 to-neutral-800",
@@ -620,10 +639,43 @@ export const NigeriaAnalyticsShowcase = () => {
             </div>
 
             {/* BIO LINK MOBILE SCREEN VIEWPORT */}
-            <div className="relative flex-1 w-full h-full rounded-[28px] overflow-hidden flex flex-col justify-between pt-9 pb-3.5 px-3 sm:px-3.5 transition-all duration-700 select-none">
+            <div className="relative flex-1 w-full h-full rounded-[28px] overflow-hidden flex flex-col justify-between pb-3.5 transition-all duration-700 select-none bg-neutral-950">
               
+              {/* 1. Cover Image Section at the top (exact public profile style) */}
+              <div className="relative w-full aspect-[4/3] bg-black overflow-hidden shrink-0">
+                <AnimatePresence mode="wait">
+                  <motion.img 
+                    key={activeProfileId}
+                    src={activeProfile.coverImage} 
+                    alt={activeProfile.name} 
+                    initial={{ opacity: 0, scale: 1.05 }}
+                    animate={{ opacity: 0.9, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-full h-full object-cover object-top"
+                    referrerPolicy="no-referrer"
+                  />
+                </AnimatePresence>
+                {/* Smooth dark overlay vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/45 to-transparent z-10" />
+
+                {/* Verified badge and Profile Title Overlay */}
+                <div className="absolute bottom-2.5 left-0 right-0 px-3 z-20 text-center flex flex-col items-center">
+                  <h3 className="font-sans font-black uppercase text-xs text-white tracking-tight flex items-center gap-1 justify-center leading-none">
+                    {activeProfile.name}
+                    <BadgeCheck className="w-3.5 h-3.5 text-white fill-[#0095f6]" />
+                  </h3>
+                  <p className="font-sans text-[7.5px] text-white/75 font-semibold mt-1 leading-none truncate max-w-full px-1">
+                    {activeProfile.title}
+                  </p>
+                  <p className="font-mono text-[7px] uppercase tracking-wider text-[#D7E2EA]/40 mt-1 leading-none">
+                    {activeProfile.handle}
+                  </p>
+                </div>
+              </div>
+
               {/* Dynamic screen backdrop gradient */}
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-x-0 bottom-0 top-[33%] z-0 overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeProfileId}
@@ -641,50 +693,26 @@ export const NigeriaAnalyticsShowcase = () => {
               </div>
 
               {/* Screen Content */}
-              <div className="relative z-10 flex flex-col justify-between h-full text-center">
+              <div className="relative z-10 flex-1 flex flex-col justify-between h-full text-center px-3 sm:px-3.5">
                 
-                {/* 3a. Top Header: Avatar & Verified Badge */}
-                <div className="flex flex-col items-center pt-1.5">
-                  <div className="relative mb-2">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={activeProfileId}
-                        initial={{ scale: 0.7, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.7, opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className={`w-12 h-12 rounded-full p-[1.5px] shadow-xl flex items-center justify-center bg-gradient-to-tr ${activeProfile.themeColor}`}
-                      >
-                        <div className="w-full h-full rounded-full bg-[#111] flex items-center justify-center text-white font-sans font-black text-sm">
-                          {activeProfile.name.charAt(0)}
-                        </div>
-                      </motion.div>
-                    </AnimatePresence>
-                    <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 text-white rounded-full p-0.5 border border-neutral-950 flex items-center justify-center">
-                      <ShieldCheck className="w-3 h-3 text-white fill-current" />
-                    </div>
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeProfileId}
-                      initial={{ y: 5, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -5, opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <h3 className="font-sans font-black uppercase text-xs text-white tracking-tight flex items-center gap-1 justify-center leading-none">
-                        {activeProfile.name}
-                      </h3>
-                      <p className="font-mono text-[8px] uppercase tracking-wider text-[#D7E2EA]/50 mt-1">
-                        {activeProfile.handle}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
+                {/* Horizontal Social Media Icons Row */}
+                <div className="flex justify-center items-center gap-3 pt-2.5 pb-1 shrink-0 z-20">
+                  <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                    <Instagram className="w-3.5 h-3.5" />
+                  </a>
+                  <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                    <Twitter className="w-3.5 h-3.5" />
+                  </a>
+                  <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                    <Youtube className="w-3.5 h-3.5" />
+                  </a>
+                  <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                    <Globe className="w-3.5 h-3.5" />
+                  </a>
                 </div>
-
+                
                 {/* 3b. Center Section: Profile Buttons */}
-                <div className="flex-1 flex flex-col justify-center gap-1.5 pt-3 pb-2 w-full">
+                <div className="flex-1 flex flex-col justify-center gap-1.5 pt-2.5 pb-2 w-full">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeProfileId}

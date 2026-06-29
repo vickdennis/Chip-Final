@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+// @ts-ignore
+import chipngCoverImage from "../assets/images/chipng_exact_logo_1782718038571.jpg";
 import { 
   Smartphone, 
   Wifi, 
@@ -7,11 +9,14 @@ import {
   Compass, 
   Music, 
   Instagram, 
+  Twitter,
+  Youtube,
   Globe, 
   UserPlus, 
   Tv, 
   QrCode,
   ShieldCheck,
+  BadgeCheck,
   Zap,
   DollarSign
 } from "lucide-react";
@@ -256,10 +261,36 @@ export const LinkMeMotionGraphics = () => {
           </div>
 
           {/* SIMULATED BIO LINK PHONE SCREEN VIEWPORT */}
-          <div className="relative flex-1 w-full h-full rounded-[34px] overflow-hidden flex flex-col justify-between pt-10 pb-4 px-3 sm:px-4 transition-all duration-700 select-none">
+          <div className="relative flex-1 w-full h-full rounded-[34px] overflow-hidden flex flex-col justify-between pb-4 transition-all duration-700 select-none bg-neutral-950">
             
+            {/* 1. Cover Image Section at the top (exact public profile style) */}
+            <div className="relative w-full aspect-[4/3] bg-black overflow-hidden shrink-0">
+              <img 
+                src={chipngCoverImage} 
+                alt="CHIP NG" 
+                className="w-full h-full object-cover object-center opacity-90"
+                referrerPolicy="no-referrer"
+              />
+              {/* Smooth dark overlay vignette */}
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/45 to-transparent z-10" />
+
+              {/* Verified badge and Profile Title Overlay */}
+              <div className="absolute bottom-2.5 left-0 right-0 px-3 z-20 text-center flex flex-col items-center">
+                <h3 className="font-sans font-black uppercase text-xs sm:text-sm text-white tracking-tight flex items-center gap-1 justify-center leading-none">
+                  CHIP NG
+                  <BadgeCheck className="w-4 h-4 text-white fill-[#0095f6]" />
+                </h3>
+                <p className="font-sans text-[8px] text-white/75 font-semibold mt-1 leading-none">
+                  Instant NFC Brand Links
+                </p>
+                <p className="font-mono text-[7.5px] uppercase tracking-wider text-[#D7E2EA]/40 mt-1 leading-none">
+                  @chipng
+                </p>
+              </div>
+            </div>
+
             {/* Dynamic Background matching selected Theme */}
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-x-0 bottom-0 top-[33%] z-0 overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTheme}
@@ -295,73 +326,26 @@ export const LinkMeMotionGraphics = () => {
             </div>
 
             {/* Screen Content Overlay */}
-            <div className="relative z-10 flex-1 flex flex-col justify-between h-full">
+            <div className="relative z-10 flex-1 flex flex-col justify-between h-full px-3 sm:px-4">
               
-              {/* Profile Top Portion */}
-              <div className="flex flex-col items-center text-center pt-2">
-                
-                {/* Simulated Avatar / Profile Picture */}
-                <div className="relative mb-2">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeTheme}
-                      initial={{ scale: 0.7, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.7, opacity: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0.5 shadow-xl flex items-center justify-center ${
-                        activeTheme === "gold"
-                          ? "bg-gradient-to-tr from-yellow-500 to-amber-600 shadow-yellow-500/10"
-                          : activeTheme === "cyber"
-                          ? "bg-gradient-to-tr from-fuchsia-500 to-purple-600 shadow-fuchsia-500/15"
-                          : "bg-white/20 backdrop-blur-md shadow-white/5 border border-white/20"
-                      }`}
-                    >
-                      {activeTheme === "gold" ? (
-                        <div className="w-full h-full rounded-full bg-[#111] flex items-center justify-center text-yellow-400">
-                          <Compass className="w-7 h-7 animate-spin [animation-duration:20s]" />
-                        </div>
-                      ) : activeTheme === "cyber" ? (
-                        <div className="w-full h-full rounded-full bg-[#111] flex items-center justify-center text-fuchsia-400">
-                          <Sparkles className="w-7 h-7" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-gradient-to-tr from-sky-400 to-emerald-400 flex items-center justify-center text-white">
-                          <Globe className="w-7 h-7" />
-                        </div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                  
-                  {/* Verified badge symbol overlay */}
-                  <div className="absolute -bottom-1 -right-0.5 bg-blue-500 text-white rounded-full p-0.5 border border-neutral-950 flex items-center justify-center">
-                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                  </div>
-                </div>
-
-                {/* Profile Name Header */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTheme}
-                    initial={{ y: 5, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -5, opacity: 0 }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <h3 className="font-sans font-black uppercase text-sm sm:text-base text-white tracking-tight flex items-center gap-1 justify-center">
-                      CHIP NG
-                    </h3>
-                    <p className="font-mono text-[9px] uppercase tracking-wider text-[#D7E2EA]/50 mt-0.5">
-                      {activeTheme === "gold" && "Matte Gold Series"}
-                      {activeTheme === "cyber" && "@neoncyber.bio"}
-                      {activeTheme === "glass" && "Spring Glassmorphic"}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
+              {/* Horizontal Social Media Icons Row */}
+              <div className="flex justify-center items-center gap-3.5 pt-3 pb-1 shrink-0 z-20">
+                <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                  <Instagram className="w-3.5 h-3.5" />
+                </a>
+                <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                  <Twitter className="w-3.5 h-3.5" />
+                </a>
+                <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                  <Youtube className="w-3.5 h-3.5" />
+                </a>
+                <a href="#" className="p-1 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:scale-110 transition-all duration-300">
+                  <Globe className="w-3.5 h-3.5" />
+                </a>
               </div>
-
+              
               {/* Middle Section: Dynamic Action Link Buttons */}
-              <div className="flex-1 flex flex-col justify-center gap-2 pt-3 pb-2 w-full px-1">
+              <div className="flex-1 flex flex-col justify-center gap-2 pt-2.5 pb-2 w-full px-1">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTheme}
