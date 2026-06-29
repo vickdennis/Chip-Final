@@ -5,6 +5,7 @@ import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import { LinkMeMotionGraphics } from '../components/LinkMeMotionGraphics';
 import { NigeriaAnalyticsShowcase } from '../components/NigeriaAnalyticsShowcase';
+import { DigitalStorefrontShowcase } from '../components/DigitalStorefrontShowcase';
 import { 
   ShoppingCart, 
   X, 
@@ -643,6 +644,11 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       {/* REALTIME ANALYTICS SHOWCASE SECTION */}
       <section className="bg-neutral-950 text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-white/5">
         <NigeriaAnalyticsShowcase />
+      </section>
+
+      {/* DIGITAL PRODUCT STOREFRONT SHOWCASE SECTION */}
+      <section className="bg-black text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-white/5">
+        <DigitalStorefrontShowcase />
       </section>
 
       {/* BRANDING SHOP & NFC CARDS SECTION (Price Navbar anchor) */}
