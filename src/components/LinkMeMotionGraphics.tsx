@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 // @ts-ignore
-import chipngCoverImage from "../assets/images/chipng_dark_logo_1782735665295.jpg";
+import chipngCoverImage from "../assets/images/chipng_cover_attached_1782782998295.jpg";
 import { 
   Smartphone, 
   Wifi, 
@@ -268,7 +268,7 @@ export const LinkMeMotionGraphics = () => {
               <img 
                 src={chipngCoverImage} 
                 alt="CHIP NG" 
-                className="w-full h-full object-contain p-2.5 opacity-95"
+                className="w-full h-full object-cover opacity-95"
                 referrerPolicy="no-referrer"
               />
               {/* Smooth dark overlay vignette */}
