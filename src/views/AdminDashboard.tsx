@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase, adminAuthClient } from '../supabaseClient';
-import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { ebooksData } from '../utils/ebooksData';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -103,6 +104,23 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     if (error) alert("Error making admin: " + error.message);
     else if (!data || data.length === 0) alert("Action failed constraint checks in DB (RLS). Please apply the latest permissions in Supabase SQL editor.");
     else fetchData();
+  };
+
+  const triggerEbookDownload = (bookId: string, title: string) => {
+    const book = ebooksData.find(b => b.id === bookId);
+    if (!book) return;
+
+    const blob = new Blob([book.content], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${safeTitle}_ebook.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleSaveUser = async (e: React.FormEvent) => {
@@ -694,6 +712,26 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   </div>
                 )}
               </div>
+
+              <div className="mt-8">
+                <h3 className="font-sans font-bold text-lg mb-4">Digital Products & E-books</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {ebooksData.map(b => (
+                    <div key={b.id} className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-md p-4 flex flex-col items-start text-left">
+                      <span className="font-mono text-[9px] bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-400 px-2 py-0.5 rounded uppercase tracking-widest font-bold mb-2">{b.category}</span>
+                      <h4 className="font-bold font-sans text-[15px] leading-tight mb-1">{b.title}</h4>
+                      <p className="font-mono text-[11px] text-[#7e7576] mb-4">By {b.author}</p>
+                      <button
+                        onClick={() => triggerEbookDownload(b.id, b.title)}
+                        className="mt-auto w-full py-2 flex items-center justify-center gap-2 border border-[#cfc4c5] dark:border-[#333] rounded-[4px] hover:bg-[#f3f3f4] dark:bg-[#222] transition-colors font-mono text-[11px] font-bold"
+                      >
+                        <Download className="w-4 h-4" /> Download File
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
         )}
