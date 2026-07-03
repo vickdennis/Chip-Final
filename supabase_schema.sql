@@ -424,25 +424,25 @@ CREATE POLICY "Admins can delete posts."
   USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 -- Storage setup for Blog Covers
-INSERT INTO storage.buckets (id, name, public) VALUES ('blog_covers', 'blog_covers', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('blog', 'blog', true) ON CONFLICT DO NOTHING;
 
-DROP POLICY IF EXISTS "Storage blog_covers is publicly accessible." ON storage.objects;
-CREATE POLICY "Storage blog_covers is publicly accessible."
+DROP POLICY IF EXISTS "Storage blog is publicly accessible." ON storage.objects;
+CREATE POLICY "Storage blog is publicly accessible."
   ON storage.objects FOR SELECT
-  USING ( bucket_id = 'blog_covers' );
+  USING ( bucket_id = 'blog' );
 
-DROP POLICY IF EXISTS "Admins can upload to blog_covers." ON storage.objects;
-CREATE POLICY "Admins can upload to blog_covers."
+DROP POLICY IF EXISTS "Admins can upload to blog." ON storage.objects;
+CREATE POLICY "Admins can upload to blog."
   ON storage.objects FOR INSERT
-  WITH CHECK ( bucket_id = 'blog_covers' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  WITH CHECK ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
-DROP POLICY IF EXISTS "Admins can update blog_covers." ON storage.objects;
-CREATE POLICY "Admins can update blog_covers."
+DROP POLICY IF EXISTS "Admins can update blog." ON storage.objects;
+CREATE POLICY "Admins can update blog."
   ON storage.objects FOR UPDATE
-  USING ( bucket_id = 'blog_covers' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
-DROP POLICY IF EXISTS "Admins can delete from blog_covers." ON storage.objects;
-CREATE POLICY "Admins can delete from blog_covers."
+DROP POLICY IF EXISTS "Admins can delete from blog." ON storage.objects;
+CREATE POLICY "Admins can delete from blog."
   ON storage.objects FOR DELETE
-  USING ( bucket_id = 'blog_covers' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 

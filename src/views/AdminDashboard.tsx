@@ -945,7 +945,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       <input 
                         type="file" 
                         accept="image/*"
-                        onChange={(e) => handleImageUpload(e, (url) => setPostForm({...postForm, cover_image_url: url}), 'blog_covers')}
+                        onChange={(e) => handleImageUpload(e, (url) => setPostForm({...postForm, cover_image_url: url}), 'blog')}
                         className="w-full text-[12px] mb-2" 
                       />
                       <input value={postForm.cover_image_url} onChange={e => setPostForm({...postForm, cover_image_url: e.target.value})} className="w-full px-2 py-1.5 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[11px] font-mono" placeholder="Or paste image URL..." />
