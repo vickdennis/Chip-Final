@@ -355,26 +355,6 @@ CREATE POLICY "Users can read own profile views"
   ON public.profile_views FOR SELECT
   USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) OR EXISTS (SELECT 1 FROM public.enterprises AS e JOIN public.profiles AS ep ON e.id = ep.enterprise_id WHERE e.owner_id = auth.uid() AND ep.id = public.profile_views.profile_id) );
 
--- Blog Views Table for Analytics
-CREATE TABLE IF NOT EXISTS public.blog_views (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
-  viewer_ip TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
-ALTER TABLE public.blog_views ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Anyone can insert blog views" ON public.blog_views;
-CREATE POLICY "Anyone can insert blog views"
-  ON public.blog_views FOR INSERT
-  WITH CHECK ( true );
-
-DROP POLICY IF EXISTS "Admins can read blog views" ON public.blog_views;
-CREATE POLICY "Admins can read blog views"
-  ON public.blog_views FOR SELECT
-  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
-
 -- Blog Posts Table
 CREATE TABLE IF NOT EXISTS public.posts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -430,6 +410,28 @@ CREATE POLICY "Admins can update posts."
 DROP POLICY IF EXISTS "Admins can delete posts." ON public.posts;
 CREATE POLICY "Admins can delete posts."
   ON public.posts FOR DELETE
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+
+
+-- Blog Views Table for Analytics
+CREATE TABLE IF NOT EXISTS public.blog_views (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
+  viewer_ip TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.blog_views ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can insert blog views" ON public.blog_views;
+CREATE POLICY "Anyone can insert blog views"
+  ON public.blog_views FOR INSERT
+  WITH CHECK ( true );
+
+DROP POLICY IF EXISTS "Admins can read blog views" ON public.blog_views;
+CREATE POLICY "Admins can read blog views"
+  ON public.blog_views FOR SELECT
   USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
 -- Storage setup for Blog Covers
