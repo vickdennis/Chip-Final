@@ -104,6 +104,21 @@ export default function App() {
     if (view !== 'blog-article' && blogSlug) {
       setBlogSlug(null);
     }
+
+    if (view === 'landing') {
+      window.history.pushState({}, '', '/');
+    } else if (view === 'login') {
+      window.history.pushState({}, '', '/login');
+    } else if (view === 'user-dashboard') {
+      window.history.pushState({}, '', '/dashboard');
+    } else if (view === 'admin-dashboard') {
+      window.history.pushState({}, '', '/admin');
+    } else if (view === 'enterprise-dashboard') {
+      window.history.pushState({}, '', '/enterprise');
+    } else if (view === 'blog-directory') {
+      window.history.pushState({}, '', '/blog');
+    }
+
     setCurrentView(view);
   };
 

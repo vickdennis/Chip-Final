@@ -254,8 +254,19 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     fetchData();
   };
 
-  const handleSavePost = async (e: React.FormEvent) => {
+  const handleSavePost = async (e: React.FormEvent, forcePublish?: boolean) => {
     e.preventDefault();
+    const isPublished = forcePublish !== undefined ? forcePublish : postForm.is_published;
+    
+    let parsedKeywords: string[] = [];
+    if (postForm.keywords) {
+      if (typeof postForm.keywords === 'string') {
+        parsedKeywords = postForm.keywords.split(',').map(k => k.trim());
+      } else if (Array.isArray(postForm.keywords)) {
+        parsedKeywords = postForm.keywords;
+      }
+    }
+
     const payload = {
       title: postForm.title,
       slug: postForm.slug || postForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
@@ -264,9 +275,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       cover_image_url: postForm.cover_image_url,
       meta_title: postForm.meta_title,
       meta_description: postForm.meta_description,
-      keywords: postForm.keywords ? postForm.keywords.split(',').map(k => k.trim()) : [],
-      is_published: postForm.is_published,
-      published_at: postForm.is_published && (!editingPost || !editingPost.published_at) ? new Date().toISOString() : (editingPost?.published_at || null)
+      keywords: parsedKeywords,
+      is_published: isPublished,
+      published_at: isPublished && (!editingPost || !editingPost.published_at) ? new Date().toISOString() : (editingPost?.published_at || null)
     };
 
     if (editingPost) {
@@ -905,10 +916,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     <button type="button" onClick={() => { setCreatingPost(false); setEditingPost(null); }} className="px-4 py-2 bg-[#f3f3f4] dark:bg-[#222] text-black dark:text-white rounded-md font-mono text-[13px] font-bold">
                       Cancel
                     </button>
-                    <button type="button" onClick={(e) => { setPostForm({...postForm, is_published: false}); handleSavePost(e as any); }} className="px-4 py-2 bg-gray-200 text-black rounded-md font-mono text-[13px] font-bold">
+                    <button type="button" onClick={(e) => handleSavePost(e, false)} className="px-4 py-2 bg-gray-200 text-black rounded-md font-mono text-[13px] font-bold">
                       Save as Draft
                     </button>
-                    <button type="submit" onClick={() => setPostForm({...postForm, is_published: true})} className="px-4 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold">
+                    <button type="submit" onClick={(e) => handleSavePost(e, true)} className="px-4 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold">
                       Publish Post
                     </button>
                   </div>
