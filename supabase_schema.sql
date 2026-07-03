@@ -392,6 +392,15 @@ CREATE TABLE IF NOT EXISTS public.posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS content TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS excerpt TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS cover_image_url TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS meta_title TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS meta_description TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS keywords TEXT[];
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;
+
 -- Trigger to auto-update 'updated_at' on posts
 DROP TRIGGER IF EXISTS update_posts_updated_at ON public.posts;
 CREATE TRIGGER update_posts_updated_at

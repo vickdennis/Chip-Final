@@ -280,16 +280,22 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       published_at: isPublished && (!editingPost || !editingPost.published_at) ? new Date().toISOString() : (editingPost?.published_at || null)
     };
 
-    if (editingPost) {
-      await supabase.from('posts').update(payload).eq('id', editingPost.id);
-    } else {
-      await supabase.from('posts').insert([payload]);
+    try {
+      if (editingPost) {
+        const { error } = await supabase.from('posts').update(payload).eq('id', editingPost.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('posts').insert([payload]);
+        if (error) throw error;
+      }
+      
+      setEditingPost(null);
+      setCreatingPost(false);
+      setPostForm({ title: '', slug: '', content: '', excerpt: '', cover_image_url: '', meta_title: '', meta_description: '', keywords: '', is_published: false });
+      fetchData();
+    } catch (err: any) {
+      alert("Error saving post: " + err.message);
     }
-    
-    setEditingPost(null);
-    setCreatingPost(false);
-    setPostForm({ title: '', slug: '', content: '', excerpt: '', cover_image_url: '', meta_title: '', meta_description: '', keywords: '', is_published: false });
-    fetchData();
   };
 
   const deletePost = async (id: string) => {
