@@ -1,11 +1,7 @@
 const fs = require('fs');
 let content = fs.readFileSync('supabase_schema.sql', 'utf8');
-
-const postsMatch = content.match(/-- Blog Posts Table[\s\S]*?(?=-- Storage setup for Blog Covers)/);
-const postsString = postsMatch[0];
-
-content = content.replace(postsString, '');
-const viewsMatch = content.indexOf('-- Blog Views Table for Analytics');
-
-content = content.slice(0, viewsMatch) + postsString + '\n\n' + content.slice(viewsMatch);
-fs.writeFileSync('supabase_schema.sql', content);
+const sql = `ALTER TABLE public.links ADD COLUMN IF NOT EXISTS size TEXT DEFAULT 'Button';
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS cover_image_url TEXT;
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS use_link_icon BOOLEAN DEFAULT true;`;
+fs.appendFileSync('supabase_schema.sql', "\n" + sql + "\n");

@@ -457,3 +457,8 @@ CREATE POLICY "Admins can delete from blog."
   ON storage.objects FOR DELETE
   USING ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
+
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS size TEXT DEFAULT 'Button';
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS cover_image_url TEXT;
+ALTER TABLE public.links ADD COLUMN IF NOT EXISTS use_link_icon BOOLEAN DEFAULT true;

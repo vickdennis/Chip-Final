@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet } from 'lucide-react';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -72,7 +72,32 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [editingLinkIndex, setEditingLinkIndex] = useState<number | null>(null);
+  const [currentLink, setCurrentLink] = useState<{
+    label: string;
+    url: string;
+    size: 'Big' | 'Medium' | 'Small' | 'Button';
+    image_url?: string;
+    cover_image_url?: string;
+    use_link_icon?: boolean;
+  }>({ label: '', url: '', size: 'Button', use_link_icon: false });
+
   
+
+  useEffect(() => {
+    if (currentLink.url && !currentLink.image_url && currentLink.use_link_icon) {
+      try {
+        const urlObj = new URL(currentLink.url.startsWith('http') ? currentLink.url : `https://${currentLink.url}`);
+        const hostname = urlObj.hostname;
+        // Basic favicon grab
+        // We won't automatically set image_url because that would upload/save it.
+        // We can just rely on the UI to show it if image_url is empty.
+      } catch(e) {}
+    }
+  }, [currentLink.url, currentLink.use_link_icon]);
+
   // Crop state
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
@@ -589,7 +614,11 @@ END:VCARD`;
               <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
                 <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">External Links</h3>
                 <button 
-                  onClick={() => setLinks([...links, { label: '', url: '' }])}
+                  onClick={() => {
+                    setCurrentLink({ label: '', url: '', size: 'Button', use_link_icon: false });
+                    setEditingLinkIndex(null);
+                    setIsLinkModalOpen(true);
+                  }}
                   className="text-black dark:text-white hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" /> Add Link
@@ -597,39 +626,29 @@ END:VCARD`;
               </div>
               <div className="p-6 flex flex-col gap-4">
                 {links.map((item, i) => (
-                  <div key={i} className="border border-[#cfc4c5] dark:border-[#333] rounded-sm p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between">
+                  <div key={i} className="border border-[#cfc4c5] dark:border-[#333] rounded-sm p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between cursor-pointer" onClick={() => {
+                    setCurrentLink({ ...item, size: item.size || 'Button', use_link_icon: item.use_link_icon || false });
+                    setEditingLinkIndex(i);
+                    setIsLinkModalOpen(true);
+                  }}>
                     <div className="flex items-center gap-4 flex-1">
-                      <div className="cursor-move text-[#7e7576] opacity-40 group-hover:opacity-100">
+                      <div className="cursor-move text-[#7e7576] opacity-40 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
                         <GripVertical className="w-5 h-5" />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-                        <input 
-                          type="text" 
-                          value={item.label}
-                          onChange={(e) => {
-                            const newLinks = [...links];
-                            newLinks[i].label = e.target.value;
-                            setLinks(newLinks);
-                          }}
-                          placeholder="Link Title"
-                          className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none font-sans text-[14px] text-black dark:text-white"
-                        />
-                        <input 
-                          type="text" 
-                          value={item.url}
-                          onChange={(e) => {
-                            const newLinks = [...links];
-                            newLinks[i].url = e.target.value;
-                            setLinks(newLinks);
-                          }}
-                          placeholder="https://"
-                          className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm focus:border-black dark:focus:border-white outline-none font-sans text-[13px] text-[#4c4546] dark:text-[#a0a0a0]"
-                        />
+                      <div className="flex-1">
+                        <div className="font-bold text-black dark:text-white text-sm">{item.label || 'Untitled Link'}</div>
+                        <div className="text-xs text-[#7e7576] mt-1">{item.url}</div>
+                      </div>
+                      <div className="flex items-center gap-3 mr-4">
+                        <span className="text-xs font-mono px-2 py-1 bg-gray-200 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300">{item.size || 'Button'}</span>
                       </div>
                     </div>
                     <div className="ml-4">
                       <button 
-                        onClick={() => setLinks(links.filter((_, idx) => idx !== i))}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLinks(links.filter((_, idx) => idx !== i));
+                        }}
                         className="p-2 text-[#7e7576] hover:text-[#ba1a1a] transition-colors rounded-sm hover:bg-[#ffdad6]"
                       >
                         <Trash2 className="w-[18px] h-[18px]" />
@@ -1260,6 +1279,136 @@ END:VCARD`;
           </div>
         </div>
       )}
+
+      {/* Link Modal */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0f0f0f] w-full max-w-md rounded-2xl p-6 shadow-2xl relative border border-white/10 flex flex-col max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsLinkModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-sans font-bold text-white mb-6">
+              {editingLinkIndex !== null ? 'Edit Featured Link' : 'Add Featured Link'}
+            </h2>
+
+            {/* Preview Section */}
+            <div className={`relative w-full rounded-2xl overflow-hidden mb-6 flex flex-col items-center justify-center border ${currentLink.size === 'Big' ? 'aspect-[4/3] border-white/10' : currentLink.size === 'Medium' ? 'aspect-[2/1] border-white/10' : currentLink.size === 'Small' ? 'h-24 border-white/10' : 'h-16 border-white/10'}`}
+                 style={{ 
+                   background: 'linear-gradient(135deg, #0c102a 0%, #030614 100%)' 
+                 }}>
+                 
+                 {currentLink.size === 'Big' && coverUrl && (
+                   <div className="absolute top-4 right-4 w-8 h-8 rounded-full border border-white/20 bg-black/50 z-10 overflow-hidden flex items-center justify-center">
+                     <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                   </div>
+                 )}
+
+              {/* Center Image / Icon */}
+              {currentLink.size !== 'Button' && (
+                <label className="relative w-12 h-12 rounded-full border border-white/20 flex items-center justify-center bg-black/40 cursor-pointer hover:bg-black/60 transition-colors mb-2 z-10">
+                  {currentLink.image_url ? (
+                    <img src={currentLink.image_url} alt="" className="w-full h-full object-cover rounded-full" />
+                  ) : currentLink.use_link_icon && currentLink.url ? (
+                    <img src={`https://icon.horse/icon/${(currentLink.url.replace(/^https?:\/\//, '').split('/')[0])}`} alt="" className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <Camera className="w-5 h-5 text-white" />
+                  )}
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploading(true);
+                    try {
+                      const fileExt = file.name.split('.').pop();
+                      const filePath = `links/${profile.id}/${Math.random()}.${fileExt}`;
+                      const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                      if (uploadError) throw uploadError;
+                      const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                      setCurrentLink({...currentLink, image_url: data.publicUrl});
+                    } catch (err: any) {
+                      console.error(err);
+                      alert('Error uploading image: ' + err.message);
+                    } finally {
+                      setUploading(false);
+                    }
+                  }} disabled={uploading} />
+                </label>
+              )}
+
+              <span className="font-bold text-white/80 z-10">{currentLink.label || 'Title'}</span>
+            </div>
+
+            <div className="text-center text-white/50 text-xs mb-4">Find the look that fits you best</div>
+
+            {/* Size Selector */}
+            <div className="grid grid-cols-4 gap-2 mb-6">
+              {(['Big', 'Medium', 'Small', 'Button'] as const).map(size => (
+                <button
+                  key={size}
+                  onClick={() => setCurrentLink({...currentLink, size})}
+                  className={`flex flex-col items-center justify-center py-3 rounded-xl border ${currentLink.size === size ? 'border-[#B600A8] text-white bg-[#B600A8]/10' : 'border-white/10 text-white/60 hover:bg-white/5 hover:text-white'} transition-colors`}
+                >
+                  <div className={`w-6 border-2 mb-2 rounded-sm ${currentLink.size === size ? 'border-[#B600A8]' : 'border-white/40'} ${size === 'Big' ? 'h-5' : size === 'Medium' ? 'h-3' : size === 'Small' ? 'h-2' : 'h-1'}`}></div>
+                  <span className="text-[11px] font-bold">{size}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Warning Message */}
+            {currentLink.size === 'Big' && !currentLink.image_url && !currentLink.use_link_icon && (
+              <div className="flex items-center gap-3 bg-[#3f290d] border border-[#a66a1a] text-[#facc15] px-4 py-3 rounded-xl mb-6 text-xs font-medium">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                This will display as a button because there's no image. Add an image to use big thumbnail.
+              </div>
+            )}
+
+            <div className="bg-[#1a1a1a] rounded-xl p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-white">Use Link Icon</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={currentLink.use_link_icon} onChange={(e) => setCurrentLink({...currentLink, use_link_icon: e.target.checked})} />
+                  <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#B600A8]"></div>
+                </label>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Link, phone, number, or email"
+                value={currentLink.url}
+                onChange={(e) => setCurrentLink({...currentLink, url: e.target.value})}
+                className="w-full bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#B600A8]"
+              />
+
+              <input
+                type="text"
+                placeholder="Title"
+                value={currentLink.label}
+                onChange={(e) => setCurrentLink({...currentLink, label: e.target.value})}
+                className="w-full bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#B600A8]"
+              />
+            </div>
+
+            <button
+              onClick={() => {
+                if (editingLinkIndex !== null) {
+                  const newLinks = [...links];
+                  newLinks[editingLinkIndex] = currentLink;
+                  setLinks(newLinks);
+                } else {
+                  setLinks([...links, currentLink]);
+                }
+                setIsLinkModalOpen(false);
+              }}
+              className="w-full mt-6 bg-[#B600A8] text-white font-bold py-3 rounded-xl hover:bg-[#B600A8]/80 transition-colors"
+            >
+              Save Link
+            </button>
+          </div>
+        </div>
+      )}
+
     </AdminLayout>
   );
 }
