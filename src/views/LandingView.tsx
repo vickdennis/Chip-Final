@@ -385,6 +385,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
   const aboutRef = useRef<HTMLDivElement>(null);
   const shopRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
+  const faqRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -460,9 +462,21 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
             </button>
             <button 
               onClick={() => scrollToSection(projectsRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
             >
               Projects
+            </button>
+            <button 
+              onClick={() => scrollToSection(testimonialsRef)}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden lg:block"
+            >
+              Testimonials
+            </button>
+            <button 
+              onClick={() => scrollToSection(faqRef)}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+            >
+              FAQ
             </button>
             <button 
               onClick={() => onNavigate('login')}
@@ -849,6 +863,136 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           <BrandSlideshow />
         </div>
 
+      </section>
+
+      {/* 6. TESTIMONIALS SECTION */}
+      <section ref={testimonialsRef} className="bg-[#0C0C0C] text-white px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-40 border-t border-white/5 overflow-hidden">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="text-center mb-16 md:mb-24">
+            <h2 className="hero-heading font-sans font-black uppercase text-4xl sm:text-6xl md:text-8xl tracking-tight mb-6">
+              Wall of Love
+            </h2>
+            <p className="font-sans text-lg md:text-xl text-white/60 max-w-2xl mx-auto">
+              See what Africa's top creators, founders, and professionals are saying about CHIP NG.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <FadeIn y={30} delay={0.1} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group">
+              <div className="absolute top-8 right-8 text-[#B600A8]/30 group-hover:text-[#B600A8]/60 transition-colors">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
+              </div>
+              <div className="flex gap-1 text-[#B600A8] mb-6">
+                {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
+              </div>
+              <p className="font-sans text-lg text-white/80 leading-relaxed mb-8 flex-grow">
+                "CHIP NG completely transformed how I network at conferences. No more fumbling with paper cards—just a quick tap and they have my full portfolio and contact info."
+              </p>
+              <div className="flex items-center gap-4">
+                <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DAdebayo%26backgroundColor%3Db600a8&w=128&q=85" alt="Adebayo J." className="w-12 h-12 rounded-full border border-white/20" />
+                <div>
+                  <h4 className="font-sans font-bold text-white">Adebayo J.</h4>
+                  <p className="font-mono text-xs text-white/50 uppercase tracking-wider">Software Engineer</p>
+                </div>
+              </div>
+            </FadeIn>
+
+            <FadeIn y={30} delay={0.2} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group">
+              <div className="absolute top-8 right-8 text-[#B600A8]/30 group-hover:text-[#B600A8]/60 transition-colors">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
+              </div>
+              <div className="flex gap-1 text-[#B600A8] mb-6">
+                {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
+              </div>
+              <p className="font-sans text-lg text-white/80 leading-relaxed mb-8 flex-grow">
+                "As a designer, aesthetics matter. The physical NFC card is incredibly sleek, and my digital profile looks stunning on any device. It's the ultimate professional flex."
+              </p>
+              <div className="flex items-center gap-4">
+                <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DChioma%26backgroundColor%3Dffffff&w=128&q=85" alt="Chioma N." className="w-12 h-12 rounded-full border border-white/20" />
+                <div>
+                  <h4 className="font-sans font-bold text-white">Chioma N.</h4>
+                  <p className="font-mono text-xs text-white/50 uppercase tracking-wider">Creative Director</p>
+                </div>
+              </div>
+            </FadeIn>
+
+            <FadeIn y={30} delay={0.3} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group lg:col-span-1 md:col-span-2">
+              <div className="absolute top-8 right-8 text-[#B600A8]/30 group-hover:text-[#B600A8]/60 transition-colors">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
+              </div>
+              <div className="flex gap-1 text-[#B600A8] mb-6">
+                {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
+              </div>
+              <p className="font-sans text-lg text-white/80 leading-relaxed mb-8 flex-grow">
+                "The analytics feature is a game changer. I can see exactly where and when my profile was viewed after pitching to investors. Highly recommend for any founder."
+              </p>
+              <div className="flex items-center gap-4">
+                <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DEmeka%26backgroundColor%3Dffdfbf&w=128&q=85" alt="Emeka O." className="w-12 h-12 rounded-full border border-white/20" />
+                <div>
+                  <h4 className="font-sans font-bold text-white">Emeka O.</h4>
+                  <p className="font-mono text-xs text-white/50 uppercase tracking-wider">Startup Founder</p>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. FAQ SECTION */}
+      <section ref={faqRef} className="bg-black text-white px-5 sm:px-8 md:px-10 py-24 relative z-40 border-t border-white/5">
+        <div className="max-w-4xl mx-auto w-full">
+          <h2 className="hero-heading font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl tracking-tight mb-16">
+            FAQ
+          </h2>
+          <div className="flex flex-col gap-6" itemScope itemType="https://schema.org/FAQPage">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">What is CHIP NG?</h3>
+              <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                  CHIP NG provides NFC-enabled smart business cards connected to a beautiful, customizable digital profile link-in-bio, allowing you to seamlessly share your contact info, social links, and portfolio with a simple tap.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">How does the NFC card work?</h3>
+              <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                  Just tap your CHIP NG card against any modern smartphone. The NFC (Near Field Communication) technology instantly prompts the phone to open your unique CHIP NG digital profile—no app required.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">Do I need an app to use it?</h3>
+              <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                  No! CHIP NG works right out of the box. Anyone with a smartphone can read your card and view your digital profile in their mobile web browser.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">Can I update my info after purchasing?</h3>
+              <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                  Yes, your physical NFC card is linked to your dynamic CHIP NG profile. You can update your links, bio, and contact information at any time from your dashboard, and the card will automatically point to the updated info.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">Is there a subscription fee?</h3>
+              <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                  We offer a generous free tier that includes unlimited links and standard profile features. We also offer Pro and Enterprise plans with advanced analytics, custom branding, and premium themes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Bottom Footer Section */}
