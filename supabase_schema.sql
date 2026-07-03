@@ -355,3 +355,94 @@ CREATE POLICY "Users can read own profile views"
   ON public.profile_views FOR SELECT
   USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) OR EXISTS (SELECT 1 FROM public.enterprises AS e JOIN public.profiles AS ep ON e.id = ep.enterprise_id WHERE e.owner_id = auth.uid() AND ep.id = public.profile_views.profile_id) );
 
+-- Blog Views Table for Analytics
+CREATE TABLE IF NOT EXISTS public.blog_views (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
+  viewer_ip TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.blog_views ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can insert blog views" ON public.blog_views;
+CREATE POLICY "Anyone can insert blog views"
+  ON public.blog_views FOR INSERT
+  WITH CHECK ( true );
+
+DROP POLICY IF EXISTS "Admins can read blog views" ON public.blog_views;
+CREATE POLICY "Admins can read blog views"
+  ON public.blog_views FOR SELECT
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+-- Blog Posts Table
+CREATE TABLE IF NOT EXISTS public.posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  content TEXT,
+  excerpt TEXT,
+  cover_image_url TEXT,
+  meta_title TEXT,
+  meta_description TEXT,
+  keywords TEXT[],
+  is_published BOOLEAN DEFAULT false,
+  published_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Trigger to auto-update 'updated_at' on posts
+DROP TRIGGER IF EXISTS update_posts_updated_at ON public.posts;
+CREATE TRIGGER update_posts_updated_at
+BEFORE UPDATE ON public.posts
+FOR EACH ROW
+EXECUTE FUNCTION update_modified_column();
+
+-- Enable RLS for posts
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+
+-- Blog Posts Policies
+DROP POLICY IF EXISTS "Public posts are viewable by everyone." ON public.posts;
+CREATE POLICY "Public posts are viewable by everyone."
+  ON public.posts FOR SELECT
+  USING ( is_published = true OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can insert posts." ON public.posts;
+CREATE POLICY "Admins can insert posts."
+  ON public.posts FOR INSERT
+  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can update posts." ON public.posts;
+CREATE POLICY "Admins can update posts."
+  ON public.posts FOR UPDATE
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can delete posts." ON public.posts;
+CREATE POLICY "Admins can delete posts."
+  ON public.posts FOR DELETE
+  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+-- Storage setup for Blog Covers
+INSERT INTO storage.buckets (id, name, public) VALUES ('blog_covers', 'blog_covers', true) ON CONFLICT DO NOTHING;
+
+DROP POLICY IF EXISTS "Storage blog_covers is publicly accessible." ON storage.objects;
+CREATE POLICY "Storage blog_covers is publicly accessible."
+  ON storage.objects FOR SELECT
+  USING ( bucket_id = 'blog_covers' );
+
+DROP POLICY IF EXISTS "Admins can upload to blog_covers." ON storage.objects;
+CREATE POLICY "Admins can upload to blog_covers."
+  ON storage.objects FOR INSERT
+  WITH CHECK ( bucket_id = 'blog_covers' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can update blog_covers." ON storage.objects;
+CREATE POLICY "Admins can update blog_covers."
+  ON storage.objects FOR UPDATE
+  USING ( bucket_id = 'blog_covers' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+DROP POLICY IF EXISTS "Admins can delete from blog_covers." ON storage.objects;
+CREATE POLICY "Admins can delete from blog_covers."
+  ON storage.objects FOR DELETE
+  USING ( bucket_id = 'blog_covers' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+

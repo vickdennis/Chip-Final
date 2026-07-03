@@ -5,9 +5,11 @@ import UserDashboard from './views/UserDashboard';
 import PublicProfileView from './views/PublicProfileView';
 import AdminDashboard from './views/AdminDashboard';
 import EnterpriseDashboard from './views/EnterpriseDashboard';
+import BlogDirectoryView from './views/BlogDirectoryView';
+import BlogArticleView from './views/BlogArticleView';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard';
+export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -33,6 +35,8 @@ export default function App() {
     if (path === '/enterprise') return 'enterprise-dashboard';
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
+    if (path === '/blog') return 'blog-directory';
+    if (path.startsWith('/blog/')) return 'blog-article';
     if (path !== '' && path !== '/') {
       return 'public-profile';
     }
@@ -41,12 +45,19 @@ export default function App() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise') {
+    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
       try {
         return decodeURIComponent(path.slice(1));
       } catch (e) {
         return path.slice(1);
       }
+    }
+    return null;
+  });
+  const [blogSlug, setBlogSlug] = useState<string | null>(() => {
+    const path = window.location.pathname.replace(/\/$/, "");
+    if (path.startsWith('/blog/')) {
+      return path.replace('/blog/', '');
     }
     return null;
   });
@@ -90,7 +101,16 @@ export default function App() {
       window.history.pushState({}, '', '/');
       setPublicUsername(null);
     }
+    if (view !== 'blog-article' && blogSlug) {
+      setBlogSlug(null);
+    }
     setCurrentView(view);
+  };
+
+  const handleNavigateToArticle = (slug: string) => {
+    window.history.pushState({}, '', `/blog/${slug}`);
+    setBlogSlug(slug);
+    setCurrentView('blog-article');
   };
 
   return (
@@ -101,6 +121,8 @@ export default function App() {
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
       {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
     </div>
   );
 }

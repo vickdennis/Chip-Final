@@ -442,9 +442,15 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           <div className="flex gap-6 sm:gap-10 items-center justify-end">
             <button 
               onClick={() => scrollToSection(aboutRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
             >
               Why Us
+            </button>
+            <button 
+              onClick={() => onNavigate('blog-directory')}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+            >
+              Blog
             </button>
             <button 
               onClick={() => scrollToSection(shopRef)}

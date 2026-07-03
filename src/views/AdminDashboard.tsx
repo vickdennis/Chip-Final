@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase, adminAuthClient } from '../supabaseClient';
-import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { ebooksData } from '../utils/ebooksData';
 
@@ -11,7 +11,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products'>('analytics');
+  const [posts, setPosts] = useState<any[]>([]);
+  const [blogViews, setBlogViews] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -22,6 +24,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '', social_links_style: 'color-circle' });
   const [userSocialLinks, setUserSocialLinks] = useState<any[]>([]);
+
+  // Blog form state
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [creatingPost, setCreatingPost] = useState(false);
+  const [postForm, setPostForm] = useState({ title: '', slug: '', content: '', excerpt: '', cover_image_url: '', meta_title: '', meta_description: '', keywords: '', is_published: false });
 
   // Create user state
   const [creatingUser, setCreatingUser] = useState(false);
@@ -86,10 +93,14 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     const { data: usersData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
     const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     const { data: purchasesData } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
+    const { data: postsData } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+    const { count: blogViewsCount } = await supabase.from('blog_views').select('*', { count: 'exact', head: true });
     
     if (usersData) setUsers(usersData);
     if (productsData) setProducts(productsData);
     if (purchasesData) setPurchases(purchasesData);
+    if (postsData) setPosts(postsData);
+    if (blogViewsCount !== null) setBlogViews(blogViewsCount);
   };
 
   const toggleVerification = async (id: string, current: boolean) => {
@@ -243,6 +254,48 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     fetchData();
   };
 
+  const handleSavePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = {
+      title: postForm.title,
+      slug: postForm.slug || postForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+      content: postForm.content,
+      excerpt: postForm.excerpt,
+      cover_image_url: postForm.cover_image_url,
+      meta_title: postForm.meta_title,
+      meta_description: postForm.meta_description,
+      keywords: postForm.keywords ? postForm.keywords.split(',').map(k => k.trim()) : [],
+      is_published: postForm.is_published,
+      published_at: postForm.is_published && (!editingPost || !editingPost.published_at) ? new Date().toISOString() : (editingPost?.published_at || null)
+    };
+
+    if (editingPost) {
+      await supabase.from('posts').update(payload).eq('id', editingPost.id);
+    } else {
+      await supabase.from('posts').insert([payload]);
+    }
+    
+    setEditingPost(null);
+    setCreatingPost(false);
+    setPostForm({ title: '', slug: '', content: '', excerpt: '', cover_image_url: '', meta_title: '', meta_description: '', keywords: '', is_published: false });
+    fetchData();
+  };
+
+  const deletePost = async (id: string) => {
+    if (!window.confirm('Delete this post?')) return;
+    await supabase.from('posts').delete().eq('id', id);
+    fetchData();
+  };
+
+  const togglePostPublished = async (post: any) => {
+    const payload = { 
+      is_published: !post.is_published,
+      published_at: !post.is_published && !post.published_at ? new Date().toISOString() : post.published_at
+    };
+    await supabase.from('posts').update(payload).eq('id', post.id);
+    fetchData();
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center font-mono">Loading...</div>;
 
   if (!isAdmin) {
@@ -316,10 +369,16 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
           >
             <Package className="w-4 h-4 inline mr-1" /> Shop Products
           </button>
+          <button 
+            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'blog' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            onClick={() => setActiveTab('blog')}
+          >
+            <FileText className="w-4 h-4 inline mr-1" /> Blog
+          </button>
         </div>
 
         {activeTab === 'analytics' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
               <Users className="w-8 h-8 text-[#7e7576] mb-3" />
               <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Total Users</h3>
@@ -345,7 +404,15 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex flex-col items-center gap-1">
                 <span>Shop Fees (5%): ₦{digitalProductFees.toLocaleString()}</span>
                 <span>Theme Sales: ₦{themeSalesRevenue.toLocaleString()}</span>
-                <span>Pro Plan Fees: ₦0 (Pending)</span>
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
+              <Eye className="w-8 h-8 text-[#7e7576] mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Blog Views</h3>
+              <p className="text-4xl font-sans font-bold">{blogViews}</p>
+              <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex items-center gap-1">
+                Across {posts.length} posts
               </p>
             </div>
           </div>
@@ -733,6 +800,181 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               </div>
 
             </div>
+          </div>
+        )}
+
+        {activeTab === 'blog' && (
+          <div className="bg-white dark:bg-[#111] rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] p-6 mb-8">
+            {!creatingPost && !editingPost ? (
+              <>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold font-sans">Blog Management</h2>
+                  <button
+                    onClick={() => {
+                      setCreatingPost(true);
+                      setPostForm({ title: '', slug: '', content: '', excerpt: '', cover_image_url: '', meta_title: '', meta_description: '', keywords: '', is_published: false });
+                    }}
+                    className="px-4 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Create New Post
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#e2e2e2] dark:border-[#333] text-[#7e7576] font-mono text-[11px] uppercase tracking-widest">
+                        <th className="py-3 px-4 w-16">Cover</th>
+                        <th className="py-3 px-4">Title</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4">Date</th>
+                        <th className="py-3 px-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {posts.map(p => (
+                        <tr key={p.id} className="border-b border-[#f3f3f4] dark:border-[#222] hover:bg-[#fafafa] dark:hover:bg-[#1a1a1a]">
+                          <td className="py-3 px-4">
+                            {p.cover_image_url ? (
+                              <img src={p.cover_image_url} alt="" className="w-10 h-10 object-cover rounded-sm border border-gray-200" />
+                            ) : (
+                              <div className="w-10 h-10 bg-gray-100 rounded-sm border border-gray-200"></div>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-sans font-bold text-[14px]">{p.title}</div>
+                            <div className="font-mono text-[11px] text-[#7e7576] truncate max-w-[200px]">/{p.slug}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <button
+                              onClick={() => togglePostPublished(p)}
+                              className={`px-3 py-1 rounded-[4px] font-mono text-[10px] font-bold uppercase transition-colors ${p.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                            >
+                              {p.is_published ? 'Published' : 'Draft'}
+                            </button>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-[11px] text-[#7e7576]">
+                            {new Date(p.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingPost(p);
+                                  setPostForm({
+                                    title: p.title,
+                                    slug: p.slug,
+                                    content: p.content || '',
+                                    excerpt: p.excerpt || '',
+                                    cover_image_url: p.cover_image_url || '',
+                                    meta_title: p.meta_title || '',
+                                    meta_description: p.meta_description || '',
+                                    keywords: p.keywords ? p.keywords.join(', ') : '',
+                                    is_published: p.is_published
+                                  });
+                                  setCreatingPost(true);
+                                }}
+                                className="px-3 py-1.5 bg-[#f3f3f4] dark:bg-[#222] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
+                              >
+                                <Edit2 className="w-3 h-3" /> Edit
+                              </button>
+                              <button
+                                onClick={() => deletePost(p.id)}
+                                className="px-3 py-1.5 border border-red-200 text-red-500 rounded-[4px] hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {posts.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-gray-500 font-mono text-xs">No posts yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <form onSubmit={handleSavePost} className="flex flex-col gap-6">
+                <div className="flex justify-between items-center mb-2 border-b border-gray-200 dark:border-gray-800 pb-4">
+                  <h2 className="text-xl font-bold font-sans">{editingPost ? 'Edit Post' : 'Create New Post'}</h2>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => { setCreatingPost(false); setEditingPost(null); }} className="px-4 py-2 bg-[#f3f3f4] dark:bg-[#222] text-black dark:text-white rounded-md font-mono text-[13px] font-bold">
+                      Cancel
+                    </button>
+                    <button type="button" onClick={(e) => { setPostForm({...postForm, is_published: false}); handleSavePost(e as any); }} className="px-4 py-2 bg-gray-200 text-black rounded-md font-mono text-[13px] font-bold">
+                      Save as Draft
+                    </button>
+                    <button type="submit" onClick={() => setPostForm({...postForm, is_published: true})} className="px-4 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold">
+                      Publish Post
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Left Column - Content */}
+                  <div className="col-span-1 lg:col-span-2 flex flex-col gap-4">
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Title</label>
+                      <input required value={postForm.title} onChange={e => setPostForm({...postForm, title: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-lg font-sans font-bold" placeholder="Post Title" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Slug (auto-generated if empty)</label>
+                      <input value={postForm.slug} onChange={e => setPostForm({...postForm, slug: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-mono text-gray-500" placeholder="post-url-slug" />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Excerpt</label>
+                      <textarea rows={2} value={postForm.excerpt} onChange={e => setPostForm({...postForm, excerpt: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="Brief summary for list views..." />
+                    </div>
+                    <div className="flex-grow flex flex-col">
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Content (Markdown)</label>
+                      <textarea required value={postForm.content} onChange={e => setPostForm({...postForm, content: e.target.value})} className="w-full px-3 py-3 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[14px] font-mono min-h-[400px] flex-grow resize-y" placeholder="# Your heading here..." />
+                    </div>
+                  </div>
+
+                  {/* Right Column - SEO & Meta */}
+                  <div className="col-span-1 flex flex-col gap-4 bg-gray-50 dark:bg-[#151515] p-4 rounded-md border border-gray-200 dark:border-gray-800">
+                    <h3 className="font-mono text-[13px] font-bold uppercase tracking-widest border-b border-gray-200 dark:border-gray-800 pb-2 mb-2">Metadata & SEO</h3>
+                    
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Cover Image</label>
+                      {postForm.cover_image_url && <img src={postForm.cover_image_url} className="w-full aspect-video object-cover mb-2 rounded-sm border border-[#cfc4c5] dark:border-[#333]" />}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, (url) => setPostForm({...postForm, cover_image_url: url}), 'blog_covers')}
+                        className="w-full text-[12px] mb-2" 
+                      />
+                      <input value={postForm.cover_image_url} onChange={e => setPostForm({...postForm, cover_image_url: e.target.value})} className="w-full px-2 py-1.5 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[11px] font-mono" placeholder="Or paste image URL..." />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase">SEO Title</label>
+                        <span className={`text-[10px] font-mono ${postForm.meta_title.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>{postForm.meta_title.length}/60</span>
+                      </div>
+                      <input value={postForm.meta_title} onChange={e => setPostForm({...postForm, meta_title: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="SEO optimized title" />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase">Meta Description</label>
+                        <span className={`text-[10px] font-mono ${postForm.meta_description.length > 160 ? 'text-red-500' : 'text-gray-400'}`}>{postForm.meta_description.length}/160</span>
+                      </div>
+                      <textarea rows={3} value={postForm.meta_description} onChange={e => setPostForm({...postForm, meta_description: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="Search engine description" />
+                    </div>
+
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Keywords / Tags</label>
+                      <input value={postForm.keywords} onChange={e => setPostForm({...postForm, keywords: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="seo, marketing, design (comma separated)" />
+                    </div>
+                  </div>
+                </div>
+              </form>
+            )}
           </div>
         )}
 
