@@ -16,7 +16,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -394,6 +394,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             onClick={() => setActiveTab('blog')}
           >
             <FileText className="w-4 h-4 inline mr-1" /> Blog
+          </button>
+          <button 
+            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'leads' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            onClick={() => setActiveTab('leads')}
+          >
+            <MessageCircle className="w-4 h-4 inline mr-1" /> Leads
           </button>
         </div>
 
