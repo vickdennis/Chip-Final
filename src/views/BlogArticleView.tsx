@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { ChevronLeft, Clock, Twitter, Facebook, Linkedin, Link2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { LeadForm } from '../components/LeadCapture';
+import { BuyBox } from '../components/BuyBox';
 
 interface BlogPost {
   id: string;
@@ -171,7 +172,8 @@ export default function BlogArticleView({
         </div>
       </header>
 
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 pt-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 flex flex-col lg:flex-row gap-12">
+      <article className="lg:w-[65%]">
         {/* Article Header */}
         <header className="mb-12 text-center">
           <div className="flex items-center justify-center gap-3 mb-6 text-xs font-mono text-gray-500 dark:text-gray-400 uppercase tracking-widest">
@@ -218,6 +220,8 @@ export default function BlogArticleView({
             </>
           )}
         </div>
+
+        
 
         {/* Share Section */}
         <div className="max-w-3xl mx-auto pt-8 border-t border-gray-200 dark:border-gray-800">
@@ -269,6 +273,15 @@ export default function BlogArticleView({
           <RelatedPosts keywords={post.keywords} currentPostId={post.id} onNavigateToArticle={(slug) => { window.location.href = `/blog/${slug}`; }} />
         )}
       </article>
+      
+      {/* Right Sidebar for Buy Box (Sticky Desktop) */}
+      <aside className="lg:w-[35%] relative">
+        <div className="sticky top-24">
+          <BuyBox postSlug={post.slug} />
+        </div>
+      </aside>
+      
+      </div>
       {/* Sticky Bottom Bar */}
       {showSticky && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-md shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] animate-in slide-in-from-bottom-full md:hidden transition-all duration-300">

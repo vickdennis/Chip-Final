@@ -22,6 +22,53 @@ db.exec(`
   )
 `);
 
+try {
+  db.exec("ALTER TABLE leads ADD COLUMN clicked_variant TEXT");
+} catch(e) {} // Ignore if already exists
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    price_ngn TEXT NOT NULL,
+    image_url TEXT,
+    benefits_json TEXT,
+    rating REAL,
+    review_count INTEGER,
+    badge_text TEXT,
+    whatsapp_link TEXT,
+    button_variant_a TEXT,
+    button_variant_b TEXT
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS post_buybox_mapping (
+    post_slug TEXT PRIMARY KEY,
+    product_id INTEGER
+  )
+`);
+
+const productCount = db.prepare('SELECT COUNT(*) as c FROM products').get();
+if (productCount.c === 0) {
+  db.prepare(`
+    INSERT INTO products (name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    'Chipng NFC Business Card',
+    '20000',
+    'https://images.unsplash.com/photo-1621252179027-94459d278660?q=80&w=800&auto=format&fit=crop',
+    JSON.stringify(["1 Tap shares WhatsApp + Catalog", "Works on iPhone & Android. No app.", "Free updates for life"]),
+    4.9,
+    27,
+    'Launch Price - First 30 Orders Only',
+    'https://wa.me/2348100764154?text=Hi%20Chipng%2C%20I%20want%20to%20order%20the%20NFC%20card%20for%20%E2%82%A612%2C500.%20My%20name%20is%3A',
+    'Order on WhatsApp Now',
+    'Get Yours for ₦20,000'
+  );
+}
+
+
 dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthyjd.supabase.co';
@@ -40,14 +87,58 @@ async function startServer() {
   // SQLite Leads API
   app.post('/api/lead', (req, res) => {
     try {
-      const { name, whatsapp, city, post_slug, source } = req.body;
-      const stmt = db.prepare('INSERT INTO leads (name, whatsapp, city, post_slug, source) VALUES (?, ?, ?, ?, ?)');
-      const info = stmt.run(name, whatsapp, city, post_slug, source);
+      const { name, whatsapp, city, post_slug, source, clicked_variant } = req.body;
+      const stmt = db.prepare('INSERT INTO leads (name, whatsapp, city, post_slug, source, clicked_variant) VALUES (?, ?, ?, ?, ?, ?)');
+      const info = stmt.run(name, whatsapp, city, post_slug, source, clicked_variant || null);
       res.json({ success: true, id: info.lastInsertRowid });
     } catch (error: any) {
       console.error('Insert error:', error);
       res.status(500).json({ error: error.message });
     }
+  });
+
+  app.get('/api/products', (req, res) => {
+    try {
+      const products = db.prepare('SELECT * FROM products').all();
+      res.json(products);
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.post('/api/products', (req, res) => {
+    try {
+      const { id, name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b } = req.body;
+      if (id) {
+         const stmt = db.prepare('UPDATE products SET name=?, price_ngn=?, image_url=?, benefits_json=?, rating=?, review_count=?, badge_text=?, whatsapp_link=?, button_variant_a=?, button_variant_b=? WHERE id=?');
+         stmt.run(name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b, id);
+         res.json({ success: true, id });
+      } else {
+         const stmt = db.prepare('INSERT INTO products (name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+         const info = stmt.run(name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b);
+         res.json({ success: true, id: info.lastInsertRowid });
+      }
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.get('/api/post-product/:slug', (req, res) => {
+    try {
+      const mapping = db.prepare('SELECT product_id FROM post_buybox_mapping WHERE post_slug=?').get(req.params.slug);
+      res.json({ product_id: mapping ? mapping.product_id : null });
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.post('/api/post-product', (req, res) => {
+    try {
+      const { post_slug, product_id } = req.body;
+      db.prepare('INSERT OR REPLACE INTO post_buybox_mapping (post_slug, product_id) VALUES (?, ?)').run(post_slug, product_id);
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.delete('/api/products/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM products WHERE id=?').run(req.params.id);
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({error: e.message}); }
   });
 
   app.get('/api/leads', (req, res) => {

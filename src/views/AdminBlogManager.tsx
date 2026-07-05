@@ -17,6 +17,12 @@ export default function AdminBlogManager() {
   const [showSeo, setShowSeo] = useState(false);
   const [showProduct, setShowProduct] = useState(false);
   const [faqs, setFaqs] = useState<{q: string, a: string}[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/products').then(res => res.json()).then(data => setProducts(data)).catch(console.error);
+  }, []);
 
   useEffect(() => {
     fetchPosts();
@@ -89,6 +95,14 @@ export default function AdminBlogManager() {
       } else {
         const { error } = await supabase.from('posts').update(finalForm).eq('id', editingPost.id);
         if (error) throw error;
+      }
+      
+      if (selectedProductId !== null) {
+         await fetch('/api/post-product', {
+           method: 'POST',
+           headers: {'Content-Type':'application/json'},
+           body: JSON.stringify({ post_slug: finalForm.slug, product_id: selectedProductId })
+         });
       }
       
       localStorage.removeItem('blog_draft');
@@ -205,6 +219,15 @@ export default function AdminBlogManager() {
                   <div>
                     <label className="block text-sm font-bold mb-1">Focus Keyword</label>
                     <input type="text" className="w-full p-2 bg-transparent border border-[#cfc4c5] dark:border-[#333] rounded-md" value={postForm.focus_keyword} onChange={e => setPostForm({...postForm, focus_keyword: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1">Related Product (Buy Box)</label>
+                    <select className="w-full p-2 bg-transparent border border-[#cfc4c5] dark:border-[#333] rounded-md" value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value ? parseInt(e.target.value) : null)}>
+                      <option value="">Default (First Product)</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} - ₦{p.price_ngn}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="pt-4 border-t border-[#cfc4c5] dark:border-[#333]">

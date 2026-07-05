@@ -83,6 +83,7 @@ export default function AdminLeadsManager() {
                 <th className="p-3 font-medium">WhatsApp</th>
                 <th className="p-3 font-medium">City</th>
                 <th className="p-3 font-medium">Source Blog</th>
+                <th className="p-3 font-medium">Variant</th>
                 <th className="p-3 font-medium">Action</th>
               </tr>
             </thead>
@@ -99,6 +100,7 @@ export default function AdminLeadsManager() {
                       <span className="opacity-50 text-[10px]">via {lead.source}</span>
                     </div>
                   </td>
+                  <td className="p-3 text-sm">{lead.clicked_variant || '-'}</td>
                   <td className="p-3">
                     <a 
                       href={`https://wa.me/${lead.whatsapp.replace('+', '')}`} 
