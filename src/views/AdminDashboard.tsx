@@ -9,7 +9,7 @@ import AdminLeadsManager from './AdminLeadsManager';
 import AdminBuyBoxManager from './AdminBuyBoxManager';
 import AdminSeoManager from './AdminSeoManager';
 import AdminBroadcastManager from './AdminBroadcastManager';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Send, Link as LinkIcon } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);

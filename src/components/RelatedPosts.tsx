@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../supabaseClient';
 import { ArrowRight } from 'lucide-react';
 
 export function RelatedPosts({ currentPostSlug, currentKeywords }: { currentPostSlug: string, currentKeywords: string[] }) {
