@@ -8,6 +8,7 @@ import AdminBlogManager from './AdminBlogManager';
 import AdminLeadsManager from './AdminLeadsManager';
 import AdminBuyBoxManager from './AdminBuyBoxManager';
 import AdminSeoManager from './AdminSeoManager';
+import AdminBroadcastManager from './AdminBroadcastManager';
 import { MessageCircle } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -18,7 +19,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -414,6 +415,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             onClick={() => setActiveTab('seo')}
           >
             <LinkIcon className="w-4 h-4 inline mr-1" /> SEO
+          </button>
+          <button 
+            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'broadcast' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            onClick={() => setActiveTab('broadcast')}
+          >
+            <Send className="w-4 h-4 inline mr-1" /> Broadcast
           </button>
         </div>
 
@@ -854,6 +861,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
         {activeTab === 'seo' && (
           <AdminSeoManager />
+        )}
+        {activeTab === 'broadcast' && (
+          <AdminBroadcastManager />
         )}
       </div>
     </div>
