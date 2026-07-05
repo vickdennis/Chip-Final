@@ -1,47 +1,41 @@
-# CHIP NG Blog Management System
+# CHIP NG Lead Generation System
 
-Advanced, lightweight blog CMS built for the Nigerian market, prioritizing speed and SEO. 
-Integrated directly into the existing React + Vite + Node.js (Express) + Supabase application.
+Implemented a WhatsApp Lead Capture pipeline directly integrated into the blog architecture to boost conversion rates for NFC cards.
 
 ## 🚀 Features Implemented
 
-1. **Admin Dashboard (`/admin`)**
-   - Full integration with existing Supabase Auth.
-   - Analytics at a glance (Total Posts, Views, Drafts, Published).
-   - Post management table with Draft/Published badges and action buttons.
+1. **Lead Capture Component (`LeadCapture.tsx`)**
+   - **Inline Mode**: Automatically injected after the 2nd paragraph of every blog post.
+   - **Sticky Mode (Mobile)**: Triggers only after a user scrolls past 60% of the page length.
+   - **Form Logic**: 
+     - Collects Name, WhatsApp Number, and City (dropdown for Inline).
+     - Auto-formats NG WhatsApp numbers (handles leading `0`).
+     - Redirects directly to a pre-filled WhatsApp message including UTM tracking (`utm_source` & `utm_medium` = slug).
+     - Anti-spam: `localStorage` 24-hour rate limit mechanism prevents multiple submissions.
+     - Event Tracking: Pushes `generate_lead` events to `dataLayer` for GA4 & Meta Pixel.
 
-2. **Post Editor**
-   - **WYSIWYG Editor**: Replaced standard Markdown with `TipTap` for a WordPress/Notion-like rich text editing experience (bold, headings, lists, images, links).
-   - Auto-generating slugs based on the title.
-   - **SEO Automation Panel**: Meta title & description, Focus keyword, FAQ JSON-LD Schema builder, and Product JSON-LD toggles.
-   - **Auto-Save**: Drafts are automatically backed up to `localStorage` every 30 seconds.
+2. **SQLite Storage Backend (`server.ts`)**
+   - Created a local, lightweight SQLite database (`leads.sqlite`) using `better-sqlite3`.
+   - Bypassed Supabase for lead storage to avoid strict RLS policy complexities and provide a faster, self-contained lead pipeline.
+   - Built Express API routes:
+     - `POST /api/lead`: Handles incoming leads.
+     - `GET /api/leads`: Serves leads to the admin dashboard.
 
-3. **Public Blog Pages**
-   - `/blog`: 9-post paginated grid layout, lazy-loaded cover images, and high-performance design.
-   - `/blog/:slug`: Renders rich HTML content.
-   - **Schema Injection**: Automatically injects OpenGraph tags, Breadcrumb JSON-LD, FAQ JSON-LD, and Product JSON-LD directly into the `<head>` using `react-helmet-async`.
-   - **Share Buttons**: Added native WhatsApp share with prefilled text alongside Twitter/LinkedIn/Facebook.
-   - **Related Posts**: Dynamically queries posts with overlapping keywords.
+3. **Admin Leads Dashboard (`AdminLeadsManager.tsx`)**
+   - Integrated as a new tab inside `/admin`.
+   - **Real-Time Table**: Displays captured leads, timestamps, source type (inline/sticky), and the blog post that triggered the lead.
+   - **Quick Action**: "Chat" button opens the specific WhatsApp thread instantly.
+   - **CSV Export**: Native browser-side download of all leads.
 
-4. **SEO Automation (Server-Side)**
-   - Created a custom Node.js Express server (`server.ts`) to programmatically handle SEO routes:
-     - `/sitemap.xml`: Dynamically queries the Supabase database to generate accurate sitemaps for Google.
-     - `/robots.txt`: Directs crawlers to the sitemap.
+4. **Bug Fixes**
+   - Removed `faq_json` and `product_json` from the Supabase payload to resolve the `schema cache` error when publishing/saving drafts.
 
 ## 🛠 Setup & Development
 
-To run this project locally:
-
 ```bash
-# Install all dependencies (including TipTap editor)
-npm install
+# Install the new sqlite dependency
+npm install better-sqlite3
 
-# Start the dev server (Vite + Express middleware)
+# Restart the local server to initialize leads.sqlite
 npm run dev
-```
-
-For production builds:
-```bash
-npm run build
-npm run start
 ```

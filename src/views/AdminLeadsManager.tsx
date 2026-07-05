@@ -12,11 +12,17 @@ export default function AdminLeadsManager() {
 
   const fetchLeads = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-    if (error) {
-      console.error("Error fetching leads (maybe table not created yet?):", error);
+    try {
+      const res = await fetch('/api/leads');
+      if (res.ok) {
+        const data = await res.json();
+        setLeads(data);
+      } else {
+        console.error("Error fetching leads:", await res.text());
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
     }
-    if (data) setLeads(data);
     setLoading(false);
   };
 

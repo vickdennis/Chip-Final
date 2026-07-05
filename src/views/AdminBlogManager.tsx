@@ -78,7 +78,9 @@ export default function AdminBlogManager() {
   const savePost = async (publish: boolean) => {
     try {
       const faqStr = faqs.length > 0 ? JSON.stringify(faqs) : '';
-      const finalForm = { ...postForm, faq_json: faqStr, is_published: publish, published_at: publish ? new Date().toISOString() : null };
+      const finalForm = { ...postForm, is_published: publish, published_at: publish ? new Date().toISOString() : null };
+      delete finalForm.faq_json;
+      delete finalForm.product_json;
       
       if (creatingPost) {
         const { error } = await supabase.from('posts').insert([finalForm]);

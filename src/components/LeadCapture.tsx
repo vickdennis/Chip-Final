@@ -39,17 +39,20 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
     try {
       const formattedWa = formatWhatsAppNumber(formData.whatsapp);
       
-      const { error } = await supabase.from('leads').insert([{
-        name: formData.name,
-        whatsapp: formattedWa,
-        city: formData.city,
-        post_slug: postSlug,
-        source: source
-      }]);
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          whatsapp: formattedWa,
+          city: formData.city,
+          post_slug: postSlug,
+          source: source
+        })
+      });
 
-      if (error) {
-         console.error('Lead save error:', error);
-         // Even if it fails (e.g., table not created yet), we will still open WhatsApp to not block the user.
+      if (!res.ok) {
+         console.error('Lead save error:', await res.text());
       }
 
       localStorage.setItem('chipng_lead_submitted', Date.now().toString());
