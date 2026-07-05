@@ -7,6 +7,7 @@ import { ebooksData } from '../utils/ebooksData';
 import AdminBlogManager from './AdminBlogManager';
 import AdminLeadsManager from './AdminLeadsManager';
 import AdminBuyBoxManager from './AdminBuyBoxManager';
+import AdminSeoManager from './AdminSeoManager';
 import { MessageCircle } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -17,7 +18,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -407,6 +408,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             onClick={() => setActiveTab('buybox')}
           >
             <Package className="w-4 h-4 inline mr-1" /> Buy Box
+          </button>
+          <button 
+            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'seo' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            onClick={() => setActiveTab('seo')}
+          >
+            <LinkIcon className="w-4 h-4 inline mr-1" /> SEO
           </button>
         </div>
 
@@ -844,6 +851,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
         {activeTab === 'buybox' && (
           <AdminBuyBoxManager />
+        )}
+        {activeTab === 'seo' && (
+          <AdminSeoManager />
         )}
       </div>
     </div>

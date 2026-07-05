@@ -18,6 +18,7 @@ export default function AdminBlogManager() {
   const [showProduct, setShowProduct] = useState(false);
   const [faqs, setFaqs] = useState<{q: string, a: string}[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [category, setCategory] = useState<string>('Realtor');
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -104,6 +105,12 @@ export default function AdminBlogManager() {
            body: JSON.stringify({ post_slug: finalForm.slug, product_id: selectedProductId })
          });
       }
+      
+      await fetch('/api/post-categories', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ post_slug: finalForm.slug, category })
+      });
       
       localStorage.removeItem('blog_draft');
       setCreatingPost(false);
@@ -217,6 +224,15 @@ export default function AdminBlogManager() {
                     <textarea className="w-full p-2 bg-transparent border border-[#cfc4c5] dark:border-[#333] rounded-md h-20" value={postForm.meta_description} onChange={e => setPostForm({...postForm, meta_description: e.target.value})} />
                   </div>
                   <div>
+                    <label className="block text-sm font-bold mb-1">Category</label>
+                    <select className="w-full p-2 bg-transparent border border-[#cfc4c5] dark:border-[#333] rounded-md" value={category} onChange={e => setCategory(e.target.value)}>
+                      <option value="Realtor">Realtor</option>
+                      <option value="Freelancer">Freelancer</option>
+                      <option value="Founder">Founder</option>
+                      <option value="Student">Student</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-sm font-bold mb-1">Focus Keyword</label>
                     <input type="text" className="w-full p-2 bg-transparent border border-[#cfc4c5] dark:border-[#333] rounded-md" value={postForm.focus_keyword} onChange={e => setPostForm({...postForm, focus_keyword: e.target.value})} />
                   </div>
@@ -278,6 +294,7 @@ export default function AdminBlogManager() {
             } else {
               setPostForm({ title: '', slug: '', content: '', excerpt: '', cover_image_url: '', meta_title: '', meta_description: '', focus_keyword: '', is_published: false, faq_json: '', product_json: '' });
               setFaqs([]);
+              setCategory('Realtor');
             }
             setCreatingPost(true);
           }}
