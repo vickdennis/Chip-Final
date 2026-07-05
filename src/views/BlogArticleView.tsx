@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { Helmet } from 'react-helmet-async';
 import { ChevronLeft, Clock, Twitter, Facebook, Linkedin, Link2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { LeadForm } from '../components/LeadCapture';
 
 interface BlogPost {
   id: string;
@@ -34,6 +35,8 @@ export default function BlogArticleView({
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [contentParts, setContentParts] = useState<string[]>([]);
+  const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
     fetchPost();
@@ -202,7 +205,18 @@ export default function BlogArticleView({
 
         {/* Article Content */}
         <div className="prose prose-lg dark:prose-invert prose-blue mx-auto max-w-3xl prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 mb-16">
-          <div className="tiptap-content" dangerouslySetInnerHTML={{ __html: post.content || '' }}></div>
+          {contentParts.length > 1 ? (
+            <>
+              <div className="tiptap-content" dangerouslySetInnerHTML={{ __html: contentParts[0] }}></div>
+              <LeadForm postSlug={post.slug} postTitle={post.title} source="inline" />
+              <div className="tiptap-content" dangerouslySetInnerHTML={{ __html: contentParts[1] }}></div>
+            </>
+          ) : (
+            <>
+              <div className="tiptap-content" dangerouslySetInnerHTML={{ __html: contentParts[0] || post.content || '' }}></div>
+              <LeadForm postSlug={post.slug} postTitle={post.title} source="inline" />
+            </>
+          )}
         </div>
 
         {/* Share Section */}
@@ -255,6 +269,12 @@ export default function BlogArticleView({
           <RelatedPosts keywords={post.keywords} currentPostId={post.id} onNavigateToArticle={(slug) => { window.location.href = `/blog/${slug}`; }} />
         )}
       </article>
+      {/* Sticky Bottom Bar */}
+      {showSticky && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-md shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] animate-in slide-in-from-bottom-full md:hidden transition-all duration-300">
+          <LeadForm postSlug={post.slug} postTitle={post.title} source="sticky" />
+        </div>
+      )}
     </div>
   );
 }

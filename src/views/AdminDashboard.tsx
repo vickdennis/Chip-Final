@@ -5,6 +5,8 @@ import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus,
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { ebooksData } from '../utils/ebooksData';
 import AdminBlogManager from './AdminBlogManager';
+import AdminLeadsManager from './AdminLeadsManager';
+import { MessageCircle } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -823,6 +825,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
         {activeTab === 'blog' && (
           <AdminBlogManager />
+        )}
+        {activeTab === 'leads' && (
+          <AdminLeadsManager />
         )}
       </div>
     </div>
