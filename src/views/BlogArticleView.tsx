@@ -56,9 +56,11 @@ export default function BlogArticleView({
       setPost(data);
 
       // Track view
-      if (data && data.id) {
-        // Just fire and forget
-        supabase.from('blog_views').insert([{ post_id: data.id }]).then();
+      if (data && data.slug) {
+        fetch('/api/post-view/' + data.slug, { method: 'POST' }).catch(console.error);
+        fetch('/api/post-meta/' + data.slug).then(res => res.json()).then(meta => {
+          setPost(prev => prev ? { ...prev, product_json: meta.product_json, faq_json: meta.faq_json } : prev);
+        }).catch(console.error);
       }
     } catch (err) {
       console.error('Error fetching blog post:', err);

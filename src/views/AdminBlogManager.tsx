@@ -47,7 +47,19 @@ export default function AdminBlogManager() {
   const fetchPosts = async () => {
     setLoading(true);
     const { data, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
-    if (data) setPosts(data);
+    if (data) {
+      try {
+        const metaRes = await fetch('/api/post-meta');
+        const meta = await metaRes.json();
+        const merged = data.map(p => {
+          const m = meta.find((m: any) => m.post_slug === p.slug);
+          return m ? { ...p, views: m.views || 0, product_json: m.product_json, faq_json: m.faq_json } : { ...p, views: 0 };
+        });
+        setPosts(merged);
+      } catch (e) {
+        setPosts(data);
+      }
+    }
     setLoading(false);
   };
 
@@ -105,6 +117,12 @@ export default function AdminBlogManager() {
            body: JSON.stringify({ post_slug: finalForm.slug, product_id: selectedProductId })
          });
       }
+      
+      await fetch('/api/post-meta', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ post_slug: finalForm.slug, product_json: showProduct ? postForm.product_json : null, faq_json: faqStr })
+      });
       
       await fetch('/api/post-categories', {
         method: 'POST',

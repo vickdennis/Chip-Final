@@ -75,6 +75,14 @@ db.exec(`
 
 // Seed keywords if empty
 db.exec(`
+  
+  CREATE TABLE IF NOT EXISTS post_meta (
+    post_slug TEXT PRIMARY KEY,
+    product_json TEXT,
+    faq_json TEXT,
+    views INTEGER DEFAULT 0
+  );
+
   CREATE TABLE IF NOT EXISTS broadcast_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     message_template TEXT NOT NULL,
@@ -182,6 +190,36 @@ async function startServer() {
     try {
       const mapping = db.prepare('SELECT product_id FROM post_buybox_mapping WHERE post_slug=?').get(req.params.slug);
       res.json({ product_id: mapping ? mapping.product_id : null });
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  
+  app.get('/api/post-meta', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT * FROM post_meta').all();
+      res.json(rows);
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.get('/api/post-meta/:slug', (req, res) => {
+    try {
+      const mapping = db.prepare('SELECT * FROM post_meta WHERE post_slug=?').get(req.params.slug);
+      res.json(mapping || {});
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.post('/api/post-meta', (req, res) => {
+    try {
+      const { post_slug, product_json, faq_json } = req.body;
+      db.prepare('INSERT INTO post_meta (post_slug, product_json, faq_json) VALUES (?, ?, ?) ON CONFLICT(post_slug) DO UPDATE SET product_json=excluded.product_json, faq_json=excluded.faq_json').run(post_slug, product_json, faq_json);
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({error: e.message}); }
+  });
+
+  app.post('/api/post-view/:slug', (req, res) => {
+    try {
+      db.prepare('INSERT INTO post_meta (post_slug, views) VALUES (?, 1) ON CONFLICT(post_slug) DO UPDATE SET views=post_meta.views + 1').run(req.params.slug);
+      res.json({ success: true });
     } catch (e: any) { res.status(500).json({error: e.message}); }
   });
 
