@@ -5,9 +5,11 @@ import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X } from 'lucide-react';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
+
+import NfcProgrammer from '../components/NfcProgrammer';
 
 export const SOCIAL_PLATFORMS = [
   { name: 'Website', icon: Globe, color: '#000000' },
@@ -66,7 +68,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop' | 'appearance'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'nfc'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
   const [uploading, setUploading] = useState(false);
@@ -444,6 +446,13 @@ END:VCARD`;
             className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'appearance' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
           >
             Appearance
+          </button>
+          <button 
+            onClick={() => setActiveTab('nfc')}
+            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'nfc' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+          >
+            <SmartphoneNfc className="w-4 h-4 inline-block mr-2" />
+            Program Card
           </button>
         </div>
 
@@ -1122,6 +1131,8 @@ END:VCARD`;
               </section>
             </div>
           </div>
+        ) : profile && activeTab === 'nfc' ? (
+          <NfcProgrammer profile={profile} />
         ) : profile && activeTab === 'appearance' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
