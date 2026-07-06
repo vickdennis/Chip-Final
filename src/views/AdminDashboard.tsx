@@ -373,51 +373,51 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
       <div className="max-w-6xl mx-auto mt-8 px-4">
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-[#cfc4c5] dark:border-[#333]">
+        <div className="flex gap-4 mb-6 border-b border-[#cfc4c5] dark:border-[#333] overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'analytics' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'analytics' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('analytics')}
           >
             <BarChart2 className="w-4 h-4 inline mr-1" /> Analytics
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('users')}
           >
             <Users className="w-4 h-4 inline mr-1" /> Users
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'products' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'products' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('products')}
           >
             <Package className="w-4 h-4 inline mr-1" /> Shop Products
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'blog' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'blog' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('blog')}
           >
             <FileText className="w-4 h-4 inline mr-1" /> Blog
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'leads' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'leads' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('leads')}
           >
             <MessageCircle className="w-4 h-4 inline mr-1" /> Leads
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'buybox' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'buybox' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('buybox')}
           >
             <Package className="w-4 h-4 inline mr-1" /> Buy Box
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'seo' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'seo' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('seo')}
           >
             <LinkIcon className="w-4 h-4 inline mr-1" /> SEO
           </button>
           <button 
-            className={`pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'broadcast' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'broadcast' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
             onClick={() => setActiveTab('broadcast')}
           >
             <Send className="w-4 h-4 inline mr-1" /> Broadcast

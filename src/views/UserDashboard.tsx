@@ -428,28 +428,28 @@ END:VCARD`;
           </div>
         </div>
 
-        <div className="flex border-b border-[#cfc4c5] dark:border-[#333] mb-8">
+        <div className="flex border-b border-[#cfc4c5] dark:border-[#333] mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           <button 
             onClick={() => setActiveTab('profile')}
-            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'profile' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'profile' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
           >
             Profile Links
           </button>
           <button 
             onClick={() => setActiveTab('shop')}
-            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'shop' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'shop' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
           >
             Digital Products
           </button>
           <button 
             onClick={() => setActiveTab('appearance')}
-            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'appearance' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'appearance' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
           >
             Appearance
           </button>
           <button 
             onClick={() => setActiveTab('nfc')}
-            className={`px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'nfc' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
+            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'nfc' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-[#7e7576] hover:text-black dark:hover:text-white'}`}
           >
             <SmartphoneNfc className="w-4 h-4 inline-block mr-2" />
             Program Card

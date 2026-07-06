@@ -144,7 +144,7 @@ export default function AdminBroadcastManager() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#111] rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] overflow-hidden">
+        <div className="bg-white dark:bg-[#111] rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-[#cfc4c5] dark:border-[#333] bg-gray-50 dark:bg-[#1a1a1a]">

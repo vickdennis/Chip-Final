@@ -267,7 +267,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
         
         {/* Sidebar Nav */}
         <aside className="w-full md:w-64 shrink-0">
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible scrollbar-hide [&::-webkit-scrollbar]:hidden pb-2 md:pb-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
             {[
               { id: 'overview', label: 'Overview', icon: BarChart },
               { id: 'employees', label: 'Employees', icon: Users },
@@ -277,7 +277,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
               <button 
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`flex items-center gap-3 px-4 py-3 text-left w-full font-mono text-[12px] uppercase font-bold tracking-widest rounded-sm transition-colors ${activeTab === item.id ? 'bg-black text-white dark:bg-white dark:text-black' : 'hover:bg-[#f3f3f4] dark:hover:bg-[#111] text-[#4c4546] dark:text-[#a0a0a0]'}`}
+                className={`flex items-center gap-3 px-4 py-3 text-left w-auto md:w-full shrink-0 md:shrink font-mono text-[12px] uppercase font-bold tracking-widest rounded-sm transition-colors ${activeTab === item.id ? 'bg-black text-white dark:bg-white dark:text-black' : 'hover:bg-[#f3f3f4] dark:hover:bg-[#111] text-[#4c4546] dark:text-[#a0a0a0]'}`}
               >
                 <item.icon className="w-4 h-4" /> {item.label}
               </button>
@@ -383,7 +383,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                 </div>
               )}
 
-              <div className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm overflow-hidden">
+              <div className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-[#cfc4c5] dark:border-[#333] bg-[#f9f9f9] dark:bg-[#1a1a1a]">
