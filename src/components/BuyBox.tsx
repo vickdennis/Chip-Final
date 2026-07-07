@@ -93,8 +93,8 @@ export function BuyBox({ postSlug, onVariantClicked }: BuyBoxProps) {
     "description": benefits.join(' '),
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": product.rating.toString(),
-      "reviewCount": product.review_count.toString()
+      "ratingValue": (product.rating || 0).toString(),
+      "reviewCount": (product.review_count || 0).toString()
     },
     "offers": {
       "@type": "Offer",
