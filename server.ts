@@ -168,7 +168,7 @@ async function startServer() {
     try {
       const products = db.prepare('SELECT * FROM products').all();
       res.json(products);
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/products', (req, res) => {
@@ -183,14 +183,14 @@ async function startServer() {
          const info = stmt.run(name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b);
          res.json({ success: true, id: info.lastInsertRowid });
       }
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.get('/api/post-product/:slug', (req, res) => {
     try {
       const mapping = db.prepare('SELECT product_id FROM post_buybox_mapping WHERE post_slug=?').get(req.params.slug);
       res.json({ product_id: mapping ? mapping.product_id : null });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   
@@ -198,14 +198,14 @@ async function startServer() {
     try {
       const rows = db.prepare('SELECT * FROM post_meta').all();
       res.json(rows);
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.get('/api/post-meta/:slug', (req, res) => {
     try {
       const mapping = db.prepare('SELECT * FROM post_meta WHERE post_slug=?').get(req.params.slug);
       res.json(mapping || {});
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/post-meta', (req, res) => {
@@ -213,14 +213,14 @@ async function startServer() {
       const { post_slug, product_json, faq_json } = req.body;
       db.prepare('INSERT INTO post_meta (post_slug, product_json, faq_json) VALUES (?, ?, ?) ON CONFLICT(post_slug) DO UPDATE SET product_json=excluded.product_json, faq_json=excluded.faq_json').run(post_slug, product_json, faq_json);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/post-view/:slug', (req, res) => {
     try {
       db.prepare('INSERT INTO post_meta (post_slug, views) VALUES (?, 1) ON CONFLICT(post_slug) DO UPDATE SET views=post_meta.views + 1').run(req.params.slug);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/post-product', (req, res) => {
@@ -228,14 +228,14 @@ async function startServer() {
       const { post_slug, product_id } = req.body;
       db.prepare('INSERT OR REPLACE INTO post_buybox_mapping (post_slug, product_id) VALUES (?, ?)').run(post_slug, product_id);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.delete('/api/products/:id', (req, res) => {
     try {
       db.prepare('DELETE FROM products WHERE id=?').run(req.params.id);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.get('/api/leads', (req, res) => {
@@ -302,7 +302,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
       console.log(`Simulating broadcast to ${leads.length} leads.`);
       db.prepare('INSERT INTO broadcast_logs (message_template, audience_count) VALUES (?, ?)').run(messageTemplate, leads.length);
       res.json({ success: true, count: leads.length });
-    } catch (e) { res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.get('/api/broadcast/stats', (req, res) => {
@@ -311,7 +311,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
       const sent7Days = db.prepare("SELECT COUNT(*) as c FROM leads WHERE last_broadcast_at >= datetime('now', '-7 days')").get().c;
       const sent1Hour = db.prepare("SELECT COUNT(*) as c FROM leads WHERE last_broadcast_at >= datetime('now', '-1 hour')").get().c;
       res.json({ totalLeads, sent7Days, sent1Hour, remainingHour: Math.max(0, 50 - sent1Hour) });
-    } catch (e) { res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/broadcast/mark-sent', (req, res) => {
@@ -319,7 +319,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
       const { lead_id } = req.body;
       db.prepare("UPDATE leads SET last_broadcast_at = datetime('now'), broadcast_count = IFNULL(broadcast_count, 0) + 1 WHERE id = ?").run(lead_id);
       res.json({ success: true });
-    } catch (e) { res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/broadcast/toggle-optout', (req, res) => {
@@ -327,7 +327,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
       const { lead_id, opt_out } = req.body;
       db.prepare("UPDATE leads SET opt_out = ? WHERE id = ?").run(opt_out ? 1 : 0, lead_id);
       res.json({ success: true });
-    } catch (e) { res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
 
@@ -337,7 +337,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
     try {
       const keywords = db.prepare('SELECT * FROM seo_keywords ORDER BY id DESC').all();
       res.json(keywords);
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/seo/keywords', (req, res) => {
@@ -345,14 +345,14 @@ Sitemap: https://chipng.com/sitemap.xml`;
       const { keyword_phrase, target_url_slug, type } = req.body;
       db.prepare('INSERT INTO seo_keywords (keyword_phrase, target_url_slug, type) VALUES (?, ?, ?)').run(keyword_phrase.toLowerCase(), target_url_slug, type);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.delete('/api/seo/keywords/:id', (req, res) => {
     try {
       db.prepare('DELETE FROM seo_keywords WHERE id=?').run(req.params.id);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   // Post Categories API
@@ -362,14 +362,14 @@ Sitemap: https://chipng.com/sitemap.xml`;
       const map = {};
       rows.forEach(r => map[r.post_slug] = r.category);
       res.json(map);
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.get('/api/post-categories/:slug', (req, res) => {
     try {
       const row = db.prepare('SELECT category FROM post_categories WHERE post_slug=?').get(req.params.slug);
       res.json({ category: row ? row.category : '' });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/post-categories', (req, res) => {
@@ -377,7 +377,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
       const { post_slug, category } = req.body;
       db.prepare('INSERT OR REPLACE INTO post_categories (post_slug, category) VALUES (?, ?)').run(post_slug, category);
       res.json({ success: true });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   // Auto Link API
@@ -467,7 +467,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
         logs
       };
       res.json(stats);
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
   // Simulated Cron
@@ -477,7 +477,7 @@ Sitemap: https://chipng.com/sitemap.xml`;
       // Here we just mock marking a random link as 404 for demonstration if requested,
       // but let's actually just return success.
       res.json({ success: true, message: 'Links checked. No broken links found.' });
-    } catch (e: any) { res.status(500).json({error: e.message}); }
+    } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
 
