@@ -115,8 +115,7 @@ export default function BlogArticleView({
         <meta property="og:type" content="article" />
         <link rel="canonical" href={`https://chipng.com/blog/${post.slug}`} />
         {/* Breadcrumb Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [
@@ -124,12 +123,10 @@ export default function BlogArticleView({
               { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://chipng.com/blog" },
               { "@type": "ListItem", "position": 3, "name": post.title, "item": `https://chipng.com/blog/${post.slug}` }
             ]
-          })}
-        </script>
+          }) }} />
         {/* FAQ Schema */}
         {post.faq_json && post.faq_json.length > 5 && (
-          <script type="application/ld+json">
-            {JSON.stringify({
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
               "mainEntity": JSON.parse(post.faq_json).map((faq: any) => ({
@@ -137,20 +134,17 @@ export default function BlogArticleView({
                 "name": faq.q,
                 "acceptedAnswer": { "@type": "Answer", "text": faq.a }
               }))
-            })}
-          </script>
+            }) }} />
         )}
         {/* Product Schema */}
         {post.product_json && post.product_json.length > 5 && (
-          <script type="application/ld+json">
-            {JSON.stringify({
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
               "@context": "https://schema.org/",
               "@type": "Product",
               "name": post.title,
               "description": post.meta_description || post.excerpt,
               ...JSON.parse(post.product_json)
-            })}
-          </script>
+            }) }} />
         )}
       </Helmet>
 

@@ -159,11 +159,11 @@ export default function AdminBuyBoxManager() {
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Rating</label>
-              <input required type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+              <input type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
             </div>
             <div className="flex-1">
               <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Reviews</label>
-              <input required type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+              <input type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
             </div>
           </div>
           <div>
@@ -172,15 +172,15 @@ export default function AdminBuyBoxManager() {
           </div>
           <div>
             <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">WhatsApp Link</label>
-            <input required value={form.whatsapp_link} onChange={e=>setForm({...form, whatsapp_link: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <input value={form.whatsapp_link} onChange={e=>setForm({...form, whatsapp_link: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
             <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Button Variant A</label>
-            <input required value={form.button_variant_a} onChange={e=>setForm({...form, button_variant_a: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <input value={form.button_variant_a} onChange={e=>setForm({...form, button_variant_a: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
             <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Button Variant B</label>
-            <input required value={form.button_variant_b} onChange={e=>setForm({...form, button_variant_b: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <input value={form.button_variant_b} onChange={e=>setForm({...form, button_variant_b: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
           </div>
           <div className="flex gap-2">
             <button disabled={uploadingImage} type="submit" className="flex-1 bg-black dark:bg-white text-white dark:text-black font-bold py-2 rounded-xl text-sm disabled:opacity-50">{uploadingImage ? 'Uploading...' : 'Save'}</button>

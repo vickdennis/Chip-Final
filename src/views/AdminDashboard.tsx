@@ -237,6 +237,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
+      profile_id: currentUserId,
       name: prodForm.name,
       description: prodForm.description,
       price: parseFloat(prodForm.price.toString().replace(/,/g, '')),
