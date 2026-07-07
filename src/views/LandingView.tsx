@@ -707,7 +707,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                       </div>
                     )}
                     {/* Badge */}
-                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-md border border-white/10">
+                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-white/10">
                       INSTANT SETUP
                     </div>
                   </div>
@@ -752,7 +752,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                 >
                   <div className="aspect-square bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-white/5 flex items-center justify-center">
                     <CreditCard className="w-12 h-12 text-[#B600A8] stroke-[1.5] group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-md border border-white/10">
+                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-white/10">
                       NFC ENABLED
                     </div>
                   </div>

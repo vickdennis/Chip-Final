@@ -86,7 +86,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-        <div className="w-24 h-24 border border-[#e2e2e2] bg-white p-3 rounded-sm shadow-sm overflow-hidden animate-pulse">
+        <div className="w-24 h-24 border border-white/10 bg-white p-3 rounded-xl shadow-sm overflow-hidden animate-pulse">
           <img 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
             alt="CHIP NG Logo" 
@@ -101,12 +101,12 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-6">
         <h1 className="font-display text-4xl font-black mb-2 text-black">Profile Not Found</h1>
-        <p className="font-sans text-[#7e7576] mb-6">We couldn't find a user with this username.</p>
+        <p className="font-sans text-white/40 mb-6">We couldn't find a user with this username.</p>
         <button 
           onClick={() => {
             window.location.href = '/';
           }} 
-          className="px-6 py-2 bg-black text-white font-mono text-[13px] font-bold rounded-sm uppercase tracking-widest hover:bg-black/90 transition-colors"
+          className="px-6 py-2 bg-black text-white font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-black/90 transition-colors"
         >
           Create your own chip.ng
         </button>
@@ -368,7 +368,7 @@ END:VCARD`;
 
                 <div className="w-full bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
-                     <div className="w-6 h-6 rounded-md bg-white text-black flex items-center justify-center font-bold text-[10px] shrink-0">
+                     <div className="w-6 h-6 rounded-2xl bg-white text-black flex items-center justify-center font-bold text-[10px] shrink-0">
                        NG
                      </div>
                      <span className="text-white text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
@@ -619,7 +619,7 @@ END:VCARD`;
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-lg shrink-0" />}
                     <div className="flex flex-col flex-1">
                       <span className="font-sans font-bold text-white text-[16px] leading-tight mb-1">{p.name}</span>
-                      <span className="font-mono text-[12px] font-bold text-black bg-white px-2 py-1 rounded-sm self-start mb-2 leading-none">₦{p.price}</span>
+                      <span className="font-mono text-[12px] font-bold text-black bg-white px-2 py-1 rounded-xl self-start mb-2 leading-none">₦{p.price}</span>
                       <p className="text-[13px] text-[#a0a0a0] mb-4 flex-1 line-clamp-3">{p.description}</p>
                       <PaystackButton
                         reference={'' + Math.floor((Math.random() * 1000000000) + 1)}

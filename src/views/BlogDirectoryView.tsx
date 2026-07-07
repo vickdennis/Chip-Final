@@ -216,15 +216,15 @@ export default function BlogDirectoryView({
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#cfc4c5] dark:border-[#333] rounded-md disabled:opacity-50 font-bold text-sm hover:bg-black/5"
+              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-2xl disabled:opacity-50 font-bold text-sm hover:bg-black/5"
             >
               Previous
             </button>
-            <span className="text-sm font-bold mx-4 text-[#7e7576]">Page {currentPage} of {totalPages}</span>
+            <span className="text-sm font-bold mx-4 text-white/40">Page {currentPage} of {totalPages}</span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#cfc4c5] dark:border-[#333] rounded-md disabled:opacity-50 font-bold text-sm hover:bg-black/5"
+              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-2xl disabled:opacity-50 font-bold text-sm hover:bg-black/5"
             >
               Next
             </button>

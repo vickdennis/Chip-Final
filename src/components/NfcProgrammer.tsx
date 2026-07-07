@@ -32,16 +32,16 @@ export default function NfcProgrammer({ profile }: { profile: any }) {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
       <div className="xl:col-span-8 flex flex-col gap-8">
-        <section className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm flex flex-col overflow-hidden">
-          <div className="border-b border-[#e2e2e2] dark:border-[#333] p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-            <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest flex items-center gap-2">
+        <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col overflow-hidden">
+          <div className="border-b border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+            <h3 className="font-mono text-[13px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
               <SmartphoneNfc className="w-4 h-4" />
               Program Your NFC Card
             </h3>
           </div>
           
           <div className="p-6 md:p-8 space-y-6">
-            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900 text-blue-800 dark:text-blue-300 rounded-md">
+            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900 text-blue-800 dark:text-blue-300 rounded-2xl">
               <Info className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-bold mb-1">How it works</p>
@@ -50,25 +50,25 @@ export default function NfcProgrammer({ profile }: { profile: any }) {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-[11px] font-mono font-bold uppercase tracking-widest text-[#7e7576]">URL to Program</label>
-              <div className="p-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-[#cfc4c5] dark:border-[#333] rounded-sm font-mono text-sm break-all">
+              <label className="block text-[11px] font-mono font-bold uppercase tracking-widest text-white/40">URL to Program</label>
+              <div className="p-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-xl font-mono text-sm break-all">
                 {profileUrl}
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#cfc4c5] dark:border-[#333] rounded-md bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+            <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-2xl bg-[#f9f9f9] dark:bg-[#1a1a1a]">
               {status === 'idle' && (
                 <>
                   <div className="w-16 h-16 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center mb-4 shadow-lg">
                     <SmartphoneNfc className="w-8 h-8" />
                   </div>
                   <h4 className="text-lg font-bold font-sans text-center mb-2">Ready to Program</h4>
-                  <p className="text-[#7e7576] text-sm text-center max-w-md mb-6">
+                  <p className="text-white/40 text-sm text-center max-w-md mb-6">
                     Click the button below, then hold your NFC card against the back of your phone until it confirms.
                   </p>
                   <button 
                     onClick={handleWriteNfc}
-                    className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-md font-bold transition-all shadow-md"
+                    className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-2xl font-bold transition-all shadow-md"
                   >
                     Start Programming
                   </button>
@@ -84,12 +84,12 @@ export default function NfcProgrammer({ profile }: { profile: any }) {
                     </div>
                   </div>
                   <h4 className="text-lg font-bold font-sans text-center mb-2">Scanning...</h4>
-                  <p className="text-[#7e7576] text-sm text-center max-w-md mb-6">
+                  <p className="text-white/40 text-sm text-center max-w-md mb-6">
                     Hold your NFC card against the back of your phone.
                   </p>
                   <button 
                     onClick={() => setStatus('idle')}
-                    className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] px-6 py-2 rounded-md font-bold text-sm hover:bg-[#f9f9f9] dark:hover:bg-[#222]"
+                    className="bg-black/40 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-2xl font-bold text-sm hover:bg-[#f9f9f9] dark:hover:bg-[#222]"
                   >
                     Cancel
                   </button>
@@ -102,12 +102,12 @@ export default function NfcProgrammer({ profile }: { profile: any }) {
                     <CheckCircle className="w-8 h-8" />
                   </div>
                   <h4 className="text-lg font-bold font-sans text-center mb-2">Successfully Programmed!</h4>
-                  <p className="text-[#7e7576] text-sm text-center max-w-md mb-6">
+                  <p className="text-white/40 text-sm text-center max-w-md mb-6">
                     Your card now points directly to your CHIP NG profile.
                   </p>
                   <button 
                     onClick={() => setStatus('idle')}
-                    className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-md font-bold transition-all"
+                    className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-2xl font-bold transition-all"
                   >
                     Program Another
                   </button>
@@ -125,7 +125,7 @@ export default function NfcProgrammer({ profile }: { profile: any }) {
                   </p>
                   <button 
                     onClick={() => setStatus('idle')}
-                    className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-md font-bold transition-all"
+                    className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-2xl font-bold transition-all"
                   >
                     Try Again
                   </button>
@@ -137,15 +137,15 @@ export default function NfcProgrammer({ profile }: { profile: any }) {
       </div>
       
       <div className="xl:col-span-4 flex flex-col gap-6">
-        <div className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] p-5 rounded-sm">
+        <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-5 rounded-xl">
           <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             Compatibility Note
           </h4>
-          <p className="text-xs text-[#7e7576] mb-3 leading-relaxed">
+          <p className="text-xs text-white/40 mb-3 leading-relaxed">
             Web NFC is currently only supported on Chrome for Android. iOS (iPhones) do not support writing to NFC tags via the web browser.
           </p>
-          <p className="text-xs text-[#7e7576] leading-relaxed">
+          <p className="text-xs text-white/40 leading-relaxed">
             If you're using an iPhone, you'll need to use a dedicated app like "NFC Tools" to write your profile URL to your card.
           </p>
         </div>

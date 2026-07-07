@@ -81,7 +81,7 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
     return (
       <div className={`bg-[#25D366]/10 border border-[#25D366]/30 p-6 rounded-xl flex flex-col items-center justify-center text-center ${source === 'inline' ? 'my-8' : ''}`}>
         <CheckCircle className="w-8 h-8 text-[#25D366] mb-2" />
-        <h4 className="font-bold text-[#1a1c1c] dark:text-white">Opened WhatsApp!</h4>
+        <h4 className="font-bold text-white">Opened WhatsApp!</h4>
         <p className="text-sm text-gray-600 dark:text-gray-400">We'll send your quote now.</p>
       </div>
     );
@@ -91,7 +91,7 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
     <div className={`bg-gray-50 dark:bg-[#111] border ${source === 'inline' ? 'border-gray-200 dark:border-gray-800 rounded-2xl p-6 my-8 shadow-sm' : 'border-t border-gray-200 dark:border-gray-800 p-4 shadow-lg'}`}>
       {source === 'inline' && (
         <div className="mb-4 text-center">
-          <h3 className="text-xl font-bold font-sans text-black dark:text-white flex justify-center items-center gap-2">
+          <h3 className="text-xl font-bold font-sans text-white flex justify-center items-center gap-2">
             <MessageCircle className="text-[#25D366] w-6 h-6" /> Get NFC Card Price on WhatsApp
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">We reply in 5 minutes. ₦12,500 launch price.</p>
@@ -100,7 +100,7 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
       
       <form onSubmit={handleSubmit} className={source === 'inline' ? "flex flex-col gap-4 max-w-md mx-auto" : "flex flex-col sm:flex-row gap-3 max-w-4xl mx-auto items-center"}>
         {source === 'sticky' && (
-          <div className="text-sm font-bold whitespace-nowrap text-black dark:text-white mb-2 sm:mb-0 mr-2 flex items-center gap-2">
+          <div className="text-sm font-bold whitespace-nowrap text-white mb-2 sm:mb-0 mr-2 flex items-center gap-2">
             <MessageCircle className="text-[#25D366] w-5 h-5" /> Want an NFC Card in Lagos?
           </div>
         )}
@@ -108,7 +108,7 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
           type="text" 
           placeholder="Name" 
           required 
-          className="w-full px-4 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
+          className="w-full px-4 py-2 bg-[#050505] border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
           value={formData.name}
           onChange={e => setFormData({...formData, name: e.target.value})}
         />
@@ -116,13 +116,13 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
           type="tel" 
           placeholder="WhatsApp (080...)" 
           required 
-          className="w-full px-4 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
+          className="w-full px-4 py-2 bg-[#050505] border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
           value={formData.whatsapp}
           onChange={e => setFormData({...formData, whatsapp: e.target.value})}
         />
         {source === 'inline' && (
           <select 
-            className="w-full px-4 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
+            className="w-full px-4 py-2 bg-[#050505] border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
             value={formData.city}
             onChange={e => setFormData({...formData, city: e.target.value})}
           >

@@ -326,8 +326,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <ShieldAlert className="w-16 h-16 text-red-500 mb-4" />
         <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-        <p className="text-[#7e7576] mb-6">You do not have permission to view the Super Admin Panel.</p>
-        <button onClick={() => onNavigate('user-dashboard')} className="px-6 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold">
+        <p className="text-white/40 mb-6">You do not have permission to view the Super Admin Panel.</p>
+        <button onClick={() => onNavigate('user-dashboard')} className="px-6 py-2 bg-black text-white rounded-2xl font-mono text-[13px] font-bold">
           Return to Dashboard
         </button>
       </div>
@@ -354,7 +354,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const proPlanUsers = users.filter(u => u.enterprise_id).length; // Rough mock of premium users if they have enterprise
 
   return (
-    <div className="min-h-screen bg-[#f3f3f4] dark:bg-[#222] pb-20">
+    <div className="min-h-screen bg-white/5 pb-20">
       <header className="bg-black text-white p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-yellow-400" />
@@ -373,51 +373,51 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
       <div className="max-w-6xl mx-auto mt-8 px-4">
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-[#cfc4c5] dark:border-[#333] overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        <div className="flex gap-4 mb-6 border-b border-white/10 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'analytics' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'analytics' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('analytics')}
           >
             <BarChart2 className="w-4 h-4 inline mr-1" /> Analytics
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('users')}
           >
             <Users className="w-4 h-4 inline mr-1" /> Users
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'products' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'products' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('products')}
           >
             <Package className="w-4 h-4 inline mr-1" /> Shop Products
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'blog' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'blog' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('blog')}
           >
             <FileText className="w-4 h-4 inline mr-1" /> Blog
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'leads' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'leads' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('leads')}
           >
             <MessageCircle className="w-4 h-4 inline mr-1" /> Leads
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'buybox' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'buybox' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('buybox')}
           >
             <Package className="w-4 h-4 inline mr-1" /> Buy Box
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'seo' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'seo' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('seo')}
           >
             <LinkIcon className="w-4 h-4 inline mr-1" /> SEO
           </button>
           <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'broadcast' ? 'border-b-2 border-black text-black dark:text-white' : 'text-[#7e7576]'}`}
+            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'broadcast' ? 'border-b-2 border-black text-white' : 'text-white/40'}`}
             onClick={() => setActiveTab('broadcast')}
           >
             <Send className="w-4 h-4 inline mr-1" /> Broadcast
@@ -426,39 +426,39 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
         {activeTab === 'analytics' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
-              <Users className="w-8 h-8 text-[#7e7576] mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Total Users</h3>
+            <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 flex flex-col items-center justify-center text-center">
+              <Users className="w-8 h-8 text-white/40 mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Total Users</h3>
               <p className="text-4xl font-sans font-bold">{totalUsers}</p>
               <p className="text-[12px] text-green-600 mt-2 flex items-center gap-1 font-mono">
                 <CheckCircle className="w-3 h-3" /> {verifiedUsers} Verified
               </p>
             </div>
             
-            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
-              <Package className="w-8 h-8 text-[#7e7576] mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Total Shop Sales</h3>
+            <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 flex flex-col items-center justify-center text-center">
+              <Package className="w-8 h-8 text-white/40 mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Total Shop Sales</h3>
               <p className="text-4xl font-sans font-bold">₦{totalShopRevenue.toLocaleString()}</p>
-              <p className="text-[12px] text-[#7e7576] mt-2 font-mono">
+              <p className="text-[12px] text-white/40 mt-2 font-mono">
                 From {digitalProductPurchases.length} digital product sales
               </p>
             </div>
 
-            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
-              <DollarSign className="w-8 h-8 text-[#7e7576] mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Platform Earnings</h3>
+            <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 flex flex-col items-center justify-center text-center">
+              <DollarSign className="w-8 h-8 text-white/40 mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Platform Earnings</h3>
               <p className="text-4xl font-sans font-bold">₦{totalPlatformFees.toLocaleString()}</p>
-              <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex flex-col items-center gap-1">
+              <p className="text-[12px] text-white/40 mt-2 font-mono flex flex-col items-center gap-1">
                 <span>Shop Fees (5%): ₦{digitalProductFees.toLocaleString()}</span>
                 <span>Theme Sales: ₦{themeSalesRevenue.toLocaleString()}</span>
               </p>
             </div>
 
-            <div className="bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] flex flex-col items-center justify-center text-center">
-              <Eye className="w-8 h-8 text-[#7e7576] mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-[#7e7576] uppercase tracking-widest mb-1">Blog Views</h3>
+            <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 flex flex-col items-center justify-center text-center">
+              <Eye className="w-8 h-8 text-white/40 mb-3" />
+              <h3 className="font-mono text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Blog Views</h3>
               <p className="text-4xl font-sans font-bold">{blogViews}</p>
-              <p className="text-[12px] text-[#7e7576] mt-2 font-mono flex items-center gap-1">
+              <p className="text-[12px] text-white/40 mt-2 font-mono flex items-center gap-1">
                 Across {posts.length} posts
               </p>
             </div>
@@ -466,23 +466,23 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
 
         {activeTab === 'users' && (
-          <div className="bg-white dark:bg-[#111] rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] p-6 mb-8">
+          <div className="bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-white/10 p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold font-sans">User Management</h2>
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#7e7576]" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
                   <input 
                     type="text" 
                     placeholder="Search users..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9 pr-4 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-md outline-none focus:border-black dark:focus:border-white font-sans text-sm"
+                    className="pl-9 pr-4 py-2 border border-white/10 rounded-2xl outline-none focus:border-black dark:focus:border-white font-sans text-sm"
                   />
                 </div>
                 <button
                   onClick={() => setCreatingUser(true)}
-                  className="px-4 py-2 bg-black text-white rounded-md font-mono text-[13px] font-bold flex items-center gap-2"
+                  className="px-4 py-2 bg-black text-white rounded-2xl font-mono text-[13px] font-bold flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" /> Create User
                 </button>
@@ -492,7 +492,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#e2e2e2] dark:border-[#333] text-[#7e7576] font-mono text-[11px] uppercase tracking-widest">
+                  <tr className="border-b border-white/10 text-white/40 font-mono text-[11px] uppercase tracking-widest">
                     <th className="py-3 px-4">User</th>
                     <th className="py-3 px-4">Username</th>
                     <th className="py-3 px-4">Status</th>
@@ -505,7 +505,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     <tr key={u.id} className="border-b border-[#f3f3f4] hover:bg-[#fafafa]">
                       <td className="py-3 px-4">
                         <div className="font-sans font-bold text-[14px]">{u.full_name || 'No Name'}</div>
-                        <div className="font-mono text-[11px] text-[#7e7576] truncate w-32" title={u.id}>{u.id}</div>
+                        <div className="font-mono text-[11px] text-white/40 truncate w-32" title={u.id}>{u.id}</div>
                       </td>
                       <td className="py-3 px-4">
                         <a href={`/${u.username}`} target="_blank" className="font-mono text-[13px] text-[#0066cc] hover:underline">@{u.username}</a>
@@ -534,13 +534,13 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         <div className="flex gap-2">
                           <button 
                             onClick={() => toggleVerification(u.id, u.is_verified)}
-                            className="px-3 py-1 bg-[#f3f3f4] dark:bg-[#222] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors"
+                            className="px-3 py-1 bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors"
                           >
                             {u.is_verified ? 'Revoke Verif.' : 'Verify'}
                           </button>
                           <button 
                             onClick={() => toggleAdmin(u.id, u.is_admin)}
-                            className="px-3 py-1 bg-[#f3f3f4] dark:bg-[#222] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors disabled:opacity-50"
+                            className="px-3 py-1 bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors disabled:opacity-50"
                             disabled={u.id === currentUserId}
                           >
                             {u.is_admin ? 'Revoke Admin' : 'Make Admin'}
@@ -554,7 +554,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 if(data) setUserSocialLinks(data);
                               });
                             }}
-                            className="px-3 py-1 bg-[#f3f3f4] dark:bg-[#222] hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
+                            className="px-3 py-1 bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
                           >
                             <Edit2 className="w-3 h-3" /> Edit
                           </button>
@@ -569,36 +569,36 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             {/* Modals for User Management */}
             {editingUser && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                <div className="bg-white dark:bg-[#111] rounded-md p-6 w-full max-w-md shadow-xl my-8">
+                <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
                   <h3 className="font-sans font-bold text-lg mb-4">Edit User Profile</h3>
                   <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Full Name</label>
-                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Full Name</label>
+                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Username</label>
-                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Username</label>
+                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Headline/Job Title</label>
-                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Headline/Job Title</label>
+                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Bio</label>
-                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Bio</label>
+                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Contact Email</label>
-                      <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Contact Email</label>
+                      <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Phone Number</label>
-                      <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Phone Number</label>
+                      <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Cover Image</label>
-                      {userForm.cover_image_url && <img src={userForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-sm" />}
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Cover Image</label>
+                      {userForm.cover_image_url && <img src={userForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-xl" />}
                       <input 
                         type="file" 
                         accept="image/*"
@@ -606,15 +606,15 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         className="w-full text-[13px]" 
                       />
                       {userForm.cover_image_url && (
-                        <input value={userForm.cover_image_url || ''} onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} className="w-full mt-2 px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" placeholder="Or paste image URL..." />
+                        <input value={userForm.cover_image_url || ''} onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} className="w-full mt-2 px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" placeholder="Or paste image URL..." />
                       )}
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Social Links Style</label>
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Social Links Style</label>
                       <select 
                         value={userForm.social_links_style || 'color-circle'}
                         onChange={(e) => setUserForm({...userForm, social_links_style: e.target.value})}
-                        className="w-full px-3 py-2 bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-sm font-sans text-[13px] outline-none focus:border-black dark:focus:border-white"
+                        className="w-full px-3 py-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl font-sans text-[13px] outline-none focus:border-black dark:focus:border-white"
                       >
                         <option value="color-circle">Color Circle</option>
                         <option value="white-circle">White Circle</option>
@@ -622,13 +622,13 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       </select>
                     </div>
                     
-                    <div className="pt-2 border-t border-[#cfc4c5] dark:border-[#333]">
+                    <div className="pt-2 border-t border-white/10">
                       <div className="flex justify-between items-center mb-2">
-                        <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase">User Social Links</label>
+                        <label className="block font-mono text-[11px] font-bold text-white/60 uppercase">User Social Links</label>
                         <button 
                           type="button"
                           onClick={() => setUserSocialLinks([...userSocialLinks, { platform: SOCIAL_PLATFORMS[0].name, url: '' }])}
-                          className="text-black dark:text-white hover:underline font-mono text-[11px] font-bold flex items-center gap-1"
+                          className="text-white hover:underline font-mono text-[11px] font-bold flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" /> Add Link
                         </button>
@@ -643,7 +643,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 newLinks[i].platform = e.target.value;
                                 setUserSocialLinks(newLinks);
                               }}
-                              className="w-full sm:w-1/3 px-2 py-1.5 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-sans text-[12px] bg-white dark:bg-[#111]"
+                              className="w-full sm:w-1/3 px-2 py-1.5 border border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-sans text-[12px] bg-black/40 backdrop-blur-xl"
                             >
                               {SOCIAL_PLATFORMS.map(p => (
                                 <option key={p.name} value={p.name}>{p.name}</option>
@@ -658,12 +658,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 setUserSocialLinks(newLinks);
                               }}
                               placeholder="https://" 
-                              className="flex-1 px-2 py-1.5 border border-[#cfc4c5] dark:border-[#333] focus:border-black dark:focus:border-white outline-none rounded-sm font-mono text-[11px] text-black dark:text-white w-full" 
+                              className="flex-1 px-2 py-1.5 border border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-mono text-[11px] text-white w-full" 
                             />
                             <button 
                               type="button"
                               onClick={() => setUserSocialLinks(userSocialLinks.filter((_, idx) => idx !== i))}
-                              className="p-1.5 text-[#7e7576] hover:text-[#ba1a1a] transition-colors rounded-sm hover:bg-[#ffdad6] shrink-0"
+                              className="p-1.5 text-white/40 hover:text-[#ba1a1a] transition-colors rounded-xl hover:bg-[#ffdad6] shrink-0"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -673,10 +673,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     </div>
 
                     <div className="flex gap-2 mt-4">
-                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
+                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50">
                         {uploadingImage ? 'Uploading...' : 'Save Changes'}
                       </button>
-                      <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-[#f3f3f4] dark:bg-[#222] text-black dark:text-white rounded-sm font-mono text-[13px] font-bold">
+                      <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-white/5 text-white rounded-xl font-mono text-[13px] font-bold">
                         Cancel
                       </button>
                     </div>
@@ -687,41 +687,41 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
             {creatingUser && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                <div className="bg-white dark:bg-[#111] rounded-md p-6 w-full max-w-md shadow-xl my-8">
+                <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
                   <h3 className="font-sans font-bold text-lg mb-2">Create New User</h3>
-                  <p className="font-sans text-xs text-[#7e7576] mb-4">Warning: Creating a user will log you in as them temporarily.</p>
+                  <p className="font-sans text-xs text-white/40 mb-4">Warning: Creating a user will log you in as them temporarily.</p>
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Email *</label>
-                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Email *</label>
+                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Password *</label>
-                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Password *</label>
+                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Full Name *</label>
-                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Full Name *</label>
+                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Username</label>
-                      <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Username</label>
+                      <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Phone Number</label>
-                      <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Phone Number</label>
+                      <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Headline/Job Title</label>
-                      <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Headline/Job Title</label>
+                      <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Bio</label>
-                      <textarea rows={3} value={newUserForm.bio} onChange={e => setNewUserForm({...newUserForm, bio: e.target.value})} placeholder="Optional bio" className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Bio</label>
+                      <textarea rows={3} value={newUserForm.bio} onChange={e => setNewUserForm({...newUserForm, bio: e.target.value})} placeholder="Optional bio" className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Cover Image</label>
-                      {newUserForm.cover_image_url && <img src={newUserForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-sm" />}
+                      <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Cover Image</label>
+                      {newUserForm.cover_image_url && <img src={newUserForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-xl" />}
                       <input 
                         type="file" 
                         accept="image/*"
@@ -730,10 +730,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       />
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
+                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50">
                         {uploadingImage ? 'Uploading...' : 'Create User'}
                       </button>
-                      <button type="button" onClick={() => setCreatingUser(false)} className="px-4 py-2 bg-[#f3f3f4] dark:bg-[#222] text-black dark:text-white rounded-sm font-mono text-[13px] font-bold">
+                      <button type="button" onClick={() => setCreatingUser(false)} className="px-4 py-2 bg-white/5 text-white rounded-xl font-mono text-[13px] font-bold">
                         Cancel
                       </button>
                     </div>
@@ -746,20 +746,20 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
         {activeTab === 'products' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 bg-white dark:bg-[#111] p-6 rounded-md shadow-sm border border-[#cfc4c5] dark:border-[#333] h-fit">
+            <div className="md:col-span-1 bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 h-fit">
               <h3 className="font-sans font-bold text-lg mb-4">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
               <form onSubmit={handleSaveProduct} className="flex flex-col gap-4">
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Name</label>
-                  <input required value={prodForm.name} onChange={e=>setProdForm({...prodForm, name: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                  <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Name</label>
+                  <input required value={prodForm.name} onChange={e=>setProdForm({...prodForm, name: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Price (₦)</label>
-                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                  <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Price (₦)</label>
+                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Image Upload</label>
-                  {prodForm.image_url && <img src={prodForm.image_url} className="w-full h-24 object-cover mb-2 rounded-sm border border-[#cfc4c5] dark:border-[#333]" />}
+                  <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Image Upload</label>
+                  {prodForm.image_url && <img src={prodForm.image_url} className="w-full h-24 object-cover mb-2 rounded-xl border border-white/10" />}
                   <input 
                     type="file" 
                     accept="image/*"
@@ -767,20 +767,20 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     className="w-full text-[13px]" 
                   />
                   <div className="mt-2">
-                    <label className="block font-mono text-[10px] font-bold text-[#7e7576] uppercase mb-1">Or Image URL</label>
-                    <input value={prodForm.image_url} onChange={e=>setProdForm({...prodForm, image_url: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[12px] font-sans" />
+                    <label className="block font-mono text-[10px] font-bold text-white/40 uppercase mb-1">Or Image URL</label>
+                    <input value={prodForm.image_url} onChange={e=>setProdForm({...prodForm, image_url: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[12px] font-sans" />
                   </div>
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-[#4c4546] dark:text-[#a0a0a0] uppercase mb-1">Description</label>
-                  <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} className="w-full px-3 py-2 border border-[#cfc4c5] dark:border-[#333] rounded-sm text-[13px] font-sans" />
+                  <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Description</label>
+                  <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] font-sans" />
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-sm font-mono text-[13px] font-bold disabled:opacity-50">
+                  <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white py-2 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50">
                     {uploadingImage ? 'Uploading...' : (editingProduct ? 'Update' : 'Create')}
                   </button>
                   {editingProduct && (
-                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', image_url:''}); }} className="px-4 py-2 bg-[#f3f3f4] dark:bg-[#222] text-black dark:text-white rounded-sm font-mono text-[13px] font-bold">
+                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', image_url:''}); }} className="px-4 py-2 bg-white/5 text-white rounded-xl font-mono text-[13px] font-bold">
                       Cancel
                     </button>
                   )}
@@ -791,14 +791,14 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             <div className="md:col-span-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {products.map(p => (
-                  <div key={p.id} className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-md overflow-hidden shadow-sm flex flex-col">
+                  <div key={p.id} className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full h-40 object-cover" />}
                     <div className="p-4 flex flex-col flex-1">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-bold font-sans text-[15px]">{p.name}</h4>
-                        <span className="font-mono font-bold text-black dark:text-white bg-[#f3f3f4] dark:bg-[#222] px-2 py-0.5 rounded-sm text-[12px]">₦{p.price}</span>
+                        <span className="font-mono font-bold text-white bg-white/5 px-2 py-0.5 rounded-xl text-[12px]">₦{p.price}</span>
                       </div>
-                      <p className="text-[13px] text-[#7e7576] flex-1 mb-4">{p.description}</p>
+                      <p className="text-[13px] text-white/40 flex-1 mb-4">{p.description}</p>
                       
                       <div className="flex gap-2">
                         <button 
@@ -806,7 +806,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                             setEditingProduct(p);
                             setProdForm({ name: p.name, description: p.description || '', price: p.price.toString(), image_url: p.image_url || '' });
                           }}
-                          className="flex-1 py-1.5 flex items-center justify-center gap-1 border border-[#cfc4c5] dark:border-[#333] rounded-[4px] hover:bg-[#f3f3f4] dark:bg-[#222] transition-colors font-mono text-[11px] font-bold"
+                          className="flex-1 py-1.5 flex items-center justify-center gap-1 border border-white/10 rounded-[4px] hover:bg-white/5 transition-colors font-mono text-[11px] font-bold"
                         >
                           <Edit2 className="w-3 h-3" /> Edit
                         </button>
@@ -821,7 +821,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   </div>
                 ))}
                 {products.length === 0 && (
-                  <div className="col-span-2 p-8 text-center text-[#7e7576] font-mono text-[13px] bg-white dark:bg-[#111] border border-dashed border-[#cfc4c5] dark:border-[#333] rounded-md">
+                  <div className="col-span-2 p-8 text-center text-white/40 font-mono text-[13px] bg-black/40 backdrop-blur-xl border border-dashed border-white/10 rounded-2xl">
                     No products found. Use the form to add some.
                   </div>
                 )}
@@ -831,13 +831,13 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 <h3 className="font-sans font-bold text-lg mb-4">Digital Products & E-books</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {ebooksData.map(b => (
-                    <div key={b.id} className="bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-md p-4 flex flex-col items-start text-left">
+                    <div key={b.id} className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col items-start text-left">
                       <span className="font-mono text-[9px] bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-400 px-2 py-0.5 rounded uppercase tracking-widest font-bold mb-2">{b.category}</span>
                       <h4 className="font-bold font-sans text-[15px] leading-tight mb-1">{b.title}</h4>
-                      <p className="font-mono text-[11px] text-[#7e7576] mb-4">By {b.author}</p>
+                      <p className="font-mono text-[11px] text-white/40 mb-4">By {b.author}</p>
                       <button
                         onClick={() => triggerEbookDownload(b.id, b.title)}
-                        className="mt-auto w-full py-2 flex items-center justify-center gap-2 border border-[#cfc4c5] dark:border-[#333] rounded-[4px] hover:bg-[#f3f3f4] dark:bg-[#222] transition-colors font-mono text-[11px] font-bold"
+                        className="mt-auto w-full py-2 flex items-center justify-center gap-2 border border-white/10 rounded-[4px] hover:bg-white/5 transition-colors font-mono text-[11px] font-bold"
                       >
                         <Download className="w-4 h-4" /> Download File
                       </button>

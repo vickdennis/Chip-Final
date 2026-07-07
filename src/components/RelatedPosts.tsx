@@ -56,11 +56,11 @@ export function RelatedPosts({ currentPostSlug, currentKeywords }: { currentPost
   if (related.length === 0) return null;
 
   return (
-    <div className="mt-16 mb-8 border-t border-[#cfc4c5] dark:border-[#333] pt-12">
+    <div className="mt-16 mb-8 border-t border-white/10 pt-12">
       <h3 className="font-sans font-bold text-2xl mb-8">You Might Also Like</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {related.map(post => (
-          <a key={post.slug} href={`/blog/${post.slug}`} className="group block bg-white dark:bg-[#111] border border-[#cfc4c5] dark:border-[#333] rounded-md overflow-hidden hover:border-black dark:hover:border-white transition-colors">
+          <a key={post.slug} href={`/blog/${post.slug}`} className="group block bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-black dark:hover:border-white transition-colors">
             {post.cover_image_url && (
               <div className="aspect-video w-full overflow-hidden">
                 <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />

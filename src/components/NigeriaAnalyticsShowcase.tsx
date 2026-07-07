@@ -840,7 +840,7 @@ export const NigeriaAnalyticsShowcase = () => {
                     <h3 className="font-sans font-black text-lg text-white leading-none">
                       {activeProfile.name}
                     </h3>
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/25 text-blue-400 font-mono text-[9px] font-bold uppercase tracking-wide">
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-2xl bg-blue-500/15 border border-blue-500/25 text-blue-400 font-mono text-[9px] font-bold uppercase tracking-wide">
                       VERIFIED
                     </span>
                   </div>
@@ -877,7 +877,7 @@ export const NigeriaAnalyticsShowcase = () => {
                   </span>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-[#D7E2EA]/60 font-bold">24H Live Link Engagement</span>
                 </div>
-                <div className="font-mono text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-sm">
+                <div className="font-mono text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-xl">
                   PEAK RATE: {Math.max(...activeProfile.chartData)}%
                 </div>
               </div>

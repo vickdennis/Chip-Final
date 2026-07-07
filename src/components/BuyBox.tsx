@@ -107,10 +107,10 @@ export function BuyBox({ postSlug, onVariantClicked }: BuyBoxProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJSON) }} />
-      <div className="bg-white dark:bg-[#111] border-2 border-black dark:border-[#333] rounded-2xl overflow-hidden shadow-lg mt-0 mb-12 flex flex-col">
+      <div className="bg-black/40 backdrop-blur-xl border-2 border-black dark:border-[#333] rounded-2xl overflow-hidden shadow-lg mt-0 mb-12 flex flex-col">
         <div className="bg-[#f5f5f5] dark:bg-[#0a0a0a] flex items-center justify-center p-6 relative">
           {product.badge_text && (
-            <div className="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-sm z-10">
+            <div className="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-xl z-10">
               {product.badge_text}
             </div>
           )}
@@ -119,9 +119,9 @@ export function BuyBox({ postSlug, onVariantClicked }: BuyBoxProps) {
         <div className="p-6 sm:p-8 flex flex-col justify-center">
           <div className="flex items-center gap-1 text-[#FFB800] mb-2 text-sm font-bold">
             <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
-            <span className="text-black dark:text-white ml-1">{product.rating} | {product.review_count} Realtors in Lagos</span>
+            <span className="text-white ml-1">{product.rating} | {product.review_count} Realtors in Lagos</span>
           </div>
-          <h3 className="font-sans font-bold text-2xl sm:text-3xl text-black dark:text-white mb-2 leading-tight">
+          <h3 className="font-sans font-bold text-2xl sm:text-3xl text-white mb-2 leading-tight">
             {product.name}
           </h3>
           <div className="text-3xl font-mono font-bold text-[#25D366] mb-4">
@@ -131,7 +131,7 @@ export function BuyBox({ postSlug, onVariantClicked }: BuyBoxProps) {
           <ul className="space-y-2 mb-6">
             {benefits.map((b, i) => (
               <li key={i} className="flex items-start gap-2 text-sm sm:text-base text-gray-700 dark:text-gray-300">
-                <CheckCircle2 className="w-5 h-5 text-black dark:text-white shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-white shrink-0 mt-0.5" />
                 <span>{b}</span>
               </li>
             ))}
