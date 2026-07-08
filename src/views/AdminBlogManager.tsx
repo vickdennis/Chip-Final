@@ -113,7 +113,7 @@ export default function AdminBlogManager() {
       const finalForm = { ...postForm, content: finalContent, is_published: publish, published_at: publish ? new Date().toISOString() : null };
       delete finalForm.faq_json;
       delete finalForm.product_json;
-      delete finalForm.focus_keyword;
+      
       
       if (creatingPost) {
         const { error } = await supabase.from('posts').insert([finalForm]);

@@ -406,7 +406,7 @@ ${content.substring(0, 3000)}`;
       });
       
       const text = response.text || '';
-      const jsonStr = text.replace(/\s*```json/g, '').replace(/```/g, '').trim();
+      const jsonStr = text.replace(/```json/ig, '').replace(/```/g, '').trim();
       const metadata = JSON.parse(jsonStr);
       
       res.json(metadata);

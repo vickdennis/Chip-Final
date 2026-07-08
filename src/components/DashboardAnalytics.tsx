@@ -3,12 +3,14 @@ import { motion } from "motion/react";
 import { TrendingUp, Users, MousePointerClick, ShieldCheck, Zap } from "lucide-react";
 import { supabase } from '../supabaseClient';
 
-export default function DashboardAnalytics({ profile, onUpgrade }: { profile: any, onUpgrade: () => void }) {
-  const [liveViews, setLiveViews] = useState(profile?.profile_views || 0);
-  const [liveClicks, setLiveClicks] = useState(Math.floor((profile?.profile_views || 0) * 0.4));
+export default function DashboardAnalytics({ profile, onUpgrade, profileViews = 0 }: { profile: any, onUpgrade: () => void, profileViews?: number }) {
+  const [liveViews, setLiveViews] = useState(profileViews);
+  const [liveClicks, setLiveClicks] = useState(Math.floor(profileViews * 0.4));
   
   // Simulated real-time activity if Pro
   useEffect(() => {
+    setLiveViews(profileViews);
+    setLiveClicks(Math.floor(profileViews * 0.4));
     if (profile?.is_pro || profile?.is_admin) {
       const interval = setInterval(() => {
         if (Math.random() > 0.7) {
@@ -18,7 +20,7 @@ export default function DashboardAnalytics({ profile, onUpgrade }: { profile: an
       }, 3000);
       return () => clearInterval(interval);
     }
-  }, [profile]);
+  }, [profile, profileViews]);
 
   if (!profile?.is_pro && !profile?.is_admin && profile?.email !== 'vickthor.dennis@gmail.com') {
     return (

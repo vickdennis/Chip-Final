@@ -57,10 +57,12 @@ export default function AdminBuyBoxManager() {
     try {
       const res = await fetch('/api/products');
       if (res.ok) {
+        alert('Product saved successfully!');
         setProducts(await res.json());
       }
     } catch (e) {
       console.error(e);
+      alert('Error saving product: ' + e.message);
     }
     setLoading(false);
   };

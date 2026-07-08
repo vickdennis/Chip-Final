@@ -470,7 +470,7 @@ END:VCARD`;
         ) : profile && activeTab === 'analytics' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
-              <DashboardAnalytics profile={profile} onUpgrade={() => setActiveTab('appearance')} />
+              <DashboardAnalytics profile={profile} profileViews={profileViews} onUpgrade={() => setActiveTab('appearance')} />
             </div>
           </div>
         ) : profile && activeTab === 'profile' ? (
