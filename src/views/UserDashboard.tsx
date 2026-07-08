@@ -467,6 +467,12 @@ END:VCARD`;
           <div className="flex justify-center items-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-white" />
           </div>
+        ) : profile && activeTab === 'analytics' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-12 flex flex-col gap-8">
+              <DashboardAnalytics profile={profile} onUpgrade={() => setActiveTab('appearance')} />
+            </div>
+          </div>
         ) : profile && activeTab === 'profile' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             
