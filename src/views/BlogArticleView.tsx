@@ -20,6 +20,8 @@ interface BlogPost {
   keywords: string[];
   faq_json?: string;
   product_json?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function BlogArticleView({

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { Plus, Edit2, Trash2, Globe, Eye, Settings, Image as ImageIcon, Save, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit2, Trash2, Globe, Eye, Settings, Image as ImageIcon, Save, ArrowLeft, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 import TiptapEditor from '../components/TiptapEditor';
 
 export default function AdminBlogManager() {
