@@ -53,7 +53,7 @@ export default function AdminBlogManager() {
         const meta = await metaRes.json();
         const merged = data.map(p => {
           const m = meta.find((m: any) => m.post_slug === p.slug);
-          return m ? { ...p, views: m.views || 0, product_json: m.product_json, faq_json: m.faq_json } : { ...p, views: 0 };
+          return m ? { ...p, views: m.views || 0, product_json: m.product_json, faq_json: m.faq_json, focus_keyword: m.focus_keyword } : { ...p, views: 0 };
         });
         setPosts(merged);
       } catch (e) {
@@ -113,6 +113,7 @@ export default function AdminBlogManager() {
       const finalForm = { ...postForm, content: finalContent, is_published: publish, published_at: publish ? new Date().toISOString() : null };
       delete finalForm.faq_json;
       delete finalForm.product_json;
+      delete finalForm.focus_keyword;
       
       
       if (creatingPost) {
@@ -134,7 +135,7 @@ export default function AdminBlogManager() {
       await fetch('/api/post-meta', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ post_slug: finalForm.slug, product_json: showProduct ? postForm.product_json : null, faq_json: faqStr })
+        body: JSON.stringify({ post_slug: finalForm.slug, product_json: showProduct ? postForm.product_json : null, faq_json: faqStr, focus_keyword: postForm.focus_keyword })
       });
       
       await fetch('/api/post-categories', {

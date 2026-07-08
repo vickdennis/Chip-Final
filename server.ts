@@ -80,7 +80,8 @@ db.exec(`
     post_slug TEXT PRIMARY KEY,
     product_json TEXT,
     faq_json TEXT,
-    views INTEGER DEFAULT 0
+    views INTEGER DEFAULT 0,
+    focus_keyword TEXT
   );
 
   CREATE TABLE IF NOT EXISTS broadcast_logs (
@@ -210,8 +211,8 @@ async function startServer() {
 
   app.post('/api/post-meta', (req, res) => {
     try {
-      const { post_slug, product_json, faq_json } = req.body;
-      db.prepare('INSERT INTO post_meta (post_slug, product_json, faq_json) VALUES (?, ?, ?) ON CONFLICT(post_slug) DO UPDATE SET product_json=excluded.product_json, faq_json=excluded.faq_json').run(post_slug, product_json, faq_json);
+      const { post_slug, product_json, faq_json, focus_keyword } = req.body;
+      db.prepare('INSERT INTO post_meta (post_slug, product_json, faq_json, focus_keyword) VALUES (?, ?, ?, ?) ON CONFLICT(post_slug) DO UPDATE SET product_json=excluded.product_json, faq_json=excluded.faq_json, focus_keyword=excluded.focus_keyword').run(post_slug, product_json, faq_json, focus_keyword);
       res.json({ success: true });
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
