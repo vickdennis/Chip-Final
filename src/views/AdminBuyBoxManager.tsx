@@ -57,7 +57,6 @@ export default function AdminBuyBoxManager() {
     try {
       const res = await fetch('/api/products');
       if (res.ok) {
-        alert('Product saved successfully!');
         setProducts(await res.json());
       }
     } catch (e) {
@@ -86,23 +85,6 @@ export default function AdminBuyBoxManager() {
     } catch (e: any) {
       console.error(e);
       alert('Error saving product: ' + e.message);
-    }
-    return;
-
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      if (res.ok) {
-        fetchProducts();
-        setForm(defaultForm);
-        setEditingProduct(null);
-      }
-    } catch (e) {
-      console.error(e);
     }
   };
 

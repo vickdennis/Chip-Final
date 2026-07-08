@@ -110,10 +110,8 @@ export default function AdminBlogManager() {
       } catch (e) { console.error("Auto-link error", e); }
       
       const faqStr = faqs.length > 0 ? JSON.stringify(faqs) : '';
-      const finalForm = { ...postForm, content: finalContent, is_published: publish, published_at: publish ? new Date().toISOString() : null };
-      delete finalForm.faq_json;
-      delete finalForm.product_json;
-      delete finalForm.focus_keyword;
+      const { focus_keyword, product_json, faq_json, ...restForm } = postForm;
+      const finalForm = { ...restForm, content: finalContent, is_published: publish, published_at: publish ? new Date().toISOString() : null };
       
       
       if (creatingPost) {
