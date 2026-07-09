@@ -213,10 +213,11 @@ END:VCARD`;
             );
           }
 
+          const href = link.url?.startsWith('http') || link.url?.startsWith('mailto:') || link.url?.startsWith('tel:') ? link.url : `https://${link.url}`;
           return (
             <a 
               key={i} 
-              href={link.url} 
+              href={href} 
               target="_blank" 
               rel="noopener noreferrer" 
             >
@@ -408,10 +409,16 @@ END:VCARD`;
                         navigator.share({
                           title: `${profile.full_name}'s Profile`,
                           url: `https://chipng.com/${profile.username}`
+                        }).catch((err) => {
+                          console.log('Share failed', err);
+                          navigator.clipboard.writeText(`https://chipng.com/${profile.username}`).then(() => {
+                             alert("Link copied to clipboard!");
+                          });
                         });
                       } else {
-                        navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
-                        alert("Link copied to clipboard!");
+                        navigator.clipboard.writeText(`https://chipng.com/${profile.username}`).then(() => {
+                           alert("Link copied to clipboard!");
+                        });
                       }
                     }}
                     className="w-full py-4 rounded-2xl text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
@@ -570,7 +577,7 @@ END:VCARD`;
               <div className="w-full flex flex-col gap-3">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-2 px-1">Featured Links</span>
                 {links.length > 0 ? links.map((link, i) => {
-                  const href = link.url?.startsWith('http') ? link.url : `https://${link.url}`;
+                  const href = link.url?.startsWith('http') || link.url?.startsWith('mailto:') || link.url?.startsWith('tel:') ? link.url : `https://${link.url}`;
                   let iconUrl = link.image_url;
                   if (!iconUrl && link.use_link_icon && link.url) {
                     try { iconUrl = `https://icon.horse/icon/${(link.url.replace(/^https?:\/\//, '').split('/')[0])}`; } catch(e){}
@@ -626,6 +633,11 @@ END:VCARD`;
                   return (
                     <a key={i} href={href} target="_blank" rel="noopener noreferrer"
                        className="bg-[#141414] border border-[#2a2a2a] text-white p-4 rounded-xl shadow-sm hover:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative">
+                       {iconUrl && (
+                         <div className="absolute left-4 w-6 h-6 rounded overflow-hidden">
+                           <img src={iconUrl} alt="icon" className="w-full h-full object-cover" />
+                         </div>
+                       )}
                        <h2 className="font-sans text-[15px] font-medium truncate text-center">{link.label}</h2>
                     </a>
                   );

@@ -1372,6 +1372,11 @@ END:VCARD`;
                 </label>
               )}
 
+              {currentLink.size === 'Button' && currentLink.use_link_icon && currentLink.url && (
+                <div className="absolute left-4 w-6 h-6 rounded overflow-hidden z-10">
+                  <img src={`https://icon.horse/icon/${(currentLink.url.replace(/^https?:\/\//, '').split('/')[0])}`} alt="icon" className="w-full h-full object-cover" />
+                </div>
+              )}
               <span className={`font-bold text-white z-10 ${currentLink.size !== 'Button' ? 'text-lg mt-auto mb-6 drop-shadow-md' : 'text-md'}`}>{currentLink.label || 'Title'}</span>
             </div>
 
