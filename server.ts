@@ -150,7 +150,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
   
-  app.use(express.json());
+  app.use(express.json({ limit: "50mb" }));
 
   // SQLite Leads API
   app.post('/api/lead', (req, res) => {
@@ -158,7 +158,7 @@ async function startServer() {
       const { name, whatsapp, city, post_slug, source, clicked_variant } = req.body;
       const stmt = db.prepare('INSERT INTO leads (name, whatsapp, city, post_slug, source, clicked_variant) VALUES (?, ?, ?, ?, ?, ?)');
       const info = stmt.run(name, whatsapp, city, post_slug, source, clicked_variant || null);
-      res.json({ success: true, id: info.lastInsertRowid });
+      res.json({ success: true, id: Number(info.lastInsertRowid) });
     } catch (error: any) {
       console.error('Insert error:', error);
       res.status(500).json({ error: error.message });
@@ -182,7 +182,7 @@ async function startServer() {
       } else {
          const stmt = db.prepare('INSERT INTO products (name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
          const info = stmt.run(name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b);
-         res.json({ success: true, id: info.lastInsertRowid });
+         res.json({ success: true, id: Number(info.lastInsertRowid) });
       }
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
@@ -519,7 +519,13 @@ ${content.substring(0, 3000)}`;
 
 
   
-  if (process.env.NODE_ENV !== "production") {
+  
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("Global Express Error:", err);
+    res.status(err.status || 500).json({ error: err.message || "Internal Server Error" });
+  });
+
+if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

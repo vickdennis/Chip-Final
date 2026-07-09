@@ -79,12 +79,14 @@ export default function AdminBuyBoxManager() {
         setForm(defaultForm);
         setEditingProduct(null);
       } else {
-        const errorData = await res.json();
-        alert('Error saving product: ' + (errorData.error || res.statusText));
+        const text = await res.text();
+        let errorStr = res.statusText;
+        try { errorStr = JSON.parse(text).error || errorStr; } catch(e) { errorStr = text.slice(0, 50) + "..."; }
+        alert('Error saving product: ' + errorStr);
       }
     } catch (e: any) {
       console.error(e);
-      alert('Error saving product: ' + e.message);
+      alert('Error saving product: ' + (e.message || e.toString()));
     }
   };
 
