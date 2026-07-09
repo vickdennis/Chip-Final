@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<script>
+  try { fetch('http://['); } catch(e) { console.log(e.name, e.message); }
+  try { document.createElement('a').href = 'invalid:///'; } catch(e) { console.log(e.name, e.message); }
+</script>

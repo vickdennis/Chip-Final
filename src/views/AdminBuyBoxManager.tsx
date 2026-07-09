@@ -71,7 +71,7 @@ export default function AdminBuyBoxManager() {
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({ ...form, rating: Number(form.rating) || 0, review_count: Number(form.review_count) || 0 })
       });
       if (res.ok) {
         alert('Product saved successfully!');
