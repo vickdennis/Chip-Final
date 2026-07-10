@@ -115,12 +115,10 @@ export default function AdminBlogManager() {
       
       
       if (creatingPost) {
-        const { id, created_at, updated_at, views, ...cleanForm } = finalForm;
-        const { error } = await supabase.from('posts').insert([cleanForm]);
+        const { error } = await supabase.from('posts').insert([finalForm]);
         if (error) throw error;
       } else {
-        const { id, created_at, updated_at, views, ...cleanForm } = finalForm;
-        const { error } = await supabase.from('posts').update(cleanForm).eq('id', editingPost.id);
+        const { error } = await supabase.from('posts').update(finalForm).eq('id', editingPost.id);
         if (error) throw error;
       }
       

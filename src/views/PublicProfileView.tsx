@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
