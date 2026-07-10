@@ -76,6 +76,13 @@ db.exec(`
 // Seed keywords if empty
 db.exec(`
   
+  
+  CREATE TABLE IF NOT EXISTS user_galleries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id TEXT,
+    image_url TEXT
+  );
+
   CREATE TABLE IF NOT EXISTS post_meta (
     post_slug TEXT PRIMARY KEY,
     product_json TEXT,
@@ -331,6 +338,29 @@ Sitemap: https://chipng.com/sitemap.xml`;
     } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
+
+  
+  app.get('/api/gallery/:profile_id', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT * FROM user_galleries WHERE profile_id=?').all(req.params.profile_id);
+      res.json(rows);
+    } catch (e) { res.status(500).json({error: e.message}); }
+  });
+
+  app.post('/api/gallery', (req, res) => {
+    try {
+      const { profile_id, image_url } = req.body;
+      db.prepare('INSERT INTO user_galleries (profile_id, image_url) VALUES (?, ?)').run(profile_id, image_url);
+      res.json({ success: true });
+    } catch (e) { res.status(500).json({error: e.message}); }
+  });
+
+  app.delete('/api/gallery/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM user_galleries WHERE id=?').run(req.params.id);
+      res.json({ success: true });
+    } catch (e) { res.status(500).json({error: e.message}); }
+  });
 
   // Vite middleware for development
   // SEO Keywords API

@@ -7,6 +7,8 @@ import { PaystackButton } from 'react-paystack';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -17,6 +19,16 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+
+  useEffect(() => {
+    if (galleryImages.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentGalleryIndex(prev => (prev + 1) % galleryImages.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [galleryImages]);
 
   useEffect(() => {
     fetchData();
@@ -56,6 +68,11 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', targetUserId);
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', targetUserId).order('created_at', { ascending: false });
 
+      const galRes = await fetch('/api/gallery/' + targetUserId);
+      if (galRes.ok) {
+        const galData = await galRes.json();
+        setGalleryImages(galData);
+      }
       if (profileData) {
         setProfile(profileData);
         if (profileData.enterprise_id) {
@@ -510,6 +527,47 @@ END:VCARD`;
                   <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
                 </div>
               </a>
+              {galleryImages.length > 0 && (
+                <div className="w-full bg-[#1a1a1a] rounded-xl overflow-hidden mt-6 shadow-lg border border-[#2a2a2a] relative">
+                  <div className="relative w-full aspect-[4/3] flex items-center justify-center">
+                    {galleryImages.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentGalleryIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                      >
+                        <img src={img.image_url} alt="Gallery" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                    
+                    {galleryImages.length > 1 && (
+                      <>
+                        <button 
+                          onClick={(e) => { e.preventDefault(); setCurrentGalleryIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length); }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center z-20 hover:bg-black/70 backdrop-blur-md"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.preventDefault(); setCurrentGalleryIndex(prev => (prev + 1) % galleryImages.length); }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center z-20 hover:bg-black/70 backdrop-blur-md"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-20">
+                          {galleryImages.map((_, idx) => (
+                            <button
+                              key={idx}
+                              onClick={(e) => { e.preventDefault(); setCurrentGalleryIndex(idx); }}
+                              className={`w-2 h-2 rounded-full transition-all ${idx === currentGalleryIndex ? 'bg-white scale-125' : 'bg-white/50'}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
 
               {profile?.phone_number && (
 

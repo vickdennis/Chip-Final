@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
+import { Image as ImageIcon, ChevronLeft, ChevronRight, Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -69,6 +69,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [galleryInput, setGalleryInput] = useState('');
   const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'nfc'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
@@ -124,6 +126,11 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', user.id).order('created_at', { ascending: false });
       const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id);
 
+      const galRes = await fetch('/api/gallery/' + user.id);
+      if (galRes.ok) {
+        const galData = await galRes.json();
+        setGalleryImages(galData);
+      }
       if (profileData) {
         setProfile({ ...profileData, email: user.email });
         if (profileData.cover_image_url) setCoverUrl(profileData.cover_image_url);
@@ -156,6 +163,31 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const addGalleryImage = async () => {
+    if (!galleryInput.trim() || !profile) return;
+    try {
+      const res = await fetch('/api/gallery', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ profile_id: profile.id, image_url: galleryInput })
+      });
+      if (res.ok) {
+        setGalleryImages([...galleryImages, { image_url: galleryInput }]);
+        setGalleryInput('');
+      }
+    } catch(e) {}
+  };
+  
+  const removeGalleryImage = async (id: number, index: number) => {
+    if (id) {
+      await fetch('/api/gallery/' + id, { method: 'DELETE' });
+    }
+    const newGal = [...galleryImages];
+    newGal.splice(index, 1);
+    setGalleryImages(newGal);
   };
 
   const handleSave = async () => {
@@ -701,6 +733,39 @@ END:VCARD`;
                 <div className="text-5xl font-sans font-bold flex items-center gap-2 text-white">
                   {profileViews} <Eye className="w-6 h-6 text-blue-500" />
                 </div>
+              </div>
+            </section>
+
+
+            {/* Gallery Settings */}
+            <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col mb-8">
+              <div className="border-b border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-white uppercase tracking-widest">Photo Gallery</h3>
+                <ImageIcon className="w-[20px] h-[20px] text-white/60" />
+              </div>
+              <div className="p-6">
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Image URL (https://...)"
+                    value={galleryInput}
+                    onChange={e => setGalleryInput(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl font-sans text-sm text-white"
+                  />
+                  <button onClick={addGalleryImage} className="px-6 py-3 bg-white text-black font-bold rounded-xl whitespace-nowrap">Add Photo</button>
+                </div>
+                {galleryImages.length > 0 && (
+                  <div className="grid grid-cols-3 gap-4">
+                    {galleryImages.map((img, idx) => (
+                      <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-white/10">
+                        <img src={img.image_url} alt="Gallery" className="w-full h-full object-cover" />
+                        <button onClick={() => removeGalleryImage(img.id, idx)} className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
