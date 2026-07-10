@@ -5,21 +5,11 @@ import { supabase } from '../supabaseClient';
 
 export default function DashboardAnalytics({ profile, onUpgrade, profileViews = 0 }: { profile: any, onUpgrade: () => void, profileViews?: number }) {
   const [liveViews, setLiveViews] = useState(profileViews);
-  const [liveClicks, setLiveClicks] = useState(Math.floor(profileViews * 0.4));
+  const [liveClicks, setLiveClicks] = useState(profile?.clicks || 0);
   
-  // Simulated real-time activity if Pro
   useEffect(() => {
     setLiveViews(profileViews);
-    setLiveClicks(Math.floor(profileViews * 0.4));
-    if (profile?.is_pro || profile?.is_admin) {
-      const interval = setInterval(() => {
-        if (Math.random() > 0.7) {
-          setLiveViews(v => v + 1);
-          if (Math.random() > 0.5) setLiveClicks(c => c + 1);
-        }
-      }, 3000);
-      return () => clearInterval(interval);
-    }
+    setLiveClicks(profile?.clicks || 0);
   }, [profile, profileViews]);
 
   if (!profile?.is_pro && !profile?.is_admin && profile?.email !== 'vickthor.dennis@gmail.com') {
