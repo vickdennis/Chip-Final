@@ -511,7 +511,7 @@ END:VCARD`;
               )}
             </div>
 
-            {/* Auto-sliding Gallery Placeholder */}
+            {links.filter(l => l.size === 'GalleryImage').length > 0 && (
             <div className="w-full mb-8 flex flex-col gap-3 overflow-hidden relative group">
               <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-1 px-1">Gallery</span>
               <div 
@@ -519,19 +519,14 @@ END:VCARD`;
                 className="w-full flex gap-3 overflow-x-auto snap-x scrollbar-hide py-1"
                 style={{ scrollBehavior: 'smooth' }}
               >
-                {[
-                  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=400&q=80",
-                  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=400&q=80",
-                  "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=400&q=80",
-                  "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=400&q=80",
-                  "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=400&q=80"
-                ].map((src, idx) => (
+                {links.filter(l => l.size === 'GalleryImage').map((img, idx) => (
                   <div key={idx} className="min-w-[200px] h-[140px] shrink-0 snap-center rounded-2xl overflow-hidden border border-white/10 shadow-lg relative bg-black/20">
-                    <img src={src} alt="Gallery item" className="w-full h-full object-cover" />
+                    <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
             </div>
+            )}
 
             {profile?.address && (
               <div className="w-full bg-[#141414] border border-[#2a2a2a] p-4 flex items-center gap-4 rounded-xl mb-8">
@@ -582,7 +577,7 @@ END:VCARD`;
             {activeTab === 'links' ? (
               <div className="w-full flex flex-col gap-3">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-2 px-1">Featured Links</span>
-                {links.length > 0 ? links.map((link, i) => {
+                {links.filter(l => l.size !== 'GalleryImage').length > 0 ? links.filter(l => l.size !== 'GalleryImage').map((link, i) => {
                   const href = link.url?.startsWith('http') ? link.url : `https://${link.url}`;
                   let iconUrl = link.image_url;
                   if (!iconUrl && link.use_link_icon && link.url) {

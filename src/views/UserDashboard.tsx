@@ -69,7 +69,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'nfc'>('profile');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
   const [uploading, setUploading] = useState(false);
@@ -455,6 +455,12 @@ END:VCARD`;
             Appearance
           </button>
           <button 
+            onClick={() => setActiveTab('gallery')}
+            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'gallery' ? 'border-b-2 border-black dark:border-white text-white' : 'text-white/40 hover:text-black dark:hover:text-white'}`}
+          >
+            Gallery
+          </button>
+          <button 
             onClick={() => setActiveTab('nfc')}
             className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'nfc' ? 'border-b-2 border-black dark:border-white text-white' : 'text-white/40 hover:text-black dark:hover:text-white'}`}
           >
@@ -647,7 +653,7 @@ END:VCARD`;
                 </button>
               </div>
               <div className="p-6 flex flex-col gap-4">
-                {links.map((item, i) => (
+                {links.map((item, i) => item.size === 'GalleryImage' ? null : (
                   <div key={i} className="border border-white/10 rounded-xl p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between cursor-pointer" onClick={() => {
                     setCurrentLink({ ...item, size: item.size || 'Button', use_link_icon: item.use_link_icon || false });
                     setEditingLinkIndex(i);
@@ -1143,6 +1149,74 @@ END:VCARD`;
                 </div>
               </section>
             </div>
+          </div>
+        ) : profile && activeTab === 'gallery' ? (
+          <div className="flex flex-col gap-8 max-w-4xl mx-auto w-full">
+            <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col">
+              <div className="border-b border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-white uppercase tracking-widest">Public Gallery</h3>
+              </div>
+              <div className="p-6 flex flex-col gap-6">
+                <p className="text-white/60 text-[14px]">Upload images to display in your public profile's gallery section.</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {links.filter(l => l.size === 'GalleryImage').map((img) => (
+                    <div key={img.id} className="relative aspect-[4/3] rounded-xl overflow-hidden group border border-white/10">
+                      <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
+                      <button
+                        onClick={async () => {
+                          const { error } = await supabase.from('links').delete().eq('id', img.id);
+                          if (!error) {
+                            setLinks(links.filter(l => l.id !== img.id));
+                          }
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 bg-black/60 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="aspect-[4/3] rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors gap-2">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setUploading(true);
+                          try {
+                            const fileExt = file.name.split('.').pop() || 'jpeg';
+                            const fileName = `${Math.random()}.${fileExt}`;
+                            const filePath = `gallery/${fileName}`;
+                            const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                            if (uploadError) throw uploadError;
+                            const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                            
+                            const { data: newLink, error: dbError } = await supabase.from('links').insert({
+                              profile_id: profile.id,
+                              label: 'Gallery Image',
+                              url: data.publicUrl,
+                              size: 'GalleryImage'
+                            }).select().single();
+                            
+                            if (dbError) throw dbError;
+                            if (newLink) {
+                              setLinks([...links, newLink]);
+                            }
+                          } catch (err: any) {
+                            alert(err.message);
+                          } finally {
+                            setUploading(false);
+                          }
+                        }
+                      }}
+                    />
+                    <Upload className="w-6 h-6 text-white/40" />
+                    <span className="font-mono text-[11px] text-white/40 uppercase font-bold tracking-wider">Upload</span>
+                  </label>
+                </div>
+              </div>
+            </section>
           </div>
         ) : profile && activeTab === 'nfc' ? (
           <NfcProgrammer profile={profile} />
