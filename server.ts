@@ -76,13 +76,6 @@ db.exec(`
 // Seed keywords if empty
 db.exec(`
   
-  
-  CREATE TABLE IF NOT EXISTS user_galleries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    profile_id TEXT,
-    image_url TEXT
-  );
-
   CREATE TABLE IF NOT EXISTS post_meta (
     post_slug TEXT PRIMARY KEY,
     product_json TEXT,
@@ -157,7 +150,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
   
-  app.use(express.json({ limit: "50mb" }));
+  app.use(express.json());
 
   // SQLite Leads API
   app.post('/api/lead', (req, res) => {
@@ -165,7 +158,7 @@ async function startServer() {
       const { name, whatsapp, city, post_slug, source, clicked_variant } = req.body;
       const stmt = db.prepare('INSERT INTO leads (name, whatsapp, city, post_slug, source, clicked_variant) VALUES (?, ?, ?, ?, ?, ?)');
       const info = stmt.run(name, whatsapp, city, post_slug, source, clicked_variant || null);
-      res.json({ success: true, id: Number(info.lastInsertRowid) });
+      res.json({ success: true, id: info.lastInsertRowid });
     } catch (error: any) {
       console.error('Insert error:', error);
       res.status(500).json({ error: error.message });
@@ -189,7 +182,7 @@ async function startServer() {
       } else {
          const stmt = db.prepare('INSERT INTO products (name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
          const info = stmt.run(name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b);
-         res.json({ success: true, id: Number(info.lastInsertRowid) });
+         res.json({ success: true, id: info.lastInsertRowid });
       }
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
@@ -338,29 +331,6 @@ Sitemap: https://chipng.com/sitemap.xml`;
     } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
-
-  
-  app.get('/api/gallery/:profile_id', (req, res) => {
-    try {
-      const rows = db.prepare('SELECT * FROM user_galleries WHERE profile_id=?').all(req.params.profile_id);
-      res.json(rows);
-    } catch (e) { res.status(500).json({error: e.message}); }
-  });
-
-  app.post('/api/gallery', (req, res) => {
-    try {
-      const { profile_id, image_url } = req.body;
-      db.prepare('INSERT INTO user_galleries (profile_id, image_url) VALUES (?, ?)').run(profile_id, image_url);
-      res.json({ success: true });
-    } catch (e) { res.status(500).json({error: e.message}); }
-  });
-
-  app.delete('/api/gallery/:id', (req, res) => {
-    try {
-      db.prepare('DELETE FROM user_galleries WHERE id=?').run(req.params.id);
-      res.json({ success: true });
-    } catch (e) { res.status(500).json({error: e.message}); }
-  });
 
   // Vite middleware for development
   // SEO Keywords API
@@ -549,13 +519,7 @@ ${content.substring(0, 3000)}`;
 
 
   
-  
-  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error("Global Express Error:", err);
-    res.status(err.status || 500).json({ error: err.message || "Internal Server Error" });
-  });
-
-if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

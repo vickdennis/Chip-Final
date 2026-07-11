@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
-import { ChevronLeft, ChevronRight, ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart } from 'lucide-react';
+import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
-  const [galleryImages, setGalleryImages] = useState<any[]>([]);
-  const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -19,16 +17,6 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
-
-
-  useEffect(() => {
-    if (galleryImages.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentGalleryIndex(prev => (prev + 1) % galleryImages.length);
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [galleryImages]);
 
   useEffect(() => {
     fetchData();
@@ -42,7 +30,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       if (username) {
         // Fetch public profile by username
         console.log("Fetching profile for username:", username);
-        const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).maybeSingle();
+        const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).single();
         console.log("Fetched data:", data, "Error:", error);
         if (error || !data) {
           console.error("Failed to fetch public profile:", error);
@@ -60,7 +48,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
           return;
         }
         targetUserId = user.id;
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         profileData = { ...data, email: user.email };
       }
 
@@ -68,15 +56,10 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', targetUserId);
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', targetUserId).order('created_at', { ascending: false });
 
-      const galRes = await fetch('/api/gallery/' + targetUserId);
-      if (galRes.ok) {
-        const galData = await galRes.json();
-        setGalleryImages(galData);
-      }
       if (profileData) {
         setProfile(profileData);
         if (profileData.enterprise_id) {
-          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).maybeSingle();
+          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).single();
           if (ent) profileData.enterprise = ent;
         }
 
@@ -117,13 +100,13 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   if (error || !profile) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-6">
-        <h1 className="font-display text-4xl font-black mb-2 text-white">Profile Not Found</h1>
+        <h1 className="font-display text-4xl font-black mb-2 text-black">Profile Not Found</h1>
         <p className="font-sans text-white/40 mb-6">We couldn't find a user with this username.</p>
         <button 
           onClick={() => {
             window.location.href = '/';
           }} 
-          className="px-6 py-2 bg-white text-black font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-gray-200 transition-colors"
+          className="px-6 py-2 bg-black text-white font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-black/90 transition-colors"
         >
           Create your own chip.ng
         </button>
@@ -230,11 +213,10 @@ END:VCARD`;
             );
           }
 
-          const href = link.url?.startsWith('http') || link.url?.startsWith('mailto:') || link.url?.startsWith('tel:') ? link.url : `https://${link.url}`;
           return (
             <a 
               key={i} 
-              href={href} 
+              href={link.url} 
               target="_blank" 
               rel="noopener noreferrer" 
             >
@@ -375,18 +357,9 @@ END:VCARD`;
               </button>
               
               <div className="p-8 flex flex-col items-center">
-
                 <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden mb-6 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-white/10 relative">
                    <img src={showQR ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}` : coverUrl} alt="Cover/QR" className={`w-full h-full ${showQR ? 'object-contain bg-white p-2' : 'object-cover'}`} />
-                   {showQR && (
-                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                       <div className="bg-white p-1 rounded-full flex items-center justify-center">
-                         <img src={coverUrl} alt="Center Logo" className="w-8 h-8 rounded-full object-cover border border-[#eee]" />
-                       </div>
-                     </div>
-                   )}
                 </div>
-
                 
                 <h2 className="text-2xl font-bold text-white mb-2 text-center">This is your<br/>ChipNG bio link!</h2>
                 <p className="text-[#a0a0a0] text-center text-[13px] mb-8 max-w-[280px]">
@@ -426,16 +399,10 @@ END:VCARD`;
                         navigator.share({
                           title: `${profile.full_name}'s Profile`,
                           url: `https://chipng.com/${profile.username}`
-                        }).catch((err) => {
-                          console.log('Share failed', err);
-                          navigator.clipboard.writeText(`https://chipng.com/${profile.username}`).then(() => {
-                             alert("Link copied to clipboard!");
-                          });
                         });
                       } else {
-                        navigator.clipboard.writeText(`https://chipng.com/${profile.username}`).then(() => {
-                           alert("Link copied to clipboard!");
-                        });
+                        navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
+                        alert("Link copied to clipboard!");
                       }
                     }}
                     className="w-full py-4 rounded-2xl text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
@@ -501,7 +468,6 @@ END:VCARD`;
               )}
             </div>
 
-
             {/* Contact/Connect Action Strip */}
             <div className="w-full flex flex-col gap-3 mb-8">
               <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className="w-full bg-white rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors">
@@ -515,62 +481,7 @@ END:VCARD`;
                   <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
                 </div>
               </a>
-
-              <a href={`https://wa.me/${(profile?.phone_number || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-white rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors">
-                <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
-                  <span className="font-sans text-[19px] text-[#25D366] font-medium truncate" style={{ color: '#25D366' }}>
-                    {profile?.phone_number || "+2348012345678"}
-                  </span>
-                </div>
-                <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: '#8c8c8c' }}>
-                  <span className="text-white font-sans text-[16px] font-bold tracking-tight">WhatsApp connect with</span>
-                  <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
-                </div>
-              </a>
-              {galleryImages.length > 0 && (
-                <div className="w-full bg-[#1a1a1a] rounded-xl overflow-hidden mt-6 shadow-lg border border-[#2a2a2a] relative">
-                  <div className="relative w-full aspect-[4/3] flex items-center justify-center">
-                    {galleryImages.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentGalleryIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                      >
-                        <img src={img.image_url} alt="Gallery" className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                    
-                    {galleryImages.length > 1 && (
-                      <>
-                        <button 
-                          onClick={(e) => { e.preventDefault(); setCurrentGalleryIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length); }}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center z-20 hover:bg-black/70 backdrop-blur-md"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.preventDefault(); setCurrentGalleryIndex(prev => (prev + 1) % galleryImages.length); }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center z-20 hover:bg-black/70 backdrop-blur-md"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-20">
-                          {galleryImages.map((_, idx) => (
-                            <button
-                              key={idx}
-                              onClick={(e) => { e.preventDefault(); setCurrentGalleryIndex(idx); }}
-                              className={`w-2 h-2 rounded-full transition-all ${idx === currentGalleryIndex ? 'bg-white scale-125' : 'bg-white/50'}`}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-
               {profile?.phone_number && (
-
                 <a href={`tel:${profile.phone_number}`} className="w-full bg-[#141414] border border-[#2a2a2a] p-3 flex items-center justify-between rounded-xl cursor-pointer hover:border-[#4a4a4a] transition-colors group">
                    <div className="flex items-center gap-3">
                      <div className="w-10 h-10 bg-[#2a2a2a] text-white rounded-lg flex items-center justify-center group-hover:bg-[#3a3a3a] transition-colors" style={{ backgroundColor: enterpriseColor || undefined }}>
@@ -635,7 +546,7 @@ END:VCARD`;
               <div className="w-full flex flex-col gap-3">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-2 px-1">Featured Links</span>
                 {links.length > 0 ? links.map((link, i) => {
-                  const href = link.url?.startsWith('http') || link.url?.startsWith('mailto:') || link.url?.startsWith('tel:') ? link.url : `https://${link.url}`;
+                  const href = link.url?.startsWith('http') ? link.url : `https://${link.url}`;
                   let iconUrl = link.image_url;
                   if (!iconUrl && link.use_link_icon && link.url) {
                     try { iconUrl = `https://icon.horse/icon/${(link.url.replace(/^https?:\/\//, '').split('/')[0])}`; } catch(e){}
@@ -691,11 +602,6 @@ END:VCARD`;
                   return (
                     <a key={i} href={href} target="_blank" rel="noopener noreferrer"
                        className="bg-[#141414] border border-[#2a2a2a] text-white p-4 rounded-xl shadow-sm hover:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative">
-                       {iconUrl && (
-                         <div className="absolute left-4 w-6 h-6 rounded overflow-hidden">
-                           <img src={iconUrl} alt="icon" className="w-full h-full object-cover" />
-                         </div>
-                       )}
                        <h2 className="font-sans text-[15px] font-medium truncate text-center">{link.label}</h2>
                     </a>
                   );

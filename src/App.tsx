@@ -35,7 +35,6 @@ export default function App() {
     if (path === '/enterprise') return 'enterprise-dashboard';
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
-    if (path === '/test-dashboard') return 'user-dashboard';
     if (path === '/blog') return 'blog-directory';
     if (path.startsWith('/blog/')) return 'blog-article';
     if (path !== '' && path !== '/') {
@@ -48,9 +47,13 @@ export default function App() {
     const path = window.location.pathname.replace(/\/$/, "");
     if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
       try {
-        return decodeURIComponent(path.slice(1));
+        let username = decodeURIComponent(path.slice(1)).trim();
+        if (username.startsWith('@')) username = username.slice(1);
+        return username;
       } catch (e) {
-        return path.slice(1);
+        let username = path.slice(1).trim();
+        if (username.startsWith('@')) username = username.slice(1);
+        return username;
       }
     }
     return null;
@@ -68,7 +71,7 @@ export default function App() {
       setSessionLoading(false);
       // Wait to redirect if going to user-dashboard
       setCurrentView(prev => {
-        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard' || prev === 'enterprise-dashboard';
+        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard';
         if (!session && isProtected) {
           return 'login';
         }

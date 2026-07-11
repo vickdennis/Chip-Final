@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Image as ImageIcon, ChevronLeft, ChevronRight, Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
+import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -69,8 +69,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [galleryImages, setGalleryImages] = useState<any[]>([]);
-  const [galleryInput, setGalleryInput] = useState('');
   const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'nfc'>('profile');
   
   const [coverUrl, setCoverUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY");
@@ -119,18 +117,13 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
       const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', user.id).order('created_at', { ascending: false });
       const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id);
 
-      const galRes = await fetch('/api/gallery/' + user.id);
-      if (galRes.ok) {
-        const galData = await galRes.json();
-        setGalleryImages(galData);
-      }
       if (profileData) {
         setProfile({ ...profileData, email: user.email });
         if (profileData.cover_image_url) setCoverUrl(profileData.cover_image_url);
@@ -163,31 +156,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     } finally {
       setLoading(false);
     }
-  };
-
-
-  const addGalleryImage = async () => {
-    if (!galleryInput.trim() || !profile) return;
-    try {
-      const res = await fetch('/api/gallery', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ profile_id: profile.id, image_url: galleryInput })
-      });
-      if (res.ok) {
-        setGalleryImages([...galleryImages, { image_url: galleryInput }]);
-        setGalleryInput('');
-      }
-    } catch(e) {}
-  };
-  
-  const removeGalleryImage = async (id: number, index: number) => {
-    if (id) {
-      await fetch('/api/gallery/' + id, { method: 'DELETE' });
-    }
-    const newGal = [...galleryImages];
-    newGal.splice(index, 1);
-    setGalleryImages(newGal);
   };
 
   const handleSave = async () => {
@@ -419,13 +387,6 @@ END:VCARD`;
     document.body.removeChild(a);
   };
 
-  if (loading || !profile) {
-    return (
-      <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] dark:text-white font-sans flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-black/40 dark:text-white/40" />
-      </div>
-    );
-  }
 
   return (
     <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode}>
@@ -743,39 +704,6 @@ END:VCARD`;
               </div>
             </section>
 
-
-            {/* Gallery Settings */}
-            <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col mb-8">
-              <div className="border-b border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-white uppercase tracking-widest">Photo Gallery</h3>
-                <ImageIcon className="w-[20px] h-[20px] text-white/60" />
-              </div>
-              <div className="p-6">
-                <div className="flex gap-2 mb-4">
-                  <input
-                    type="text"
-                    placeholder="Image URL (https://...)"
-                    value={galleryInput}
-                    onChange={e => setGalleryInput(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl font-sans text-sm text-white"
-                  />
-                  <button onClick={addGalleryImage} className="px-6 py-3 bg-white text-black font-bold rounded-xl whitespace-nowrap">Add Photo</button>
-                </div>
-                {galleryImages.length > 0 && (
-                  <div className="grid grid-cols-3 gap-4">
-                    {galleryImages.map((img, idx) => (
-                      <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-white/10">
-                        <img src={img.image_url} alt="Gallery" className="w-full h-full object-cover" />
-                        <button onClick={() => removeGalleryImage(img.id, idx)} className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </section>
-
             {/* Social Media */}
             <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col">
               <div className="border-b border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
@@ -983,16 +911,9 @@ END:VCARD`;
                 <QrCode className="w-[18px] h-[18px] text-white/60" />
               </div>
               <div className="p-5 flex gap-3">
-
-                <div className="w-12 h-12 bg-black/40 backdrop-blur-xl flex items-center justify-center rounded-xl border border-white/10 shrink-0 overflow-hidden p-1 relative">
+                <div className="w-12 h-12 bg-black/40 backdrop-blur-xl flex items-center justify-center rounded-xl border border-white/10 shrink-0 overflow-hidden p-1">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}`} alt="QR Code" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="bg-white p-0.5 rounded-full flex items-center justify-center">
-                      <img src={profile.cover_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe'} alt="Center Logo" className="w-3 h-3 rounded-full object-cover border border-[#eee]" />
-                    </div>
-                  </div>
                 </div>
-
                 <div className="flex flex-col gap-2 w-full">
                   <button 
                     onClick={handleDownloadVCard}
@@ -1444,11 +1365,6 @@ END:VCARD`;
                 </label>
               )}
 
-              {currentLink.size === 'Button' && currentLink.use_link_icon && currentLink.url && (
-                <div className="absolute left-4 w-6 h-6 rounded overflow-hidden z-10">
-                  <img src={`https://icon.horse/icon/${(currentLink.url.replace(/^https?:\/\//, '').split('/')[0])}`} alt="icon" className="w-full h-full object-cover" />
-                </div>
-              )}
               <span className={`font-bold text-white z-10 ${currentLink.size !== 'Button' ? 'text-lg mt-auto mb-6 drop-shadow-md' : 'text-md'}`}>{currentLink.label || 'Title'}</span>
             </div>
 
