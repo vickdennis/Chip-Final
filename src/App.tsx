@@ -35,6 +35,7 @@ export default function App() {
     if (path === '/enterprise') return 'enterprise-dashboard';
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
+    if (path === '/test-dashboard') return 'user-dashboard';
     if (path === '/blog') return 'blog-directory';
     if (path.startsWith('/blog/')) return 'blog-article';
     if (path !== '' && path !== '/') {
@@ -67,7 +68,7 @@ export default function App() {
       setSessionLoading(false);
       // Wait to redirect if going to user-dashboard
       setCurrentView(prev => {
-        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard';
+        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard' || prev === 'enterprise-dashboard';
         if (!session && isProtected) {
           return 'login';
         }
