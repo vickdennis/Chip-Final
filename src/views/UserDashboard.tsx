@@ -119,7 +119,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', user.id).order('position');
       const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', user.id);
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });

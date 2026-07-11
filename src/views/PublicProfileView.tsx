@@ -42,7 +42,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       if (username) {
         // Fetch public profile by username
         console.log("Fetching profile for username:", username);
-        const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).single();
+        const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).maybeSingle();
         console.log("Fetched data:", data, "Error:", error);
         if (error || !data) {
           console.error("Failed to fetch public profile:", error);
@@ -60,7 +60,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
           return;
         }
         targetUserId = user.id;
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
         profileData = { ...data, email: user.email };
       }
 
@@ -76,7 +76,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       if (profileData) {
         setProfile(profileData);
         if (profileData.enterprise_id) {
-          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).single();
+          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).maybeSingle();
           if (ent) profileData.enterprise = ent;
         }
 
@@ -117,13 +117,13 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   if (error || !profile) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-6">
-        <h1 className="font-display text-4xl font-black mb-2 text-black">Profile Not Found</h1>
+        <h1 className="font-display text-4xl font-black mb-2 text-white">Profile Not Found</h1>
         <p className="font-sans text-white/40 mb-6">We couldn't find a user with this username.</p>
         <button 
           onClick={() => {
             window.location.href = '/';
           }} 
-          className="px-6 py-2 bg-black text-white font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-black/90 transition-colors"
+          className="px-6 py-2 bg-white text-black font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-gray-200 transition-colors"
         >
           Create your own chip.ng
         </button>

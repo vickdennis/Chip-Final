@@ -77,7 +77,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     }
     setCurrentUserId(user.id);
 
-    let { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+    let { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
     
     // Auto-grant if emails matches
     if (user.email === 'vickthor.dennis@gmail.com' && !profile?.is_admin) {

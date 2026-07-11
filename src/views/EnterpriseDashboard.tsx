@@ -39,11 +39,11 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       return;
     }
 
-    const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
     if (userProfile) setProfile(userProfile);
     
     if (userProfile && userProfile.enterprise_id) {
-      const { data: ent } = await supabase.from('enterprises').select('*').eq('id', userProfile.enterprise_id).single();
+      const { data: ent } = await supabase.from('enterprises').select('*').eq('id', userProfile.enterprise_id).maybeSingle();
       if (ent) {
         if (ent.owner_id !== user.id) {
           alert("You belong to an enterprise, but you are not the owner. Access denied to Enterprise Dashboard.");
