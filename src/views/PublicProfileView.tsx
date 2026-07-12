@@ -22,20 +22,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
     fetchData();
   }, [username]);
 
-  // Gallery auto-scroll
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const gallery = document.getElementById('profile-gallery');
-      if (gallery && !gallery.matches(':hover') && !gallery.matches(':active')) {
-        if (gallery.scrollLeft + gallery.clientWidth >= gallery.scrollWidth - 10) {
-          gallery.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          gallery.scrollBy({ left: 212, behavior: 'smooth' });
-        }
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+
 
   const fetchData = async () => {
     try {
@@ -511,22 +498,44 @@ END:VCARD`;
               )}
             </div>
 
-            {links.filter(l => l.size === 'GalleryImage').length > 0 && (
-            <div className="w-full mb-8 flex flex-col gap-3 overflow-hidden relative group">
-              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-1 px-1">Gallery</span>
-              <div 
-                id="profile-gallery"
-                className="w-full flex gap-3 overflow-x-auto snap-x scrollbar-hide py-1"
-                style={{ scrollBehavior: 'smooth' }}
-              >
-                {links.filter(l => l.size === 'GalleryImage').map((img, idx) => (
-                  <div key={idx} className="aspect-square w-[30%] shrink-0 snap-center rounded-2xl overflow-hidden border border-white/10 shadow-lg relative bg-black/20">
-                    <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
+            {(() => {
+              const galleryImages = links.filter(l => l.size === 'GalleryImage');
+              if (galleryImages.length === 0) return null;
+              
+              const duplicatedGallery = [
+                ...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages,
+                ...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages
+              ];
+
+              return (
+                <div className="w-full mb-8 flex flex-col gap-3 overflow-hidden relative group">
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-1 px-1">Gallery</span>
+                  <style>{`
+                    @keyframes marquee-gallery {
+                      0% { transform: translateX(0); }
+                      100% { transform: translateX(-10%); }
+                    }
+                    .animate-marquee-gallery {
+                      display: flex;
+                      width: max-content;
+                      animation: marquee-gallery 20s linear infinite;
+                    }
+                    .group:hover .animate-marquee-gallery {
+                      animation-play-state: paused;
+                    }
+                  `}</style>
+                  <div className="w-full overflow-hidden">
+                    <div className="animate-marquee-gallery gap-3 py-1 px-1">
+                      {duplicatedGallery.map((img, idx) => (
+                        <div key={idx} className="aspect-square w-[100px] sm:w-[120px] md:w-[140px] shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-lg relative bg-black/20">
+                          <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-            )}
+                </div>
+              );
+            })()}
 
             {profile?.address && (
               <div className="w-full bg-[#141414] border border-[#2a2a2a] p-4 flex items-center gap-4 rounded-xl mb-8">
