@@ -1162,17 +1162,52 @@ END:VCARD`;
                   {links.filter(l => l.size === 'GalleryImage').map((img) => (
                     <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden group border border-white/10">
                       <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
-                      <button
-                        onClick={async () => {
-                          const { error } = await supabase.from('links').delete().eq('id', img.id);
-                          if (!error) {
-                            setLinks(links.filter(l => l.id !== img.id));
-                          }
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/60 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-400" />
-                      </button>
+                      
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                        <label className="w-10 h-10 bg-black/60 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/80 transition-colors">
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setUploading(true);
+                                try {
+                                  const fileExt = file.name.split('.').pop() || 'jpeg';
+                                  const fileName = `${Math.random()}.${fileExt}`;
+                                  const filePath = `gallery/${fileName}`;
+                                  const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                                  if (uploadError) throw uploadError;
+                                  const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                                  
+                                  const { error: dbError } = await supabase.from('links').update({ url: data.publicUrl }).eq('id', img.id);
+                                  if (dbError) throw dbError;
+                                  
+                                  setLinks(links.map(l => l.id === img.id ? { ...l, url: data.publicUrl } : l));
+                                } catch (err: any) {
+                                  alert(err.message);
+                                } finally {
+                                  setUploading(false);
+                                }
+                              }
+                            }}
+                          />
+                          <Upload className="w-4 h-4 text-white" />
+                        </label>
+
+                        <button
+                          onClick={async () => {
+                            const { error } = await supabase.from('links').delete().eq('id', img.id);
+                            if (!error) {
+                              setLinks(links.filter(l => l.id !== img.id));
+                            }
+                          }}
+                          className="w-10 h-10 bg-black/60 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                   <label className="aspect-square rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors gap-2">
