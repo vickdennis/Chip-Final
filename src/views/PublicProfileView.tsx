@@ -497,16 +497,16 @@ END:VCARD`;
                 </div>
               </a>
               {profile?.phone_number && (
-                <a href={`tel:${profile.phone_number}`} className="w-full bg-[#141414] border border-[#2a2a2a] p-3 flex items-center justify-between rounded-xl cursor-pointer hover:border-[#4a4a4a] transition-colors group">
-                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-[#2a2a2a] text-white rounded-lg flex items-center justify-center group-hover:bg-[#3a3a3a] transition-colors" style={{ backgroundColor: enterpriseColor || undefined }}>
-                       <Phone className="w-4 h-4" />
-                     </div>
-                     <div className="flex flex-col overflow-hidden max-w-[140px]">
-                       <span className="font-mono text-[10px] uppercase tracking-wider text-[#a0a0a0] font-bold">Call</span>
-                       <span className="font-sans text-[13px] text-white font-semibold truncate">{profile.phone_number}</span>
-                     </div>
-                   </div>
+                <a href={`https://wa.me/${profile.phone_number.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-white rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors mt-2">
+                  <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
+                    <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
+                      {profile.phone_number}
+                    </span>
+                  </div>
+                  <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
+                    <span className="text-white font-sans text-[16px] font-bold tracking-tight">WhatsApp connect</span>
+                    <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
+                  </div>
                 </a>
               )}
             </div>
@@ -520,7 +520,7 @@ END:VCARD`;
                 style={{ scrollBehavior: 'smooth' }}
               >
                 {links.filter(l => l.size === 'GalleryImage').map((img, idx) => (
-                  <div key={idx} className="min-w-[200px] h-[140px] shrink-0 snap-center rounded-2xl overflow-hidden border border-white/10 shadow-lg relative bg-black/20">
+                  <div key={idx} className="aspect-square w-[30%] shrink-0 snap-center rounded-2xl overflow-hidden border border-white/10 shadow-lg relative bg-black/20">
                     <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
                   </div>
                 ))}

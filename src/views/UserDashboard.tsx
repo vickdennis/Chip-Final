@@ -1158,9 +1158,9 @@ END:VCARD`;
               </div>
               <div className="p-6 flex flex-col gap-6">
                 <p className="text-white/60 text-[14px]">Upload images to display in your public profile's gallery section.</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
                   {links.filter(l => l.size === 'GalleryImage').map((img) => (
-                    <div key={img.id} className="relative aspect-[4/3] rounded-xl overflow-hidden group border border-white/10">
+                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden group border border-white/10">
                       <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
                       <button
                         onClick={async () => {
@@ -1175,7 +1175,7 @@ END:VCARD`;
                       </button>
                     </div>
                   ))}
-                  <label className="aspect-[4/3] rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors gap-2">
+                  <label className="aspect-square rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors gap-2">
                     <input 
                       type="file" 
                       className="hidden" 
