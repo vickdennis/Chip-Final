@@ -100,7 +100,7 @@ export default function BlogDirectoryView({
       </Helmet>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-[#eaeaeb] dark:border-[#333]">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-white dark:bg-black/80 backdrop-blur-md border-b border-[#eaeaeb] dark:border-[#333]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center">
             <button
@@ -155,7 +155,7 @@ export default function BlogDirectoryView({
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-gray-300 dark:border-gray-800 rounded-xl">
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No posts yet</h3>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-black dark:text-white mb-2">No posts yet</h3>
             <p className="text-gray-500">Check back later for new content.</p>
           </div>
         ) : (
@@ -202,7 +202,7 @@ export default function BlogDirectoryView({
                   {post.excerpt}
                 </p>
 
-                <div className="mt-auto flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <div className="mt-auto flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   Read Article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </article>
@@ -216,15 +216,15 @@ export default function BlogDirectoryView({
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-2xl disabled:opacity-50 font-bold text-sm hover:bg-black/5"
+              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl disabled:opacity-50 font-bold text-sm hover:bg-white dark:bg-black/5"
             >
               Previous
             </button>
-            <span className="text-sm font-bold mx-4 text-white/40">Page {currentPage} of {totalPages}</span>
+            <span className="text-sm font-bold mx-4 text-black/40 dark:text-white/40">Page {currentPage} of {totalPages}</span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-2xl disabled:opacity-50 font-bold text-sm hover:bg-black/5"
+              className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl disabled:opacity-50 font-bold text-sm hover:bg-white dark:bg-black/5"
             >
               Next
             </button>

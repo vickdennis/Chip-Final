@@ -55,7 +55,7 @@ const ContactButton = ({ onClick }: { onClick?: () => void }) => (
       outline: '2px solid white',
       outlineOffset: '-3px'
     }}
-    className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-[11px] sm:text-[12px] md:text-sm font-semibold uppercase tracking-widest text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+    className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-[11px] sm:text-[12px] md:text-sm font-semibold uppercase tracking-widest text-black dark:text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
   >
     Signup
   </button>
@@ -65,7 +65,7 @@ const ContactButton = ({ onClick }: { onClick?: () => void }) => (
 const LiveProjectButton = ({ onClick, label = "Live Project" }: { onClick?: () => void, label?: string }) => (
   <button 
     onClick={onClick}
-    className="rounded-full border-2 border-[#D7E2EA] text-[#D7E2EA] bg-transparent hover:bg-[#D7E2EA]/10 transition-colors px-8 py-3 sm:px-10 sm:py-3.5 text-xs sm:text-sm md:text-base font-medium uppercase tracking-widest cursor-pointer"
+    className="rounded-full border-2 border-black dark:border-[#D7E2EA] text-black dark:text-[#D7E2EA] bg-transparent hover:bg-black/10 dark:hover:bg-[#D7E2EA]/10 transition-colors px-8 py-3 sm:px-10 sm:py-3.5 text-xs sm:text-sm md:text-base font-medium uppercase tracking-widest cursor-pointer"
   >
     {label}
   </button>
@@ -228,7 +228,7 @@ const MarqueeSection = () => {
   const tripledRow2 = [...row2Images, ...row2Images, ...row2Images];
 
   return (
-    <div ref={sectionRef} className="bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden relative z-10 select-none">
+    <div ref={sectionRef} className="bg-white dark:bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden relative z-10 select-none">
       {/* Row 1: moves RIGHT on scroll */}
       <div className="mb-3">
         <div 
@@ -250,8 +250,8 @@ const MarqueeSection = () => {
                   e.currentTarget.src = `https://placehold.co/420x270/222/white?text=CHIP+NG+Portfolio+${(i % 11) + 1}`;
                 }}
               />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                <p className="font-mono text-[10px] tracking-widest text-white uppercase">PREMIUM PROFILE TEMPLATE</p>
+              <div className="absolute inset-0 bg-white dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                <p className="font-mono text-[10px] tracking-widest text-black dark:text-white uppercase">PREMIUM PROFILE TEMPLATE</p>
               </div>
             </div>
           ))}
@@ -279,8 +279,8 @@ const MarqueeSection = () => {
                   e.currentTarget.src = `https://placehold.co/420x270/222/white?text=NFC+Showcase+${(i % 10) + 1}`;
                 }}
               />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                <p className="font-mono text-[10px] tracking-widest text-white uppercase">NFC CHIP INTERFACE</p>
+              <div className="absolute inset-0 bg-white dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                <p className="font-mono text-[10px] tracking-widest text-black dark:text-white uppercase">NFC CHIP INTERFACE</p>
               </div>
             </div>
           ))}
@@ -312,7 +312,7 @@ const BrandSlideshow = () => {
   const doubleImages = [...images, ...images, ...images];
 
   return (
-    <div className="w-screen relative left-1/2 right-1/2 -translate-x-1/2 overflow-hidden py-12 bg-black/40 border-y border-white/5 backdrop-blur-md">
+    <div className="w-screen relative left-1/2 right-1/2 -translate-x-1/2 overflow-hidden py-12 bg-white dark:bg-black/40 border-y border-black/5 dark:border-white/5 backdrop-blur-md">
       <style>{`
         @keyframes marquee-scroll-left {
           0% {
@@ -330,8 +330,8 @@ const BrandSlideshow = () => {
       `}</style>
 
       {/* Dark premium edge overlay shading for perfect theatrical fading */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-[#0C0C0C] via-[#0C0C0C]/80 to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-[#0C0C0C] via-[#0C0C0C]/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-white dark:from-[#0C0C0C] via-white/80 dark:via-[#0C0C0C]/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-white dark:from-[#0C0C0C] via-white/80 dark:via-[#0C0C0C]/80 to-transparent z-10 pointer-events-none" />
 
       {/* Scrolling Content Track */}
       <div className="w-full overflow-hidden">
@@ -339,7 +339,7 @@ const BrandSlideshow = () => {
           {doubleImages.map((img, idx) => (
             <div 
               key={idx}
-              className="w-[260px] sm:w-[310px] shrink-0 bg-gradient-to-b from-[#141417] to-[#0A0A0B] border border-white/10 rounded-[24px] p-5 flex flex-col gap-5 shadow-2xl hover:border-[#B600A8]/60 hover:shadow-[0_0_25px_rgba(182,0,168,0.2)] transition-all duration-300 group relative overflow-hidden"
+              className="w-[260px] sm:w-[310px] shrink-0 bg-gradient-to-b from-[#141417] to-[#0A0A0B] border border-black/10 dark:border-white/10 rounded-[24px] p-5 flex flex-col gap-5 shadow-2xl hover:border-[#B600A8]/60 hover:shadow-[0_0_25px_rgba(182,0,168,0.2)] transition-all duration-300 group relative overflow-hidden"
             >
               {/* Internal neon ambient light glow on card hover */}
               <div className="absolute -inset-10 bg-[radial-gradient(circle_at_center,rgba(182,0,168,0.08)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none blur-xl" />
@@ -349,16 +349,16 @@ const BrandSlideshow = () => {
                 <span className="font-mono text-[9px] text-[#B600A8] uppercase tracking-[0.2em] font-bold">
                   PROJECT ASSET
                 </span>
-                <h4 className="font-sans font-black text-sm sm:text-base text-white uppercase tracking-tight group-hover:text-[#B600A8] transition-colors duration-300">
+                <h4 className="font-sans font-black text-sm sm:text-base text-black dark:text-white uppercase tracking-tight group-hover:text-[#B600A8] transition-colors duration-300">
                   {img.title}
                 </h4>
-                <p className="font-sans text-[11px] sm:text-xs text-white/50 leading-relaxed mt-0.5">
+                <p className="font-sans text-[11px] sm:text-xs text-black/50 dark:text-white/50 leading-relaxed mt-0.5">
                   {img.desc}
                 </p>
               </div>
 
               {/* Bold high-contrast Logo Container (BELOW the name) */}
-              <div className="h-[150px] sm:h-[185px] w-full bg-black/70 rounded-2xl flex items-center justify-center p-5 border border-white/5 relative overflow-hidden group-hover:bg-black/90 transition-colors duration-300">
+              <div className="h-[150px] sm:h-[185px] w-full bg-white dark:bg-black/70 rounded-2xl flex items-center justify-center p-5 border border-black/5 dark:border-white/5 relative overflow-hidden group-hover:bg-white dark:bg-black/90 transition-colors duration-300">
                 <img
                   src={img.url}
                   alt={img.title}
@@ -447,56 +447,56 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
   ];
 
   return (
-    <div className="bg-[#0C0C0C] min-h-screen text-[#D7E2EA] font-sans overflow-x-clip relative">
+    <div className="bg-white dark:bg-[#0C0C0C] min-h-screen text-black dark:text-[#D7E2EA] font-sans overflow-x-clip relative">
       
       {/* 1. HERO SECTION */}
       <section className="min-h-screen lg:h-screen flex flex-col justify-between overflow-hidden relative z-20 px-6 md:px-10 pb-10">
         
         {/* Navbar */}
         <FadeIn y={-20} delay={0} className="w-full flex justify-between items-center pt-6 md:pt-8">
-          <span className="font-sans font-black tracking-tighter text-lg md:text-2xl text-white uppercase">
+          <span className="font-sans font-black tracking-tighter text-lg md:text-2xl text-black dark:text-white uppercase">
             CHIP NG
           </span>
           <div className="flex gap-6 sm:gap-10 items-center justify-end">
             <button 
               onClick={() => scrollToSection(aboutRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
             >
               Why Us
             </button>
             <button 
               onClick={() => onNavigate('blog-directory')}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
               Blog
             </button>
             <button 
               onClick={() => scrollToSection(shopRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
               Price
             </button>
             <button 
               onClick={() => scrollToSection(projectsRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
             >
               Projects
             </button>
             <button 
               onClick={() => scrollToSection(testimonialsRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden lg:block"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden lg:block"
             >
               Testimonials
             </button>
             <button 
               onClick={() => scrollToSection(faqRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
               FAQ
             </button>
             <button 
               onClick={() => onNavigate('login')}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer border border-white/20"
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer border border-white/20"
             >
               Login
             </button>
@@ -528,7 +528,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
         <div className="w-full flex justify-between items-end gap-4 relative z-20 pb-4 sm:pb-6 md:pb-10">
           
           <FadeIn y={20} delay={0.35} className="flex-1 max-w-[160px] sm:max-w-[220px] md:max-w-[260px]">
-            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-left text-[11px] sm:text-xs md:text-sm lg:text-base">
+            <p className="text-black dark:text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-left text-[11px] sm:text-xs md:text-sm lg:text-base">
               a 3d business card known for creating unforgettable connections
             </p>
           </FadeIn>
@@ -542,7 +542,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* 3. ABOUT SECTION */}
-      <section ref={aboutRef} className="min-h-screen flex flex-col justify-center items-center relative py-20 px-5 sm:px-8 md:px-10 overflow-hidden bg-[#0C0C0C]">
+      <section ref={aboutRef} className="min-h-screen flex flex-col justify-center items-center relative py-20 px-5 sm:px-8 md:px-10 overflow-hidden bg-white dark:bg-[#0C0C0C]">
         
         {/* Absolute 3D Corner Decor Items */}
         {/* Top-Left Moon */}
@@ -601,7 +601,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           <div className="flex flex-col items-center gap-16 sm:gap-20 md:gap-24 w-full">
             <AnimatedText 
               text="Your first impression is everything. A Link in Bio serves as your 24/7 digital hub, aggregating all your portfolios, services, socials, and contact touchpoints into one seamless, high-converting destination. Paired with a tactile NFC business card, you can instantly share this entire interactive experience directly to anyone's phone with a simple physical tap. No paper waste, no friction—just unforgettable, high-impact connections."
-              className="text-[#D7E2EA] font-medium text-center leading-relaxed text-base sm:text-lg md:text-xl lg:text-2xl max-w-3xl"
+              className="text-black dark:text-[#D7E2EA] font-medium text-center leading-relaxed text-base sm:text-lg md:text-xl lg:text-2xl max-w-3xl"
             />
 
             <FadeIn y={20} delay={0.1}>
@@ -678,28 +678,28 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* REALTIME ANALYTICS SHOWCASE SECTION */}
-      <section className="bg-neutral-950 text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-white/5">
+      <section className="bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
         <NigeriaAnalyticsShowcase />
       </section>
 
       {/* DIGITAL PRODUCT STOREFRONT SHOWCASE SECTION */}
-      <section className="bg-black text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-white/5">
+      <section className="bg-white dark:bg-black text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
         <DigitalStorefrontShowcase />
       </section>
 
       {/* BRANDING SHOP & NFC CARDS SECTION (Price Navbar anchor) */}
-      <section ref={shopRef} className="bg-neutral-950 text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-white/5">
+      <section ref={shopRef} className="bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
         
         <div className="max-w-5xl mx-auto w-full">
           <div className="text-center mb-16 flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 px-4 py-1.5 rounded-full mb-4">
               <ShoppingBag className="w-4 h-4 text-[#B600A8]" />
-              <span className="font-mono text-xs tracking-widest text-white/80 uppercase">CHIP NG STORE</span>
+              <span className="font-mono text-xs tracking-widest text-black/80 dark:text-white/80 uppercase">CHIP NG STORE</span>
             </div>
             <h2 className="hero-heading font-sans font-black uppercase text-3xl sm:text-5xl md:text-7xl lg:text-8xl tracking-tight mb-4">
               NFC Business Cards
             </h2>
-            <p className="font-sans text-sm sm:text-base md:text-lg text-white/60 max-w-2xl leading-relaxed">
+            <p className="font-sans text-sm sm:text-base md:text-lg text-black/60 dark:text-white/60 max-w-2xl leading-relaxed">
               Unlock the next level of networking. Purchase physical smart cards loaded with beautiful 3D digital profiles. Simply tap to share your world.
             </p>
           </div>
@@ -712,28 +712,28 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                   key={p.id} 
                   y={30} 
                   delay={idx * 0.15}
-                  className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-[#B600A8] transition-all group p-4"
+                  className="bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-[#B600A8] transition-all group p-4"
                 >
-                  <div className="aspect-square bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-white/5">
+                  <div className="aspect-square bg-black/5 dark:bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-black/5 dark:border-white/5">
                     {p.image_url ? (
                       <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-white/20">
+                      <div className="absolute inset-0 flex items-center justify-center text-black/20 dark:text-white/20">
                         <CreditCard className="w-12 h-12 stroke-[1.5]" />
                       </div>
                     )}
                     {/* Badge */}
-                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-white/10">
+                    <div className="absolute top-2 right-2 bg-white dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10">
                       INSTANT SETUP
                     </div>
                   </div>
                   
                   <div className="flex flex-col flex-grow">
-                    <h3 className="font-sans font-bold text-base text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
-                    <p className="text-xs text-white/50 mb-4 flex-grow line-clamp-2">{p.description}</p>
+                    <h3 className="font-sans font-bold text-base text-black dark:text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
+                    <p className="text-xs text-black/50 dark:text-white/50 mb-4 flex-grow line-clamp-2">{p.description}</p>
                     
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
-                      <span className="font-mono font-bold text-lg text-white">₦{Number(p.price).toLocaleString()}</span>
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-black/5 dark:border-white/5">
+                      <span className="font-mono font-bold text-lg text-black dark:text-white">₦{Number(p.price).toLocaleString()}</span>
                       <button 
                         onClick={() => {
                           setCart(prev => {
@@ -764,21 +764,21 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                   key={p.id} 
                   y={30} 
                   delay={idx * 0.1}
-                  className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-[#B600A8] transition-all group p-4"
+                  className="bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-[#B600A8] transition-all group p-4"
                 >
-                  <div className="aspect-square bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-white/5 flex items-center justify-center">
+                  <div className="aspect-square bg-black/5 dark:bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-black/5 dark:border-white/5 flex items-center justify-center">
                     <CreditCard className="w-12 h-12 text-[#B600A8] stroke-[1.5] group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-white/10">
+                    <div className="absolute top-2 right-2 bg-white dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10">
                       NFC ENABLED
                     </div>
                   </div>
                   
                   <div className="flex flex-col flex-grow">
-                    <h3 className="font-sans font-bold text-base text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
-                    <p className="text-xs text-white/50 mb-4 flex-grow line-clamp-2">{p.desc}</p>
+                    <h3 className="font-sans font-bold text-base text-black dark:text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
+                    <p className="text-xs text-black/50 dark:text-white/50 mb-4 flex-grow line-clamp-2">{p.desc}</p>
                     
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
-                      <span className="font-mono font-bold text-base text-white">₦{p.price.toLocaleString()}</span>
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-black/5 dark:border-white/5">
+                      <span className="font-mono font-bold text-base text-black dark:text-white">₦{p.price.toLocaleString()}</span>
                       <button 
                         onClick={() => {
                           setCart(prev => {
@@ -790,7 +790,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                             return [...prev, p];
                           });
                         }} 
-                        className="bg-white hover:bg-[#B600A8] hover:text-white text-black px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer"
+                        className="bg-white hover:bg-[#B600A8] hover:text-black dark:text-white text-black px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer"
                       >
                         Add to Cart
                       </button>
@@ -804,38 +804,38 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           {/* Pricing tiers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Free Tier */}
-            <FadeIn y={30} delay={0.1} className="border border-white/10 bg-black/40 p-8 rounded-3xl flex flex-col hover:border-white/20 transition-all">
-              <h3 className="font-mono text-[12px] font-bold text-white/50 uppercase tracking-widest mb-4">BASIC DIGITAL HUB</h3>
+            <FadeIn y={30} delay={0.1} className="border border-black/10 dark:border-white/10 bg-white dark:bg-black/40 p-8 rounded-3xl flex flex-col hover:border-white/20 transition-all">
+              <h3 className="font-mono text-[12px] font-bold text-black/50 dark:text-white/50 uppercase tracking-widest mb-4">BASIC DIGITAL HUB</h3>
               <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-sans text-[48px] font-black text-white leading-none">Free</span>
+                <span className="font-sans text-[48px] font-black text-black dark:text-white leading-none">Free</span>
               </div>
-              <p className="text-sm text-white/60 mb-8">Establish your professional digital home on CHIP NG instantly.</p>
+              <p className="text-sm text-black/60 dark:text-white/60 mb-8">Establish your professional digital home on CHIP NG instantly.</p>
               <ul className="flex flex-col gap-4 mb-8 flex-grow text-sm">
-                <li className="flex items-center gap-3 text-white/80">
-                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                <li className="flex items-center gap-3 text-black/80 dark:text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
                   Unlimited social bio links
                 </li>
-                <li className="flex items-center gap-3 text-white/80">
-                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                <li className="flex items-center gap-3 text-black/80 dark:text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
                   Custom chipng.com/username bio path
                 </li>
-                <li className="flex items-center gap-3 text-white/80">
-                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
+                <li className="flex items-center gap-3 text-black/80 dark:text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-white"></div></div>
                   Basic profile hit analytics
                 </li>
               </ul>
-              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-white/5 text-white hover:bg-white hover:text-black transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
+              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-black/5 dark:bg-white/5 text-black dark:text-white hover:bg-white hover:text-black transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
                 Get Free Account
               </button>
             </FadeIn>
 
             {/* Pro Tier */}
-            <FadeIn y={30} delay={0.2} className="border-2 border-[#B600A8] bg-black p-8 rounded-3xl flex flex-col relative overflow-hidden shadow-[0_0_50px_rgba(182,0,168,0.15)]">
-              <div className="absolute top-0 right-0 bg-[#B600A8] text-white font-mono text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-bl-xl">POPULAR</div>
+            <FadeIn y={30} delay={0.2} className="border-2 border-[#B600A8] bg-white dark:bg-black p-8 rounded-3xl flex flex-col relative overflow-hidden shadow-[0_0_50px_rgba(182,0,168,0.15)]">
+              <div className="absolute top-0 right-0 bg-[#B600A8] text-black dark:text-white font-mono text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-bl-xl">POPULAR</div>
               <h3 className="font-mono text-[12px] font-bold text-[#B600A8] uppercase tracking-widest mb-4">PRO MEMBERSHIP</h3>
               <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-sans text-[48px] font-black text-white leading-none">₦5,000</span>
-                <span className="text-xs text-white/50">/ month</span>
+                <span className="font-sans text-[48px] font-black text-black dark:text-white leading-none">₦5,000</span>
+                <span className="text-xs text-black/50 dark:text-white/50">/ month</span>
               </div>
               <p className="text-sm text-white/70 mb-8">Unlock exclusive verified checkmark, custom 3D themes, and digital store.</p>
               <ul className="flex flex-col gap-4 mb-8 flex-grow text-sm">
@@ -856,7 +856,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                   Deep real-time geographic hits analysis
                 </li>
               </ul>
-              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#B600A8] text-white hover:bg-[#a10095] transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
+              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#B600A8] text-black dark:text-white hover:bg-[#a10095] transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
                 Go Pro Now
               </button>
             </FadeIn>
@@ -866,7 +866,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* 5. PROJECTS SECTION */}
-      <section ref={projectsRef} className="bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 relative z-40">
+      <section ref={projectsRef} className="bg-white dark:bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 relative z-40">
         
         <div className="max-w-5xl mx-auto w-full mb-16">
           <h2 className="hero-heading font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl lg:text-[140px] xl:text-[160px] tracking-tight leading-none">
@@ -882,19 +882,19 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* 6. TESTIMONIALS SECTION */}
-      <section ref={testimonialsRef} className="bg-[#0C0C0C] text-white px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-40 border-t border-white/5 overflow-hidden">
+      <section ref={testimonialsRef} className="bg-white dark:bg-[#0C0C0C] text-black dark:text-white px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-40 border-t border-black/5 dark:border-white/5 overflow-hidden">
         <div className="max-w-6xl mx-auto w-full">
           <div className="text-center mb-16 md:mb-24">
             <h2 className="hero-heading font-sans font-black uppercase text-4xl sm:text-6xl md:text-8xl tracking-tight mb-6">
               Wall of Love
             </h2>
-            <p className="font-sans text-lg md:text-xl text-white/60 max-w-2xl mx-auto">
+            <p className="font-sans text-lg md:text-xl text-black/60 dark:text-white/60 max-w-2xl mx-auto">
               See what Africa's top creators, founders, and professionals are saying about CHIP NG.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <FadeIn y={30} delay={0.1} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group">
+            <FadeIn y={30} delay={0.1} className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group">
               <div className="absolute top-8 right-8 text-[#B600A8]/30 group-hover:text-[#B600A8]/60 transition-colors">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -903,19 +903,19 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               <div className="flex gap-1 text-[#B600A8] mb-6">
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
               </div>
-              <p className="font-sans text-lg text-white/80 leading-relaxed mb-8 flex-grow">
+              <p className="font-sans text-lg text-black/80 dark:text-white/80 leading-relaxed mb-8 flex-grow">
                 "CHIP NG completely transformed how I network at conferences. No more fumbling with paper cards—just a quick tap and they have my full portfolio and contact info."
               </p>
               <div className="flex items-center gap-4">
                 <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DAdebayo%26backgroundColor%3Db600a8&w=128&q=85" alt="Adebayo J." className="w-12 h-12 rounded-full border border-white/20" />
                 <div>
-                  <h4 className="font-sans font-bold text-white">Adebayo J.</h4>
-                  <p className="font-mono text-xs text-white/50 uppercase tracking-wider">Software Engineer</p>
+                  <h4 className="font-sans font-bold text-black dark:text-white">Adebayo J.</h4>
+                  <p className="font-mono text-xs text-black/50 dark:text-white/50 uppercase tracking-wider">Software Engineer</p>
                 </div>
               </div>
             </FadeIn>
 
-            <FadeIn y={30} delay={0.2} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group">
+            <FadeIn y={30} delay={0.2} className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group">
               <div className="absolute top-8 right-8 text-[#B600A8]/30 group-hover:text-[#B600A8]/60 transition-colors">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -924,19 +924,19 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               <div className="flex gap-1 text-[#B600A8] mb-6">
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
               </div>
-              <p className="font-sans text-lg text-white/80 leading-relaxed mb-8 flex-grow">
+              <p className="font-sans text-lg text-black/80 dark:text-white/80 leading-relaxed mb-8 flex-grow">
                 "As a designer, aesthetics matter. The physical NFC card is incredibly sleek, and my digital profile looks stunning on any device. It's the ultimate professional flex."
               </p>
               <div className="flex items-center gap-4">
                 <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DChioma%26backgroundColor%3Dffffff&w=128&q=85" alt="Chioma N." className="w-12 h-12 rounded-full border border-white/20" />
                 <div>
-                  <h4 className="font-sans font-bold text-white">Chioma N.</h4>
-                  <p className="font-mono text-xs text-white/50 uppercase tracking-wider">Creative Director</p>
+                  <h4 className="font-sans font-bold text-black dark:text-white">Chioma N.</h4>
+                  <p className="font-mono text-xs text-black/50 dark:text-white/50 uppercase tracking-wider">Creative Director</p>
                 </div>
               </div>
             </FadeIn>
 
-            <FadeIn y={30} delay={0.3} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group lg:col-span-1 md:col-span-2">
+            <FadeIn y={30} delay={0.3} className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl p-8 hover:border-[#B600A8]/50 transition-colors duration-300 flex flex-col h-full relative group lg:col-span-1 md:col-span-2">
               <div className="absolute top-8 right-8 text-[#B600A8]/30 group-hover:text-[#B600A8]/60 transition-colors">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -945,14 +945,14 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               <div className="flex gap-1 text-[#B600A8] mb-6">
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
               </div>
-              <p className="font-sans text-lg text-white/80 leading-relaxed mb-8 flex-grow">
+              <p className="font-sans text-lg text-black/80 dark:text-white/80 leading-relaxed mb-8 flex-grow">
                 "The analytics feature is a game changer. I can see exactly where and when my profile was viewed after pitching to investors. Highly recommend for any founder."
               </p>
               <div className="flex items-center gap-4">
                 <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DEmeka%26backgroundColor%3Dffdfbf&w=128&q=85" alt="Emeka O." className="w-12 h-12 rounded-full border border-white/20" />
                 <div>
-                  <h4 className="font-sans font-bold text-white">Emeka O.</h4>
-                  <p className="font-mono text-xs text-white/50 uppercase tracking-wider">Startup Founder</p>
+                  <h4 className="font-sans font-bold text-black dark:text-white">Emeka O.</h4>
+                  <p className="font-mono text-xs text-black/50 dark:text-white/50 uppercase tracking-wider">Startup Founder</p>
                 </div>
               </div>
             </FadeIn>
@@ -961,48 +961,48 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* 7. FAQ SECTION */}
-      <section ref={faqRef} className="bg-black text-white px-5 sm:px-8 md:px-10 py-24 relative z-40 border-t border-white/5">
+      <section ref={faqRef} className="bg-white dark:bg-black text-black dark:text-white px-5 sm:px-8 md:px-10 py-24 relative z-40 border-t border-black/5 dark:border-white/5">
         <div className="max-w-4xl mx-auto w-full">
           <h2 className="hero-heading font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl tracking-tight mb-16">
             FAQ
           </h2>
           <div className="flex flex-col gap-6" itemScope itemType="https://schema.org/FAQPage">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">What is CHIP NG?</h3>
+            <div className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-black dark:text-white" itemProp="name">What is CHIP NG?</h3>
               <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                <p className="font-sans text-sm md:text-base text-black/60 dark:text-white/60 leading-relaxed" itemProp="text">
                   CHIP NG provides NFC-enabled smart business cards connected to a beautiful, customizable digital profile link-in-bio, allowing you to seamlessly share your contact info, social links, and portfolio with a simple tap.
                 </p>
               </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">How does the NFC card work?</h3>
+            <div className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-black dark:text-white" itemProp="name">How does the NFC card work?</h3>
               <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                <p className="font-sans text-sm md:text-base text-black/60 dark:text-white/60 leading-relaxed" itemProp="text">
                   Just tap your CHIP NG card against any modern smartphone. The NFC (Near Field Communication) technology instantly prompts the phone to open your unique CHIP NG digital profile—no app required.
                 </p>
               </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">Do I need an app to use it?</h3>
+            <div className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-black dark:text-white" itemProp="name">Do I need an app to use it?</h3>
               <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                <p className="font-sans text-sm md:text-base text-black/60 dark:text-white/60 leading-relaxed" itemProp="text">
                   No! CHIP NG works right out of the box. Anyone with a smartphone can read your card and view your digital profile in their mobile web browser.
                 </p>
               </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">Can I update my info after purchasing?</h3>
+            <div className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-black dark:text-white" itemProp="name">Can I update my info after purchasing?</h3>
               <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                <p className="font-sans text-sm md:text-base text-black/60 dark:text-white/60 leading-relaxed" itemProp="text">
                   Yes, your physical NFC card is linked to your dynamic CHIP NG profile. You can update your links, bio, and contact information at any time from your dashboard, and the card will automatically point to the updated info.
                 </p>
               </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-white" itemProp="name">Is there a subscription fee?</h3>
+            <div className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 md:p-8 hover:border-[#B600A8] transition-colors duration-300" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <h3 className="font-sans font-bold text-xl md:text-2xl mb-3 text-black dark:text-white" itemProp="name">Is there a subscription fee?</h3>
               <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                <p className="font-sans text-sm md:text-base text-white/60 leading-relaxed" itemProp="text">
+                <p className="font-sans text-sm md:text-base text-black/60 dark:text-white/60 leading-relaxed" itemProp="text">
                   We offer a generous free tier that includes unlimited links and standard profile features. We also offer Pro and Enterprise plans with advanced analytics, custom branding, and premium themes.
                 </p>
               </div>
@@ -1012,26 +1012,26 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* Bottom Footer Section */}
-      <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-black border-t border-white/5 relative z-50">
+      <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-white dark:bg-black border-t border-black/5 dark:border-white/5 relative z-50">
         <div className="mb-6 md:mb-0 text-center md:text-left">
-          <span className="font-sans text-[20px] font-black text-white block mb-1 tracking-tight">CHIP NG</span>
-          <p className="text-[14px] text-white/50 mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
-          <div className="flex items-center justify-center md:justify-start gap-4 text-white/50">
-            <a href="tel:08100764154" className="flex items-center gap-1.5 hover:text-white transition-colors">
+          <span className="font-sans text-[20px] font-black text-black dark:text-white block mb-1 tracking-tight">CHIP NG</span>
+          <p className="text-[14px] text-black/50 dark:text-white/50 mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
+          <div className="flex items-center justify-center md:justify-start gap-4 text-black/50 dark:text-white/50">
+            <a href="tel:08100764154" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
               <Phone className="w-4 h-4" />
               <span className="text-[14px] font-medium font-mono">08100764154</span>
             </a>
-            <a href="https://tiktok.com/@chipng_app" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-white transition-colors">
+            <a href="https://tiktok.com/@chipng_app" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
               <span className="text-[14px] font-medium font-mono">@chipng_app</span>
             </a>
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
-          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Privacy Policy</a>
-          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Terms of Service</a>
-          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Security</a>
-          <a href="#" className="text-[14px] text-white/50 hover:text-white font-medium transition-colors">Help Center</a>
+          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Privacy Policy</a>
+          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Terms of Service</a>
+          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Security</a>
+          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Help Center</a>
         </div>
       </footer>
 
@@ -1046,7 +1046,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
             className="fixed bottom-6 right-6 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center cursor-pointer border border-neutral-800"
           >
             <ShoppingCart className="w-6 h-6 text-black" />
-            <span className="absolute -top-2 -right-2 bg-[#B600A8] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-pulse">
+            <span className="absolute -top-2 -right-2 bg-[#B600A8] text-black dark:text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-pulse">
               {cart.length}
             </span>
           </motion.button>
@@ -1056,28 +1056,28 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       {/* Paystack Checkout Modal */}
       <AnimatePresence>
         {isCheckoutModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white dark:bg-black/80 backdrop-blur-sm">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-[#111] border border-white/10 w-full max-w-md rounded-2xl overflow-hidden relative text-left"
+              className="bg-[#111] border border-black/10 dark:border-white/10 w-full max-w-md rounded-2xl overflow-hidden relative text-left"
             >
-              <div className="flex justify-between items-center p-4 border-b border-white/10">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="flex justify-between items-center p-4 border-b border-black/10 dark:border-white/10">
+                <h3 className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-[#B600A8]"/> Checkout
                 </h3>
-                <button onClick={() => setIsCheckoutModalOpen(false)} className="text-white/50 hover:text-white cursor-pointer transition-colors">
+                <button onClick={() => setIsCheckoutModalOpen(false)} className="text-black/50 dark:text-white/50 hover:text-black dark:text-white cursor-pointer transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
                   {cart.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/5">
+                    <div key={idx} className="flex justify-between items-center bg-black/5 dark:bg-white/5 p-3 rounded-lg border border-black/5 dark:border-white/5">
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-white">{item.name}</span>
-                        <span className="text-xs text-white/50">₦{Number(item.price).toLocaleString()}</span>
+                        <span className="text-sm font-semibold text-black dark:text-white">{item.name}</span>
+                        <span className="text-xs text-black/50 dark:text-white/50">₦{Number(item.price).toLocaleString()}</span>
                       </div>
                       <button 
                         onClick={() => setCart(cart.filter((_, i) => i !== idx))} 
@@ -1088,8 +1088,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between items-center py-2 border-t border-b border-white/10">
-                  <span className="font-bold text-white uppercase text-sm">Total</span>
+                <div className="flex justify-between items-center py-2 border-t border-b border-black/10 dark:border-white/10">
+                  <span className="font-bold text-black dark:text-white uppercase text-sm">Total</span>
                   <span className="font-bold text-[#B600A8] font-mono text-lg">
                     ₦{cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}
                   </span>
@@ -1100,14 +1100,14 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                     placeholder="Your Full Name" 
                     value={checkoutName}
                     onChange={(e) => setCheckoutName(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-[#B600A8] transition-colors"
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-3 text-black dark:text-white text-sm focus:outline-none focus:border-[#B600A8] transition-colors"
                   />
                   <input 
                     type="text" 
                     placeholder="Your Phone Number" 
                     value={checkoutPhone}
                     onChange={(e) => setCheckoutPhone(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-[#B600A8] transition-colors"
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-3 text-black dark:text-white text-sm focus:outline-none focus:border-[#B600A8] transition-colors"
                   />
                 </div>
                 
@@ -1151,7 +1151,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                     }
                   }}
                   onClose={() => {}}
-                  className="w-full bg-[#B600A8] hover:bg-[#a10095] text-white transition-colors font-mono text-[14px] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
+                  className="w-full bg-[#B600A8] hover:bg-[#a10095] text-black dark:text-white transition-colors font-mono text-[14px] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
                   disabled={!checkoutName || !checkoutPhone || cart.length === 0}
                 />
               </div>

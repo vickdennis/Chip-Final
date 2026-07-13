@@ -95,7 +95,7 @@ export default function BlogArticleView({
         <p className="text-gray-500 mb-6">The article you're looking for doesn't exist or has been removed.</p>
         <button 
           onClick={() => onNavigate('blog-directory')}
-          className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-full font-medium"
+          className="bg-white dark:bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-full font-medium"
         >
           Return to Blog
         </button>
@@ -190,7 +190,7 @@ export default function BlogArticleView({
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <button
             onClick={() => onNavigate('blog-directory')}
-            className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+            className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-black dark:text-white transition-colors"
           >
             <ChevronLeft className="w-4 h-4" /> Back to Blog
           </button>

@@ -43,14 +43,19 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Global overrides for Kanit and #0C0C0C */
+/* Global overrides for Kanit */
 html, body, #root {
-  background-color: #0C0C0C;
-  color: #D7E2EA;
+  background-color: #f9f9f9;
+  color: #1a1c1c;
   font-family: 'Kanit', sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+.dark, .dark body, .dark #root {
+  background-color: #0C0C0C;
+  color: #D7E2EA;
 }
 
 *, *::before, *::after {

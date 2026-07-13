@@ -160,14 +160,14 @@ export default function AdminBlogManager() {
 
   if (creatingPost || editingPost) {
     return (
-      <div className="bg-[#f9f9f9] dark:bg-black min-h-screen text-white pb-20">
+      <div className="bg-[#f9f9f9] dark:bg-black min-h-screen text-black dark:text-white pb-20">
         <div className="max-w-4xl mx-auto pt-6 px-4">
           <div className="flex items-center justify-between mb-6">
-            <button onClick={() => { setCreatingPost(false); setEditingPost(null); }} className="flex items-center text-white/40 hover:text-black dark:hover:text-white">
+            <button onClick={() => { setCreatingPost(false); setEditingPost(null); }} className="flex items-center text-black/40 dark:text-white/40 hover:text-black dark:hover:text-black dark:text-white">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Posts
             </button>
             <div className="flex gap-3">
-              <button onClick={() => savePost(false)} className="px-4 py-2 border border-white/10 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center">
+              <button onClick={() => savePost(false)} className="px-4 py-2 border border-black/10 dark:border-white/10 rounded-2xl hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 flex items-center">
                 <Save className="w-4 h-4 mr-2" /> Save Draft
               </button>
               <button onClick={() => savePost(true)} className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:opacity-90 flex items-center">
@@ -187,22 +187,22 @@ export default function AdminBlogManager() {
             <input 
               type="text" 
               placeholder="Slug (e.g., my-awesome-post)" 
-              className="w-full font-mono text-sm bg-transparent border-none outline-none text-white/40"
+              className="w-full font-mono text-sm bg-transparent border-none outline-none text-black/40 dark:text-white/40"
               value={postForm.slug}
               onChange={(e) => setPostForm({...postForm, slug: e.target.value})}
             />
 
-            <div className="border border-white/10 rounded-2xl p-4 bg-black/40 backdrop-blur-xl">
+            <div className="border border-black/10 dark:border-white/10 rounded-2xl p-4 bg-white/40 dark:bg-black/40 backdrop-blur-xl">
               <label className="block text-sm font-bold mb-2">Featured Image</label>
               <div className="flex items-center gap-4">
                 {postForm.cover_image_url ? (
                   <img src={postForm.cover_image_url} alt="Cover" className="w-32 h-20 object-cover rounded-2xl" />
                 ) : (
-                  <div className="w-32 h-20 bg-[#f9f9f9] dark:bg-[#1a1a1a] flex items-center justify-center rounded-2xl border border-dashed border-white/10">
-                    <ImageIcon className="w-6 h-6 text-white/40" />
+                  <div className="w-32 h-20 bg-[#f9f9f9] dark:bg-[#1a1a1a] flex items-center justify-center rounded-2xl border border-dashed border-black/10 dark:border-white/10">
+                    <ImageIcon className="w-6 h-6 text-black/40 dark:text-white/40" />
                   </div>
                 )}
-                <label className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-2xl cursor-pointer hover:bg-black/5">
+                <label className="px-4 py-2 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-black/5">
                   {uploadingImage ? 'Uploading...' : 'Upload Image'}
                   <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} />
                 </label>
@@ -212,10 +212,10 @@ export default function AdminBlogManager() {
             <div>
               <label className="block text-sm font-bold mb-2 flex justify-between">
                 <span>Excerpt</span>
-                <span className={`text-xs ${postForm.excerpt.length > 155 ? 'text-red-500' : 'text-white/40'}`}>{postForm.excerpt.length}/155</span>
+                <span className={`text-xs ${postForm.excerpt.length > 155 ? 'text-red-500' : 'text-black/40 dark:text-white/40'}`}>{postForm.excerpt.length}/155</span>
               </label>
               <textarea 
-                className="w-full p-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl outline-none focus:border-black dark:focus:border-white h-24"
+                className="w-full p-3 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl outline-none focus:border-black dark:focus:border-white h-24"
                 placeholder="Write a short summary..."
                 value={postForm.excerpt}
                 onChange={(e) => setPostForm({...postForm, excerpt: e.target.value})}
@@ -228,9 +228,9 @@ export default function AdminBlogManager() {
               <TiptapEditor content={postForm.content} onChange={(content) => setPostForm({...postForm, content})} />
             </div>
 
-            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40 backdrop-blur-xl">
+            <div className="border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden bg-white/40 dark:bg-black/40 backdrop-blur-xl">
               <button 
-                className="w-full p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:bg-black/5 dark:hover:bg-white/5"
+                className="w-full p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5"
                 onClick={() => setShowSeo(!showSeo)}
               >
                 <h3 className="font-bold flex items-center"><Settings className="w-4 h-4 mr-2" /> SEO Optimization</h3>
@@ -272,20 +272,20 @@ export default function AdminBlogManager() {
                   <div>
                     <label className="block text-sm font-bold mb-1 flex justify-between">
                       Meta Title
-                      <span className={`text-xs ${postForm.meta_title.length > 60 ? 'text-red-500' : 'text-white/40'}`}>{postForm.meta_title.length}/60</span>
+                      <span className={`text-xs ${postForm.meta_title.length > 60 ? 'text-red-500' : 'text-black/40 dark:text-white/40'}`}>{postForm.meta_title.length}/60</span>
                     </label>
-                    <input type="text" className="w-full p-2 bg-transparent border border-white/10 rounded-2xl" value={postForm.meta_title} onChange={e => setPostForm({...postForm, meta_title: e.target.value})} />
+                    <input type="text" className="w-full p-2 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl" value={postForm.meta_title} onChange={e => setPostForm({...postForm, meta_title: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-bold mb-1 flex justify-between">
                       Meta Description
-                      <span className={`text-xs ${postForm.meta_description.length > 155 ? 'text-red-500' : 'text-white/40'}`}>{postForm.meta_description.length}/155</span>
+                      <span className={`text-xs ${postForm.meta_description.length > 155 ? 'text-red-500' : 'text-black/40 dark:text-white/40'}`}>{postForm.meta_description.length}/155</span>
                     </label>
-                    <textarea className="w-full p-2 bg-transparent border border-white/10 rounded-2xl h-20" value={postForm.meta_description} onChange={e => setPostForm({...postForm, meta_description: e.target.value})} />
+                    <textarea className="w-full p-2 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl h-20" value={postForm.meta_description} onChange={e => setPostForm({...postForm, meta_description: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-bold mb-1">Category</label>
-                    <select className="w-full p-2 bg-transparent border border-white/10 rounded-2xl" value={category} onChange={e => setCategory(e.target.value)}>
+                    <select className="w-full p-2 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl" value={category} onChange={e => setCategory(e.target.value)}>
                       <option value="Realtor">Realtor</option>
                       <option value="Freelancer">Freelancer</option>
                       <option value="Founder">Founder</option>
@@ -294,11 +294,11 @@ export default function AdminBlogManager() {
                   </div>
                   <div>
                     <label className="block text-sm font-bold mb-1">Focus Keyword</label>
-                    <input type="text" className="w-full p-2 bg-transparent border border-white/10 rounded-2xl" value={postForm.focus_keyword} onChange={e => setPostForm({...postForm, focus_keyword: e.target.value})} />
+                    <input type="text" className="w-full p-2 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl" value={postForm.focus_keyword} onChange={e => setPostForm({...postForm, focus_keyword: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-bold mb-1">Related Product (Buy Box)</label>
-                    <select className="w-full p-2 bg-transparent border border-white/10 rounded-2xl" value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value ? parseInt(e.target.value) : null)}>
+                    <select className="w-full p-2 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl" value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value ? parseInt(e.target.value) : null)}>
                       <option value="">Default (First Product)</option>
                       {products.map(p => (
                         <option key={p.id} value={p.id}>{p.name} - ₦{p.price_ngn}</option>
@@ -306,28 +306,28 @@ export default function AdminBlogManager() {
                     </select>
                   </div>
                   
-                  <div className="pt-4 border-t border-white/10">
+                  <div className="pt-4 border-t border-black/10 dark:border-white/10">
                     <div className="flex justify-between items-center mb-2">
                       <label className="text-sm font-bold">FAQ Schema Builder</label>
                       <button onClick={() => setFaqs([...faqs, {q:'', a:''}])} className="text-xs flex items-center text-blue-500"><Plus className="w-3 h-3 mr-1" /> Add FAQ</button>
                     </div>
                     {faqs.map((faq, idx) => (
-                      <div key={idx} className="mb-3 p-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 rounded-2xl">
-                        <input type="text" placeholder="Question" className="w-full p-2 bg-[#050505] border border-white/10 rounded-2xl mb-2 text-sm" value={faq.q} onChange={e => { const n = [...faqs]; n[idx].q = e.target.value; setFaqs(n); }} />
-                        <textarea placeholder="Answer" className="w-full p-2 bg-[#050505] border border-white/10 rounded-2xl text-sm h-16" value={faq.a} onChange={e => { const n = [...faqs]; n[idx].a = e.target.value; setFaqs(n); }} />
+                      <div key={idx} className="mb-3 p-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl">
+                        <input type="text" placeholder="Question" className="w-full p-2 bg-[#050505] border border-black/10 dark:border-white/10 rounded-2xl mb-2 text-sm" value={faq.q} onChange={e => { const n = [...faqs]; n[idx].q = e.target.value; setFaqs(n); }} />
+                        <textarea placeholder="Answer" className="w-full p-2 bg-[#050505] border border-black/10 dark:border-white/10 rounded-2xl text-sm h-16" value={faq.a} onChange={e => { const n = [...faqs]; n[idx].a = e.target.value; setFaqs(n); }} />
                         <button onClick={() => setFaqs(faqs.filter((_, i) => i !== idx))} className="text-xs text-red-500 mt-1 flex items-center"><Trash2 className="w-3 h-3 mr-1" /> Remove</button>
                       </div>
                     ))}
                   </div>
 
-                  <div className="pt-4 border-t border-white/10">
+                  <div className="pt-4 border-t border-black/10 dark:border-white/10">
                      <label className="flex items-center text-sm font-bold cursor-pointer mb-2">
                         <input type="checkbox" className="mr-2" checked={showProduct} onChange={e => setShowProduct(e.target.checked)} />
                         Enable Product Schema JSON-LD
                      </label>
                      {showProduct && (
                        <div className="space-y-2 pl-6">
-                         <input type="text" placeholder='Product JSON (e.g. {"price":"1000","currency":"NGN","rating":4.5})' className="w-full p-2 bg-transparent border border-white/10 rounded-2xl font-mono text-xs" value={postForm.product_json} onChange={e => setPostForm({...postForm, product_json: e.target.value})} />
+                         <input type="text" placeholder='Product JSON (e.g. {"price":"1000","currency":"NGN","rating":4.5})' className="w-full p-2 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl font-mono text-xs" value={postForm.product_json} onChange={e => setPostForm({...postForm, product_json: e.target.value})} />
                        </div>
                      )}
                   </div>
@@ -341,7 +341,7 @@ export default function AdminBlogManager() {
   }
 
   return (
-    <div className="bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-white/10 p-6 mb-8">
+    <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-black/10 dark:border-white/10 p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold font-sans">Blog Management</h2>
         <button
@@ -365,35 +365,35 @@ export default function AdminBlogManager() {
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold">{posts.length}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Total Posts</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Total Posts</div>
         </div>
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold">{posts.reduce((sum, p) => sum + (p.views || 0), 0)}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Total Views</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Total Views</div>
         </div>
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold">{posts.filter(p => !p.is_published).length}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Drafts</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Drafts</div>
         </div>
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold text-green-600">{posts.filter(p => p.is_published).length}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Published</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Published</div>
         </div>
       </div>
 
       {loading ? (
-        <div className="py-8 text-center text-white/40">Loading posts...</div>
+        <div className="py-8 text-center text-black/40 dark:text-white/40">Loading posts...</div>
       ) : posts.length === 0 ? (
-        <div className="py-8 text-center text-white/40 border border-dashed border-white/10 rounded-2xl">
+        <div className="py-8 text-center text-black/40 dark:text-white/40 border border-dashed border-black/10 dark:border-white/10 rounded-2xl">
           No blog posts found. Create your first post!
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/10 text-sm text-white/40">
+              <tr className="border-b border-black/10 dark:border-white/10 text-sm text-black/40 dark:text-white/40">
                 <th className="p-3 font-medium">Title</th>
                 <th className="p-3 font-medium">Status</th>
                 <th className="p-3 font-medium">Date</th>
@@ -402,23 +402,23 @@ export default function AdminBlogManager() {
             </thead>
             <tbody>
               {posts.map((post) => (
-                <tr key={post.id} className="border-b border-white/10 hover:bg-[#f9f9f9] dark:hover:bg-[#1a1a1a]">
+                <tr key={post.id} className="border-b border-black/10 dark:border-white/10 hover:bg-[#f9f9f9] dark:hover:bg-[#1a1a1a]">
                   <td className="p-3">
                     <div className="font-bold text-sm truncate max-w-[250px]">{post.title}</div>
-                    <div className="text-xs text-white/40 font-mono truncate max-w-[250px]">/{post.slug}</div>
+                    <div className="text-xs text-black/40 dark:text-white/40 font-mono truncate max-w-[250px]">/{post.slug}</div>
                   </td>
                   <td className="p-3">
                     <span className={`px-2 py-1 text-xs rounded-full font-bold ${post.is_published ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'}`}>
                       {post.is_published ? 'Published' : 'Draft'}
                     </span>
                   </td>
-                  <td className="p-3 text-sm text-white/40">
+                  <td className="p-3 text-sm text-black/40 dark:text-white/40">
                     {new Date(post.created_at).toLocaleDateString()}
                   </td>
                   <td className="p-3">
                     <div className="flex gap-2">
                       {post.is_published && (
-                        <a href={`/blog/${post.slug}`} target="_blank" rel="noreferrer" className="p-1 text-white/40 hover:text-black dark:hover:text-white" title="View Public">
+                        <a href={`/blog/${post.slug}`} target="_blank" rel="noreferrer" className="p-1 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-black dark:text-white" title="View Public">
                           <Eye className="w-4 h-4" />
                         </a>
                       )}
@@ -427,10 +427,10 @@ export default function AdminBlogManager() {
                         setPostForm(post);
                         if (post.faq_json) setFaqs(JSON.parse(post.faq_json));
                         if (post.product_json) setShowProduct(true);
-                      }} className="p-1 text-white/40 hover:text-blue-600" title="Edit">
+                      }} className="p-1 text-black/40 dark:text-white/40 hover:text-blue-600" title="Edit">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deletePost(post.id)} className="p-1 text-white/40 hover:text-red-600" title="Delete">
+                      <button onClick={() => deletePost(post.id)} className="p-1 text-black/40 dark:text-white/40 hover:text-red-600" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

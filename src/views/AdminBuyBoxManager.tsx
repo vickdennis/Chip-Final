@@ -105,20 +105,20 @@ export default function AdminBuyBoxManager() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="md:col-span-1 bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 h-fit">
+      <div className="md:col-span-1 bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 h-fit">
         <h3 className="font-sans font-bold text-lg mb-4">{editingProduct ? 'Edit Buy Box Product' : 'Add Buy Box Product'}</h3>
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Name</label>
-            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Name</label>
+            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Price NGN</label>
-            <input required value={form.price_ngn} onChange={e=>setForm({...form, price_ngn: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Price NGN</label>
+            <input required value={form.price_ngn} onChange={e=>setForm({...form, price_ngn: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Image Upload</label>
-            {form.image_url && <img src={form.image_url} className="w-full h-24 object-cover mb-2 rounded-xl border border-white/10" />}
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Image Upload</label>
+            {form.image_url && <img src={form.image_url} className="w-full h-24 object-cover mb-2 rounded-xl border border-black/10 dark:border-white/10" />}
             <input
               type="file"
               accept="image/*"
@@ -126,13 +126,13 @@ export default function AdminBuyBoxManager() {
               className="w-full text-[13px]"
             />
             <div className="mt-2">
-              <label className="block font-mono text-[10px] font-bold text-white/40 uppercase mb-1">Or Image URL</label>
-              <input value={form.image_url} onChange={e=>setForm({...form, image_url: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[12px] font-sans" />
+              <label className="block font-mono text-[10px] font-bold text-black/40 dark:text-white/40 uppercase mb-1">Or Image URL</label>
+              <input value={form.image_url} onChange={e=>setForm({...form, image_url: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[12px] font-sans" />
             </div>
           </div>
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="block font-mono text-[11px] font-bold text-white/60 uppercase">Benefits</label>
+              <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase">Benefits</label>
               <button type="button" onClick={() => {
                 let current = [];
                 try { current = JSON.parse(form.benefits_json); } catch(e) {}
@@ -152,7 +152,7 @@ export default function AdminBuyBoxManager() {
                      const newB = [...benefits];
                      newB[idx] = e.target.value;
                      setForm({...form, benefits_json: JSON.stringify(newB)});
-                   }} className="w-full px-3 py-2 border border-white/10 bg-transparent rounded-xl text-[13px]" />
+                   }} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-transparent rounded-xl text-[13px]" />
                    <button type="button" onClick={() => {
                      const newB = benefits.filter((_, i) => i !== idx);
                      setForm({...form, benefits_json: JSON.stringify(newB)});
@@ -163,46 +163,46 @@ export default function AdminBuyBoxManager() {
           </div>
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Rating</label>
-              <input type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+              <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Rating</label>
+              <input type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
             </div>
             <div className="flex-1">
-              <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Reviews</label>
-              <input type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+              <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Reviews</label>
+              <input type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
             </div>
           </div>
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Badge Text</label>
-            <input value={form.badge_text} onChange={e=>setForm({...form, badge_text: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Badge Text</label>
+            <input value={form.badge_text} onChange={e=>setForm({...form, badge_text: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">WhatsApp Link</label>
-            <input value={form.whatsapp_link} onChange={e=>setForm({...form, whatsapp_link: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">WhatsApp Link</label>
+            <input value={form.whatsapp_link} onChange={e=>setForm({...form, whatsapp_link: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Button Variant A</label>
-            <input value={form.button_variant_a} onChange={e=>setForm({...form, button_variant_a: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Button Variant A</label>
+            <input value={form.button_variant_a} onChange={e=>setForm({...form, button_variant_a: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-1">Button Variant B</label>
-            <input value={form.button_variant_b} onChange={e=>setForm({...form, button_variant_b: e.target.value})} className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px]" />
+            <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Button Variant B</label>
+            <input value={form.button_variant_b} onChange={e=>setForm({...form, button_variant_b: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px]" />
           </div>
           <div className="flex gap-2">
             <button disabled={uploadingImage} type="submit" className="flex-1 bg-black dark:bg-white text-white dark:text-black font-bold py-2 rounded-xl text-sm disabled:opacity-50">{uploadingImage ? 'Uploading...' : 'Save'}</button>
             {editingProduct && (
-              <button type="button" onClick={() => { setEditingProduct(null); setForm(defaultForm); }} className="flex-1 bg-gray-200 dark:bg-[#333] text-white font-bold py-2 rounded-xl text-sm">Cancel</button>
+              <button type="button" onClick={() => { setEditingProduct(null); setForm(defaultForm); }} className="flex-1 bg-gray-200 dark:bg-[#333] text-black dark:text-white font-bold py-2 rounded-xl text-sm">Cancel</button>
             )}
           </div>
         </form>
       </div>
 
       <div className="md:col-span-2">
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10">
+        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10">
           <h3 className="font-sans font-bold text-lg mb-4">Existing Buy Box Products</h3>
           {loading ? <p>Loading...</p> : (
             <div className="flex flex-col gap-3">
               {products.map(p => (
-                <div key={p.id} className="border border-white/10 p-4 rounded-2xl flex justify-between items-center">
+                <div key={p.id} className="border border-black/10 dark:border-white/10 p-4 rounded-2xl flex justify-between items-center">
                   <div className="flex gap-4 items-center">
                     {p.image_url && <img src={p.image_url} alt="" className="w-12 h-12 object-cover rounded-xl" />}
                     <div>

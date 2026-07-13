@@ -44,40 +44,40 @@ export default function AdminLeadsManager() {
   };
 
   return (
-    <div className="bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-white/10 p-6 mb-8">
+    <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-black/10 dark:border-white/10 p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold font-sans">WhatsApp Leads</h2>
-        <button onClick={downloadCSV} className="bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-white/10 px-4 py-2 rounded-2xl font-bold text-sm flex items-center hover:bg-black/5">
+        <button onClick={downloadCSV} className="bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 px-4 py-2 rounded-2xl font-bold text-sm flex items-center hover:bg-black/5">
           <Download className="w-4 h-4 mr-2" /> Export CSV
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold">{leads.length}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Total Leads</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Total Leads</div>
         </div>
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold text-[#25D366]">{leads.filter(l => l.source === 'inline').length}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Inline Converts</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Inline Converts</div>
         </div>
-        <div className="p-4 border border-white/10 rounded-2xl text-center">
+        <div className="p-4 border border-black/10 dark:border-white/10 rounded-2xl text-center">
           <div className="text-2xl font-bold text-[#25D366]">{leads.filter(l => l.source === 'sticky').length}</div>
-          <div className="text-xs text-white/40 uppercase tracking-wider">Sticky Bar Converts</div>
+          <div className="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">Sticky Bar Converts</div>
         </div>
       </div>
 
       {loading ? (
-        <div className="py-8 text-center text-white/40">Loading leads...</div>
+        <div className="py-8 text-center text-black/40 dark:text-white/40">Loading leads...</div>
       ) : leads.length === 0 ? (
-        <div className="py-8 text-center text-white/40 border border-dashed border-white/10 rounded-2xl">
+        <div className="py-8 text-center text-black/40 dark:text-white/40 border border-dashed border-black/10 dark:border-white/10 rounded-2xl">
           No leads captured yet.
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/10 text-sm text-white/40">
+              <tr className="border-b border-black/10 dark:border-white/10 text-sm text-black/40 dark:text-white/40">
                 <th className="p-3 font-medium">Date</th>
                 <th className="p-3 font-medium">Name</th>
                 <th className="p-3 font-medium">WhatsApp</th>
@@ -89,12 +89,12 @@ export default function AdminLeadsManager() {
             </thead>
             <tbody>
               {leads.map(lead => (
-                <tr key={lead.id} className="border-b border-white/10 hover:bg-[#f9f9f9] dark:hover:bg-[#1a1a1a]">
-                  <td className="p-3 text-sm text-white/40">{new Date(lead.created_at).toLocaleDateString()}</td>
+                <tr key={lead.id} className="border-b border-black/10 dark:border-white/10 hover:bg-[#f9f9f9] dark:hover:bg-[#1a1a1a]">
+                  <td className="p-3 text-sm text-black/40 dark:text-white/40">{new Date(lead.created_at).toLocaleDateString()}</td>
                   <td className="p-3 font-bold text-sm">{lead.name}</td>
                   <td className="p-3 font-mono text-sm">{lead.whatsapp}</td>
                   <td className="p-3 text-sm">{lead.city || '-'}</td>
-                  <td className="p-3 text-xs text-white/40">
+                  <td className="p-3 text-xs text-black/40 dark:text-white/40">
                     <div className="flex flex-col">
                       <span>/{lead.post_slug}</span>
                       <span className="opacity-50 text-[10px]">via {lead.source}</span>
@@ -114,7 +114,7 @@ export default function AdminLeadsManager() {
                             fetchLeads();
                           } catch(e) { console.error(e); }
                         }}
-                        className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-xl border ${lead.opt_out === 1 ? 'border-red-500 text-red-500 bg-red-50 dark:bg-red-900/20' : 'border-white/10 text-white/40 hover:bg-gray-50'}`}
+                        className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-xl border ${lead.opt_out === 1 ? 'border-red-500 text-red-500 bg-red-50 dark:bg-red-900/20' : 'border-black/10 dark:border-white/10 text-black/40 dark:text-white/40 hover:bg-gray-50'}`}
                       >
                         {lead.opt_out === 1 ? 'Opted Out' : 'Active'}
                       </button>

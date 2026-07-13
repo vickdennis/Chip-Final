@@ -60,21 +60,21 @@ export default function AdminSeoManager() {
       
       {/* Keyword Bank */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-sans font-bold text-lg flex items-center gap-2">
               <Search className="w-5 h-5 text-blue-500" />
               Auto-Link Keyword Bank
             </h3>
-            <button className="text-xs bg-gray-100 dark:bg-[#222] px-3 py-1 rounded border border-white/10 font-bold">
+            <button className="text-xs bg-gray-100 dark:bg-[#222] px-3 py-1 rounded border border-black/10 dark:border-white/10 font-bold">
               Upload CSV
             </button>
           </div>
 
           <form onSubmit={handleAddKeyword} className="flex gap-2 mb-6">
-            <input required placeholder="Keyword Phrase (e.g. nfc card)" className="flex-1 px-3 py-2 border border-white/10 rounded-xl text-sm" value={form.keyword_phrase} onChange={e=>setForm({...form, keyword_phrase: e.target.value})} />
-            <input required placeholder="Target Slug (e.g. /blog/post-slug)" className="flex-1 px-3 py-2 border border-white/10 rounded-xl text-sm" value={form.target_url_slug} onChange={e=>setForm({...form, target_url_slug: e.target.value})} />
-            <select className="px-3 py-2 border border-white/10 rounded-xl text-sm" value={form.type} onChange={e=>setForm({...form, type: e.target.value})}>
+            <input required placeholder="Keyword Phrase (e.g. nfc card)" className="flex-1 px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm" value={form.keyword_phrase} onChange={e=>setForm({...form, keyword_phrase: e.target.value})} />
+            <input required placeholder="Target Slug (e.g. /blog/post-slug)" className="flex-1 px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm" value={form.target_url_slug} onChange={e=>setForm({...form, target_url_slug: e.target.value})} />
+            <select className="px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm" value={form.type} onChange={e=>setForm({...form, type: e.target.value})}>
               <option value="post">Post</option>
               <option value="product">Product</option>
               <option value="page">Page</option>
@@ -88,7 +88,7 @@ export default function AdminSeoManager() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-black/10 dark:border-white/10">
                     <th className="pb-3 font-medium">Keyword</th>
                     <th className="pb-3 font-medium">Target URL</th>
                     <th className="pb-3 font-medium">Type</th>
@@ -99,7 +99,7 @@ export default function AdminSeoManager() {
                   {keywords.map(kw => (
                     <tr key={kw.id}>
                       <td className="py-3 font-bold">{kw.keyword_phrase}</td>
-                      <td className="py-3 text-white/40">{kw.target_url_slug}</td>
+                      <td className="py-3 text-black/40 dark:text-white/40">{kw.target_url_slug}</td>
                       <td className="py-3"><span className="bg-gray-100 dark:bg-[#222] px-2 py-1 rounded text-xs">{kw.type}</span></td>
                       <td className="py-3 text-right">
                         <button onClick={() => handleDeleteKeyword(kw.id)} className="text-red-500 hover:text-red-700 p-1">
@@ -120,20 +120,20 @@ export default function AdminSeoManager() {
 
       {/* Broken Link Report */}
       <div className="lg:col-span-1 space-y-6">
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6">
           <h3 className="font-sans font-bold text-lg flex items-center gap-2 mb-6">
             <Activity className="w-5 h-5 text-green-500" />
             Link Health Report
           </h3>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="border border-white/10 p-4 rounded-2xl text-center">
+            <div className="border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center">
               <div className="text-3xl font-mono font-bold mb-1">{report.total}</div>
-              <div className="text-xs text-white/40 uppercase font-bold tracking-wider">Total Links</div>
+              <div className="text-xs text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Total Links</div>
             </div>
-            <div className="border border-white/10 p-4 rounded-2xl text-center">
+            <div className="border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center">
               <div className="text-3xl font-mono font-bold mb-1 text-red-500">{report.broken}</div>
-              <div className="text-xs text-white/40 uppercase font-bold tracking-wider">Broken Links</div>
+              <div className="text-xs text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Broken Links</div>
             </div>
           </div>
 
@@ -144,12 +144,12 @@ export default function AdminSeoManager() {
           <h4 className="font-bold text-sm mb-3">Recent Auto-Links</h4>
           <div className="space-y-3 max-h-[300px] overflow-y-auto">
             {report.logs.slice(0, 5).map((log: any) => (
-              <div key={log.id} className="text-xs border border-white/10 p-3 rounded bg-gray-50 dark:bg-[#1a1a1a]">
+              <div key={log.id} className="text-xs border border-black/10 dark:border-white/10 p-3 rounded bg-gray-50 dark:bg-[#1a1a1a]">
                 <div className="flex justify-between mb-1">
                   <span className="font-bold">From: /{log.post_slug}</span>
                   <span className="text-green-600 font-bold">{log.status}</span>
                 </div>
-                <div className="text-white/40 break-all">To: {log.linked_url}</div>
+                <div className="text-black/40 dark:text-white/40 break-all">To: {log.linked_url}</div>
                 <div className="mt-1 opacity-70">Keyword: "{log.keyword_used}"</div>
               </div>
             ))}

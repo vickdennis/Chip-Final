@@ -129,9 +129,9 @@ export default function AdminBroadcastManager() {
 
     return (
       <div className="space-y-6 animate-in fade-in">
-        <div className="flex items-center justify-between bg-black/40 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-white/10">
+        <div className="flex items-center justify-between bg-white/40 dark:bg-black/40 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-black/10 dark:border-white/10">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSenderMode(false)} className="px-4 py-2 border border-white/10 rounded-xl text-sm font-bold hover:bg-gray-50 dark:hover:bg-[#222]">Back to Setup</button>
+            <button onClick={() => setSenderMode(false)} className="px-4 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-gray-50 dark:hover:bg-[#222]">Back to Setup</button>
             <h2 className="font-sans font-bold text-lg">Send Broadcast (Click-to-Send Bulk)</h2>
           </div>
           <div className="flex items-center gap-4 text-sm font-bold">
@@ -144,10 +144,10 @@ export default function AdminBroadcastManager() {
           </div>
         </div>
 
-        <div className="bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-white/10 overflow-x-auto">
+        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-black/10 dark:border-white/10 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-white/10 bg-gray-50 dark:bg-[#1a1a1a]">
+              <tr className="border-b border-black/10 dark:border-white/10 bg-gray-50 dark:bg-[#1a1a1a]">
                 <th className="p-4 font-medium">Lead</th>
                 <th className="p-4 font-medium">WhatsApp</th>
                 <th className="p-4 font-medium">Status</th>
@@ -172,7 +172,7 @@ export default function AdminBroadcastManager() {
                       <button 
                         onClick={() => handleSendOne(lead)}
                         disabled={isSent || stats.remainingHour <= 0}
-                        className="bg-[#25D366] hover:bg-[#20b858] disabled:opacity-50 text-white font-bold py-2 px-4 rounded-xl transition-colors inline-flex items-center gap-2 text-xs"
+                        className="bg-[#25D366] hover:bg-[#20b858] disabled:opacity-50 text-black dark:text-white font-bold py-2 px-4 rounded-xl transition-colors inline-flex items-center gap-2 text-xs"
                       >
                         <PhoneForwarded className="w-4 h-4" />
                         {isSent ? 'Sent' : 'Open & Send'}
@@ -185,11 +185,11 @@ export default function AdminBroadcastManager() {
           </table>
 
           {/* Pagination */}
-          <div className="p-4 border-t border-white/10 flex justify-between items-center bg-gray-50 dark:bg-[#1a1a1a]">
+          <div className="p-4 border-t border-black/10 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-[#1a1a1a]">
             <button 
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl disabled:opacity-50 text-sm font-bold"
+              className="px-4 py-2 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl disabled:opacity-50 text-sm font-bold"
             >
               Previous
             </button>
@@ -197,7 +197,7 @@ export default function AdminBroadcastManager() {
             <button 
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl disabled:opacity-50 text-sm font-bold"
+              className="px-4 py-2 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl disabled:opacity-50 text-sm font-bold"
             >
               Next
             </button>
@@ -215,24 +215,24 @@ export default function AdminBroadcastManager() {
         
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-4 rounded-2xl text-center">
+          <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center">
             <div className="text-2xl font-mono font-bold mb-1">{stats.totalLeads}</div>
-            <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Total Leads</div>
+            <div className="text-[10px] text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Total Leads</div>
           </div>
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-4 rounded-2xl text-center">
+          <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center">
             <div className="text-2xl font-mono font-bold mb-1 text-blue-500">{stats.sent7Days}</div>
-            <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Sent (7 Days)</div>
+            <div className="text-[10px] text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Sent (7 Days)</div>
           </div>
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-4 rounded-2xl text-center relative overflow-hidden group">
+          <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 z-0"></div>
             <div className="relative z-10">
               <div className="text-2xl font-mono font-bold mb-1 text-green-600">{stats.remainingHour}</div>
-              <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Sends Left / Hr</div>
+              <div className="text-[10px] text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Sends Left / Hr</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10">
+        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-sans font-bold text-lg flex items-center gap-2">
               <Send className="w-5 h-5" />
@@ -244,7 +244,7 @@ export default function AdminBroadcastManager() {
           <div className="space-y-6">
             {/* Send Type */}
             <div>
-              <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-2">Send Type</label>
+              <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-2">Send Type</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <input type="radio" name="sendType" checked={sendType === 'post'} onChange={() => setSendType('post')} className="accent-black dark:accent-white" />
@@ -260,9 +260,9 @@ export default function AdminBroadcastManager() {
             {/* Post Selection */}
             {sendType === 'post' && (
               <div>
-                <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-2">Select Post</label>
+                <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-2">Select Post</label>
                 <select 
-                  className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] bg-transparent"
+                  className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] bg-transparent"
                   onChange={(e) => setSelectedPost(posts.find(p => p.id === e.target.value))}
                   value={selectedPost?.id || ''}
                 >
@@ -277,9 +277,9 @@ export default function AdminBroadcastManager() {
             {/* Custom Message */}
             {sendType === 'custom' && (
               <div>
-                <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-2">Message Template (Use {`{Name}`})</label>
+                <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-2">Message Template (Use {`{Name}`})</label>
                 <textarea 
-                  className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] bg-transparent h-32"
+                  className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] bg-transparent h-32"
                   value={customMessage}
                   onChange={e => setCustomMessage(e.target.value)}
                 />
@@ -287,13 +287,13 @@ export default function AdminBroadcastManager() {
             )}
 
             {/* Audience Filter */}
-            <div className="pt-4 border-t border-white/10">
-              <label className="block font-mono text-[11px] font-bold text-white/60 uppercase mb-2 flex items-center gap-1">
+            <div className="pt-4 border-t border-black/10 dark:border-white/10">
+              <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-2 flex items-center gap-1">
                 <Filter className="w-3 h-3" /> Select Audience
               </label>
               <div className="flex flex-col gap-3">
                 <select 
-                  className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] bg-transparent"
+                  className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] bg-transparent"
                   value={audienceFilter}
                   onChange={e => {
                     setAudienceFilter(e.target.value as any);
@@ -308,13 +308,13 @@ export default function AdminBroadcastManager() {
                 </select>
 
                 {audienceFilter === 'city' && (
-                  <select className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] bg-transparent" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+                  <select className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] bg-transparent" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
                     {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 )}
 
                 {audienceFilter === 'source' && (
-                  <select className="w-full px-3 py-2 border border-white/10 rounded-xl text-[13px] bg-transparent" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+                  <select className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] bg-transparent" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
                     {uniqueSources.map(s => <option key={s} value={s}>/{s}</option>)}
                   </select>
                 )}
@@ -325,7 +325,7 @@ export default function AdminBroadcastManager() {
       </div>
 
       {/* Preview & Action Panel */}
-      <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/10 flex flex-col">
+      <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 flex flex-col">
         <h3 className="font-sans font-bold text-lg mb-6 flex items-center gap-2">
           Message Preview
         </h3>
@@ -339,8 +339,8 @@ export default function AdminBroadcastManager() {
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-white/10">
-          <div className="flex items-start gap-2 text-xs text-white/40 mb-4">
+        <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10">
+          <div className="flex items-start gap-2 text-xs text-black/40 dark:text-white/40 mb-4">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <p><strong>{eligibleLeads.length} leads</strong> match criteria. Excludes {leads.length - eligibleLeads.length} leads (opted-out or sent within 7 days).</p>
           </div>
