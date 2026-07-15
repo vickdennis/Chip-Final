@@ -339,7 +339,7 @@ const BrandSlideshow = () => {
           {doubleImages.map((img, idx) => (
             <div 
               key={idx}
-              className="w-[260px] sm:w-[310px] shrink-0 bg-gradient-to-b from-[#141417] to-[#0A0A0B] border border-black/10 dark:border-white/10 rounded-[24px] p-5 flex flex-col gap-5 shadow-2xl hover:border-[#B600A8]/60 hover:shadow-[0_0_25px_rgba(182,0,168,0.2)] transition-all duration-300 group relative overflow-hidden"
+              className="w-[260px] sm:w-[310px] shrink-0 bg-gradient-to-b from-gray-100 dark:from-[#141417] to-gray-50 dark:to-[#0A0A0B] border border-black/10 dark:border-white/10 rounded-[24px] p-5 flex flex-col gap-5 shadow-2xl hover:border-[#B600A8]/60 hover:shadow-[0_0_25px_rgba(182,0,168,0.2)] transition-all duration-300 group relative overflow-hidden"
             >
               {/* Internal neon ambient light glow on card hover */}
               <div className="absolute -inset-10 bg-[radial-gradient(circle_at_center,rgba(182,0,168,0.08)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none blur-xl" />
@@ -352,7 +352,7 @@ const BrandSlideshow = () => {
                 <h4 className="font-sans font-black text-sm sm:text-base text-black dark:text-white uppercase tracking-tight group-hover:text-[#B600A8] transition-colors duration-300">
                   {img.title}
                 </h4>
-                <p className="font-sans text-[11px] sm:text-xs text-black/50 dark:text-white/50 leading-relaxed mt-0.5">
+                <p className="font-sans text-[11px] sm:text-xs text-black/60 dark:text-white/50 leading-relaxed mt-0.5">
                   {img.desc}
                 </p>
               </div>
@@ -447,7 +447,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
   ];
 
   return (
-    <div className="bg-white dark:bg-[#0C0C0C] min-h-screen text-black dark:text-[#D7E2EA] font-sans overflow-x-clip relative">
+    <div className="dark bg-[#0C0C0C] min-h-screen text-[#D7E2EA] font-sans overflow-x-clip relative">
       
       {/* 1. HERO SECTION */}
       <section className="min-h-screen lg:h-screen flex flex-col justify-between overflow-hidden relative z-20 px-6 md:px-10 pb-10">
@@ -678,7 +678,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* REALTIME ANALYTICS SHOWCASE SECTION */}
-      <section className="bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
+      <section className="bg-gray-50 dark:bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
         <NigeriaAnalyticsShowcase />
       </section>
 
@@ -688,7 +688,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       </section>
 
       {/* BRANDING SHOP & NFC CARDS SECTION (Price Navbar anchor) */}
-      <section ref={shopRef} className="bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
+      <section ref={shopRef} className="bg-gray-50 dark:bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
         
         <div className="max-w-5xl mx-auto w-full">
           <div className="text-center mb-16 flex flex-col items-center">
@@ -723,14 +723,14 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                       </div>
                     )}
                     {/* Badge */}
-                    <div className="absolute top-2 right-2 bg-white dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10">
+                    <div className="absolute top-2 right-2 bg-black/40 dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10">
                       INSTANT SETUP
                     </div>
                   </div>
                   
                   <div className="flex flex-col flex-grow">
                     <h3 className="font-sans font-bold text-base text-black dark:text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
-                    <p className="text-xs text-black/50 dark:text-white/50 mb-4 flex-grow line-clamp-2">{p.description}</p>
+                    <p className="text-xs text-black/60 dark:text-white/50 mb-4 flex-grow line-clamp-2">{p.description}</p>
                     
                     <div className="flex items-center justify-between mt-auto pt-3 border-t border-black/5 dark:border-white/5">
                       <span className="font-mono font-bold text-lg text-black dark:text-white">₦{Number(p.price).toLocaleString()}</span>
@@ -768,14 +768,14 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                 >
                   <div className="aspect-square bg-black/5 dark:bg-white/5 rounded-xl relative overflow-hidden mb-4 border border-black/5 dark:border-white/5 flex items-center justify-center">
                     <CreditCard className="w-12 h-12 text-[#B600A8] stroke-[1.5] group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-2 right-2 bg-white dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10">
+                    <div className="absolute top-2 right-2 bg-black/40 dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10">
                       NFC ENABLED
                     </div>
                   </div>
                   
                   <div className="flex flex-col flex-grow">
                     <h3 className="font-sans font-bold text-base text-black dark:text-white group-hover:text-[#B600A8] transition-colors mb-1">{p.name}</h3>
-                    <p className="text-xs text-black/50 dark:text-white/50 mb-4 flex-grow line-clamp-2">{p.desc}</p>
+                    <p className="text-xs text-black/60 dark:text-white/50 mb-4 flex-grow line-clamp-2">{p.desc}</p>
                     
                     <div className="flex items-center justify-between mt-auto pt-3 border-t border-black/5 dark:border-white/5">
                       <span className="font-mono font-bold text-base text-black dark:text-white">₦{p.price.toLocaleString()}</span>
@@ -805,7 +805,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Free Tier */}
             <FadeIn y={30} delay={0.1} className="border border-black/10 dark:border-white/10 bg-white dark:bg-black/40 p-8 rounded-3xl flex flex-col hover:border-white/20 transition-all">
-              <h3 className="font-mono text-[12px] font-bold text-black/50 dark:text-white/50 uppercase tracking-widest mb-4">BASIC DIGITAL HUB</h3>
+              <h3 className="font-mono text-[12px] font-bold text-black/60 dark:text-white/50 uppercase tracking-widest mb-4">BASIC DIGITAL HUB</h3>
               <div className="mb-6 flex items-baseline gap-2">
                 <span className="font-sans text-[48px] font-black text-black dark:text-white leading-none">Free</span>
               </div>
@@ -835,23 +835,23 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               <h3 className="font-mono text-[12px] font-bold text-[#B600A8] uppercase tracking-widest mb-4">PRO MEMBERSHIP</h3>
               <div className="mb-6 flex items-baseline gap-2">
                 <span className="font-sans text-[48px] font-black text-black dark:text-white leading-none">₦5,000</span>
-                <span className="text-xs text-black/50 dark:text-white/50">/ month</span>
+                <span className="text-xs text-black/60 dark:text-white/50">/ month</span>
               </div>
-              <p className="text-sm text-white/70 mb-8">Unlock exclusive verified checkmark, custom 3D themes, and digital store.</p>
+              <p className="text-sm text-black/70 dark:text-white/70 mb-8">Unlock exclusive verified checkmark, custom 3D themes, and digital store.</p>
               <ul className="flex flex-col gap-4 mb-8 flex-grow text-sm">
-                <li className="flex items-center gap-3 text-white/90">
+                <li className="flex items-center gap-3 text-black/90 dark:text-white/90">
                   <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
                   Everything in Basic
                 </li>
-                <li className="flex items-center gap-3 text-white/90">
+                <li className="flex items-center gap-3 text-black/90 dark:text-white/90">
                   <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
                   Gold Verified Profile Badge
                 </li>
-                <li className="flex items-center gap-3 text-white/90">
+                <li className="flex items-center gap-3 text-black/90 dark:text-white/90">
                   <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
                   Sell digital items & services on your card
                 </li>
-                <li className="flex items-center gap-3 text-white/90">
+                <li className="flex items-center gap-3 text-black/90 dark:text-white/90">
                   <div className="w-5 h-5 rounded-full bg-[#B600A8]/10 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 rounded-full bg-[#B600A8]"></div></div>
                   Deep real-time geographic hits analysis
                 </li>
@@ -910,7 +910,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                 <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DAdebayo%26backgroundColor%3Db600a8&w=128&q=85" alt="Adebayo J." className="w-12 h-12 rounded-full border border-white/20" />
                 <div>
                   <h4 className="font-sans font-bold text-black dark:text-white">Adebayo J.</h4>
-                  <p className="font-mono text-xs text-black/50 dark:text-white/50 uppercase tracking-wider">Software Engineer</p>
+                  <p className="font-mono text-xs text-black/60 dark:text-white/50 uppercase tracking-wider">Software Engineer</p>
                 </div>
               </div>
             </FadeIn>
@@ -931,7 +931,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                 <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DChioma%26backgroundColor%3Dffffff&w=128&q=85" alt="Chioma N." className="w-12 h-12 rounded-full border border-white/20" />
                 <div>
                   <h4 className="font-sans font-bold text-black dark:text-white">Chioma N.</h4>
-                  <p className="font-mono text-xs text-black/50 dark:text-white/50 uppercase tracking-wider">Creative Director</p>
+                  <p className="font-mono text-xs text-black/60 dark:text-white/50 uppercase tracking-wider">Creative Director</p>
                 </div>
               </div>
             </FadeIn>
@@ -952,7 +952,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                 <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fnotionists%2Fsvg%3Fseed%3DEmeka%26backgroundColor%3Dffdfbf&w=128&q=85" alt="Emeka O." className="w-12 h-12 rounded-full border border-white/20" />
                 <div>
                   <h4 className="font-sans font-bold text-black dark:text-white">Emeka O.</h4>
-                  <p className="font-mono text-xs text-black/50 dark:text-white/50 uppercase tracking-wider">Startup Founder</p>
+                  <p className="font-mono text-xs text-black/60 dark:text-white/50 uppercase tracking-wider">Startup Founder</p>
                 </div>
               </div>
             </FadeIn>
@@ -1015,8 +1015,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       <footer className="flex flex-col md:flex-row justify-between items-center px-8 py-10 w-full mt-auto bg-white dark:bg-black border-t border-black/5 dark:border-white/5 relative z-50">
         <div className="mb-6 md:mb-0 text-center md:text-left">
           <span className="font-sans text-[20px] font-black text-black dark:text-white block mb-1 tracking-tight">CHIP NG</span>
-          <p className="text-[14px] text-black/50 dark:text-white/50 mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
-          <div className="flex items-center justify-center md:justify-start gap-4 text-black/50 dark:text-white/50">
+          <p className="text-[14px] text-black/60 dark:text-white/50 mb-3">© 2026 CHIP NG. Elevating African Professionals.</p>
+          <div className="flex items-center justify-center md:justify-start gap-4 text-black/60 dark:text-white/50">
             <a href="tel:08100764154" className="flex items-center gap-1.5 hover:text-black dark:text-white transition-colors">
               <Phone className="w-4 h-4" />
               <span className="text-[14px] font-medium font-mono">08100764154</span>
@@ -1028,10 +1028,10 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
-          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Privacy Policy</a>
-          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Terms of Service</a>
-          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Security</a>
-          <a href="#" className="text-[14px] text-black/50 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Help Center</a>
+          <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Privacy Policy</a>
+          <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Terms of Service</a>
+          <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Security</a>
+          <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Help Center</a>
         </div>
       </footer>
 
@@ -1056,18 +1056,18 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
       {/* Paystack Checkout Modal */}
       <AnimatePresence>
         {isCheckoutModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white dark:bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 dark:bg-black/80 backdrop-blur-sm">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-[#111] border border-black/10 dark:border-white/10 w-full max-w-md rounded-2xl overflow-hidden relative text-left"
+              className="bg-white dark:bg-[#111] border border-black/10 dark:border-white/10 w-full max-w-md rounded-2xl overflow-hidden relative text-left"
             >
               <div className="flex justify-between items-center p-4 border-b border-black/10 dark:border-white/10">
                 <h3 className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-[#B600A8]"/> Checkout
                 </h3>
-                <button onClick={() => setIsCheckoutModalOpen(false)} className="text-black/50 dark:text-white/50 hover:text-black dark:text-white cursor-pointer transition-colors">
+                <button onClick={() => setIsCheckoutModalOpen(false)} className="text-black/60 dark:text-white/50 hover:text-black dark:text-white cursor-pointer transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -1077,7 +1077,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                     <div key={idx} className="flex justify-between items-center bg-black/5 dark:bg-white/5 p-3 rounded-lg border border-black/5 dark:border-white/5">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold text-black dark:text-white">{item.name}</span>
-                        <span className="text-xs text-black/50 dark:text-white/50">₦{Number(item.price).toLocaleString()}</span>
+                        <span className="text-xs text-black/60 dark:text-white/50">₦{Number(item.price).toLocaleString()}</span>
                       </div>
                       <button 
                         onClick={() => setCart(cart.filter((_, i) => i !== idx))} 
