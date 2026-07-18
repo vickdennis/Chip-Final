@@ -4,6 +4,7 @@ import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, User
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
   const [profile, setProfile] = useState<any>(null);
@@ -376,7 +377,24 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
               
               <div className="p-8 flex flex-col items-center">
                 <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden mb-6 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-black/10 dark:border-white/10 relative">
-                   <img src={showQR ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}` : coverUrl} alt="Cover/QR" className={`w-full h-full ${showQR ? 'object-contain bg-white dark:bg-[#1a1c1c] p-2' : 'object-cover'}`} />
+                   {showQR ? (
+    <div className="w-full h-full bg-white flex items-center justify-center p-2">
+      <QRCodeSVG 
+        value={`https://chipng.com/${profile.username || ''}`}
+        size={130}
+        imageSettings={{
+          src: profile?.cover_image_url || coverUrl,
+          x: undefined,
+          y: undefined,
+          height: 30,
+          width: 30,
+          excavate: true,
+        }}
+      />
+    </div>
+  ) : (
+    <img src={profile?.cover_image_url || coverUrl} alt="Cover" className="w-full h-full object-cover" />
+  )}
                 </div>
                 
                 <h2 className="text-2xl font-bold text-black dark:text-white dark:text-white mb-2 text-center">This is your<br/>ChipNG bio link!</h2>

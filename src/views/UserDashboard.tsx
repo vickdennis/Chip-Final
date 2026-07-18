@@ -3,6 +3,7 @@ import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
+import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
 import { Save, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
@@ -638,6 +639,19 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               const { data: { user } } = await supabase.auth.getUser();
                               if (user) {
                                 await supabase.from('profiles').update({ is_verified: true }).eq('id', user.id);
+                                try {
+                                  await supabase.from('purchases').insert([{
+                                    buyer_email: profile.contact_email || profile.email || 'user@example.com',
+                                    amount: 3000,
+                                    platform_fee: 3000,
+                                    net_earnings: 0,
+                                    reference: ref.reference || ('VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase()),
+                                    status: 'completed',
+                                    purchase_type: 'verification'
+                                  }]);
+                                } catch (e) {
+                                  console.error("Failed to record verification purchase", e);
+                                }
                               }
                               alert('Payment successful! You are now verified.');
                             }}
@@ -932,7 +946,20 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </div>
               <div className="p-5 flex gap-3">
                 <div className="w-12 h-12 bg-white/40 dark:bg-black/40 backdrop-blur-xl flex items-center justify-center rounded-xl border border-black/10 dark:border-white/10 shrink-0 overflow-hidden p-1">
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chipng.com/${profile.username || ''}`} alt="QR Code" className="w-full h-full object-cover" />
+                  <div className="w-full h-full bg-white flex items-center justify-center p-0.5">
+    <QRCodeSVG 
+      value={`https://chipng.com/${profile.username || ''}`}
+      size={40}
+      imageSettings={{
+        src: profile?.cover_image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuDJdZfBp08ThhJkbous1qpSV80_ElD1o9obSt5AOKNYgq32sqShFsY95dnIhjpFH1wxwvT4gzXvFAZ_IpKEl5CpME0qIY6tV53q3N41VoqzAapRX3JGVjV8t0xHFVojZGp54nQM3lEGjPU5Ju0AxqQw_8APH-7H5hG-vaOeYzXj3cEc4Wj1y2Dlzf4vx24Nocz6VRMn5bSHI36NCSzRpkwk1SSi4ZCVsbVNmmrSByG2hDIeGzM3OSF92uHwBeAQqdzi0PE4r_i8nQQ",
+        x: undefined,
+        y: undefined,
+        height: 12,
+        width: 12,
+        excavate: true,
+      }}
+    />
+  </div>
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                   <button 

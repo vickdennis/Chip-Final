@@ -346,12 +346,14 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   
   const digitalProductPurchases = purchases.filter(p => p.purchase_type === 'digital_product' || !p.purchase_type);
   const themePurchases = purchases.filter(p => p.purchase_type === 'theme');
+  const verificationPurchases = purchases.filter(p => p.purchase_type === 'verification');
   
   const totalShopRevenue = digitalProductPurchases.reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const digitalProductFees = digitalProductPurchases.reduce((sum, p) => sum + Number(p.platform_fee || (p.amount * 0.05) || 0), 0);
   const themeSalesRevenue = themePurchases.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const verificationEarnings = verificationPurchases.reduce((sum, p) => sum + Number(p.platform_fee || p.amount || 0), 0);
   
-  const totalPlatformFees = digitalProductFees + themeSalesRevenue;
+  const totalPlatformFees = digitalProductFees + themeSalesRevenue + verificationEarnings;
   const proPlanUsers = users.filter(u => u.enterprise_id).length; // Rough mock of premium users if they have enterprise
 
   return (
@@ -452,6 +454,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               <p className="text-[12px] text-black/40 dark:text-white/40 mt-2 font-mono flex flex-col items-center gap-1">
                 <span>Shop Fees (5%): ₦{digitalProductFees.toLocaleString()}</span>
                 <span>Theme Sales: ₦{themeSalesRevenue.toLocaleString()}</span>
+                <span>Verification: ₦{verificationEarnings.toLocaleString()}</span>
               </p>
             </div>
 
