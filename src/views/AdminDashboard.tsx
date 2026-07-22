@@ -102,18 +102,67 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     const { data: postsData } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
     const { count: blogViewsCount } = await supabase.from('blog_views').select('*', { count: 'exact', head: true });
     
-    if (usersData) setUsers(usersData);
+    if (usersData && purchasesData) {
+      const updatedUsers = [...usersData];
+      let needsRefresh = false;
+      for (const u of updatedUsers) {
+        if (u.is_verified) {
+          const verifPurchases = purchasesData.filter(p => p.seller_id === u.id && p.purchase_type === 'verification' && p.status?.startsWith('expires_'));
+          if (verifPurchases.length > 0) {
+            const latestVerif = verifPurchases[0];
+            const expiresAt = parseInt(latestVerif.status.split('_')[1], 10);
+            if (Date.now() > expiresAt) {
+              u.is_verified = false;
+              await supabase.from('profiles').update({ is_verified: false }).eq('id', u.id);
+              needsRefresh = true;
+            }
+          }
+        }
+      }
+      setUsers(updatedUsers);
+    } else if (usersData) {
+      setUsers(usersData);
+    }
+    
     if (productsData) setProducts(productsData);
     if (purchasesData) setPurchases(purchasesData);
     if (postsData) setPosts(postsData);
     if (blogViewsCount !== null) setBlogViews(blogViewsCount);
   };
 
-  const toggleVerification = async (id: string, current: boolean) => {
-    const { error, count, data } = await supabase.from('profiles').update({ is_verified: !current }).eq('id', id).select('*');
-    if (error) alert("Error verifying: " + error.message);
-    else if (!data || data.length === 0) alert("Action failed constraint checks in DB (RLS). Please apply the latest permissions in Supabase SQL editor.");
-    else fetchData();
+  const toggleVerification = async (user: any) => {
+    if (user.is_verified) {
+      if (!window.confirm("Revoke verification?")) return;
+      const { error } = await supabase.from('profiles').update({ is_verified: false }).eq('id', user.id);
+      if (error) alert("Error revoking: " + error.message);
+      else fetchData();
+    } else {
+      const monthsStr = window.prompt("Enter number of months for verification:", "1");
+      if (!monthsStr) return;
+      const months = parseInt(monthsStr, 10);
+      if (isNaN(months) || months <= 0) return alert("Invalid number of months");
+      
+      const expiresAt = Date.now() + months * 30 * 24 * 60 * 60 * 1000;
+      
+      const { error } = await supabase.from('profiles').update({ is_verified: true }).eq('id', user.id);
+      if (error) {
+        alert("Error verifying: " + error.message);
+        return;
+      }
+      
+      await supabase.from('purchases').insert([{
+        seller_id: user.id,
+        buyer_email: user.contact_email || user.email || user.username || 'admin_verified',
+        amount: 0,
+        platform_fee: 0,
+        net_earnings: 0,
+        reference: 'ADMIN_VERIF_' + Math.random().toString(36).substring(2, 9),
+        status: 'expires_' + expiresAt,
+        purchase_type: 'verification'
+      }]);
+      
+      fetchData();
+    }
   };
 
   const toggleAdmin = async (id: string, current: boolean) => {
@@ -537,7 +586,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
                           <button 
-                            onClick={() => toggleVerification(u.id, u.is_verified)}
+                            onClick={() => toggleVerification(u)}
                             className="px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors"
                           >
                             {u.is_verified ? 'Revoke Verif.' : 'Verify'}

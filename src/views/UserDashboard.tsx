@@ -127,7 +127,21 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id);
 
       if (profileData) {
-        setProfile({ ...profileData, email: user.email });
+        let isVerified = profileData.is_verified;
+        if (isVerified && purchasesData) {
+          const verifPurchases = purchasesData.filter(p => p.purchase_type === 'verification' && p.status?.startsWith('expires_'));
+          if (verifPurchases.length > 0) {
+            // Sort by newest
+            const latestVerif = verifPurchases[0];
+            const expiresAt = parseInt(latestVerif.status.split('_')[1], 10);
+            if (Date.now() > expiresAt) {
+              isVerified = false;
+              await supabase.from('profiles').update({ is_verified: false }).eq('id', user.id);
+            }
+          }
+        }
+        
+        setProfile({ ...profileData, email: user.email, is_verified: isVerified });
         if (profileData.cover_image_url) setCoverUrl(profileData.cover_image_url);
       } else {
         setProfile({
@@ -659,8 +673,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                     platform_fee: 3000 * verificationMonths,
                                     net_earnings: 0,
                                     reference: ref.reference || ('VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase()),
-                                    status: 'completed',
-                                    purchase_type: 'verification'
+                                    purchase_type: 'verification',
+                                    seller_id: user.id,
+                                    status: 'expires_' + (Date.now() + verificationMonths * 30 * 24 * 60 * 60 * 1000)
                                   }]);
                                 } catch (e) {
                                   console.error("Failed to record verification purchase", e);

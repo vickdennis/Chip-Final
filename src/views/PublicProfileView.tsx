@@ -60,6 +60,19 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', targetUserId).order('created_at', { ascending: false });
 
       if (profileData) {
+        if (profileData.is_verified) {
+          const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', targetUserId).eq('purchase_type', 'verification').order('created_at', { ascending: false }).limit(1);
+          if (purchasesData && purchasesData.length > 0) {
+            const latestVerif = purchasesData[0];
+            if (latestVerif.status && latestVerif.status.startsWith('expires_')) {
+              const expiresAt = parseInt(latestVerif.status.split('_')[1], 10);
+              if (Date.now() > expiresAt) {
+                profileData.is_verified = false;
+                await supabase.from('profiles').update({ is_verified: false }).eq('id', targetUserId);
+              }
+            }
+          }
+        }
         setProfile(profileData);
         if (profileData.enterprise_id) {
           const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).single();
