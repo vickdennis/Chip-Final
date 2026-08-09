@@ -101,7 +101,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center gap-4">
+      <div className="dark min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center gap-4">
         <div className="w-24 h-24 border border-black/10 dark:border-white/10 bg-white dark:bg-[#1a1c1c] p-3 rounded-xl shadow-sm overflow-hidden animate-pulse">
           <img 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
@@ -115,7 +115,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center text-center p-6">
+      <div className="dark min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center text-center p-6">
         <h1 className="font-display text-4xl font-black mb-2 text-black dark:text-white">Profile Not Found</h1>
         <p className="font-sans text-black dark:text-white/40 dark:text-white/40 mb-6">We couldn't find a user with this username.</p>
         <button 
@@ -330,7 +330,7 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
 
   return (
     <div 
-      className="min-h-screen w-full flex items-center justify-center bg-[#09090b] text-black dark:text-white dark:text-white p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
+      className="dark min-h-screen w-full flex items-center justify-center bg-[#09090b] text-black dark:text-white dark:text-white p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
       style={{ 
         fontFamily: profileFont,
         ['--font-sans' as any]: profileFont,
