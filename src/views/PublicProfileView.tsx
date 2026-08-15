@@ -392,9 +392,9 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
                 <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden mb-6 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-black/10 dark:border-white/10 relative">
                    {showQR ? (
     <div className="w-full h-full bg-white flex items-center justify-center p-2">
-      <QRCodeSVG 
+      <QRCodeSVG level="H" 
         value={`https://chipng.com/${profile.username || ''}`}
-        size={130}
+        size={100} marginSize={1}
         imageSettings={{
           src: profile?.cover_image_url || coverUrl,
           x: undefined,
