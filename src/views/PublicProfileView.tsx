@@ -18,16 +18,20 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [hasDownloaded, setHasDownloaded] = useState(false);
 
   useEffect(() => {
-    fetchData().then(() => {
-      if (autoDownloadVCard) {
-        setTimeout(() => {
-          downloadVCard();
-        }, 800); // slight delay to ensure profile and images are ready
-      }
-    });
+    fetchData();
   }, [username]);
+
+  useEffect(() => {
+    if (autoDownloadVCard && profile && !hasDownloaded) {
+      setHasDownloaded(true);
+      setTimeout(() => {
+        downloadVCard();
+      }, 500);
+    }
+  }, [profile, autoDownloadVCard, hasDownloaded]);
 
 
 
