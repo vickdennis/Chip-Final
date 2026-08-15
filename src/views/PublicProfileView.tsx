@@ -17,7 +17,8 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
+  const [qrMode, setQrMode] = useState<'none' | 'bio' | 'vcard'>('none');
+  const [isVcardCopied, setIsVcardCopied] = useState(false);
   const [hasDownloaded, setHasDownloaded] = useState(false);
 
   useEffect(() => {
@@ -400,10 +401,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               
               <div className="p-8 flex flex-col items-center">
                 <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden mb-6 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-black/10 dark:border-white/10 relative">
-                   {showQR ? (
+                   {qrMode !== 'none' ? (
     <div className="w-full h-full bg-white flex items-center justify-center p-2">
       <QRCodeSVG level="H" 
-        value={`https://chipng.com/${profile.username || ''}`}
+        value={qrMode === 'bio' ? `https://chipng.com/${profile.username || ''}` : `https://chipng.com/${profile.username || ''}/vcard`}
         size={100} marginSize={1}
         imageSettings={{
           src: profile?.cover_image_url || coverUrl,
@@ -425,12 +426,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   You can copy and paste it into all your social media accounts to help increase your exposure and showcase your profile.
                 </p>
 
-                <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
+                <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
                      <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-black dark:text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                        NG
                      </div>
-                     <span className="text-black dark:text-white dark:text-white text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
+                     <span className="text-black dark:text-white text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
                   </div>
                   <button 
                     onClick={() => {
@@ -438,19 +439,47 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsCopied(true);
                       setTimeout(() => setIsCopied(false), 2000);
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-black dark:text-white dark:text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-black dark:text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
                   >
                     {isCopied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-3 w-full">
+                <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3 px-3 overflow-hidden">
+                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-black dark:text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                       VC
+                     </div>
+                     <span className="text-black dark:text-white text-[13px] truncate font-medium">chipng.com/{profile.username}/vcard</span>
+                  </div>
                   <button 
-                    onClick={() => setShowQR(!showQR)}
-                    className="w-full py-4 rounded-2xl text-black dark:text-white dark:text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex items-center justify-center gap-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}/vcard`);
+                      setIsVcardCopied(true);
+                      setTimeout(() => setIsVcardCopied(false), 2000);
+                    }}
+                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-black dark:text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
                   >
-                    <QrCode className="w-4 h-4" /> {showQR ? 'Show Profile Image' : 'Show QR Code'}
+                    {isVcardCopied ? 'Copied!' : 'Copy'}
                   </button>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => setQrMode(qrMode === 'bio' ? 'none' : 'bio')}
+                      className="flex-1 py-4 rounded-2xl text-black dark:text-white font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
+                    >
+                      <QrCode className="w-5 h-5" /> {qrMode === 'bio' ? 'Hide' : 'Bio QR'}
+                    </button>
+                    
+                    <button 
+                      onClick={() => setQrMode(qrMode === 'vcard' ? 'none' : 'vcard')}
+                      className="flex-1 py-4 rounded-2xl text-black dark:text-white font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
+                    >
+                      <QrCode className="w-5 h-5" /> {qrMode === 'vcard' ? 'Hide' : 'Contact QR'}
+                    </button>
+                  </div>
                   
                   <button 
                     onClick={() => {
@@ -464,7 +493,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                         alert("Link copied to clipboard!");
                       }
                     }}
-                    className="w-full py-4 rounded-2xl text-black dark:text-white dark:text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl text-black dark:text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
                   >
                     <Share className="w-4 h-4" /> SHARE BIO LINK
                   </button>
