@@ -6,7 +6,7 @@ import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 
-export default function PublicProfileView({ onNavigate, username }: { onNavigate?: (view: ViewState) => void, username?: string | null }) {
+export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
@@ -20,7 +20,13 @@ export default function PublicProfileView({ onNavigate, username }: { onNavigate
   const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    fetchData().then(() => {
+      if (autoDownloadVCard) {
+        setTimeout(() => {
+          downloadVCard();
+        }, 800); // slight delay to ensure profile and images are ready
+      }
+    });
   }, [username]);
 
 

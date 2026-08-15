@@ -1,25 +1,37 @@
 const fs = require('fs');
 let content = fs.readFileSync('src/App.tsx', 'utf-8');
 
-// Add session state
-content = content.replace('const [sessionLoading, setSessionLoading] = useState(true);', 'const [sessionLoading, setSessionLoading] = useState(true);\n  const [session, setSession] = useState<any>(null);');
+// 1. Add autoDownloadVCard state
+content = content.replace(
+  'const [blogSlug, setBlogSlug] = useState<string | null>(() => {',
+  `const [autoDownloadVCard, setAutoDownloadVCard] = useState<boolean>(() => {
+    return window.location.pathname.endsWith('/vcard') || window.location.pathname.endsWith('/vcard/');
+  });
+  
+  const [blogSlug, setBlogSlug] = useState<string | null>(() => {`
+);
 
-// Update getSession
-content = content.replace('supabase.auth.getSession().then(({ data: { session } }) => {', 'supabase.auth.getSession().then(({ data: { session } }) => {\n      setSession(session);');
+// 2. Strip /vcard from username
+content = content.replace(
+  /let username = decodeURIComponent\(path\.slice\(1\)\)\.trim\(\);\n\s*if \(username\.startsWith\('@'\)\) username = username\.slice\(1\);\n\s*return username;/g,
+  `let username = decodeURIComponent(path.slice(1)).trim();
+        if (username.endsWith('/vcard')) username = username.replace(/\\/vcard$/, '');
+        if (username.startsWith('@')) username = username.slice(1);
+        return username;`
+);
+content = content.replace(
+  /let username = path\.slice\(1\)\.trim\(\);\n\s*if \(username\.startsWith\('@'\)\) username = username\.slice\(1\);\n\s*return username;/g,
+  `let username = path.slice(1).trim();
+        if (username.endsWith('/vcard')) username = username.replace(/\\/vcard$/, '');
+        if (username.startsWith('@')) username = username.slice(1);
+        return username;`
+);
 
-// Update onAuthStateChange
-content = content.replace('const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {', 'const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {\n      setSession(session);');
-
-// Fix redirect logic in onAuthStateChange
-const badLogic = `} else if (session && (prevView === 'login' || prevView === 'landing')) {
-          return 'user-dashboard';
-        }`;
-const goodLogic = `} else if (session && prevView === 'login') {
-          return 'user-dashboard';
-        }`;
-content = content.replace(badLogic, goodLogic);
-
-// Add session to LandingView
-content = content.replace('{currentView === \'landing\' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}', '{currentView === \'landing\' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}');
+// 3. Pass autoDownloadVCard to PublicProfileView
+content = content.replace(
+  /<PublicProfileView onNavigate=\{handleNavigate\} username=\{publicUsername\} \/>/g,
+  `<PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />`
+);
 
 fs.writeFileSync('src/App.tsx', content);
+console.log('App.tsx patched');

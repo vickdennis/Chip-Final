@@ -49,16 +49,22 @@ export default function App() {
     if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
       try {
         let username = decodeURIComponent(path.slice(1)).trim();
+        if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
         if (username.startsWith('@')) username = username.slice(1);
         return username;
       } catch (e) {
         let username = path.slice(1).trim();
+        if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
         if (username.startsWith('@')) username = username.slice(1);
         return username;
       }
     }
     return null;
   });
+  const [autoDownloadVCard, setAutoDownloadVCard] = useState<boolean>(() => {
+    return window.location.pathname.endsWith('/vcard') || window.location.pathname.endsWith('/vcard/');
+  });
+  
   const [blogSlug, setBlogSlug] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
     if (path.startsWith('/blog/')) {
@@ -142,7 +148,7 @@ export default function App() {
       {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-      {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
+      {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />}
       {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
