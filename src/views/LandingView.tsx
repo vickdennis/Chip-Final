@@ -46,7 +46,7 @@ const MARQUEE_GIFS = [
 ];
 
 // Reusable ContactButton Component (now Signup Button)
-const ContactButton = ({ onClick }: { onClick?: () => void }) => (
+const ContactButton = ({ onClick, text = "Login" }: { onClick?: () => void, text?: string }) => (
   <button 
     onClick={onClick}
     style={{
@@ -374,7 +374,7 @@ const BrandSlideshow = () => {
   );
 };
 
-export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
+export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, session }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void, session?: any }) {
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -495,10 +495,10 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
               FAQ
             </button>
             <button 
-              onClick={() => onNavigate('login')}
+              onClick={() => onNavigate(session ? 'user-dashboard' : 'login')}
               className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer border border-white/20"
             >
-              Login
+              {session ? 'Dashboard' : 'Login'}
             </button>
           </div>
         </FadeIn>
@@ -534,7 +534,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
           </FadeIn>
 
           <FadeIn y={20} delay={0.5}>
-            <ContactButton onClick={() => onNavigate('login')} />
+            <ContactButton onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} text={session ? 'Dashboard' : 'Login'} />
           </FadeIn>
 
         </div>
@@ -605,7 +605,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
             />
 
             <FadeIn y={20} delay={0.1}>
-              <ContactButton onClick={() => onNavigate('login')} />
+              <ContactButton onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} text={session ? 'Dashboard' : 'Login'} />
             </FadeIn>
           </div>
 
@@ -824,8 +824,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                   Basic profile hit analytics
                 </li>
               </ul>
-              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-black/5 dark:bg-white/5 text-black dark:text-white hover:bg-white hover:text-black transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
-                Get Free Account
+              <button onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} className="w-full py-3 bg-black/5 dark:bg-white/5 text-black dark:text-white hover:bg-white hover:text-black transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
+                {session ? 'Go to Dashboard' : 'Get Free Account'}
               </button>
             </FadeIn>
 
@@ -856,8 +856,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
                   Deep real-time geographic hits analysis
                 </li>
               </ul>
-              <button onClick={() => onNavigate('login')} className="w-full py-3 bg-[#B600A8] text-black dark:text-white hover:bg-[#a10095] transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
-                Go Pro Now
+              <button onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} className="w-full py-3 bg-[#B600A8] text-black dark:text-white hover:bg-[#a10095] transition-all font-mono text-[12px] font-bold rounded-full cursor-pointer">
+                {session ? 'Go to Dashboard' : 'Go Pro Now'}
               </button>
             </FadeIn>
           </div>

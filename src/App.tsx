@@ -43,6 +43,7 @@ export default function App() {
     return 'landing';
   });
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [session, setSession] = useState<any>(null);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
     if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
@@ -68,24 +69,28 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       setSessionLoading(false);
       // Wait to redirect if going to user-dashboard
       setCurrentView(prev => {
         const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard';
         if (!session && isProtected) {
           return 'login';
+        } else if (session && prev === 'login') {
+          return 'user-dashboard';
         }
         return prev;
       });
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       // Use functional state update to avoid dependency on currentView
       setCurrentView((prevView) => {
         const isProtected = prevView === 'user-dashboard' || prevView === 'admin-dashboard' || prevView === 'enterprise-dashboard';
         if (!session && isProtected) {
           return 'login';
-        } else if (session && (prevView === 'login' || prevView === 'landing')) {
+        } else if (session && prevView === 'login') {
           return 'user-dashboard';
         }
         return prevView;
@@ -134,7 +139,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] dark:text-white font-sans antialiased selection:bg-black selection:text-white">
-      {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} />}
