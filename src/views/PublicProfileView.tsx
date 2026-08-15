@@ -178,7 +178,25 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
       }
     }
 
-    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.full_name || ''}\nTITLE:${profile.headline || ''}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}\nTEL;TYPE=CELL:${profile.phone_number || ''}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://chipng.com/${profile.username}${photoStr}\nEND:VCARD`;
+    const vcard = (() => {
+      let phonesStr = `\nTEL;TYPE=CELL:${profile.phone_number || ''}`;
+      if (profile.phone_number) {
+        let arr = [];
+        try {
+          const parsed = JSON.parse(profile.phone_number);
+          if (Array.isArray(parsed)) arr = parsed;
+          else if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
+          else arr = [profile.phone_number];
+        } catch(e) {
+          if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
+          else arr = [profile.phone_number];
+        }
+        if (arr.filter(Boolean).length > 0) {
+          phonesStr = arr.filter(Boolean).map(p => `\nTEL;TYPE=CELL:${p}`).join('');
+        }
+      }
+      return `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.full_name || ''}\nTITLE:${profile.headline || ''}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://chipng.com/${profile.username}${photoStr}\nEND:VCARD`;
+    })();
     
     const blob = new Blob([vcard], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
@@ -569,19 +587,35 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
                 </div>
               </a>
-              {profile?.phone_number && (
-                <a href={`https://wa.me/${profile.phone_number.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-white dark:bg-[#1a1c1c] rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors mt-2">
-                  <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
-                    <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
-                      {profile.phone_number}
-                    </span>
-                  </div>
-                  <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
-                    <span className="text-black dark:text-white dark:text-white font-sans text-[16px] font-bold tracking-tight">WhatsApp connect</span>
-                    <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
-                  </div>
-                </a>
-              )}
+              {(() => {
+                if (!profile?.phone_number) return null;
+                let arr = [];
+                try {
+                  const parsed = JSON.parse(profile.phone_number);
+                  if (Array.isArray(parsed)) arr = parsed;
+                  else if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
+                  else arr = [profile.phone_number];
+                } catch(e) {
+                  if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
+                  else arr = [profile.phone_number];
+                }
+                arr = arr.filter(Boolean);
+                if (arr.length === 0) return null;
+
+                return arr.map((phone, idx) => (
+                  <a key={idx} href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-white dark:bg-[#1a1c1c] rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2">
+                    <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
+                      <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
+                        {phone}
+                      </span>
+                    </div>
+                    <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
+                      <span className="text-black dark:text-white font-sans text-[16px] font-bold tracking-tight">WhatsApp connect</span>
+                      <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
+                    </div>
+                  </a>
+                ));
+              })()}
             </div>
 
             {(() => {
