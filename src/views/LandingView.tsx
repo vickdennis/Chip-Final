@@ -1043,7 +1043,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode }: 
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setIsCheckoutModalOpen(true)}
-            className="fixed bottom-6 right-6 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center cursor-pointer border border-neutral-800"
+            className="fixed bottom-24 right-6 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center cursor-pointer border border-neutral-800"
           >
             <ShoppingCart className="w-6 h-6 text-black" />
             <span className="absolute -top-2 -right-2 bg-[#B600A8] text-black dark:text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-pulse">
