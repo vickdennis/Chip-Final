@@ -1,28 +1,41 @@
 const fs = require('fs');
 let content = fs.readFileSync('src/views/UserDashboard.tsx', 'utf-8');
 
-const badLogic = `        const { data: newProfile, error: insertError } = await supabase.from('profiles').insert(initialProfile).select().single();
-        if (newProfile) {
-          setProfile({ ...newProfile, email: user.email });
-        } else {
-          setProfile({ ...initialProfile, email: user.email });
-        }`;
+const targetHeader = `<div className="max-w-[1200px] mx-auto pb-16">
+        
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">`;
 
-const goodLogic = `        const { data: newProfile, error: insertError } = await supabase.from('profiles').insert(initialProfile).select().single();
-        if (newProfile) {
-          setProfile({ ...newProfile, email: user.email });
-        } else if (insertError && insertError.code === '23505') {
-          initialProfile.username = initialProfile.username + Math.floor(Math.random()*10000);
-          const { data: retryProfile } = await supabase.from('profiles').insert(initialProfile).select().single();
-          setProfile({ ...(retryProfile || initialProfile), email: user.email });
-        } else {
-          setProfile({ ...initialProfile, email: user.email });
-        }`;
+const insertHeader = `<div className="max-w-[1200px] mx-auto pb-16">
+        
+        {completionRate < 100 && !setupGuideActive && (
+          <div className="w-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 p-5 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col gap-2 w-full md:w-auto flex-1 max-w-xl">
+              <h3 className="font-bold text-black dark:text-white text-lg">Account Setup Guide</h3>
+              <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                <div className="h-full bg-green-500 transition-all duration-500" style={{ width: \`\${completionRate}%\` }}></div>
+              </div>
+              <p className="text-sm text-black/60 dark:text-white/60">{completionRate}% Complete. Let's finish setting up your public profile step-by-step.</p>
+            </div>
+            <button 
+              onClick={() => {
+                const firstIncomplete = setupSteps.find(s => !s.completed) || setupSteps[0];
+                setSetupStep(firstIncomplete.id);
+                setActiveTab(firstIncomplete.tab as any);
+                setSetupGuideActive(true);
+              }}
+              className="shrink-0 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:bg-black/80 dark:hover:bg-white/80 transition-colors shadow-lg"
+            >
+              Start Setup Guide
+            </button>
+          </div>
+        )}
 
-if (content.includes(badLogic)) {
-  content = content.replace(badLogic, goodLogic);
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">`;
+
+if (content.includes(targetHeader)) {
+  content = content.replace(targetHeader, insertHeader);
   fs.writeFileSync('src/views/UserDashboard.tsx', content);
-  console.log("Successfully patched UserDashboard.tsx for duplicate usernames");
+  console.log("Patched header banner.");
 } else {
-  console.log("Failed to find badLogic in UserDashboard.tsx");
+  console.log("Target header not found.");
 }
