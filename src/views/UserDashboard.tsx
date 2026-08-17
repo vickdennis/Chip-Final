@@ -515,7 +515,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (
               <button 
                 onClick={() => onNavigate('admin-dashboard')}
-                className="flex-1 md:flex-none px-5 py-2.5 bg-yellow-400 text-black dark:text-white font-mono text-[13px] font-medium hover:bg-yellow-500 transition-colors rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-5 py-2.5 bg-[#f4f4f5] dark:bg-[#1a1a1a] text-black dark:text-white font-semibold text-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[14px] flex items-center justify-center gap-2 border border-black/5 dark:border-white/5 active:scale-[0.98]"
               >
                 <Shield className="w-[18px] h-[18px]" /> Super Admin
               </button>
@@ -523,69 +523,67 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             <button 
               onClick={handleSave} 
               disabled={saving}
-              style={{
-                background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
-                boxShadow: '0px 4px 4px rgba(181, 1, 167, 0.25), inset 4px 4px 12px #7721B1',
-              }}
-              className="flex-1 md:flex-none px-5 py-2.5 text-black dark:text-white font-mono text-[13px] font-bold hover:scale-[1.02] hover:brightness-110 transition-all rounded-xl flex items-center justify-center gap-2 disabled:opacity-70 border border-black/10 dark:border-white/10 cursor-pointer"
+              className="flex-1 md:flex-none px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black font-semibold text-[14px] hover:opacity-90 transition-all rounded-[14px] flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm shadow-black/5 dark:shadow-white/5 active:scale-[0.98]"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-[18px] h-[18px]" />} 
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button 
               onClick={() => onNavigate('public-profile')}
-              className="flex-1 md:flex-none px-5 py-2.5 border border-black/10 dark:border-white/10 text-black dark:text-white bg-white/40 dark:bg-black/40 backdrop-blur-xl font-mono text-[13px] font-medium hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 transition-colors rounded-xl flex items-center justify-center gap-2"
+              className="flex-1 md:flex-none px-5 py-2.5 border border-black/5 dark:border-white/5 text-black dark:text-white bg-white dark:bg-[#1a1a1a] shadow-sm shadow-black/5 font-semibold text-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[14px] flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <Eye className="w-[18px] h-[18px]" /> Preview Bio
             </button>
           </div>
         </div>
 
-        <div className="flex border-b border-black/10 dark:border-white/10 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <button 
-            onClick={() => setActiveTab('analytics')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'analytics' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            Analytics
-          </button>
-          <button 
-            onClick={() => setActiveTab('profile')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'profile' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            Profile Links
-          </button>
-          <button 
-            onClick={() => setActiveTab('shop')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'shop' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            Digital Products
-          </button>
-          <button 
-            onClick={() => setActiveTab('appearance')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'appearance' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            Appearance
-          </button>
-          <button 
-            onClick={() => setActiveTab('gallery')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'gallery' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            Gallery
-          </button>
-          <button 
-            onClick={() => setActiveTab('nfc')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'nfc' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            <SmartphoneNfc className="w-4 h-4 inline-block mr-2" />
-            Program Card
-          </button>
-          <button 
-            onClick={() => setActiveTab('buy-nfc')}
-            className={`shrink-0 px-4 sm:px-8 py-3 font-mono text-[13px] font-bold ${activeTab === 'buy-nfc' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'}`}
-          >
-            <SmartphoneNfc className="w-4 h-4 inline-block mr-2" />
-            Buy NFC Card
-          </button>
+        <div className="mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div className="inline-flex bg-black/5 dark:bg-white/5 p-1.5 rounded-[16px] gap-1">
+            <button 
+              onClick={() => setActiveTab('analytics')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'analytics' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              Analytics
+            </button>
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'profile' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              Profile Links
+            </button>
+            <button 
+              onClick={() => setActiveTab('shop')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'shop' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              Digital Products
+            </button>
+            <button 
+              onClick={() => setActiveTab('appearance')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'appearance' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              Appearance
+            </button>
+            <button 
+              onClick={() => setActiveTab('gallery')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'gallery' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              Gallery
+            </button>
+            <button 
+              onClick={() => setActiveTab('nfc')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'nfc' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              <SmartphoneNfc className="w-4 h-4" />
+              Program Card
+            </button>
+            <button 
+              onClick={() => setActiveTab('buy-nfc')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'buy-nfc' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              <SmartphoneNfc className="w-4 h-4" />
+              Buy NFC Card
+            </button>
+          </div>
         </div>
 
         {loading ? (

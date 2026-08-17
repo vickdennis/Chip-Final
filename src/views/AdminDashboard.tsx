@@ -407,10 +407,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   return (
     <div className="min-h-screen bg-black/5 dark:bg-white/5 pb-20">
-      <header className="bg-black text-black dark:text-white p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
+      <header className="bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 text-black dark:text-white p-5 sticky top-0 z-20 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-yellow-400" />
-          <h1 className="font-mono text-[16px] font-bold tracking-widest uppercase">Super Admin</h1>
+          <h1 className="font-sans text-[18px] font-bold tracking-tight">Super Admin Hub</h1>
         </div>
         <button 
           onClick={async () => {
@@ -425,55 +425,57 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
       <div className="max-w-6xl mx-auto mt-8 px-4">
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-black/10 dark:border-white/10 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'analytics' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('analytics')}
-          >
-            <BarChart2 className="w-4 h-4 inline mr-1" /> Analytics
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'users' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('users')}
-          >
-            <Users className="w-4 h-4 inline mr-1" /> Users
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'products' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('products')}
-          >
-            <Package className="w-4 h-4 inline mr-1" /> Shop Products
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'blog' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('blog')}
-          >
-            <FileText className="w-4 h-4 inline mr-1" /> Blog
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'leads' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('leads')}
-          >
-            <MessageCircle className="w-4 h-4 inline mr-1" /> Leads
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'buybox' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('buybox')}
-          >
-            <Package className="w-4 h-4 inline mr-1" /> Buy Box
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'seo' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('seo')}
-          >
-            <LinkIcon className="w-4 h-4 inline mr-1" /> SEO
-          </button>
-          <button 
-            className={`shrink-0 pb-3 font-mono text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'broadcast' ? 'border-b-2 border-black text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-            onClick={() => setActiveTab('broadcast')}
-          >
-            <Send className="w-4 h-4 inline mr-1" /> Broadcast
-          </button>
+        <div className="mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div className="inline-flex bg-white dark:bg-[#121212] p-1.5 rounded-[16px] gap-1 shadow-sm border border-black/5 dark:border-white/5">
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'analytics' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('analytics')}
+            >
+              <BarChart2 className="w-4 h-4" /> Analytics
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('users')}
+            >
+              <Users className="w-4 h-4" /> Users
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'products' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('products')}
+            >
+              <Package className="w-4 h-4" /> Shop Products
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'blog' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('blog')}
+            >
+              <FileText className="w-4 h-4" /> Blog
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'leads' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('leads')}
+            >
+              <MessageCircle className="w-4 h-4" /> Leads
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'buybox' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('buybox')}
+            >
+              <Package className="w-4 h-4" /> Buy Box
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'seo' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('seo')}
+            >
+              <LinkIcon className="w-4 h-4" /> SEO
+            </button>
+            <button 
+              className={`shrink-0 px-4 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'broadcast' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('broadcast')}
+            >
+              <Send className="w-4 h-4" /> Broadcast
+            </button>
+          </div>
         </div>
 
         {activeTab === 'analytics' && (

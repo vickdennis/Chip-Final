@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const content = `import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { 
@@ -44,14 +45,14 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
           <nav className="flex flex-col gap-1">
             <button 
               onClick={() => onNavigate('user-dashboard')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-[15px] ${activePath === 'dashboard' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'}`}
+              className={\`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-[15px] \${activePath === 'dashboard' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'}\`}
             >
               <LayoutDashboard className="w-5 h-5" />
               Dashboard
             </button>
             <button 
               onClick={() => onNavigate('enterprise-dashboard')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-[15px] ${activePath === 'enterprise' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'}`}
+              className={\`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-[15px] \${activePath === 'enterprise' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'}\`}
             >
               <Users className="w-5 h-5" />
               Enterprise
@@ -100,24 +101,24 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
       </div>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl border-t border-black/5 dark:border-white/5 pb-4 md:pb-0">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl border-t border-black/5 dark:border-white/5 pb-safe">
         <div className="flex items-center justify-around h-[84px] px-2">
           <button 
             onClick={() => onNavigate('user-dashboard')}
-            className={`flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 rounded-2xl transition-all ${activePath === 'dashboard' ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40 active:bg-black/5 dark:active:bg-white/5'}`}
+            className={\`flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 rounded-2xl transition-all \${activePath === 'dashboard' ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40 active:bg-black/5 dark:active:bg-white/5'}\`}
           >
-            <div className={`w-[48px] h-[32px] rounded-full flex items-center justify-center transition-all ${activePath === 'dashboard' ? 'bg-black/5 dark:bg-white/10' : 'bg-transparent'}`}>
-              <LayoutDashboard className={`w-6 h-6 ${activePath === 'dashboard' ? 'fill-black/10 dark:fill-white/10' : ''}`} />
+            <div className={\`w-[48px] h-[32px] rounded-full flex items-center justify-center transition-all \${activePath === 'dashboard' ? 'bg-black/5 dark:bg-white/10' : 'bg-transparent'}\`}>
+              <LayoutDashboard className={\`w-6 h-6 \${activePath === 'dashboard' ? 'fill-black/10 dark:fill-white/10' : ''}\`} />
             </div>
             <span className="text-[11px] font-semibold tracking-wide">Home</span>
           </button>
           
           <button 
             onClick={() => onNavigate('enterprise-dashboard')}
-            className={`flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 rounded-2xl transition-all ${activePath === 'enterprise' ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40 active:bg-black/5 dark:active:bg-white/5'}`}
+            className={\`flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 rounded-2xl transition-all \${activePath === 'enterprise' ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40 active:bg-black/5 dark:active:bg-white/5'}\`}
           >
-            <div className={`w-[48px] h-[32px] rounded-full flex items-center justify-center transition-all ${activePath === 'enterprise' ? 'bg-black/5 dark:bg-white/10' : 'bg-transparent'}`}>
-              <Users className={`w-6 h-6 ${activePath === 'enterprise' ? 'fill-black/10 dark:fill-white/10' : ''}`} />
+            <div className={\`w-[48px] h-[32px] rounded-full flex items-center justify-center transition-all \${activePath === 'enterprise' ? 'bg-black/5 dark:bg-white/10' : 'bg-transparent'}\`}>
+              <Users className={\`w-6 h-6 \${activePath === 'enterprise' ? 'fill-black/10 dark:fill-white/10' : ''}\`} />
             </div>
             <span className="text-[11px] font-semibold tracking-wide">Enterprise</span>
           </button>
@@ -137,3 +138,7 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/AdminLayout.tsx', content);
+console.log('Patched AdminLayout');

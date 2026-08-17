@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const content = `import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { MemoryStick, ChevronRight, Check } from 'lucide-react';
@@ -100,13 +101,13 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
         {/* Tab Switcher */}
         <div className="bg-black/5 dark:bg-white/5 p-1 rounded-2xl flex mb-8">
           <button 
-            className={`flex-1 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${mode === 'login' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
+            className={\`flex-1 py-2.5 rounded-xl text-[14px] font-semibold transition-all \${mode === 'login' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}\`}
             onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
           >
             Sign In
           </button>
           <button 
-            className={`flex-1 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${mode === 'signup' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
+            className={\`flex-1 py-2.5 rounded-xl text-[14px] font-semibold transition-all \${mode === 'signup' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}\`}
             onClick={() => { setMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
           >
             Sign Up
@@ -198,3 +199,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/views/LoginView.tsx', content);
+console.log('Patched LoginView');
