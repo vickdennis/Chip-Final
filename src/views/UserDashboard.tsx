@@ -477,7 +477,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode}>
       <div className="max-w-[1200px] mx-auto pb-16">
         
-        {completionRate < 100 && !setupGuideActive && (
+        {completionRate < 100 && (
           <div className="w-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 p-5 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
             <div className="flex flex-col gap-2 w-full md:w-auto flex-1 max-w-xl">
               <h3 className="font-bold text-black dark:text-white text-lg">Account Setup Guide</h3>
@@ -488,14 +488,18 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             </div>
             <button 
               onClick={() => {
-                const firstIncomplete = setupSteps.find(s => !s.completed) || setupSteps[0];
-                setSetupStep(firstIncomplete.id);
-                setActiveTab(firstIncomplete.tab as any);
-                setSetupGuideActive(true);
+                if (setupGuideActive) {
+                  setSetupGuideActive(false);
+                } else {
+                  const firstIncomplete = setupSteps.find(s => !s.completed) || setupSteps[0];
+                  setSetupStep(firstIncomplete.id);
+                  setActiveTab(firstIncomplete.tab as any);
+                  setSetupGuideActive(true);
+                }
               }}
               className="shrink-0 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:bg-black/80 dark:hover:bg-white/80 transition-colors shadow-lg"
             >
-              Start Setup Guide
+              {setupGuideActive ? "Close Guide" : "Start Setup Guide"}
             </button>
           </div>
         )}
