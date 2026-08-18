@@ -869,11 +869,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 )}
               </div>
             </section>
-          </div>
 
+          </div>
           {/* Right Column */}
           <div className="xl:col-span-4 flex flex-col gap-8">
-            
             {/* Profile Views */}
             <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
               <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
@@ -887,80 +886,119 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
               </div>
             </section>
-
-            {/* Links */}
+            {/* Appointments */}
             <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
               <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">External Links</h3>
-                <button 
-                  onClick={() => {
-                    setCurrentLink({ label: '', url: '', size: 'Button', use_link_icon: false });
-                    setEditingLinkIndex(null);
-                    setIsLinkModalOpen(true);
-                  }}
-                  className="text-black dark:text-white hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" /> Add Link
-                </button>
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Appointments</h3>
+                <Calendar className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
               </div>
-              <div className="p-6 flex flex-col gap-4">
-                {links.map((item, i) => item.size === 'GalleryImage' ? null : (
-                  <div key={i} className="border border-black/10 dark:border-white/10 rounded-xl p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between cursor-pointer" onClick={() => {
-                    setCurrentLink({ ...item, size: item.size || 'Button', use_link_icon: item.use_link_icon || false });
-                    setEditingLinkIndex(i);
-                    setIsLinkModalOpen(true);
-                  }}>
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="cursor-move text-black/40 dark:text-white/40 opacity-40 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
-                        <GripVertical className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-black dark:text-white text-sm">{item.label || 'Untitled Link'}</div>
-                        <div className="text-xs text-black/40 dark:text-white/40 mt-1">{item.url}</div>
-                      </div>
-                      <div className="flex items-center gap-3 mr-4">
-                        <span className="text-xs font-mono px-2 py-1 bg-gray-200 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300">{item.size || 'Button'}</span>
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLinks(links.filter((_, idx) => idx !== i));
-                        }}
-                        className="p-2 text-black/40 dark:text-white/40 hover:text-[#ba1a1a] transition-colors rounded-xl hover:bg-[#ffdad6]"
-                      >
-                        <Trash2 className="w-[18px] h-[18px]" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {links.length === 0 && (
-                  <div className="text-center py-6 text-black/40 dark:text-white/40 font-mono text-[13px]">
-                    No links added. Click 'Add Link' to get started.
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-
-          {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-8">
-            
-            {/* Profile Views */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Analytics</h3>
-                <Activity className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
-              </div>
-              <div className="p-6">
-                <div className="text-black/40 dark:text-white/40 font-mono text-[11px] font-bold uppercase tracking-widest mb-4">Total Profile Views</div>
-                <div className="text-5xl font-sans font-bold flex items-center gap-2 text-black dark:text-white">
-                  {profileViews} <Eye className="w-6 h-6 text-blue-500" />
+              <div className="p-6 flex flex-col gap-5">
+                <div className="space-y-2">
+                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Booking Provider</label>
+                  <select 
+                    value={profile.booking_provider || 'Calendly (Integrated)'}
+                    onChange={(e) => setProfile({ ...profile, booking_provider: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl font-sans text-[14px] outline-none focus:border-black dark:focus:border-white"
+                  >
+                    <option value="Calendly (Integrated)">Calendly (Integrated)</option>
+                    <option value="SavvyCal">SavvyCal</option>
+                    <option value="Custom URL">Custom URL</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Calendar Link</label>
+                  <input 
+                    type="text" 
+                    value={profile.calendar_link || ''}
+                    onChange={(e) => setProfile({ ...profile, calendar_link: e.target.value })}
+                    placeholder="Provide your link..." 
+                    className="w-full px-3 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl font-sans text-[14px] outline-none focus:border-black dark:focus:border-white" 
+                  />
+                </div>
+                <div className="flex items-center gap-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-xl border border-black/10 dark:border-white/10">
+                  <input 
+                    type="checkbox" 
+                    checked={profile.show_availability !== false} // default true
+                    onChange={(e) => setProfile({ ...profile, show_availability: e.target.checked })}
+                    id="show-avail" 
+                    className="w-4 h-4 text-black dark:text-white border-black/10 dark:border-white/10 rounded-[2px] focus:ring-black dark:focus:ring-white" 
+                  />
+                  <label htmlFor="show-avail" className="text-black dark:text-white text-[13px] font-medium leading-none cursor-pointer pt-0.5">Display availability on bio</label>
                 </div>
               </div>
             </section>
 
+            {/* Export */}
+            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
+              <div className="border-b border-black/10 dark:border-white/10 p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">vCard Export</h3>
+                <QrCode className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
+              </div>
+              <div className="p-5 flex gap-3">
+                <div className="w-12 h-12 bg-white/40 dark:bg-black/40 backdrop-blur-xl flex items-center justify-center rounded-xl border border-black/10 dark:border-white/10 shrink-0 overflow-hidden p-1">
+                  <div className="w-full h-full bg-white flex items-center justify-center p-0.5">
+    <QRCodeSVG level="H" 
+      value={`https://chipng.com/${profile.username || ''}`}
+      size={32} marginSize={1}
+      imageSettings={{
+        src: profile?.cover_image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuDJdZfBp08ThhJkbous1qpSV80_ElD1o9obSt5AOKNYgq32sqShFsY95dnIhjpFH1wxwvT4gzXvFAZ_IpKEl5CpME0qIY6tV53q3N41VoqzAapRX3JGVjV8t0xHFVojZGp54nQM3lEGjPU5Ju0AxqQw_8APH-7H5hG-vaOeYzXj3cEc4Wj1y2Dlzf4vx24Nocz6VRMn5bSHI36NCSzRpkwk1SSi4ZCVsbVNmmrSByG2hDIeGzM3OSF92uHwBeAQqdzi0PE4r_i8nQQ",
+        x: undefined,
+        y: undefined,
+        height: 10, width: 10,
+        excavate: true,
+      }}
+    />
+  </div>
+                </div>
+                <div className="flex flex-col gap-2 w-full">
+                  <button 
+                    onClick={handleDownloadVCard}
+                    className="w-full px-3 py-2 border border-black/10 dark:border-white/10 text-black dark:text-white font-mono text-[12px] font-bold hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Download className="w-4 h-4" /> Save Contact vCard
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
+                      alert("Link copied to clipboard!");
+                    }}
+                    className="w-full px-3 py-2 border border-black/10 dark:border-white/10 text-black dark:text-white font-mono text-[12px] font-bold hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Share className="w-4 h-4" /> Share @{profile.username || 'username'}
+                  </button>
+                  <a 
+                    href={`/${profile.username || ''}`}
+                    target="_blank"
+                    className="mt-1 text-[#0066cc] font-mono text-[11px] text-center hover:underline bg-black/5 dark:bg-white/5 py-1.5 rounded-xl"
+                  >
+                    https://chipng.com/{profile.username || 'username'}
+                  </a>
+                  <div className="mt-1 flex flex-col w-full bg-black/5 dark:bg-white/5 py-1.5 rounded-xl">
+                    <span className="text-[9px] uppercase font-bold text-black/50 dark:text-white/50 tracking-widest text-center mb-0.5">Direct vCard Download Link</span>
+                    <a 
+                      onClick={(e) => {
+                         e.preventDefault();
+                         navigator.clipboard.writeText(`https://chipng.com/${profile.username}/vcard`);
+                         alert("vCard Download Link copied to clipboard! Anyone who clicks this link will automatically download your vCard.");
+                      }}
+                      href={`/${profile.username || ''}/vcard`}
+                      className="text-[#0066cc] font-mono text-[11px] text-center hover:underline cursor-pointer"
+                    >
+                      https://chipng.com/{profile.username || 'username'}/vcard
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+
+
+            {/* End of right column */}
+          </div>
+          </div>
+        ) : profile && activeTab === 'social' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-12 flex flex-col gap-8">
             {/* Social Media */}
             <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
               <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
@@ -1224,12 +1262,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </div>
             </section>
 
-            {/* End of right column */}
-          </div>
-          </div>
-        ) : profile && activeTab === 'social' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            <div className="xl:col-span-8 flex flex-col gap-8">
+
+
               
             </div>
           </div>
