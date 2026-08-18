@@ -6,7 +6,7 @@ import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut } from 'lucide-react';
+import { Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -474,8 +474,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
 
   return (
-    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true}>
-      <div className="pb-24">
+    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode}>
       <div className="max-w-[1200px] mx-auto pb-16">
         
         {completionRate < 100 && (
@@ -888,79 +887,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </div>
             </section>
 
-            {/* Links */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">External Links</h3>
-                <button 
-                  onClick={() => {
-                    setCurrentLink({ label: '', url: '', size: 'Button', use_link_icon: false });
-                    setEditingLinkIndex(null);
-                    setIsLinkModalOpen(true);
-                  }}
-                  className="text-black dark:text-white hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" /> Add Link
-                </button>
-              </div>
-              <div className="p-6 flex flex-col gap-4">
-                {links.map((item, i) => item.size === 'GalleryImage' ? null : (
-                  <div key={i} className="border border-black/10 dark:border-white/10 rounded-xl p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between cursor-pointer" onClick={() => {
-                    setCurrentLink({ ...item, size: item.size || 'Button', use_link_icon: item.use_link_icon || false });
-                    setEditingLinkIndex(i);
-                    setIsLinkModalOpen(true);
-                  }}>
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="cursor-move text-black/40 dark:text-white/40 opacity-40 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
-                        <GripVertical className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-black dark:text-white text-sm">{item.label || 'Untitled Link'}</div>
-                        <div className="text-xs text-black/40 dark:text-white/40 mt-1">{item.url}</div>
-                      </div>
-                      <div className="flex items-center gap-3 mr-4">
-                        <span className="text-xs font-mono px-2 py-1 bg-gray-200 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300">{item.size || 'Button'}</span>
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLinks(links.filter((_, idx) => idx !== i));
-                        }}
-                        className="p-2 text-black/40 dark:text-white/40 hover:text-[#ba1a1a] transition-colors rounded-xl hover:bg-[#ffdad6]"
-                      >
-                        <Trash2 className="w-[18px] h-[18px]" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {links.length === 0 && (
-                  <div className="text-center py-6 text-black/40 dark:text-white/40 font-mono text-[13px]">
-                    No links added. Click 'Add Link' to get started.
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-
-          {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-8">
-            
-            {/* Profile Views */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Analytics</h3>
-                <Activity className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
-              </div>
-              <div className="p-6">
-                <div className="text-black/40 dark:text-white/40 font-mono text-[11px] font-bold uppercase tracking-widest mb-4">Total Profile Views</div>
-                <div className="text-5xl font-sans font-bold flex items-center gap-2 text-black dark:text-white">
-                  {profileViews} <Eye className="w-6 h-6 text-blue-500" />
-                </div>
-              </div>
-            </section>
-
             {/* Social Media */}
             <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
               <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
@@ -1227,12 +1153,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             {/* End of right column */}
           </div>
           </div>
-        ) : profile && activeTab === 'social' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            <div className="xl:col-span-8 flex flex-col gap-8">
-              
-            </div>
-          </div>
         ) : profile && activeTab === 'ebooks' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-8 flex flex-col gap-8">
@@ -1394,80 +1314,153 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
               </section>
             </div>
-          </div>
-        ) : profile && activeTab === 'settings' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            <div className="xl:col-span-12 flex flex-col gap-8">
-              <section className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl flex flex-col">
-                <div className="p-6 flex flex-col items-center justify-center text-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center">
-                    <LogOut className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-sans font-bold text-lg text-red-600 dark:text-red-400">Sign Out</h3>
-                    <p className="text-[13px] text-red-500/70 dark:text-red-400/70 mt-1">Ready to leave? You can always sign back in.</p>
-                  </div>
-                  <button 
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                      window.location.reload();
-                    }}
-                    className="mt-2 px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors text-[14px]"
-                  >
-                    Log Out of Account
-                  </button>
-                </div>
-              </section>
-
+            
+            <div className="xl:col-span-4 flex flex-col gap-8">
               <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
                 <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Premium Themes & Layouts</h3>
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Sales Earnings</h3>
+                  <Wallet className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
                 </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {PREMIUM_THEMES.map(theme => {
-                    const isUnlocked = theme.price === 0 || (profile.unlocked_themes && profile.unlocked_themes.includes(theme.id));
-                    const isActive = profile.theme === theme.id;
-                    return (
-                      <div key={theme.id} className={`border p-4 rounded-xl flex flex-col justify-between ${isActive ? 'border-black dark:border-white ring-1 ring-black dark:ring-white' : 'border-black/10 dark:border-white/10'}`}>
-                        <div>
-                          <div className={`h-24 w-full rounded-xl mb-3 ${theme.bgClass} flex items-center justify-center`}>
-                            <span className={`${theme.textClass} font-bold font-display`}>Preview</span>
+                <div className="p-6">
+                  <div className="flex flex-col gap-2 mb-6">
+                    <span className="font-mono text-[11px] text-black/40 dark:text-white/40 uppercase tracking-widest">Total Earned</span>
+                    <span className="font-display text-3xl font-extrabold text-black dark:text-white">
+                      ₦{sales.reduce((acc, curr) => acc + (curr.net_earnings || 0), 0).toLocaleString()}
+                    </span>
+                    <span className="font-mono text-[10px] text-black/40 dark:text-white/40">After 5% ChipNG platform fee</span>
+                  </div>
+                  
+                  <h4 className="font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest mb-3">Recent Sales</h4>
+                  <div className="flex flex-col gap-3">
+                    {sales.length > 0 ? sales.slice(0, 5).map(s => {
+                      const p = products.find(p => p.id === s.product_id);
+                      return (
+                        <div key={s.id} className="flex justify-between items-center p-3 border border-black/10 dark:border-white/10 rounded-xl bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                          <div className="flex flex-col">
+                            <span className="font-sans text-[13px] font-bold text-black dark:text-white truncate max-w-[150px]">{p ? p.name : 'Product'}</span>
+                            <span className="font-mono text-[10px] text-black/40 dark:text-white/40">{new Date(s.created_at).toLocaleDateString()}</span>
                           </div>
-                          <h4 className="font-bold text-lg">{theme.name}</h4>
-                          <p className="text-sm text-black/40 dark:text-white/40 mb-3">{theme.description}</p>
+                          <span className="font-mono text-[13px] font-bold text-green-600 dark:text-green-400">+₦{s.net_earnings}</span>
                         </div>
-                        <div className="flex justify-between items-center mt-4">
-                          <span className="font-mono font-bold">{theme.price === 0 ? 'Free' : `₦${theme.price}`}</span>
-                          {isActive ? (
-                            theme.id === 'default' ? (
-                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
-                            ) : (
-                              <div className="flex gap-2 items-center">
-                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
-                                <button onClick={() => activateTheme('default')} className="px-3 py-1 bg-red-100 text-red-700 rounded-xl text-xs font-bold hover:bg-red-200 transition">Deactivate</button>
-                              </div>
-                            )
-                          ) : isUnlocked ? (
-                            <button onClick={() => activateTheme(theme.id)} className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-bold hover:bg-black/80 transition">Activate</button>
-                          ) : (
-                            <PaystackButton
-                              reference={`THEME_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
-                              email={profile.contact_email || profile.email || 'user@example.com'}
-                              amount={theme.price * 100}
-                              publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                              text="Purchase"
-                              onSuccess={() => handlePurchaseTheme(theme)}
-                              className="px-4 py-2 bg-yellow-400 text-black rounded-xl text-xs font-bold hover:bg-yellow-500 transition"
-                            />
-                          )}
-                        </div>
+                      )
+                    }) : (
+                      <div className="text-black/40 dark:text-white/40 font-mono text-[11px] text-center py-4 border border-dashed border-black/10 dark:border-white/10 rounded-xl">
+                        No sales yet.
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
                 </div>
               </section>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
+            </div>
+          
+          <div className="flex flex-col gap-8 max-w-4xl mx-auto w-full">
+            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
+              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Public Gallery</h3>
+              </div>
+              <div className="p-6 flex flex-col gap-6">
+                <p className="text-black/60 dark:text-white/60 text-[14px]">Upload images to display in your public profile's gallery section.</p>
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                  {links.filter(l => l.size === 'GalleryImage').map((img) => (
+                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden group border border-black/10 dark:border-white/10">
+                      <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
+                      
+                      <div className="absolute inset-0 bg-white/40 dark:bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                        <label className="w-10 h-10 bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-full flex items-center justify-center text-black dark:text-white cursor-pointer hover:bg-black/80 transition-colors">
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setUploading(true);
+                                try {
+                                  const fileExt = file.name.split('.').pop() || 'jpeg';
+                                  const fileName = `${Math.random()}.${fileExt}`;
+                                  const filePath = `gallery/${fileName}`;
+                                  const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                                  if (uploadError) throw uploadError;
+                                  const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                                  
+                                  const { error: dbError } = await supabase.from('links').update({ url: data.publicUrl }).eq('id', img.id);
+                                  if (dbError) throw dbError;
+                                  
+                                  setLinks(links.map(l => l.id === img.id ? { ...l, url: data.publicUrl } : l));
+                                } catch (err: any) {
+                                  alert(err.message);
+                                } finally {
+                                  setUploading(false);
+                                }
+                              }
+                            }}
+                          />
+                          <Upload className="w-4 h-4 text-black dark:text-white" />
+                        </label>
+
+                        <button
+                          onClick={async () => {
+                            const { error } = await supabase.from('links').delete().eq('id', img.id);
+                            if (!error) {
+                              setLinks(links.filter(l => l.id !== img.id));
+                            }
+                          }}
+                          className="w-10 h-10 bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-full flex items-center justify-center text-black dark:text-white hover:bg-black/80 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <label className="aspect-square rounded-xl border-2 border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 transition-colors gap-2">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setUploading(true);
+                          try {
+                            const fileExt = file.name.split('.').pop() || 'jpeg';
+                            const fileName = `${Math.random()}.${fileExt}`;
+                            const filePath = `gallery/${fileName}`;
+                            const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                            if (uploadError) throw uploadError;
+                            const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                            
+                            const { data: newLink, error: dbError } = await supabase.from('links').insert({
+                              profile_id: profile.id,
+                              label: 'Gallery Image',
+                              url: data.publicUrl,
+                              size: 'GalleryImage'
+                            }).select().single();
+                            
+                            if (dbError) throw dbError;
+                            if (newLink) {
+                              setLinks([...links, newLink]);
+                            }
+                          } catch (err: any) {
+                            alert(err.message);
+                          } finally {
+                            setUploading(false);
+                          }
+                        }
+                      }}
+                    />
+                    <Upload className="w-6 h-6 text-black/40 dark:text-white/40" />
+                    <span className="font-mono text-[11px] text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Upload</span>
+                  </label>
+                </div>
+              </div>
+            </section>
+          </div>
+        ) : profile && activeTab === 'nfc' ? (
+          <NfcProgrammer profile={profile} />
+        ) : profile && activeTab === 'buy-nfc' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-8 flex flex-col gap-8">
+              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
                 <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
                   <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Order NFC Card</h3>
                 </div>
@@ -1579,108 +1572,123 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   />
                 </div>
               </section>
-                <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Public Gallery</h3>
-              </div>
-              <div className="p-6 flex flex-col gap-6">
-                <p className="text-black/60 dark:text-white/60 text-[14px]">Upload images to display in your public profile's gallery section.</p>
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-                  {links.filter(l => l.size === 'GalleryImage').map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden group border border-black/10 dark:border-white/10">
-                      <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
-                      
-                      <div className="absolute inset-0 bg-white/40 dark:bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                        <label className="w-10 h-10 bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-full flex items-center justify-center text-black dark:text-white cursor-pointer hover:bg-black/80 transition-colors">
-                          <input 
-                            type="file" 
-                            className="hidden" 
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setUploading(true);
-                                try {
-                                  const fileExt = file.name.split('.').pop() || 'jpeg';
-                                  const fileName = `${Math.random()}.${fileExt}`;
-                                  const filePath = `gallery/${fileName}`;
-                                  const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-                                  if (uploadError) throw uploadError;
-                                  const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-                                  
-                                  const { error: dbError } = await supabase.from('links').update({ url: data.publicUrl }).eq('id', img.id);
-                                  if (dbError) throw dbError;
-                                  
-                                  setLinks(links.map(l => l.id === img.id ? { ...l, url: data.publicUrl } : l));
-                                } catch (err: any) {
-                                  alert(err.message);
-                                } finally {
-                                  setUploading(false);
-                                }
-                              }
-                            }}
-                          />
-                          <Upload className="w-4 h-4 text-black dark:text-white" />
-                        </label>
-
-                        <button
-                          onClick={async () => {
-                            const { error } = await supabase.from('links').delete().eq('id', img.id);
-                            if (!error) {
-                              setLinks(links.filter(l => l.id !== img.id));
-                            }
-                          }}
-                          className="w-10 h-10 bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-full flex items-center justify-center text-black dark:text-white hover:bg-black/80 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <label className="aspect-square rounded-xl border-2 border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 transition-colors gap-2">
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setUploading(true);
-                          try {
-                            const fileExt = file.name.split('.').pop() || 'jpeg';
-                            const fileName = `${Math.random()}.${fileExt}`;
-                            const filePath = `gallery/${fileName}`;
-                            const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-                            if (uploadError) throw uploadError;
-                            const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-                            
-                            const { data: newLink, error: dbError } = await supabase.from('links').insert({
-                              profile_id: profile.id,
-                              label: 'Gallery Image',
-                              url: data.publicUrl,
-                              size: 'GalleryImage'
-                            }).select().single();
-                            
-                            if (dbError) throw dbError;
-                            if (newLink) {
-                              setLinks([...links, newLink]);
-                            }
-                          } catch (err: any) {
-                            alert(err.message);
-                          } finally {
-                            setUploading(false);
-                          }
-                        }
-                      }}
-                    />
-                    <Upload className="w-6 h-6 text-black/40 dark:text-white/40" />
-                    <span className="font-mono text-[11px] text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Upload</span>
-                  </label>
+            </div>
+            
+            {/* Right Column */}
+            <div className="xl:col-span-4 flex flex-col gap-8">
+              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col p-6 text-center items-center">
+                <SmartphoneNfc className="w-12 h-12 text-[#B600A8] mb-4" />
+                <h3 className="font-bold text-lg text-black dark:text-white mb-2">Smart Business Cards</h3>
+                <p className="text-sm text-black/60 dark:text-white/60">
+                  Tap your CHIP NG card against any modern smartphone to instantly share your digital profile. No app required.
+                </p>
+              </section>
+            </div>
+          </div>
+        ) : profile && activeTab === 'settings' ? (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-12 flex flex-col gap-8">
+              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
+                <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Premium Themes & Layouts</h3>
                 </div>
-              </div>
-            </section>
-              </div>
-              <NfcProgrammer profile={profile} />
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {PREMIUM_THEMES.map(theme => {
+                    const isUnlocked = theme.price === 0 || (profile.unlocked_themes && profile.unlocked_themes.includes(theme.id));
+                    const isActive = profile.theme === theme.id;
+                    return (
+                      <div key={theme.id} className={`border p-4 rounded-xl flex flex-col justify-between ${isActive ? 'border-black dark:border-white ring-1 ring-black dark:ring-white' : 'border-black/10 dark:border-white/10'}`}>
+                        <div>
+                          <div className={`h-24 w-full rounded-xl mb-3 ${theme.bgClass} flex items-center justify-center`}>
+                            <span className={`${theme.textClass} font-bold font-display`}>Preview</span>
+                          </div>
+                          <h4 className="font-bold text-lg">{theme.name}</h4>
+                          <p className="text-sm text-black/40 dark:text-white/40 mb-3">{theme.description}</p>
+                        </div>
+                        <div className="flex justify-between items-center mt-4">
+                          <span className="font-mono font-bold">{theme.price === 0 ? 'Free' : `₦${theme.price}`}</span>
+                          {isActive ? (
+                            theme.id === 'default' ? (
+                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                            ) : (
+                              <div className="flex gap-2 items-center">
+                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                                <button onClick={() => activateTheme('default')} className="px-3 py-1 bg-red-100 text-red-700 rounded-xl text-xs font-bold hover:bg-red-200 transition">Deactivate</button>
+                              </div>
+                            )
+                          ) : isUnlocked ? (
+                            <button onClick={() => activateTheme(theme.id)} className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-bold hover:bg-black/80 transition">Activate</button>
+                          ) : (
+                            <PaystackButton
+                              reference={`THEME_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
+                              email={profile.contact_email || profile.email || 'user@example.com'}
+                              amount={theme.price * 100}
+                              publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
+                              text="Purchase"
+                              onSuccess={() => handlePurchaseTheme(theme)}
+                              className="px-4 py-2 bg-yellow-400 text-black rounded-xl text-xs font-bold hover:bg-yellow-500 transition"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
+                <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Customize Color</h3>
+                </div>
+                <div className="p-6 flex flex-col gap-6">
+                  <div>
+                    <label className="font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest mb-2 block">Background Color</label>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      {COLOR_PRESETS.map(color => (
+                        <button 
+                          key={color} 
+                          onClick={() => setProfile({ ...profile, bg_color: color })}
+                          className={`w-8 h-8 rounded-full border-2 ${profile.bg_color === color ? 'border-blue-500' : 'border-transparent ring-1 ring-gray-300 dark:ring-gray-700'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="color" 
+                        value={profile.bg_color || '#ffffff'} 
+                        onChange={(e) => setProfile({ ...profile, bg_color: e.target.value })}
+                        className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                      />
+                      <span className="font-mono text-sm">{profile.bg_color || '#ffffff'}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest mb-2 block">Text Color</label>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      {COLOR_PRESETS.map(color => (
+                        <button 
+                          key={color} 
+                          onClick={() => setProfile({ ...profile, text_color: color })}
+                          className={`w-8 h-8 rounded-full border-2 ${profile.text_color === color ? 'border-blue-500' : 'border-transparent ring-1 ring-gray-300 dark:ring-gray-700'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="color" 
+                        value={profile.text_color || '#000000'} 
+                        onChange={(e) => setProfile({ ...profile, text_color: e.target.value })}
+                        className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                      />
+                      <span className="font-mono text-sm">{profile.text_color || '#000000'}</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
         ) : null}
@@ -1910,7 +1918,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           </div>
         </div>
       )}
-          </div>
     </AdminLayout>
   );
 }
