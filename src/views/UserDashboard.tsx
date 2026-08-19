@@ -76,7 +76,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [checkoutAddress, setCheckoutAddress] = useState("");
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc' | 'buy-nfc'>('profile');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc' | 'buy-nfc' | 'ebooks' | 'settings'>('profile');
 
   const [setupGuideActive, setSetupGuideActive] = useState(false);
   const [setupStep, setSetupStep] = useState(1);
@@ -1444,7 +1444,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   <button 
                     onClick={async () => {
                       await supabase.auth.signOut();
-                      window.location.reload();
+                      window.location.href = '/login';
                     }}
                     className="mt-2 px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors text-[14px]"
                   >

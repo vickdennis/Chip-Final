@@ -79,10 +79,12 @@ export default function App() {
       setSessionLoading(false);
       // Wait to redirect if going to user-dashboard
       setCurrentView(prev => {
-        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard';
+        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard' || prev === 'enterprise-dashboard';
         if (!session && isProtected) {
+          window.history.replaceState({}, '', '/login');
           return 'login';
         } else if (session && prev === 'login') {
+          window.history.replaceState({}, '', '/dashboard');
           return 'user-dashboard';
         }
         return prev;
@@ -95,8 +97,10 @@ export default function App() {
       setCurrentView((prevView) => {
         const isProtected = prevView === 'user-dashboard' || prevView === 'admin-dashboard' || prevView === 'enterprise-dashboard';
         if (!session && isProtected) {
+          window.history.replaceState({}, '', '/login');
           return 'login';
         } else if (session && prevView === 'login') {
+          window.history.replaceState({}, '', '/dashboard');
           return 'user-dashboard';
         }
         return prevView;

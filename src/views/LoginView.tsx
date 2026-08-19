@@ -34,7 +34,12 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
           }
         });
         if (error) throw error;
-        setSuccessMsg('Account created successfully! Please check your email to verify.');
+        
+        if (data?.session) {
+          onNavigate('user-dashboard');
+        } else {
+          setSuccessMsg('Account created successfully! Please check your email to verify.');
+        }
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({
           email,
@@ -46,6 +51,9 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
     } catch (err: any) {
       setErrorMsg(err.message || 'Authentication failed');
     } finally {
+      if (!errorMsg && mode === 'signup' && !successMsg) {
+        // if navigating away, we don't necessarily need to stop loading but we can
+      }
       setLoading(false);
     }
   };
@@ -56,7 +64,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: window.location.origin + '/dashboard'
         }
       });
       if (error) throw error;
