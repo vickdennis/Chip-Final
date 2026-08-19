@@ -466,6 +466,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             {/* Plus Dropdown Group */}
             <div className="relative group pb-4">
               <button 
+                onClick={() => setActiveTab('leads')}
                 className={`font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${['leads', 'buybox', 'seo', 'broadcast'].includes(activeTab) ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
               >
                 <Plus className="w-4 h-4" /> Tools
@@ -767,53 +768,53 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
             {creatingUser && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
-                  <h3 className="font-sans font-bold text-lg mb-2">Create New User</h3>
-                  <p className="font-sans text-xs text-black/40 dark:text-white/40 mb-4">Warning: Creating a user will log you in as them temporarily.</p>
+                <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
+                  <h3 className="font-sans font-bold text-lg mb-2 text-black dark:text-white">Create New User</h3>
+                  <p className="font-sans text-xs text-black/60 dark:text-white/60 mb-4">Warning: Creating a user will log you in as them temporarily.</p>
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Email *</label>
-                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Password *</label>
-                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Full Name *</label>
-                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Username</label>
-                      <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Phone Number</label>
-                      <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Headline/Job Title</label>
-                      <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Bio</label>
-                      <textarea rows={3} value={newUserForm.bio} onChange={e => setNewUserForm({...newUserForm, bio: e.target.value})} placeholder="Optional bio" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <textarea rows={3} value={newUserForm.bio} onChange={e => setNewUserForm({...newUserForm, bio: e.target.value})} placeholder="Optional bio" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
                     </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Cover Image</label>
-                      {newUserForm.cover_image_url && <img src={newUserForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-xl" />}
+                      {newUserForm.cover_image_url && <img src={newUserForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-xl border border-black/10 dark:border-white/10" />}
                       <input 
                         type="file" 
                         accept="image/*"
                         onChange={(e) => handleImageUpload(e, (url) => setNewUserForm({...newUserForm, cover_image_url: url}))}
-                        className="w-full text-[13px]" 
+                        className="w-full text-[13px] text-black/60 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-black/5 file:text-black hover:file:bg-black/10 dark:file:bg-white/10 dark:file:text-white dark:hover:file:bg-white/20" 
                       />
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-black dark:text-white py-2 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50">
+                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white dark:bg-white dark:text-black py-2.5 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50 transition-colors">
                         {uploadingImage ? 'Uploading...' : 'Create User'}
                       </button>
-                      <button type="button" onClick={() => setCreatingUser(false)} className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold">
+                      <button type="button" onClick={() => setCreatingUser(false)} className="px-6 py-2.5 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
                         Cancel
                       </button>
                     </div>
