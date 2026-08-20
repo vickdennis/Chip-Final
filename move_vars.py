@@ -3,14 +3,9 @@ import re
 with open('src/views/PublicProfileView.tsx', 'r') as f:
     code = f.read()
 
-# 1. Remove the current getContrastColor and vars block
-pattern = r"  const getContrastColor.*?const textStyle = { color: customText };"
-match = re.search(pattern, code, re.DOTALL)
-if match:
-    code = code.replace(match.group(0), "")
-
-# 2. Re-insert them right above `if (loading)`
-new_block = """  const getContrastColor = (hex: string) => {
+# Match the block
+block_to_move = """
+  const getContrastColor = (hex: string) => {
     if (!hex) return 'white';
     if (hex.indexOf('#') === 0) hex = hex.slice(1);
     const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
@@ -27,9 +22,18 @@ new_block = """  const getContrastColor = (hex: string) => {
   const cardBorderClass = customText === '#000000' ? 'border-black/10' : 'border-white/10';
 """
 
-code = code.replace("  if (loading) {", new_block + "\n  if (loading) {")
+# Wait, `getContrastColor` might be different in actual code. Let's just use regex.
+
+get_contrast_pattern = r"  const getContrastColor.*?};.*?const cardBorderClass = .*?;"
+match = re.search(get_contrast_pattern, code, re.DOTALL)
+if match:
+    extracted = match.group(0)
+    code = code.replace(extracted, "")
+    
+    # insert before `if (loading)`
+    code = code.replace("  if (loading) {", extracted + "\n\n  if (loading) {")
 
 with open('src/views/PublicProfileView.tsx', 'w') as f:
     f.write(code)
 
-print("Done fixing final")
+print("Moved vars")

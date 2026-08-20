@@ -54,7 +54,7 @@ export const SOCIAL_PLATFORMS = [
 
 
 export const PROFILE_LAYOUTS = [
-  { id: 'default', name: 'Default', description: 'The original CHIP NG ambient glow design.' },
+  { id: 'default', name: 'Default', description: 'The original layout design.' },
   { id: 'classic', name: 'Classic', description: 'Standard vertical layout.' },
   { id: 'bento', name: 'Bento Grid', description: 'Modern grid-based layout.' },
   { id: 'split', name: 'Split View', description: 'Side-by-side profile and links.' },

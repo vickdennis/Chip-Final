@@ -110,10 +110,26 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     }
   };
 
+  const getContrastColor = (hex: string) => {
+    if (!hex) return 'white';
+    if (hex.indexOf('#') === 0) hex = hex.slice(1);
+    const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#ffffff';
+  };
+  
+  const layout = profile?.theme || 'default';
+  const customBg = profile?.bg_color || '#09090b';
+  const customText = profile?.bg_color ? getContrastColor(profile.bg_color) : '#ffffff';
+  const bgStyle = { backgroundColor: customBg };
+  const textStyle = { color: customText };
+  const cardBgClass = customText === '#000000' ? 'bg-black/5 hover:bg-black/10' : 'bg-white/10 hover:bg-white/20';
+  const cardBorderClass = customText === '#000000' ? 'border-black/10' : 'border-white/10';
+
   if (loading) {
     return (
       <div className="dark min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center gap-4">
-        <div className="w-24 h-24 border border-black/10 dark:border-white/10 bg-white dark:bg-[#1a1c1c] p-3 rounded-xl shadow-sm overflow-hidden animate-pulse">
+        <div className={`w-24 h-24 border border-black/10 dark:border-white/10 ${cardBgClass} p-3 rounded-xl shadow-sm overflow-hidden animate-pulse`}>
           <img 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
             alt="CHIP NG Logo" 
@@ -239,7 +255,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           } else if (style === 'white-circle') {
              iconContent = (
               <div 
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-[#1a1c1c] hover:-translate-y-1 transition-transform shadow-md"
+                className={`w-12 h-12 flex items-center justify-center rounded-full ${cardBgClass} hover:-translate-y-1 transition-transform shadow-md`}
                 style={{ color: profile?.enterprise?.brand_color || color }}
               >
                 <Icon className="w-6 h-6" />
@@ -256,7 +272,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           } else if (style === 'original') {
              iconContent = (
               <div 
-                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md bg-black/5 dark:bg-white/5 backdrop-blur-sm border border-black/10 dark:border-white/10 hover:bg-black/10 dark:bg-white/10"
+                className={`w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md bg-black/5 dark:bg-white/5 backdrop-blur-sm border border-black/10 dark:border-white/10 hover:${cardBgClass}`}
                 style={{ color: color }}
               >
                 <Icon className="w-6 h-6" />
@@ -290,21 +306,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   };
 
   
-  const getContrastColor = (hex) => {
-    if (!hex) return 'white';
-    if (hex.indexOf('#') === 0) hex = hex.slice(1);
-    const r = parseInt(hex.slice(0, 2), 16),
-          g = parseInt(hex.slice(2, 4), 16),
-          b = parseInt(hex.slice(4, 6), 16);
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 128) ? '#000000' : '#ffffff';
-  };
-  
-  const layout = profile?.theme || 'default';
-  const customBg = profile?.bg_color || '#09090b';
-  const customText = profile?.bg_color ? getContrastColor(profile.bg_color) : '#ffffff';
-  const bgStyle = { backgroundColor: customBg };
-  const textStyle = { color: customText };
+
 
   
 
@@ -332,32 +334,20 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         style={{ ...bgStyle, ...textStyle }}
       >
         {/* Theme Relating Animation Layer */}
-        {layout === 'default' && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 mix-blend-luminosity">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full blur-[60px] animate-pulse" style={{ backgroundColor: customText, opacity: 0.08 }}></div>
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute top-1/4 left-1/3 w-1 h-1 rounded-full animate-ping [animation-duration:4s]" style={{ backgroundColor: customText }}></div>
-              <div className="absolute top-1/2 left-2/3 w-1.5 h-1.5 rounded-full animate-ping [animation-duration:6s]" style={{ backgroundColor: customText }}></div>
-              <div className="absolute top-3/4 left-1/4 w-0.5 h-0.5 rounded-full animate-ping [animation-duration:8s]" style={{ backgroundColor: customText }}></div>
-              <div className="absolute top-1/3 left-3/4 w-1 h-1 rounded-full animate-ping [animation-duration:5s]" style={{ backgroundColor: customText }}></div>
-            </div>
-          </div>
-        )}
         
-
         {/* Buttons at Top */}
         <div className="absolute top-4 w-full flex justify-between items-start px-4 z-50 pointer-events-none">
           <div className="flex flex-col gap-2 pointer-events-auto">
             <button 
               onClick={() => setIsBioModalOpen(true)} 
-              className="bg-white dark:bg-[#1a1c1c] text-current font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg hover:bg-[#f3f3f4] transition-colors flex items-center gap-2"
+              className={`${cardBgClass} text-current font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg hover:bg-[#f3f3f4] transition-colors flex items-center gap-2`}
             >
               <LinkIcon className="w-3.5 h-3.5" /> Bio Link
             </button>
             {!username && (
               <button 
                 onClick={() => onNavigate && onNavigate('user-dashboard')} 
-                className="bg-black/10 dark:bg-white/10 backdrop-blur-md text-current border border-black/20 dark:border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white dark:bg-[#1a1c1c]/20 transition-colors"
+                className={`${cardBgClass} backdrop-blur-md text-current border border-black/20 dark:border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:${cardBgClass}/20 transition-colors`}
                >
                 Dashboard
               </button>
@@ -365,7 +355,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           </div>
           <button 
             onClick={downloadVCard}
-            className="w-10 h-10 bg-white dark:bg-[#1a1c1c] text-current rounded-full shadow-lg flex items-center justify-center hover:bg-[#f3f3f4] transition-colors pointer-events-auto"
+            className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:bg-[#f3f3f4] transition-colors pointer-events-auto`}
             title="Save Contact"
           >
             <UserPlus className="w-4 h-4" />
@@ -412,7 +402,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
                 <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
-                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-current flex items-center justify-center font-bold text-[10px] shrink-0">
+                     <div className={`w-6 h-6 rounded-2xl ${cardBgClass} text-current flex items-center justify-center font-bold text-[10px] shrink-0`}>
                        NG
                      </div>
                      <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
@@ -423,7 +413,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsCopied(true);
                       setTimeout(() => setIsCopied(false), 2000);
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+                    className={`px-4 py-2 ${cardBgClass} hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm`}
                   >
                     {isCopied ? 'Copied!' : 'Copy'}
                   </button>
@@ -431,7 +421,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
                 <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
-                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-current flex items-center justify-center font-bold text-[10px] shrink-0">
+                     <div className={`w-6 h-6 rounded-2xl ${cardBgClass} text-current flex items-center justify-center font-bold text-[10px] shrink-0`}>
                        VC
                      </div>
                      <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}/vcard</span>
@@ -442,7 +432,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsVcardCopied(true);
                       setTimeout(() => setIsVcardCopied(false), 2000);
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+                    className={`px-4 py-2 ${cardBgClass} hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm`}
                   >
                     {isVcardCopied ? 'Copied!' : 'Copy'}
                   </button>
@@ -452,14 +442,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   <div className="flex gap-3">
                     <button 
                       onClick={() => setQrMode(qrMode === 'bio' ? 'none' : 'bio')}
-                      className="flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
+                      className={`flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${cardBgClass} hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1`}
                     >
                       <QrCode className="w-5 h-5" /> {qrMode === 'bio' ? 'Hide' : 'Bio QR'}
                     </button>
                     
                     <button 
                       onClick={() => setQrMode(qrMode === 'vcard' ? 'none' : 'vcard')}
-                      className="flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
+                      className={`flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${cardBgClass} hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1`}
                     >
                       <QrCode className="w-5 h-5" /> {qrMode === 'vcard' ? 'Hide' : 'Contact QR'}
                     </button>
@@ -575,7 +565,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
             {/* Contact/Connect Action Strip */}
             <div className="w-full flex flex-col gap-3 mb-8">
-              <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className="w-full bg-white dark:bg-[#1a1c1c] rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors">
+              <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors`}>
                 <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
                   <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
                     {profile?.contact_email || profile?.email || "your@email.com"}
@@ -602,7 +592,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 if (arr.length === 0) return null;
 
                 return arr.map((phone, idx) => (
-                  <a key={idx} href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-white dark:bg-[#1a1c1c] rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2">
+                  <a key={idx} href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2`}>
                     <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
                       <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
                         {phone}
@@ -657,8 +647,8 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             })()}
 
             {profile?.address && (
-              <div className="w-full bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] p-4 flex items-center gap-4 rounded-xl mb-8">
-                <div className="w-10 h-10 bg-gray-200 dark:bg-[#2a2a2a] text-current rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: enterpriseColor || undefined }}>
+              <div className={`w-full ${cardBgClass} ${cardBorderClass} border p-4 flex items-center gap-4 rounded-xl mb-8`}>
+                <div className={`w-10 h-10 ${cardBgClass} text-current rounded-lg flex items-center justify-center shrink-0`} style={{ backgroundColor: enterpriseColor || undefined }}>
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
@@ -673,11 +663,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 href={profile.calendar_link} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full bg-white dark:bg-[#fafafa] text-current p-4 flex items-center justify-between rounded-xl cursor-pointer hover:bg-white dark:bg-[#1a1c1c] transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                className={`w-full ${cardBgClass} text-current p-4 flex items-center justify-between rounded-xl cursor-pointer hover:${cardBgClass} transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)]`}
               >
                  <div className="flex items-center gap-3">
                    <div className="flex flex-col">
-                     <span className="font-mono text-[10px] uppercase tracking-wider text-[#505050] font-bold">{profile.booking_provider || 'Book a session'}</span>
+                     <span className="font-mono text-[10px] uppercase tracking-wider opacity-60 font-bold">{profile.booking_provider || 'Book a session'}</span>
                      <span className="font-sans text-[15px] font-bold flex items-center gap-2">View Availability</span>
                    </div>
                  </div>
@@ -686,7 +676,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             )}
 
             {products.length > 0 && (
-              <div className="w-full flex bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] p-1 rounded-full mb-6">
+              <div className={`w-full flex ${cardBgClass} ${cardBorderClass} border p-1 rounded-full mb-6`}>
                 <button
                   onClick={() => setActiveTab('links')}
                   className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'links' ? 'bg-white dark:bg-[#1a1c1c] text-current' : 'opacity-60 hover:text-current'}`}
@@ -735,7 +725,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Medium') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                         className="relative bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-current p-4 rounded-2xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full aspect-[2/1] group overflow-hidden"
+                         className={`relative ${cardBgClass} ${cardBorderClass} border text-current p-4 rounded-2xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full aspect-[2/1] group overflow-hidden`}
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : '#141414' 
                          }}>
@@ -748,7 +738,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Small') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                         className="relative bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-current p-3 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full h-24 group overflow-hidden"
+                         className={`relative ${cardBgClass} ${cardBorderClass} border text-current p-3 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full h-24 group overflow-hidden`}
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : '#141414' 
                          }}>
@@ -761,13 +751,13 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   // Default Button size
                   return (
                     <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                       className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-current p-4 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative">
+                       className={`${cardBgClass} ${cardBorderClass} border text-current p-4 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative`}>
                        <h2 className="font-sans text-[15px] font-medium truncate text-center">{link.label}</h2>
                     </a>
                   );
                 }) : (
                    <div className="w-full border-2 border-dashed border-gray-200 dark:border-[#2a2a2a] rounded-xl p-6 flex flex-col items-center justify-center gap-2 mb-3 bg-gray-50 dark:bg-black">
-                     <span className="font-mono text-[12px] text-[#505050]">[Ordered Link Data Placeholder]</span>
+                     <span className="font-mono text-[12px] opacity-60">[Ordered Link Data Placeholder]</span>
                    </div>
                 )}
               </div>
@@ -775,11 +765,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               <div className="w-full flex flex-col gap-4">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-widest opacity-60 mb-1 px-1">Digital Products</span>
                 {products.map((p) => (
-                  <div key={p.id} className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-4 flex flex-col sm:flex-row gap-4 text-left">
+                  <div key={p.id} className={`${cardBgClass} ${cardBorderClass} border rounded-xl p-4 flex flex-col sm:flex-row gap-4 text-left`}>
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-lg shrink-0" />}
                     <div className="flex flex-col flex-1">
                       <span className="font-sans font-bold text-current text-[16px] leading-tight mb-1">{p.name}</span>
-                      <span className="font-mono text-[12px] font-bold text-current bg-white dark:bg-[#1a1c1c] px-2 py-1 rounded-xl self-start mb-2 leading-none">₦{p.price}</span>
+                      <span className={`font-mono text-[12px] font-bold text-current ${cardBgClass} px-2 py-1 rounded-xl self-start mb-2 leading-none`}>₦{p.price}</span>
                       <p className="text-[13px] opacity-60 mb-4 flex-1 line-clamp-3">{p.description}</p>
                       <PaystackButton
                         reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
@@ -821,7 +811,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                           }
                         }}
                         onClose={() => {}}
-                        className="w-full bg-white dark:bg-[#1a1c1c] text-current hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto cursor-pointer"
+                        className={`w-full ${cardBgClass} text-current hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto cursor-pointer`}
                       />
                     </div>
                   </div>
@@ -841,14 +831,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         {/* Footer at the bottom of the page */}
         <footer className="w-full bg-gray-50 dark:bg-black/40 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0 mt-auto">
-           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className="bg-white dark:bg-[#1a1c1c] text-current px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
+           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className={`${cardBgClass} text-current px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2`}>
              CREATE YOURS
            </button>
-           <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest opacity-60 hover:text-current transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium text-[#505050]">Powered by</span> CHIP NG</a>
+           <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest opacity-60 hover:text-current transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium opacity-60">Powered by</span> CHIP NG</a>
            <div className="flex justify-center gap-6">
-             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-current transition-colors">Privacy Policy</a>
-             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-current transition-colors">Terms</a>
-             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-current transition-colors">Report</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider opacity-60 hover:text-current transition-colors">Privacy Policy</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider opacity-60 hover:text-current transition-colors">Terms</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider opacity-60 hover:text-current transition-colors">Report</a>
            </div>
         </footer>
 
