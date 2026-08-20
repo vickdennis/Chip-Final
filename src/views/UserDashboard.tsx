@@ -52,11 +52,13 @@ export const SOCIAL_PLATFORMS = [
   { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
 ];
 
-export const PREMIUM_THEMES = [
-  { id: 'default', name: 'Obsidian Black', price: 0, description: 'Sleek, pitch-black canvas with a smooth breathing ambient glow.', bgClass: 'bg-black', textClass: 'text-black dark:text-white' },
-  { id: 'glassmorphism', name: 'Premium Glassmorphism', price: 1500, description: 'Sleek glass panel overlaying highly animated, drifting colorful fluid elements.', bgClass: 'bg-neutral-950', textClass: 'text-black dark:text-white' },
-  { id: 'tech_3d', name: 'Minimalist 3D Tech', price: 2500, description: 'Futuristic animated blueprint cyber-grid background with perspective nodes.', bgClass: 'bg-zinc-950', textClass: 'text-[#e5e5e5]' },
-  { id: 'dark_neon', name: 'Dark Neon Cyber', price: 1500, description: 'High contrast black mode with a pulsing, retro-glowing digital matrix effect.', bgClass: 'bg-black', textClass: 'text-green-400' }
+
+export const PROFILE_LAYOUTS = [
+  { id: 'classic', name: 'Classic', description: 'Standard vertical layout.' },
+  { id: 'bento', name: 'Bento Grid', description: 'Modern grid-based layout.' },
+  { id: 'split', name: 'Split View', description: 'Side-by-side profile and links.' },
+  { id: 'minimal', name: 'Minimalist', description: 'Clean text-focused design.' },
+  { id: 'carousel', name: 'Carousel', description: 'Horizontal swipeable cards.' }
 ];
 
 export const COLOR_PRESETS = [
@@ -1347,49 +1349,98 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
               <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
                 <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Premium Themes & Layouts</h3>
+                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Public Profile Layout & Color</h3>
                 </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {PREMIUM_THEMES.map(theme => {
-                    const isUnlocked = theme.price === 0 || (profile.unlocked_themes && profile.unlocked_themes.includes(theme.id));
-                    const isActive = profile.theme === theme.id;
-                    return (
-                      <div key={theme.id} className={`border p-4 rounded-xl flex flex-col justify-between ${isActive ? 'border-black dark:border-white ring-1 ring-black dark:ring-white' : 'border-black/10 dark:border-white/10'}`}>
-                        <div>
-                          <div className={`h-24 w-full rounded-xl mb-3 ${theme.bgClass} flex items-center justify-center`}>
-                            <span className={`${theme.textClass} font-bold font-display`}>Preview</span>
+                <div className="p-6 flex flex-col gap-8">
+                  {/* Background Color Picker */}
+                  <div>
+                    <label className="block text-sm font-bold text-black dark:text-white mb-3">Background Color</label>
+                    <div className="flex flex-wrap gap-3">
+                      {COLOR_PRESETS.map(color => (
+                        <button
+                          key={color}
+                          onClick={() => { setProfile({ ...profile, bg_color: color }); }}
+                          className={`w-10 h-10 rounded-full border-2 transition-all ${profile.bg_color === color ? 'border-black dark:border-white scale-110 shadow-lg' : 'border-transparent shadow-sm'}`}
+                          style={{ backgroundColor: color }}
+                          aria-label={`Select color ${color}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[13px] text-black/50 dark:text-white/50 mt-3">Text colors will automatically adjust to remain visible based on your selected background.</p>
+                  </div>
+                  
+                  {/* Profile Layout Grid */}
+                  <div>
+                    <label className="block text-sm font-bold text-black dark:text-white mb-3">Profile Layout</label>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {PROFILE_LAYOUTS.map(layout => {
+                        const isActive = profile.theme === layout.id || (layout.id === 'classic' && !profile.theme);
+                        return (
+                          <div 
+                            key={layout.id} 
+                            onClick={() => { setProfile({ ...profile, theme: layout.id }); }}
+                            className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center justify-between gap-3 transition-all ${isActive ? 'border-black dark:border-white bg-black/5 dark:bg-white/5 ring-1 ring-black dark:ring-white' : 'border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                          >
+                            <div className="w-16 h-20 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-md flex flex-col p-1.5 shadow-sm text-black dark:text-white">
+                              {layout.id === 'classic' && (
+                                <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="50" cy="25" r="14" />
+                                  <line x1="20" y1="55" x2="80" y2="55" />
+                                  <line x1="20" y1="75" x2="80" y2="75" />
+                                  <line x1="20" y1="95" x2="80" y2="95" />
+                                </svg>
+                              )}
+                              {layout.id === 'bento' && (
+                                <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="50" cy="20" r="12" />
+                                  <rect x="15" y="45" width="30" height="30" rx="6" />
+                                  <rect x="55" y="45" width="30" height="30" rx="6" />
+                                  <rect x="15" y="85" width="70" height="25" rx="6" />
+                                </svg>
+                              )}
+                              {layout.id === 'split' && (
+                                <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="10" y="10" width="80" height="35" rx="6" fill="currentColor" fillOpacity="0.2" stroke="none" />
+                                  <circle cx="50" cy="27" r="10" />
+                                  <line x1="20" y1="65" x2="80" y2="65" />
+                                  <line x1="20" y1="85" x2="80" y2="85" />
+                                  <line x1="20" y1="105" x2="80" y2="105" />
+                                </svg>
+                              )}
+                              {layout.id === 'minimal' && (
+                                <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="25" cy="30" r="12" />
+                                  <line x1="50" y1="25" x2="85" y2="25" />
+                                  <line x1="50" y1="38" x2="75" y2="38" />
+                                  <line x1="20" y1="65" x2="80" y2="65" strokeWidth="3" />
+                                  <line x1="20" y1="85" x2="80" y2="85" strokeWidth="3" />
+                                  <line x1="20" y1="105" x2="80" y2="105" strokeWidth="3" />
+                                </svg>
+                              )}
+                              {layout.id === 'carousel' && (
+                                <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="50" cy="25" r="14" />
+                                  <line x1="30" y1="50" x2="70" y2="50" />
+                                  <rect x="15" y="65" width="55" height="45" rx="6" />
+                                  <rect x="80" y="65" width="20" height="45" rx="6" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="text-center">
+                              <h4 className="font-bold text-[12px] whitespace-nowrap">{layout.name}</h4>
+                            </div>
                           </div>
-                          <h4 className="font-bold text-lg">{theme.name}</h4>
-                          <p className="text-sm text-black/40 dark:text-white/40 mb-3">{theme.description}</p>
-                        </div>
-                        <div className="flex justify-between items-center mt-4">
-                          <span className="font-mono font-bold">{theme.price === 0 ? 'Free' : `₦${theme.price}`}</span>
-                          {isActive ? (
-                            theme.id === 'default' ? (
-                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
-                            ) : (
-                              <div className="flex gap-2 items-center">
-                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
-                                <button onClick={() => activateTheme('default')} className="px-3 py-1 bg-red-100 text-red-700 rounded-xl text-xs font-bold hover:bg-red-200 transition">Deactivate</button>
-                              </div>
-                            )
-                          ) : isUnlocked ? (
-                            <button onClick={() => activateTheme(theme.id)} className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-bold hover:bg-black/80 transition">Activate</button>
-                          ) : (
-                            <PaystackButton
-                              reference={`THEME_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
-                              email={profile.contact_email || profile.email || 'user@example.com'}
-                              amount={theme.price * 100}
-                              publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                              text="Purchase"
-                              onSuccess={() => handlePurchaseTheme(theme)}
-                              className="px-4 py-2 bg-yellow-400 text-black rounded-xl text-xs font-bold hover:bg-yellow-500 transition"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end pt-4 border-t border-black/10 dark:border-white/10">
+                    <button onClick={handleSave} className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold transition-opacity hover:opacity-90 text-[14px] flex items-center gap-2">
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {saving ? 'Saving...' : 'Save Appearance'}
+                    </button>
+                  </div>
                 </div>
               </section>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

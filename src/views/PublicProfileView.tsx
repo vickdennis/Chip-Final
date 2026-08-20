@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { SOCIAL_PLATFORMS, PREMIUM_THEMES } from './UserDashboard';
+import { SOCIAL_PLATFORMS, } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -127,13 +127,13 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   if (error || !profile) {
     return (
       <div className="dark min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center text-center p-6">
-        <h1 className="font-display text-4xl font-black mb-2 text-black dark:text-white">Profile Not Found</h1>
-        <p className="font-sans text-black dark:text-white/40 dark:text-white/40 mb-6">We couldn't find a user with this username.</p>
+        <h1 className="font-display text-4xl font-black mb-2 text-current">Profile Not Found</h1>
+        <p className="font-sans text-current/40 dark:text-white/40 mb-6">We couldn't find a user with this username.</p>
         <button 
           onClick={() => {
             window.location.href = '/';
           }} 
-          className="px-6 py-2 bg-gray-50 dark:bg-black text-black dark:text-white dark:text-white font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-gray-50 dark:bg-black/90 transition-colors"
+          className="px-6 py-2 bg-gray-50 dark:bg-black text-current font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-gray-50 dark:bg-black/90 transition-colors"
         >
           Create your own chip.ng
         </button>
@@ -248,7 +248,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           } else if (style === 'white-icon') {
              iconContent = (
               <div 
-                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform text-black dark:text-white dark:text-white opacity-90 hover:opacity-100"
+                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform text-current opacity-90 hover:opacity-100"
               >
                 <Icon className="w-8 h-8" />
               </div>
@@ -289,77 +289,32 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     );
   };
 
-  const currentTheme = PREMIUM_THEMES.find(t => t.id === profile?.theme) || PREMIUM_THEMES[0];
-  const customBg = profile?.bg_color;
-  const customText = profile?.text_color;
-
-  const bgStyle = customBg ? { backgroundColor: customBg } : {};
-  const textStyle = customText ? { color: customText } : {};
-
-  const renderThemeAnimation = () => {
-    if (customBg) return null;
-    
-    switch (profile?.theme) {
-      case 'default':
-        return (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-gray-50 dark:bg-black">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-gray-200/50 dark:bg-neutral-800/10 blur-[60px] animate-glow-breath"></div>
-            <div className="absolute inset-0 opacity-25">
-              <div className="absolute top-1/4 left-1/3 w-1 h-1 bg-white dark:bg-[#1a1c1c] rounded-full animate-ping [animation-duration:4s]"></div>
-              <div className="absolute top-1/2 left-2/3 w-1.5 h-1.5 bg-white dark:bg-[#1a1c1c]/80 rounded-full animate-ping [animation-duration:6s]"></div>
-              <div className="absolute top-3/4 left-1/4 w-0.5 h-0.5 bg-white dark:bg-[#1a1c1c] rounded-full animate-ping [animation-duration:8s]"></div>
-              <div className="absolute top-1/3 left-3/4 w-1 h-1 bg-white dark:bg-[#1a1c1c]/60 rounded-full animate-ping [animation-duration:5s]"></div>
-            </div>
-          </div>
-        );
-
-      case 'glassmorphism':
-        return (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#0c0a0f]">
-            <div className="absolute top-[-10%] left-[-10%] w-[250px] h-[250px] rounded-full bg-indigo-600/50 blur-[50px] animate-drift-slow"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] rounded-full bg-fuchsia-600/40 blur-[60px] animate-drift-medium"></div>
-            <div className="absolute top-1/2 left-1/3 w-[200px] h-[200px] rounded-full bg-cyan-500/30 blur-[45px] animate-drift-slow [animation-delay:-5s]"></div>
-            <div className="absolute inset-0 bg-white dark:bg-[#1a1c1c]/[0.02] backdrop-blur-[24px]"></div>
-          </div>
-        );
-
-      case 'tech_3d':
-        return (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#09090b]">
-            <div 
-              className="absolute inset-0 animate-grid-pan opacity-[0.07]" 
-              style={{
-                backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px), linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
-              }}
-            ></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] border border-zinc-700/10 rounded-full animate-pulse [animation-duration:4s]"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] border border-zinc-800/20 rounded-full animate-pulse [animation-duration:6s]"></div>
-            <div className="absolute top-1/3 right-10 w-2 h-2 bg-emerald-500 rounded-full animate-ping [animation-duration:3s]"></div>
-          </div>
-        );
-
-      case 'dark_neon':
-        return (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#030712]">
-            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 via-transparent to-green-500/5 bg-[length:100%_4px] opacity-40"></div>
-            <div className="absolute -left-[10%] top-[20%] w-[180px] h-[180px] rounded-full bg-green-500/10 blur-[40px] animate-neon-pulse"></div>
-            <div className="absolute -right-[10%] bottom-[20%] w-[220px] h-[220px] rounded-full bg-green-500/15 blur-[50px] animate-neon-pulse [animation-delay:1.5s]"></div>
-            <div className="absolute top-4 left-6 text-[8px] font-mono text-green-500/20">SYSTEM: ACTIVE</div>
-            <div className="absolute bottom-16 right-6 text-[8px] font-mono text-green-500/20">GRID: 9:16 SECURE</div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  
+  const getContrastColor = (hex) => {
+    if (!hex) return 'white';
+    if (hex.indexOf('#') === 0) hex = hex.slice(1);
+    const r = parseInt(hex.slice(0, 2), 16),
+          g = parseInt(hex.slice(2, 4), 16),
+          b = parseInt(hex.slice(4, 6), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#ffffff';
   };
+  
+  const layout = profile?.theme || 'classic';
+  const customBg = profile?.bg_color || '#09090b';
+  const customText = profile?.bg_color ? getContrastColor(profile.bg_color) : '#ffffff';
+  const bgStyle = { backgroundColor: customBg };
+  const textStyle = { color: customText };
+
+  
+
+  ;
 
   const profileFont = getFontFamily();
 
   return (
     <div 
-      className="dark min-h-screen w-full flex items-center justify-center bg-[#09090b] text-black dark:text-white dark:text-white p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
+      className="dark min-h-screen w-full flex items-center justify-center bg-[#09090b] text-current p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
       style={{ 
         fontFamily: profileFont,
         ['--font-sans' as any]: profileFont,
@@ -368,30 +323,30 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     >
       {/* Ambient glass blur backdrop on desktop screens matching current theme background */}
       <div className="absolute inset-0 pointer-events-none filter blur-[140px] opacity-25 hidden sm:block">
-        <div className={`w-full h-full ${!customBg ? currentTheme.bgClass : ''}`} style={bgStyle}></div>
+        <div className={`w-full h-full ${''}`} style={bgStyle}></div>
       </div>
       
       {/* 9:16 Portrait Viewport Frame on Desktop, full screen on mobile */}
       <div 
-        className={`w-full min-h-screen sm:min-h-0 sm:h-[780px] md:h-[820px] sm:w-[420px] md:w-[450px] sm:rounded-[36px] sm:shadow-[0_25px_60px_rgba(0,0,0,0.85)] sm:border sm:border-neutral-800/80 overflow-y-auto scrollbar-hide relative flex flex-col ${!customBg ? currentTheme.bgClass : ''} ${!customText ? currentTheme.textClass : ''}`} 
+        className={`w-full min-h-screen sm:min-h-0 sm:h-[780px] md:h-[820px] sm:w-[420px] md:w-[450px] sm:rounded-[36px] sm:shadow-[0_25px_60px_rgba(0,0,0,0.85)] sm:border sm:border-neutral-800/80 overflow-y-auto scrollbar-hide relative flex flex-col ${''} ${''}`} 
         style={{ ...bgStyle, ...textStyle }}
       >
         {/* Theme Relating Animation Layer */}
-        {renderThemeAnimation()}
+        
 
         {/* Buttons at Top */}
         <div className="absolute top-4 w-full flex justify-between items-start px-4 z-50 pointer-events-none">
           <div className="flex flex-col gap-2 pointer-events-auto">
             <button 
               onClick={() => setIsBioModalOpen(true)} 
-              className="bg-white dark:bg-[#1a1c1c] text-black dark:text-white font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg hover:bg-[#f3f3f4] transition-colors flex items-center gap-2"
+              className="bg-white dark:bg-[#1a1c1c] text-current font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg hover:bg-[#f3f3f4] transition-colors flex items-center gap-2"
             >
               <LinkIcon className="w-3.5 h-3.5" /> Bio Link
             </button>
             {!username && (
               <button 
                 onClick={() => onNavigate && onNavigate('user-dashboard')} 
-                className="bg-black/10 dark:bg-white/10 backdrop-blur-md text-black dark:text-white dark:text-white border border-black/20 dark:border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white dark:bg-[#1a1c1c]/20 transition-colors"
+                className="bg-black/10 dark:bg-white/10 backdrop-blur-md text-current border border-black/20 dark:border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white dark:bg-[#1a1c1c]/20 transition-colors"
                >
                 Dashboard
               </button>
@@ -399,7 +354,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           </div>
           <button 
             onClick={downloadVCard}
-            className="w-10 h-10 bg-white dark:bg-[#1a1c1c] text-black dark:text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#f3f3f4] transition-colors pointer-events-auto"
+            className="w-10 h-10 bg-white dark:bg-[#1a1c1c] text-current rounded-full shadow-lg flex items-center justify-center hover:bg-[#f3f3f4] transition-colors pointer-events-auto"
             title="Save Contact"
           >
             <UserPlus className="w-4 h-4" />
@@ -412,7 +367,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             <div className="bg-[#1a1a1a] w-full max-w-[400px] rounded-[32px] overflow-hidden flex flex-col relative animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 shadow-2xl border border-[#333]">
               <button 
                 onClick={() => setIsBioModalOpen(false)}
-                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-black/50 text-black dark:text-white dark:text-white hover:bg-gray-50 dark:bg-black transition-colors"
+                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-black/50 text-current hover:bg-gray-50 dark:bg-black transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -439,17 +394,17 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   )}
                 </div>
                 
-                <h2 className="text-2xl font-bold text-black dark:text-white dark:text-white mb-2 text-center">This is your<br/>ChipNG bio link!</h2>
-                <p className="text-gray-500 dark:text-[#a0a0a0] text-center text-[13px] mb-8 max-w-[280px]">
+                <h2 className="text-2xl font-bold text-current mb-2 text-center">This is your<br/>ChipNG bio link!</h2>
+                <p className="opacity-60 text-center text-[13px] mb-8 max-w-[280px]">
                   You can copy and paste it into all your social media accounts to help increase your exposure and showcase your profile.
                 </p>
 
                 <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
-                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-black dark:text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-current flex items-center justify-center font-bold text-[10px] shrink-0">
                        NG
                      </div>
-                     <span className="text-black dark:text-white text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
+                     <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
                   </div>
                   <button 
                     onClick={() => {
@@ -457,7 +412,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsCopied(true);
                       setTimeout(() => setIsCopied(false), 2000);
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-black dark:text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm"
                   >
                     {isCopied ? 'Copied!' : 'Copy'}
                   </button>
@@ -465,10 +420,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
                 <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
-                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-black dark:text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                     <div className="w-6 h-6 rounded-2xl bg-white dark:bg-[#1a1c1c] text-current flex items-center justify-center font-bold text-[10px] shrink-0">
                        VC
                      </div>
-                     <span className="text-black dark:text-white text-[13px] truncate font-medium">chipng.com/{profile.username}/vcard</span>
+                     <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}/vcard</span>
                   </div>
                   <button 
                     onClick={() => {
@@ -476,7 +431,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsVcardCopied(true);
                       setTimeout(() => setIsVcardCopied(false), 2000);
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-black dark:text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+                    className="px-4 py-2 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm"
                   >
                     {isVcardCopied ? 'Copied!' : 'Copy'}
                   </button>
@@ -486,14 +441,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   <div className="flex gap-3">
                     <button 
                       onClick={() => setQrMode(qrMode === 'bio' ? 'none' : 'bio')}
-                      className="flex-1 py-4 rounded-2xl text-black dark:text-white font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
+                      className="flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
                     >
                       <QrCode className="w-5 h-5" /> {qrMode === 'bio' ? 'Hide' : 'Bio QR'}
                     </button>
                     
                     <button 
                       onClick={() => setQrMode(qrMode === 'vcard' ? 'none' : 'vcard')}
-                      className="flex-1 py-4 rounded-2xl text-black dark:text-white font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
+                      className="flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gray-200 dark:bg-[#2a2a2a] hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1"
                     >
                       <QrCode className="w-5 h-5" /> {qrMode === 'vcard' ? 'Hide' : 'Contact QR'}
                     </button>
@@ -511,14 +466,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                         alert("Link copied to clipboard!");
                       }
                     }}
-                    className="w-full py-4 rounded-2xl text-black dark:text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl text-current font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
                   >
                     <Share className="w-4 h-4" /> SHARE BIO LINK
                   </button>
 
                   <button 
                     onClick={() => setIsBioModalOpen(false)}
-                    className="w-full py-3 text-gray-500 dark:text-[#a0a0a0] font-bold text-[14px] hover:text-black dark:text-white dark:text-white transition-colors"
+                    className="w-full py-3 opacity-60 font-bold text-[14px] hover:text-current transition-colors"
                   >
                     Cancel
                   </button>
@@ -530,7 +485,42 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         <div className="flex-grow pb-10 relative z-10 flex flex-col">
           {/* Header Section */}
-          <section className="relative w-full aspect-square md:aspect-[4/5] bg-gray-50 dark:bg-black">
+          {layout === 'minimal' ? (
+          <section className="relative w-full flex flex-col items-center pt-16 pb-4">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-current/10 mb-4">
+              <img src={profile?.cover_image_url || coverUrl} alt="Profile" className="w-full h-full object-cover" />
+            </div>
+            <h1 className="font-display text-2xl font-black text-current flex items-center gap-2 px-4 text-center">
+                {profile?.full_name || "[Data Placeholder]"}
+                {profile?.is_verified && (
+                  <svg aria-label="Verified" className="w-[16px] h-[16px] text-[#0095f6]" fill="currentColor" viewBox="0 0 40 40">
+                    <path d="M19.998 3.094 14.638 0l-2.972 5.15H5.432v6.354L0 14.64 3.094 20 0 25.359l5.432 3.137v5.905h5.975L14.638 40l5.36-3.094L25.358 40l3.232-5.6h6.162v-6.01L40 25.359 36.905 20 40 14.641l-5.248-3.03v-6.46h-6.419L25.358 0l-5.36 3.094Zm7.415 11.225 2.254 2.287-11.43 11.5-6.835-6.93 2.244-2.258 4.587 4.581 9.18-9.18Z" fillRule="evenodd"></path>
+                  </svg>
+                )}
+            </h1>
+            <p className="font-sans text-[14px] opacity-70 font-medium mb-1 px-6">{profile?.headline || ""}</p>
+            <p className="font-mono text-[13px] opacity-60 font-bold mb-3 px-6">@{profile?.username || "username"}</p>
+          </section>
+        ) : layout === 'split' ? (
+          <section className="relative w-full flex flex-row items-center pt-16 pb-4 px-6 gap-4">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-current/10 shrink-0">
+              <img src={profile?.cover_image_url || coverUrl} alt="Profile" className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col text-left">
+              <h1 className="font-display text-xl font-black text-current flex items-center gap-2">
+                  {profile?.full_name || "[Data Placeholder]"}
+                  {profile?.is_verified && (
+                    <svg aria-label="Verified" className="w-[14px] h-[14px] text-[#0095f6]" fill="currentColor" viewBox="0 0 40 40">
+                      <path d="M19.998 3.094 14.638 0l-2.972 5.15H5.432v6.354L0 14.64 3.094 20 0 25.359l5.432 3.137v5.905h5.975L14.638 40l5.36-3.094L25.358 40l3.232-5.6h6.162v-6.01L40 25.359 36.905 20 40 14.641l-5.248-3.03v-6.46h-6.419L25.358 0l-5.36 3.094Zm7.415 11.225 2.254 2.287-11.43 11.5-6.835-6.93 2.244-2.258 4.587 4.581 9.18-9.18Z" fillRule="evenodd"></path>
+                    </svg>
+                  )}
+              </h1>
+              <p className="font-sans text-[13px] opacity-70 font-medium mb-1">{profile?.headline || ""}</p>
+              <p className="font-mono text-[12px] opacity-60 font-bold mb-2">@{profile?.username || "username"}</p>
+            </div>
+          </section>
+        ) : (
+          <section className="relative w-full aspect-square md:aspect-[4/5] bg-black/10">
             <img 
               src={coverUrl}
               alt={profile?.full_name || "Profile"} 
@@ -540,7 +530,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
             
             <div className="absolute bottom-0 w-full left-0 flex flex-col items-center text-center pb-2">
-              <h1 className="font-display text-[32px] font-black text-black dark:text-white dark:text-white leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">
+              <h1 className="font-display text-[32px] font-black text-current leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">
                 {profile?.full_name || "[Data Placeholder]"}
                 {profile?.is_verified && (
                   <svg aria-label="Verified" className="w-[18px] h-[18px] lg:w-5 lg:h-5 text-[#0095f6] flex-shrink-0" fill="currentColor" role="img" viewBox="0 0 40 40">
@@ -549,19 +539,17 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   </svg>
                 )}
               </h1>
-              <p className="font-sans text-[14px] text-gray-500 dark:text-[#a0a0a0] font-medium mb-1 px-6">{profile?.headline || ""}</p>
-              <p className="font-mono text-[13px] text-[#707070] font-bold mb-3 px-6">@{profile?.username || "username"}</p>
+              <p className="font-sans text-[14px] opacity-60 font-medium mb-1 px-6">{profile?.headline || ""}</p>
+              <p className="font-mono text-[13px] opacity-60 font-bold mb-3 px-6">@{profile?.username || "username"}</p>
               
               {profile?.show_total_followers && totalFollowers > 0 && (
                 <div className="flex items-center gap-1.5 bg-[#1a1a1a] border border-[#333333] px-3 py-1.5 rounded-full mb-2">
-                  <Globe className="w-3.5 h-3.5 text-gray-500 dark:text-[#a0a0a0]" />
-                  <span className="font-mono text-[11px] font-bold text-black dark:text-white dark:text-white uppercase tracking-wider">{formatFollowers(totalFollowers)} Total Followers</span>
+                  <Globe className="w-3.5 h-3.5 opacity-60" />
+                  <span className="font-mono text-[11px] font-bold text-current uppercase tracking-wider">{formatFollowers(totalFollowers)} Total Followers</span>
                 </div>
               )}
             </div>
-          </section>
-
-          {renderSocialLinks()}
+          </section>)} {renderSocialLinks()}
 
           <section className="px-6 flex flex-col items-center pt-8">
             <div className="flex flex-col items-center mb-10 w-full">
@@ -569,7 +557,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               
               {profile?.bio && (
                 <div className="mb-4 text-center max-w-sm">
-                  <p className="font-sans text-[14px] text-[#e0e0e0] leading-relaxed">{profile.bio}</p>
+                  <p className="font-sans text-[14px] opacity-80 leading-relaxed">{profile.bio}</p>
                 </div>
               )}
             </div>
@@ -583,7 +571,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   </span>
                 </div>
                 <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
-                  <span className="text-black dark:text-white dark:text-white font-sans text-[16px] font-bold tracking-tight">Connect with</span>
+                  <span className="text-current font-sans text-[16px] font-bold tracking-tight">Connect with</span>
                   <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
                 </div>
               </a>
@@ -610,7 +598,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       </span>
                     </div>
                     <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
-                      <span className="text-black dark:text-white font-sans text-[16px] font-bold tracking-tight">WhatsApp connect</span>
+                      <span className="text-current font-sans text-[16px] font-bold tracking-tight">WhatsApp connect</span>
                       <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
                     </div>
                   </a>
@@ -629,7 +617,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
               return (
                 <div className="w-full mb-8 flex flex-col gap-3 overflow-hidden relative group">
-                  <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-1 px-1">Gallery</span>
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-widest opacity-60 mb-1 px-1">Gallery</span>
                   <style>{`
                     @keyframes marquee-gallery {
                       0% { transform: translateX(0); }
@@ -659,12 +647,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
             {profile?.address && (
               <div className="w-full bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] p-4 flex items-center gap-4 rounded-xl mb-8">
-                <div className="w-10 h-10 bg-gray-200 dark:bg-[#2a2a2a] text-black dark:text-white dark:text-white rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: enterpriseColor || undefined }}>
+                <div className="w-10 h-10 bg-gray-200 dark:bg-[#2a2a2a] text-current rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: enterpriseColor || undefined }}>
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-gray-500 dark:text-[#a0a0a0] font-bold">Location</span>
-                  <span className="font-sans text-[14px] text-black dark:text-white dark:text-white font-semibold">{profile.address}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider opacity-60 font-bold">Location</span>
+                  <span className="font-sans text-[14px] text-current font-semibold">{profile.address}</span>
                 </div>
               </div>
             )}
@@ -674,7 +662,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 href={profile.calendar_link} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full bg-white dark:bg-[#fafafa] text-black dark:text-white p-4 flex items-center justify-between rounded-xl cursor-pointer hover:bg-white dark:bg-[#1a1c1c] transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                className="w-full bg-white dark:bg-[#fafafa] text-current p-4 flex items-center justify-between rounded-xl cursor-pointer hover:bg-white dark:bg-[#1a1c1c] transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
               >
                  <div className="flex items-center gap-3">
                    <div className="flex flex-col">
@@ -682,7 +670,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                      <span className="font-sans text-[15px] font-bold flex items-center gap-2">View Availability</span>
                    </div>
                  </div>
-                 <ExternalLink className="w-5 h-5 text-black dark:text-white" />
+                 <ExternalLink className="w-5 h-5 text-current" />
               </a>
             )}
 
@@ -690,13 +678,13 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               <div className="w-full flex bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] p-1 rounded-full mb-6">
                 <button
                   onClick={() => setActiveTab('links')}
-                  className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'links' ? 'bg-white dark:bg-[#1a1c1c] text-black dark:text-white' : 'text-[#707070] hover:text-black dark:text-white dark:text-white'}`}
+                  className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'links' ? 'bg-white dark:bg-[#1a1c1c] text-current' : 'opacity-60 hover:text-current'}`}
                 >
                   Links
                 </button>
                 <button
                   onClick={() => setActiveTab('shop')}
-                  className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'shop' ? 'bg-white dark:bg-[#1a1c1c] text-black dark:text-white' : 'text-[#707070] hover:text-black dark:text-white dark:text-white'}`}
+                  className={`flex-1 py-2 rounded-full font-mono text-[12px] font-bold transition-colors ${activeTab === 'shop' ? 'bg-white dark:bg-[#1a1c1c] text-current' : 'opacity-60 hover:text-current'}`}
                 >
                   Products
                 </button>
@@ -704,8 +692,8 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             )}
 
             {activeTab === 'links' ? (
-              <div className="w-full flex flex-col gap-3">
-                <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-2 px-1">Featured Links</span>
+              <div className={`w-full ${layout === 'bento' ? 'grid grid-cols-2 gap-3' : layout === 'carousel' ? 'flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4' : 'flex flex-col gap-3'}`}>
+                <span className="font-mono text-[11px] font-bold uppercase tracking-widest opacity-60 mb-2 px-1">Featured Links</span>
                 {links.filter(l => l.size !== 'GalleryImage').length > 0 ? links.filter(l => l.size !== 'GalleryImage').map((link, i) => {
                   const href = link.url?.startsWith('http') ? link.url : `https://${link.url}`;
                   let iconUrl = link.image_url;
@@ -728,7 +716,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                             <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
                           </div>
                         )}
-                        <h2 className="relative z-10 font-sans text-xl sm:text-2xl font-bold text-black dark:text-white dark:text-white shadow-sm mt-auto w-full text-center truncate px-4 drop-shadow-md">{link.label}</h2>
+                        <h2 className="relative z-10 font-sans text-xl sm:text-2xl font-bold text-current shadow-sm mt-auto w-full text-center truncate px-4 drop-shadow-md">{link.label}</h2>
                       </a>
                     );
                   }
@@ -736,12 +724,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Medium') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                         className="relative bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-black dark:text-white dark:text-white p-4 rounded-2xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full aspect-[2/1] group overflow-hidden"
+                         className="relative bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-current p-4 rounded-2xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full aspect-[2/1] group overflow-hidden"
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : '#141414' 
                          }}>
                          {iconUrl && <div className="absolute inset-0 bg-gray-50 dark:bg-black/40 group-hover:bg-gray-50 dark:bg-black/30 transition-colors z-0"></div>}
-                         <h2 className="relative z-10 font-sans text-lg font-bold text-black dark:text-white dark:text-white shadow-sm mt-auto w-full text-center truncate px-4 drop-shadow-md">{link.label}</h2>
+                         <h2 className="relative z-10 font-sans text-lg font-bold text-current shadow-sm mt-auto w-full text-center truncate px-4 drop-shadow-md">{link.label}</h2>
                       </a>
                     );
                   }
@@ -749,12 +737,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Small') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                         className="relative bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-black dark:text-white dark:text-white p-3 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full h-24 group overflow-hidden"
+                         className="relative bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-current p-3 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full h-24 group overflow-hidden"
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : '#141414' 
                          }}>
                          {iconUrl && <div className="absolute inset-0 bg-gray-50 dark:bg-black/40 group-hover:bg-gray-50 dark:bg-black/30 transition-colors z-0"></div>}
-                         <h2 className="relative z-10 font-sans text-md font-bold text-black dark:text-white dark:text-white shadow-sm mt-auto w-full text-center truncate px-2 drop-shadow-md">{link.label}</h2>
+                         <h2 className="relative z-10 font-sans text-md font-bold text-current shadow-sm mt-auto w-full text-center truncate px-2 drop-shadow-md">{link.label}</h2>
                       </a>
                     );
                   }
@@ -762,7 +750,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   // Default Button size
                   return (
                     <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                       className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-black dark:text-white dark:text-white p-4 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative">
+                       className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] text-current p-4 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative">
                        <h2 className="font-sans text-[15px] font-medium truncate text-center">{link.label}</h2>
                     </a>
                   );
@@ -774,14 +762,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               </div>
             ) : (
               <div className="w-full flex flex-col gap-4">
-                <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[#707070] mb-1 px-1">Digital Products</span>
+                <span className="font-mono text-[11px] font-bold uppercase tracking-widest opacity-60 mb-1 px-1">Digital Products</span>
                 {products.map((p) => (
                   <div key={p.id} className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-4 flex flex-col sm:flex-row gap-4 text-left">
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-lg shrink-0" />}
                     <div className="flex flex-col flex-1">
-                      <span className="font-sans font-bold text-black dark:text-white dark:text-white text-[16px] leading-tight mb-1">{p.name}</span>
-                      <span className="font-mono text-[12px] font-bold text-black dark:text-white bg-white dark:bg-[#1a1c1c] px-2 py-1 rounded-xl self-start mb-2 leading-none">₦{p.price}</span>
-                      <p className="text-[13px] text-gray-500 dark:text-[#a0a0a0] mb-4 flex-1 line-clamp-3">{p.description}</p>
+                      <span className="font-sans font-bold text-current text-[16px] leading-tight mb-1">{p.name}</span>
+                      <span className="font-mono text-[12px] font-bold text-current bg-white dark:bg-[#1a1c1c] px-2 py-1 rounded-xl self-start mb-2 leading-none">₦{p.price}</span>
+                      <p className="text-[13px] opacity-60 mb-4 flex-1 line-clamp-3">{p.description}</p>
                       <PaystackButton
                         reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
                         email={profile?.contact_email || profile?.email || 'guest@chipng.com'}
@@ -822,7 +810,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                           }
                         }}
                         onClose={() => {}}
-                        className="w-full bg-white dark:bg-[#1a1c1c] text-black dark:text-white hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto cursor-pointer"
+                        className="w-full bg-white dark:bg-[#1a1c1c] text-current hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto cursor-pointer"
                       />
                     </div>
                   </div>
@@ -833,7 +821,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             {profile?.enterprise && (
               <div className="mt-12 flex items-center gap-2 justify-center opacity-60">
                  {profile.enterprise.logo_url && <img src={profile.enterprise.logo_url} className="w-4 h-4 object-contain grayscale" alt="" />}
-                 <span className="font-mono text-[10px] uppercase tracking-wider text-black dark:text-white dark:text-white">Part of {profile.enterprise.name}</span>
+                 <span className="font-mono text-[10px] uppercase tracking-wider text-current">Part of {profile.enterprise.name}</span>
               </div>
             )}
             
@@ -842,14 +830,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         {/* Footer at the bottom of the page */}
         <footer className="w-full bg-gray-50 dark:bg-black/40 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0 mt-auto">
-           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className="bg-white dark:bg-[#1a1c1c] text-black dark:text-white px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
+           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className="bg-white dark:bg-[#1a1c1c] text-current px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2">
              CREATE YOURS
            </button>
-           <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest text-gray-500 dark:text-[#a0a0a0] hover:text-black dark:text-white dark:text-white transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium text-[#505050]">Powered by</span> CHIP NG</a>
+           <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest opacity-60 hover:text-current transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium text-[#505050]">Powered by</span> CHIP NG</a>
            <div className="flex justify-center gap-6">
-             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-black dark:text-white dark:text-white transition-colors">Privacy Policy</a>
-             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-black dark:text-white dark:text-white transition-colors">Terms</a>
-             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-black dark:text-white dark:text-white transition-colors">Report</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-current transition-colors">Privacy Policy</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-current transition-colors">Terms</a>
+             <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#505050] hover:text-current transition-colors">Report</a>
            </div>
         </footer>
 
