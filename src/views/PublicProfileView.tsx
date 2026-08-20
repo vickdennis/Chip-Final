@@ -300,7 +300,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     return (yiq >= 128) ? '#000000' : '#ffffff';
   };
   
-  const layout = profile?.theme || 'classic';
+  const layout = profile?.theme || 'default';
   const customBg = profile?.bg_color || '#09090b';
   const customText = profile?.bg_color ? getContrastColor(profile.bg_color) : '#ffffff';
   const bgStyle = { backgroundColor: customBg };
@@ -332,6 +332,17 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         style={{ ...bgStyle, ...textStyle }}
       >
         {/* Theme Relating Animation Layer */}
+        {layout === 'default' && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 mix-blend-luminosity">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full blur-[60px] animate-pulse" style={{ backgroundColor: customText, opacity: 0.08 }}></div>
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-1/4 left-1/3 w-1 h-1 rounded-full animate-ping [animation-duration:4s]" style={{ backgroundColor: customText }}></div>
+              <div className="absolute top-1/2 left-2/3 w-1.5 h-1.5 rounded-full animate-ping [animation-duration:6s]" style={{ backgroundColor: customText }}></div>
+              <div className="absolute top-3/4 left-1/4 w-0.5 h-0.5 rounded-full animate-ping [animation-duration:8s]" style={{ backgroundColor: customText }}></div>
+              <div className="absolute top-1/3 left-3/4 w-1 h-1 rounded-full animate-ping [animation-duration:5s]" style={{ backgroundColor: customText }}></div>
+            </div>
+          </div>
+        )}
         
 
         {/* Buttons at Top */}
@@ -527,7 +538,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               className="w-full h-full object-cover object-top opacity-85"
             />
             {/* Smooth fade container at top base */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${customBg} 0%, ${customBg}66 50%, transparent 100%)` }}></div>
             
             <div className="absolute bottom-0 w-full left-0 flex flex-col items-center text-center pb-2">
               <h1 className="font-display text-[32px] font-black text-current leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">

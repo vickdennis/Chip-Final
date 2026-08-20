@@ -54,6 +54,7 @@ export const SOCIAL_PLATFORMS = [
 
 
 export const PROFILE_LAYOUTS = [
+  { id: 'default', name: 'Default', description: 'The original CHIP NG ambient glow design.' },
   { id: 'classic', name: 'Classic', description: 'Standard vertical layout.' },
   { id: 'bento', name: 'Bento Grid', description: 'Modern grid-based layout.' },
   { id: 'split', name: 'Split View', description: 'Side-by-side profile and links.' },
@@ -1372,9 +1373,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   {/* Profile Layout Grid */}
                   <div>
                     <label className="block text-sm font-bold text-black dark:text-white mb-3">Profile Layout</label>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {PROFILE_LAYOUTS.map(layout => {
-                        const isActive = profile.theme === layout.id || (layout.id === 'classic' && !profile.theme);
+                        const isActive = profile.theme === layout.id || (layout.id === 'default' && !profile.theme);
                         return (
                           <div 
                             key={layout.id} 
@@ -1382,6 +1383,14 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center justify-between gap-3 transition-all ${isActive ? 'border-black dark:border-white bg-black/5 dark:bg-white/5 ring-1 ring-black dark:ring-white' : 'border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'}`}
                           >
                             <div className="w-16 h-20 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-md flex flex-col p-1.5 shadow-sm text-black dark:text-white">
+                              {layout.id === 'default' && (
+                                <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="50" cy="50" r="30" className="opacity-20 fill-current" stroke="none" />
+                                  <circle cx="50" cy="30" r="12" />
+                                  <line x1="30" y1="65" x2="70" y2="65" />
+                                  <line x1="30" y1="85" x2="70" y2="85" />
+                                </svg>
+                              )}
                               {layout.id === 'classic' && (
                                 <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                                   <circle cx="50" cy="25" r="14" />
