@@ -91,6 +91,13 @@ db.exec(`
     audience_count INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  
+  CREATE TABLE IF NOT EXISTS app_notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 
@@ -307,7 +314,25 @@ Sitemap: https://chipng.com/sitemap.xml`;
     } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
+
+  app.get('/api/notifications', (req, res) => {
+    db.all(`SELECT * FROM app_notifications ORDER BY created_at DESC LIMIT 10`, [], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ notifications: rows });
+    });
+  });
+
+  app.post('/api/notifications', express.json(), (req, res) => {
+    const { title, message } = req.body;
+    if (!title || !message) return res.status(400).json({ error: 'Title and message required' });
+    db.run(`INSERT INTO app_notifications (title, message) VALUES (?, ?)`, [title, message], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, id: this.lastID });
+    });
+  });
+
   app.get('/api/broadcast/stats', (req, res) => {
+
     try {
       const totalLeads = db.prepare('SELECT COUNT(*) as c FROM leads').get().c;
       const sent7Days = db.prepare("SELECT COUNT(*) as c FROM leads WHERE last_broadcast_at >= datetime('now', '-7 days')").get().c;

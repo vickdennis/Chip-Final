@@ -9,7 +9,8 @@ import AdminLeadsManager from './AdminLeadsManager';
 import AdminBuyBoxManager from './AdminBuyBoxManager';
 import AdminSeoManager from './AdminSeoManager';
 import AdminBroadcastManager from './AdminBroadcastManager';
-import { MessageCircle, Send, Link as LinkIcon } from 'lucide-react';
+import AdminNotificationManager from './AdminNotificationManager';
+import { MessageCircle, Send, Bell, Link as LinkIcon } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -19,7 +20,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -467,7 +468,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             <div className="relative group pb-4">
               <button 
                 onClick={() => setActiveTab('leads')}
-                className={`font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${['leads', 'buybox', 'seo', 'broadcast'].includes(activeTab) ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
+                className={`font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${['leads', 'buybox', 'seo', 'broadcast', 'notifications'].includes(activeTab) ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
               >
                 <Plus className="w-4 h-4" /> Tools
               </button>
@@ -496,6 +497,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   onClick={() => setActiveTab('broadcast')}
                 >
                   <Send className="w-4 h-4" /> Broadcast
+                </button>
+                <button 
+                  className={`flex items-center gap-2 w-full text-left px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${activeTab === 'notifications' ? 'bg-black/5 dark:bg-white/5 text-black dark:text-white' : 'text-black/60 dark:text-white/60 hover:text-black hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/5'}`}
+                  onClick={() => setActiveTab('notifications')}
+                >
+                  <Bell className="w-4 h-4" /> In-App Notifications
                 </button>
               </div>
             </div>
@@ -945,6 +952,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
         {activeTab === 'broadcast' && (
           <AdminBroadcastManager />
+        )}
+        {activeTab === 'notifications' && (
+          <AdminNotificationManager />
         )}
       </div>
     </div>

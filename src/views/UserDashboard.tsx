@@ -7,7 +7,7 @@ import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut } from 'lucide-react';
+import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -478,7 +478,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
 
   return (
-    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true}>
+    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true} topRightContent={NotificationBell()}>
       <div className="pb-24">
       <div className="max-w-[1200px] mx-auto pb-16">
         
@@ -516,6 +516,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             </h2>
             <p className="text-[16px] text-black/60 dark:text-white/60">Manage your professional profile and digital presence.</p>
           </div>
+          <div className="hidden md:block">
+            {NotificationBell()}
+          </div>
           <div className="flex flex-wrap gap-3 w-full md:w-auto">
             {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (
               <button 
@@ -545,10 +548,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         <div className="mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden hidden md:block" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           <div className="inline-flex bg-black/5 dark:bg-white/5 p-1.5 rounded-[16px] gap-1">
             <button 
-              onClick={() => setActiveTab('analytics')}
-              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'analytics' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              onClick={() => setActiveTab('nfc')}
+              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'nfc' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
             >
-              Analytics
+              Order NFC
             </button>
             <button 
               onClick={() => setActiveTab('social')}
@@ -581,10 +584,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           <div className="flex justify-center items-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-black dark:text-white" />
           </div>
-        ) : profile && activeTab === 'analytics' ? (
+        ) : profile && activeTab === 'nfc' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
-              <DashboardAnalytics profile={profile} profileViews={profileViews} onUpgrade={() => setActiveTab('appearance')} />
+              <NfcProgrammer profile={profile} />
             </div>
           </div>
         ) : profile && activeTab === 'profile' ? (
@@ -1328,6 +1331,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         ) : profile && activeTab === 'settings' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
+              
+              <DashboardAnalytics profile={profile} profileViews={profileViews} onUpgrade={() => setActiveTab('appearance')} />
               <section className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl flex flex-col">
                 <div className="p-6 flex flex-col items-center justify-center text-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center">
@@ -1487,8 +1492,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       )}
                       <div>
                         <h4 className="font-bold text-lg text-black dark:text-white">{selectedNfcCard.name}</h4>
-                        <p className="text-sm text-black/60 dark:text-white/60 mb-1">{selectedNfcCard.description}</p>
-                        <p className="font-mono font-bold text-[#B600A8]">₦{Number(selectedNfcCard.price).toLocaleString()}</p>
+                        <p className="text-sm text-black/60 dark:text-white/60 mb-2">{selectedNfcCard.description}</p>
+                        <p className="font-mono font-bold text-sm text-[#B600A8]">Price: ₦{Number(selectedNfcCard.price).toLocaleString()}</p>
+                        <p className="font-mono font-bold text-sm text-black/60 dark:text-white/60">Processing Fee: ₦200</p>
+                        <p className="font-mono font-bold text-lg mt-1 text-[#B600A8]">Total: ₦{(Number(selectedNfcCard.price) + 200).toLocaleString()}</p>
                       </div>
                     </div>
                   )}
@@ -1530,7 +1537,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   <PaystackButton
                     reference={`SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
                     email={profile.contact_email || profile.email || 'user@example.com'}
-                    amount={Math.round(Number(selectedNfcCard?.price || 0) * 100)}
+                    amount={Math.round((Number(selectedNfcCard?.price || 0) + 200) * 100)}
                     publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
                     text="Proceed to Payment"
                     onSuccess={async (response) => {
@@ -1667,7 +1674,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </div>
             </section>
               </div>
-              <NfcProgrammer profile={profile} />
             </div>
           </div>
         ) : null}
@@ -1919,7 +1925,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             </motion.div>
 
             {[
-              { id: 'analytics', label: 'Analytics', icon: Activity },
+              { id: 'nfc', label: 'Order NFC', icon: SmartphoneNfc },
               { id: 'social', label: 'Socials', icon: Share },
               { id: 'profile', label: 'Profile', icon: UserCircle },
               { id: 'ebooks', label: 'Ebooks', icon: Wallet },

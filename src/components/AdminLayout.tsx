@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 interface AdminLayoutProps {
+  topRightContent?: React.ReactNode;
   hideMobileNav?: boolean;
   children: React.ReactNode;
   onNavigate: (view: ViewState) => void;
@@ -19,7 +20,7 @@ interface AdminLayoutProps {
   toggleDarkMode: () => void;
 }
 
-export default function AdminLayout({ children, onNavigate, activePath, isDarkMode, toggleDarkMode, hideMobileNav }: AdminLayoutProps) {
+export default function AdminLayout({ children, onNavigate, activePath, isDarkMode, toggleDarkMode, hideMobileNav, topRightContent }: AdminLayoutProps) {
   
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -89,9 +90,12 @@ export default function AdminLayout({ children, onNavigate, activePath, isDarkMo
             </div>
             <span className="font-bold text-black dark:text-white tracking-tight">CHIP NG</span>
           </div>
-          <button onClick={toggleDarkMode} className="p-2 -mr-2 rounded-full text-black/60 dark:text-white/60 active:bg-black/5 dark:active:bg-white/5">
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {topRightContent}
+            <button onClick={toggleDarkMode} className="p-2 -mr-2 rounded-full text-black/60 dark:text-white/60 active:bg-black/5 dark:active:bg-white/5">
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
         </header>
         
         {/* Scrollable Content */}

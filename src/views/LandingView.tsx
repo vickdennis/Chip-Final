@@ -1088,10 +1088,22 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
                     </div>
                   ))}
                 </div>
+                <div className="flex justify-between items-center py-2 border-t border-black/10 dark:border-white/10">
+                  <span className="font-bold text-black dark:text-white text-sm">Subtotal</span>
+                  <span className="font-bold text-[#B600A8] font-mono text-sm">
+                    ₦{cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="font-bold text-black dark:text-white text-sm">Processing Fee</span>
+                  <span className="font-bold text-[#B600A8] font-mono text-sm">
+                    ₦200
+                  </span>
+                </div>
                 <div className="flex justify-between items-center py-2 border-t border-b border-black/10 dark:border-white/10">
                   <span className="font-bold text-black dark:text-white uppercase text-sm">Total</span>
                   <span className="font-bold text-[#B600A8] font-mono text-lg">
-                    ₦{cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}
+                    ₦{(cart.reduce((sum, item) => sum + Number(item.price), 0) + 200).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -1114,7 +1126,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
                 <PaystackButton
                   reference={`SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
                   email='guest@chipng.com'
-                  amount={Math.round(cart.reduce((sum, item) => sum + Number(item.price), 0) * 100)}
+                  amount={Math.round((cart.reduce((sum, item) => sum + Number(item.price), 0) + 200) * 100)}
                   publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
                   text="Pay Now"
                   onSuccess={async (response: any) => {
@@ -1135,7 +1147,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
                       
                       const message = `*New Order from ${checkoutName || 'Guest'} (${checkoutPhone || 'No phone'})*\n\n*Items:*\n` + 
                                       cart.map(item => `- ${item.name} (₦${Number(item.price).toLocaleString()})`).join('\n') + 
-                                      `\n\n*Total:* ₦${cart.reduce((sum, item) => sum + Number(item.price), 0).toLocaleString()}\n` +
+                                      `\n*Processing Fee:* ₦200\n` +
+                                      `\n*Total:* ₦${(cart.reduce((sum, item) => sum + Number(item.price), 0) + 200).toLocaleString()}\n` +
                                       `*Reference:* ${response.reference}`;
                       
                       const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;

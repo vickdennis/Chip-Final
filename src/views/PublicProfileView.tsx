@@ -808,14 +808,17 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-lg shrink-0" />}
                     <div className="flex flex-col flex-1">
                       <span className="font-sans font-bold text-current text-[16px] leading-tight mb-1">{p.name}</span>
-                      <span className={`font-mono text-[12px] font-bold text-current ${cardBgClass} px-2 py-1 rounded-xl self-start mb-2 leading-none`}>₦{p.price}</span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`font-mono text-[12px] font-bold text-current ${cardBgClass} px-2 py-1 rounded-xl self-start leading-none`}>₦{Number(p.price).toLocaleString()}</span>
+                        <span className="text-[10px] opacity-50">+ ₦200 fee</span>
+                      </div>
                       <p className="text-[13px] opacity-60 mb-4 flex-1 line-clamp-3">{p.description}</p>
                       <PaystackButton
                         reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
                         email={profile?.contact_email || profile?.email || 'guest@chipng.com'}
-                        amount={Math.round(p.price * 100)}
+                        amount={Math.round((Number(p.price) + 200) * 100)}
                         publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                        text="Buy Now"
+                        text={`Buy Now • ₦${(Number(p.price) + 200).toLocaleString()}`}
                         onSuccess={async (response: any) => {
                           try {
                             await supabase.from('purchases').insert({
