@@ -70,9 +70,9 @@ export default function AdminBlogManager() {
     try {
       const fileExt = file.name.split('.').pop();
       const filePath = `blog/${Math.random()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('blog').upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
       if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('blog').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
       setPostForm({ ...postForm, cover_image_url: data.publicUrl });
     } catch (error: any) {
       alert('Error uploading image: ' + error.message);

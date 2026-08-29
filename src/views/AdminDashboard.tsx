@@ -98,7 +98,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   const fetchData = async () => {
     const { data: usersData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-    const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data: productsData } = await supabase.from('products').select('*').is('profile_id', null).order('created_at', { ascending: false });
     const { data: purchasesData } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
     const { data: postsData } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
     const { count: blogViewsCount } = await supabase.from('blog_views').select('*', { count: 'exact', head: true });
@@ -287,7 +287,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
-      profile_id: currentUserId,
+      profile_id: null,
       name: prodForm.name,
       description: prodForm.description,
       price: parseFloat(prodForm.price.toString().replace(/,/g, '')),
