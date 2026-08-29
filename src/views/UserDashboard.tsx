@@ -103,17 +103,38 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [readNotifs, setReadNotifs] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('chip_read_notifs');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const markAllAsRead = () => {
+    const allIds = allNotifications.map(n => String(n.id));
+    const newRead = [...new Set([...readNotifs, ...allIds])];
+    setReadNotifs(newRead);
+    localStorage.setItem('chip_read_notifs', JSON.stringify(newRead));
+  };
   const [hasDismissedNfcPrompt, setHasDismissedNfcPrompt] = useState(false);
 
   useEffect(() => {
-    fetch('/api/notifications')
-      .then(res => res.json())
-      .then(data => {
-        if (data.notifications) {
-          setNotifications(data.notifications);
-        }
-      })
-      .catch(err => console.error(err));
+    const fetchNotifs = () => {
+      fetch('/api/notifications')
+        .then(res => res.json())
+        .then(data => {
+          if (data.notifications) {
+            setNotifications(data.notifications);
+          }
+        })
+        .catch(err => console.error(err));
+    };
+    
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const systemNotifications = [];
@@ -130,12 +151,15 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   }
 
   const allNotifications = [...systemNotifications, ...notifications];
-  const unreadCount = allNotifications.length;
+  const unreadCount = allNotifications.filter(n => !readNotifs.includes(String(n.id))).length;
 
   const NotificationBell = () => (
     <div className="relative">
       <button 
-        onClick={() => setShowNotifications(!showNotifications)}
+        onClick={() => {
+          setShowNotifications(!showNotifications);
+          if (!showNotifications) markAllAsRead();
+        }}
         className="relative p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
       >
         <Bell className="w-5 h-5 text-black dark:text-white" />
