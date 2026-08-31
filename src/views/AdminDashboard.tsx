@@ -267,8 +267,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
           payload.username = newUserForm.username;
         }
         
-        // Use main supabase client (admin session) to update newly created profile
-        const { error: innerError } = await supabase.from('profiles').update(payload).eq('id', data.user.id);
+        // Use adminAuthClient (which now holds the new user's session) to update their profile
+        const { error: innerError } = await adminAuthClient.from('profiles').update(payload).eq('id', data.user.id);
+        
+        // Sign out to clear the temporary session
+        await adminAuthClient.auth.signOut();
         
         if (innerError) {
           alert('User created but failed to update profile details: ' + innerError.message);
@@ -765,7 +768,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
                 <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
                   <h3 className="font-sans font-bold text-lg mb-2 text-black dark:text-white">Create New User</h3>
-                  <p className="font-sans text-xs text-black/60 dark:text-white/60 mb-4">Warning: Creating a user will log you in as them temporarily.</p>
+                  <p className="font-sans text-xs text-black/60 dark:text-white/60 mb-4">Create a new user account.</p>
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Email *</label>
