@@ -122,7 +122,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   useEffect(() => {
     const fetchNotifs = () => {
-      fetch('/api/notifications')
+      fetch('/api/app-updates')
         .then(res => res.json())
         .then(data => {
           if (data.notifications) {

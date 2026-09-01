@@ -315,11 +315,11 @@ Sitemap: https://chipng.com/sitemap.xml`;
   });
 
 
-  app.get('/api/notifications', (req, res) => {
+  app.get('/api/app-updates', (req, res) => {
     try { const rows = db.prepare(`SELECT * FROM app_notifications ORDER BY created_at DESC LIMIT 10`).all(); res.json({ notifications: rows }); } catch(err: any) { res.status(500).json({ error: err.message }); }
   });
 
-  app.post('/api/notifications', express.json(), (req, res) => {
+  app.post('/api/app-updates', express.json(), (req, res) => {
     const { title, message } = req.body;
     if (!title || !message) return res.status(400).json({ error: 'Title and message required' });
     try { const info = db.prepare(`INSERT INTO app_notifications (title, message) VALUES (?, ?)`).run(title, message); res.json({ success: true, id: info.lastInsertRowid }); } catch(err: any) { res.status(500).json({ error: err.message }); }

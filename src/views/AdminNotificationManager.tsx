@@ -9,7 +9,7 @@ export default function AdminNotificationManager() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/notifications');
+      const res = await fetch('/api/app-updates');
       const data = await res.json();
       if (data.notifications) {
          setNotifications(data.notifications);
@@ -27,7 +27,7 @@ export default function AdminNotificationManager() {
     if (!title || !message) return alert("Title and message required.");
     setIsSending(true);
     try {
-      const res = await fetch('/api/notifications', {
+      const res = await fetch('/api/app-updates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, message })
@@ -41,9 +41,9 @@ export default function AdminNotificationManager() {
       } else {
         alert("Error: " + data.error);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to send notification.");
+      alert("Failed to send notification. Error: " + (e.message || String(e)));
     } finally {
       setIsSending(false);
     }
