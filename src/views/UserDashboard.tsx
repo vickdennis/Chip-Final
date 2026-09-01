@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
@@ -153,8 +153,19 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const allNotifications = [...systemNotifications, ...notifications];
   const unreadCount = allNotifications.filter(n => !readNotifs.includes(String(n.id))).length;
 
+  const bellRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const NotificationBell = () => (
-    <div className="relative">
+    <div className="relative" ref={bellRef}>
       <button 
         onClick={() => {
           setShowNotifications(!showNotifications);
@@ -635,9 +646,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               Bio Management
             </h2>
             <p className="text-[16px] text-black/60 dark:text-white/60">Manage your professional profile and digital presence.</p>
-          </div>
-          <div className="hidden md:block">
-            {NotificationBell()}
           </div>
           <div className="flex flex-wrap gap-3 w-full md:w-auto">
             {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (

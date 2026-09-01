@@ -370,7 +370,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
       {/* 9:16 Portrait Viewport Frame on Desktop, full screen on mobile */}
       <div 
         className={`w-full min-h-screen sm:min-h-0 sm:h-[780px] md:h-[820px] sm:w-[420px] md:w-[450px] sm:rounded-[36px] sm:shadow-[0_25px_60px_rgba(0,0,0,0.85)] sm:border sm:border-neutral-800/80 overflow-y-auto scrollbar-hide relative flex flex-col ${''} ${''}`} 
-        style={{ ...bgStyle, ...textStyle }}
+        style={{ backgroundColor: '#09090b', color: '#ffffff' }}
       >
         {/* Theme Relating Animation Layer */}
         
@@ -379,14 +379,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           <div className="flex flex-col gap-2 pointer-events-auto">
             <button 
               onClick={() => setIsBioModalOpen(true)} 
-              className={`${cardBgClass} text-current font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg hover:bg-[#f3f3f4] transition-colors flex items-center gap-2`}
+              className={`bg-white/10 hover:bg-white/20 text-white font-mono text-[11px] uppercase font-bold px-4 py-2 rounded-full shadow-lg transition-colors flex items-center gap-2`}
             >
               <LinkIcon className="w-3.5 h-3.5" /> Bio Link
             </button>
             {!username && (
               <button 
                 onClick={() => onNavigate && onNavigate('user-dashboard')} 
-                className={`${cardBgClass} backdrop-blur-md text-current border border-black/20 dark:border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm hover:${cardBgClass}/20 transition-colors`}
+                className={`bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-mono text-[11px] uppercase font-bold px-3 py-1.5 rounded-full shadow-sm transition-colors`}
                >
                 Dashboard
               </button>
@@ -567,7 +567,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               className="w-full h-full object-cover object-top opacity-85"
             />
             {/* Smooth fade container at top base */}
-            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${customBg} 0%, ${customBg}66 50%, transparent 100%)` }}></div>
+            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #09090b 0%, #09090b66 50%, transparent 100%)` }}></div>
             
             <div className="absolute bottom-0 w-full left-0 flex flex-col items-center text-center pb-2">
               <h1 className="font-display text-[32px] font-black text-current leading-tight mb-2 flex items-center gap-2 justify-center flex-wrap px-4">
@@ -601,7 +601,9 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 </div>
               )}
             </div>
+          </section>
 
+          <section className="w-full flex-1 flex flex-col items-center pt-8 pb-8 px-6 rounded-t-[40px] z-10" style={{ ...bgStyle, ...textStyle }}>
             {/* Contact/Connect Action Strip */}
             <div className="w-full flex flex-col gap-3 mb-8">
               <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors`}>
@@ -873,7 +875,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         {/* Footer at the bottom of the page */}
         <footer className="w-full bg-gray-50 dark:bg-black/40 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0 mt-auto">
-           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className={`${cardBgClass} text-current px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-gray-200 transition-colors mb-2`}>
+           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className={`bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-white/30 transition-colors mb-2`}>
              CREATE YOURS
            </button>
            <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest opacity-60 hover:text-current transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium opacity-60">Powered by</span> CHIP NG</a>
