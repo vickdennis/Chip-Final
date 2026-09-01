@@ -6,6 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import Database from 'better-sqlite3';
+import nodemailer from 'nodemailer';
 
 // Initialize SQLite database
 const db = new Database('leads.sqlite', { verbose: console.log });
@@ -92,6 +93,17 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
   
+  CREATE TABLE IF NOT EXISTS nfc_sales (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    card_type TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    payment_reference TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS app_notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -317,6 +329,62 @@ Sitemap: https://chipng.com/sitemap.xml`;
 
   app.get('/api/app-updates', (req, res) => {
     try { const rows = db.prepare(`SELECT * FROM app_notifications ORDER BY created_at DESC LIMIT 10`).all(); res.json({ notifications: rows }); } catch(err: any) { res.status(500).json({ error: err.message }); }
+  });
+
+
+  // NFC Sales Endpoints
+  app.post('/api/sales', express.json(), async (req, res) => {
+    try {
+      const { name, email, phone, card_type, amount, payment_reference } = req.body;
+      const stmt = db.prepare('INSERT INTO nfc_sales (name, email, phone, card_type, amount, payment_reference) VALUES (?, ?, ?, ?, ?, ?)');
+      const info = stmt.run(name, email, phone, card_type, amount, payment_reference);
+      
+      // Try to send email
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: parseInt(process.env.SMTP_PORT || '465'),
+          secure: true,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+        
+        // Only send if configured
+        if (process.env.SMTP_USER) {
+          await transporter.sendMail({
+            from: `"CHIP NG Sales" <${process.env.SMTP_USER}>`,
+            to: 'vickthor.dennis@gmail.com',
+            subject: `New NFC Card Sale! (${card_type})`,
+            text: `A new sale has been made!
+
+Name: ${name}
+Email: ${email}
+Phone: ${phone}
+Card: ${card_type}
+Amount: ₦${amount/100}
+Ref: ${payment_reference}`,
+          });
+        }
+      } catch (emailErr) {
+        console.error("Email send failed:", emailErr);
+        // Continue even if email fails
+      }
+
+      res.json({ success: true, id: info.lastInsertRowid });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/sales', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT * FROM nfc_sales ORDER BY created_at DESC').all();
+      res.json({ sales: rows });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   app.post('/api/app-updates', express.json(), (req, res) => {

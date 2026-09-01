@@ -1,5 +1,5 @@
 {
-  "lockfileVersion": 1,
+  "lockfileVersion": 3,
   "configVersion": 0,
   "workspaces": {
     "": {
@@ -45,6 +45,12 @@
         "typescript": "~5.8.2",
         "vite": "^6.2.3",
       },
+    },
+  },
+  "overrides": {
+    "react-paystack": {
+      "react": "^19.0.1",
+      "react-dom": "^19.0.1",
     },
   },
   "packages": {

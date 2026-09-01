@@ -7,9 +7,10 @@ import AdminDashboard from './views/AdminDashboard';
 import EnterpriseDashboard from './views/EnterpriseDashboard';
 import BlogDirectoryView from './views/BlogDirectoryView';
 import BlogArticleView from './views/BlogArticleView';
+import NfcSalesView from './views/NfcSalesView';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article';
+export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -36,6 +37,7 @@ export default function App() {
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
     if (path === '/blog') return 'blog-directory';
+    if (path === '/buy-card') return 'nfc-sales';
     if (path.startsWith('/blog/')) return 'blog-article';
     if (path !== '' && path !== '/') {
       return 'public-profile';
@@ -46,7 +48,7 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
+    if (path !== '' && path !== '/' && path !== '/buy-card' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
       try {
         let username = decodeURIComponent(path.slice(1)).trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
@@ -134,6 +136,8 @@ export default function App() {
       window.history.pushState({}, '', '/admin');
     } else if (view === 'enterprise-dashboard') {
       window.history.pushState({}, '', '/enterprise');
+    } else if (view === 'nfc-sales') {
+      window.history.pushState({}, '', '/buy-card');
     } else if (view === 'blog-directory') {
       window.history.pushState({}, '', '/blog');
     }
@@ -156,6 +160,7 @@ export default function App() {
       {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} />}
       {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
     </div>
   );

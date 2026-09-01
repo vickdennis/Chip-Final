@@ -489,6 +489,12 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
               Testimonials
             </button>
             <button 
+              onClick={() => onNavigate('nfc-sales')}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#B600A8] dark:text-[#B600A8] hover:opacity-70 transition-opacity duration-200 cursor-pointer animate-pulse"
+            >
+              Buy NFC Card
+            </button>
+            <button 
               onClick={() => scrollToSection(faqRef)}
               className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
