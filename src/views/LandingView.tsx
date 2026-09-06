@@ -520,7 +520,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
           </div>
 
           {/* Massively Scaled Title (Z-0, background watermarked banner behind the active screen simulator) */}
-          <div className="relative overflow-hidden w-full select-none z-20 pointer-events-none mt-6 sm:mt-4 md:-mt-5 opacity-50 lg:opacity-60">
+          <div className="absolute -top-4 md:top-0 left-0 w-full select-none z-20 pointer-events-none opacity-50 lg:opacity-60">
             <FadeIn y={40} delay={0.15}>
               <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[11vw] sm:text-[12vw] md:text-[13vw] lg:text-[14vw] xl:text-[15vw] w-full block">
                 Welcome to chipng
