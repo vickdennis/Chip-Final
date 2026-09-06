@@ -146,10 +146,10 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           </div>
 
           {/* Massively Scaled Title (Z-0) */}
-          <div className="overflow-hidden w-full select-none z-0 mt-6 sm:mt-4 md:-mt-5 opacity-25 lg:opacity-30">
+          <div className="relative overflow-hidden w-full select-none z-20 pointer-events-none mt-6 sm:mt-4 md:-mt-5 opacity-50 lg:opacity-60">
             <FadeIn y={40} delay={0.15}>
               <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[11vw] sm:text-[12vw] md:text-[13vw] lg:text-[14vw] xl:text-[15vw] w-full block text-white">
-                Premium NFC Cards
+                Welcome to chipng
               </h1>
             </FadeIn>
           </div>
