@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { usePaystackPayment } from 'react-paystack';
-import { ChevronRight, Shield, Zap, RefreshCw, Star, ArrowRight, HelpCircle, MessageCircle, Mail, MapPin } from 'lucide-react';
+import { ChevronRight, Shield, Zap, RefreshCw, Star, ArrowRight, HelpCircle, MessageCircle, Mail, MapPin, BadgeCheck, Smartphone, CheckCircle2 } from 'lucide-react';
 
 
 import { LinkMeMotionGraphics } from '../components/LinkMeMotionGraphics';
@@ -38,14 +38,21 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
 
-  // TikTok Embed Script loader
+  // TikTok Embed Script loader - Lazy loaded for performance
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://www.tiktok.com/embed.js';
-    script.async = true;
-    document.body.appendChild(script);
+    let script: HTMLScriptElement;
+    const timer = setTimeout(() => {
+      script = document.createElement('script');
+      script.src = 'https://www.tiktok.com/embed.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, 2500); // 2.5s delay to let first paint happen instantly
+
     return () => {
-      document.body.removeChild(script);
+      clearTimeout(timer);
+      if (script && document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -224,7 +231,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                 <div className="flex text-yellow-400">
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-current" />)}
                 </div>
-                <span className="text-sm text-white/60">Trusted by 5,000+ Professionals</span>
+                <span className="text-sm text-white/60">Trusted by 5,000+ Nigerian Founders & Creators</span>
               </div>
             </div>
           </FadeIn>
@@ -282,7 +289,11 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       <section id="pricing" className="py-24 px-6 relative">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-display font-black mb-6">Choose Your Style</h2>
-          <p className="text-xl text-white/60">One-time payment. No hidden fees. Custom printed with your logo or name.</p>
+          <p className="text-xl text-white/60 mb-4">One-time payment. No hidden fees. Custom printed with your logo or name.</p>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-white/70">
+            <div className="flex items-center gap-2"><Smartphone className="w-4 h-4 text-[#B600A8]" /> Works with iOS & Android</div>
+            <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-green-500" /> No App Required</div>
+          </div>
         </div>
 
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -458,9 +469,27 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               ✕
             </button>
             <h2 className="text-2xl font-bold mb-2">Complete Your Order</h2>
-            <p className="text-white/60 text-sm mb-6">
-              You selected the {selectedCard === 'black' ? 'Black' : 'White'} Edition Card (₦{selectedCard === 'black' ? '35,000' : '30,000'}).
-            </p>
+            <p className="text-white/60 text-sm mb-4">Choose your preferred card edition below.</p>
+            
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {['black', 'white'].map((type) => (
+                <div 
+                  key={type}
+                  onClick={() => setSelectedCard(type as 'black' | 'white')}
+                  className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                    selectedCard === type 
+                      ? 'border-[#B600A8] bg-[#B600A8]/10' 
+                      : 'border-white/10 bg-white/5 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-bold text-white text-sm capitalize">{type} Edition</h4>
+                    {selectedCard === type && <BadgeCheck className="text-[#B600A8] w-5 h-5 shrink-0" />}
+                  </div>
+                  <p className="text-white/60 text-xs">₦{type === 'black' ? '35,000' : '30,000'}</p>
+                </div>
+              ))}
+            </div>
             
             <form onSubmit={handleCheckout} className="flex flex-col gap-4">
               <div>
@@ -509,6 +538,15 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               >
                 Pay ₦{selectedCard === 'black' ? '35,000' : '30,000'} Now
               </button>
+              
+              <div className="flex flex-col gap-2 mt-3 items-center justify-center">
+                <div className="flex items-center gap-2 text-xs text-white/50">
+                  <Shield className="w-3 h-3" /> Secure Paystack Checkout
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Fast 2-5 Day Nationwide Delivery
+                </div>
+              </div>
             </form>
           </motion.div>
         </div>
@@ -546,6 +584,23 @@ I would like to upload my card design now.`)}`}
           </motion.div>
         </div>
       )}
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-0 left-0 w-full p-4 bg-black/90 backdrop-blur-xl border-t border-white/10 z-50 md:hidden flex items-center justify-between animate-in slide-in-from-bottom-full duration-300">
+        <div className="flex flex-col">
+          <span className="text-white font-bold text-lg">₦35,000 / ₦30,000</span>
+          <span className="text-white/60 text-xs">Free Profile included</span>
+        </div>
+        <button 
+          onClick={() => {
+            const pricing = document.getElementById('pricing');
+            pricing?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white font-bold px-6 py-3 rounded-full text-sm shadow-[0_0_20px_rgba(182,0,168,0.4)] active:scale-95 transition-transform"
+        >
+          Order Now
+        </button>
+      </div>
     </div>
   );
 }
