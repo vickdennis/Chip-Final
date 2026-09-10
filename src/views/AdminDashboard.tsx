@@ -954,6 +954,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         {activeTab === 'notifications' && (
           <AdminNotificationManager />
         )}
+        {activeTab === 'sales' && (
+          <AdminSalesManager />
+        )}
       </div>
     </div>
   );

@@ -46,7 +46,7 @@ export default function AdminBroadcastManager() {
 
   const isSentLast7Days = (dateString: string) => {
     if (!dateString) return false;
-    const date = new Date(dateString);
+    const date = new Date(dateString.endsWith("Z") ? dateString : dateString.replace(" ", "T") + "Z");
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     return diff < 7 * 24 * 60 * 60 * 1000;
