@@ -39,7 +39,7 @@ export default function AdminNotificationManager() {
       try {
         data = JSON.parse(textResponse);
       } catch (err) {
-        throw new Error(`Server returned non-JSON response: ${textResponse.substring(0, 100)}...`);
+        throw new Error(`HTTP ${res.status} | Text: ${textResponse.substring(0, 200)}...`);
       }
 
       if (data.success) {
