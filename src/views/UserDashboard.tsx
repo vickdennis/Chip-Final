@@ -139,7 +139,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   const systemNotifications = [];
   if (profile && !hasDismissedNfcPrompt) {
-     const joinedDays = (new Date().getTime() - new Date(profile.created_at || Date.now()).getTime()) / (1000 * 3600 * 24);
+     const joinedDays = (new Date().getTime() - new Date(profile.created_at ? profile.created_at.replace(" ", "T") + "Z" : Date.now()).getTime()) / (1000 * 3600 * 24);
      if (joinedDays < 30) {
        systemNotifications.push({
          id: 'sys-nfc',

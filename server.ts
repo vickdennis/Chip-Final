@@ -388,7 +388,7 @@ Ref: ${payment_reference}`,
     }
   });
 
-  app.post('/api/app-updates', express.json(), (req, res) => {
+  app.post('/api/app-updates', (req, res) => {
     const { title, message } = req.body;
     if (!title || !message) return res.status(400).json({ error: 'Title and message required' });
     try { const info = db.prepare(`INSERT INTO app_notifications (title, message) VALUES (?, ?)`).run(title, message); res.json({ success: true, id: info.lastInsertRowid }); } catch(err: any) { res.status(500).json({ error: err.message }); }

@@ -10,6 +10,7 @@ export default function AdminNotificationManager() {
   const fetchNotifications = async () => {
     try {
       const res = await fetch('/api/app-updates');
+      if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       if (data.notifications) {
          setNotifications(data.notifications);
@@ -32,7 +33,15 @@ export default function AdminNotificationManager() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, message })
       });
-      const data = await res.json();
+      
+      let data;
+      const textResponse = await res.text();
+      try {
+        data = JSON.parse(textResponse);
+      } catch (err) {
+        throw new Error(`Server returned non-JSON response: ${textResponse.substring(0, 100)}...`);
+      }
+
       if (data.success) {
         setTitle('');
         setMessage('');
@@ -119,7 +128,7 @@ export default function AdminNotificationManager() {
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-[15px]">{n.title}</h4>
                     <span className="text-[10px] text-black/40 dark:text-white/40 font-mono">
-                      {new Date(n.created_at).toLocaleDateString()}
+                      {new Date(n.created_at.replace(" ", "T") + "Z").toLocaleDateString()}
                     </span>
                   </div>
                   <p className="text-[13px] text-black/60 dark:text-white/60">{n.message}</p>
