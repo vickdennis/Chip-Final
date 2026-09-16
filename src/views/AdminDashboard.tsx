@@ -26,7 +26,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   // Product form state
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [prodForm, setProdForm] = useState({ name: '', description: '', price: '', image_url: '' });
+  const [prodForm, setProdForm] = useState({ name: '', description: '', price: '', media_urls: [] as string[] });
 
   // User form state
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -321,7 +321,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       name: prodForm.name,
       description: prodForm.description,
       price: parseFloat(prodForm.price.toString().replace(/,/g, '')),
-      image_url: prodForm.image_url
+      image_url: JSON.stringify(prodForm.media_urls)
     };
 
     if (editingProduct) {
@@ -331,7 +331,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     }
     
     setEditingProduct(null);
-    setProdForm({ name: '', description: '', price: '', image_url: '' });
+    setProdForm({ name: '', description: '', price: '', media_urls: [] });
     fetchData();
   };
 
@@ -875,18 +875,50 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Image Upload</label>
-                  {prodForm.image_url && <img src={prodForm.image_url} className="w-full h-24 object-cover mb-2 rounded-xl border border-black/10 dark:border-white/10" />}
+                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Media Upload (Images & Videos)</label>
+                  
+                  {prodForm.media_urls.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto py-2 mb-2">
+                      {prodForm.media_urls.map((url, i) => (
+                        <div key={i} className="relative w-24 h-24 flex-shrink-0 group rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+                          {url.match(/\.(mp4|webm)$/i) ? (
+                            <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                          ) : (
+                            <img src={url} className="w-full h-full object-cover" />
+                          )}
+                          <button type="button" onClick={() => setProdForm({...prodForm, media_urls: prodForm.media_urls.filter((_, idx) => idx !== i)})} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <input 
                     type="file" 
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, (url) => setProdForm({...prodForm, image_url: url}), 'covers')}
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={async (e) => {
+                      if (!e.target.files) return;
+                      const files = Array.from(e.target.files);
+                      const urls = [...prodForm.media_urls];
+                      setUploadingImage(true);
+                      for (const file of files) {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${Math.random()}.${fileExt}`;
+                        try {
+                           const { error } = await supabase.storage.from('covers').upload(fileName, file);
+                           if (!error) {
+                             const { data } = supabase.storage.from('covers').getPublicUrl(fileName);
+                             urls.push(data.publicUrl);
+                           }
+                        } catch(err) {}
+                      }
+                      setProdForm({...prodForm, media_urls: urls});
+                      setUploadingImage(false);
+                    }}
                     className="w-full text-[13px]" 
                   />
-                  <div className="mt-2">
-                    <label className="block font-mono text-[10px] font-bold text-black/40 dark:text-white/40 uppercase mb-1">Or Image URL</label>
-                    <input value={prodForm.image_url} onChange={e=>setProdForm({...prodForm, image_url: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[12px] font-sans" />
-                  </div>
                 </div>
                 <div>
                   <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Description</label>
@@ -897,7 +929,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     {uploadingImage ? 'Uploading...' : (editingProduct ? 'Update' : 'Create')}
                   </button>
                   {editingProduct && (
-                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', image_url:''}); }} className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold">
+                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', media_urls: []}); }} className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold">
                       Cancel
                     </button>
                   )}
@@ -921,7 +953,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         <button 
                           onClick={() => {
                             setEditingProduct(p);
-                            setProdForm({ name: p.name, description: p.description || '', price: p.price.toString(), image_url: p.image_url || '' });
+                            let media = [];
+                            try { media = JSON.parse(p.image_url); } catch { if (p.image_url) media = [p.image_url]; }
+                            setProdForm({ name: p.name, description: p.description || '', price: p.price.toString(), media_urls: media });
                           }}
                           className="flex-1 py-1.5 flex items-center justify-center gap-1 border border-black/10 dark:border-white/10 rounded-[4px] hover:bg-black/5 dark:bg-white/5 transition-colors font-mono text-[11px] font-bold"
                         >
