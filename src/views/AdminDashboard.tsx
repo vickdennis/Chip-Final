@@ -40,7 +40,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   // Create user state
   const [creatingUser, setCreatingUser] = useState(false);
-  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '' });
+  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '', number_of_accounts: 1 });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -235,54 +235,80 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data, error } = await adminAuthClient.auth.signUp({
-        email: newUserForm.email,
-        password: newUserForm.password,
-        options: {
-          data: {
-            full_name: newUserForm.full_name
+      const count = newUserForm.number_of_accounts || 1;
+      const baseEmail = newUserForm.email;
+      const [localPart, domainPart] = baseEmail.includes('@') ? baseEmail.split('@') : [baseEmail, ''];
+
+      let successCount = 0;
+      let lastError = null;
+      let limitHit = false;
+
+      for (let i = 0; i < count; i++) {
+        const currentEmail = count === 1 ? baseEmail : `${localPart}+${i+1}@${domainPart}`;
+        const currentFullName = count === 1 ? newUserForm.full_name : `${newUserForm.full_name} ${i+1}`;
+        const currentUsername = count === 1 ? newUserForm.username : (newUserForm.username ? `${newUserForm.username}${i+1}` : '');
+
+        const { data, error } = await adminAuthClient.auth.signUp({
+          email: currentEmail,
+          password: newUserForm.password,
+          options: {
+            data: {
+              full_name: currentFullName
+            }
+          }
+        });
+
+        if (error) {
+          lastError = error;
+          if (error.message && error.message.toLowerCase().includes('rate limit')) {
+             limitHit = true;
+          }
+          break;
+        } else if (data.user) {
+          await new Promise(r => setTimeout(r, 1000));
+          
+          const payload: any = {
+            full_name: currentFullName,
+            headline: newUserForm.headline || null,
+            bio: newUserForm.bio || null,
+            contact_email: currentEmail,
+            phone_number: newUserForm.phone_number || null,
+            cover_image_url: newUserForm.cover_image_url || null,
+            is_verified: true
+          };
+          
+          if (currentUsername) {
+            payload.username = currentUsername;
+          }
+          
+          const { error: innerError } = await adminAuthClient.from('profiles').update(payload).eq('id', data.user.id);
+          
+          await adminAuthClient.auth.signOut();
+          
+          if (innerError) {
+             console.error('Failed to update profile for', currentEmail, innerError);
+          } else {
+             successCount++;
           }
         }
-      });
-      if (error) {
-        if (error.message && error.message.toLowerCase().includes('rate limit')) {
-          alert('Sign up error: email rate limit exceeded. Please try again later.');
+      }
+
+      if (lastError) {
+        if (limitHit) {
+          alert(`Sign up error: rate limit exceeded after creating ${successCount} accounts. Try again later.`);
         } else {
-          alert("Sign up error: " + error.message);
+          alert(`Sign up error after creating ${successCount} accounts: ${lastError.message}`);
         }
-      } else if (data.user) {
-        // Give the trigger a moment to run
-        await new Promise(r => setTimeout(r, 1000));
-        
-        const payload: any = {
-          full_name: newUserForm.full_name,
-          headline: newUserForm.headline || null,
-          bio: newUserForm.bio || null,
-          contact_email: newUserForm.email,
-          phone_number: newUserForm.phone_number || null,
-          cover_image_url: newUserForm.cover_image_url || null,
-          is_verified: true
-        };
-        
-        if (newUserForm.username) {
-          payload.username = newUserForm.username;
-        }
-        
-        // Use adminAuthClient (which now holds the new user's session) to update their profile
-        const { error: innerError } = await adminAuthClient.from('profiles').update(payload).eq('id', data.user.id);
-        
-        // Sign out to clear the temporary session
-        await adminAuthClient.auth.signOut();
-        
-        if (innerError) {
-          alert('User created but failed to update profile details: ' + innerError.message);
-        } else {
-          alert("User created successfully!");
-        }
+      } else {
+        alert(count > 1 ? `Successfully created ${successCount} accounts!` : "User created successfully!");
+      }
+      
+      if (successCount > 0) {
         setCreatingUser(false);
-        setNewUserForm({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '' });
+        setNewUserForm({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '', number_of_accounts: 1 });
         fetchData();
       }
+
     } catch (err) {
       console.error(err);
     }
@@ -777,6 +803,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   <h3 className="font-sans font-bold text-lg mb-2 text-black dark:text-white">Create New User</h3>
                   <p className="font-sans text-xs text-black/60 dark:text-white/60 mb-4">Create a new user account.</p>
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
+                    <div>
+                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Number of Accounts</label>
+                      <input required type="number" min="1" max="100" value={newUserForm.number_of_accounts} onChange={e => setNewUserForm({...newUserForm, number_of_accounts: parseInt(e.target.value) || 1})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
+                      <p className="text-[10px] text-black/50 dark:text-white/50 mt-1">If &gt;1, it will create alias emails like user+1@email.com</p>
+                    </div>
                     <div>
                       <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Email *</label>
                       <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
