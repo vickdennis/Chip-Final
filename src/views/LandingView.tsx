@@ -18,8 +18,21 @@ import {
   MapPin, 
   Layers, 
   Cpu, 
-  CreditCard 
+  CreditCard,
+  Wifi,
+  Smartphone,
+  Sparkles,
+  Zap,
+  RefreshCw,
+  Shield,
+  Download,
+  CheckCircle2,
+  RotateCcw,
+  ArrowRight
 } from 'lucide-react';
+import { Card3DRotator, CardMaterial } from '../components/funnel/Card3DRotator';
+import { LiveBioPreview } from '../components/funnel/LiveBioPreview';
+import { SocialMediaIconSet } from '../components/social/SocialMediaIconSet';
 
 // Exact motionsites.ai GIF URLs for the Marquee Section
 const MARQUEE_GIFS = [
@@ -384,10 +397,18 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
 
   // Refs for scrolling navigation
   const aboutRef = useRef<HTMLDivElement>(null);
+  const dualEngineRef = useRef<HTMLDivElement>(null);
   const shopRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const faqRef = useRef<HTMLDivElement>(null);
+
+  // Interactive 3D Card & Live Bio Engine State for Homepage
+  const [heroCardMaterial, setHeroCardMaterial] = useState<CardMaterial>('metal_spacegray');
+  const [heroCardName, setHeroCardName] = useState('Victor Dennis');
+  const [heroCardTitle, setHeroCardTitle] = useState('Managing Partner & Founder');
+  const [heroCardCompany, setHeroCardCompany] = useState('Apex Ventures');
+  const [heroCardHandle, setHeroCardHandle] = useState('victor');
 
   useEffect(() => {
     fetchProducts();
@@ -459,6 +480,12 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
             CHIP NG
           </span>
           <div className="flex gap-6 sm:gap-10 items-center justify-end">
+            <button 
+              onClick={() => scrollToSection(dualEngineRef)}
+              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden sm:block"
+            >
+              Dual Engine
+            </button>
             <button 
               onClick={() => scrollToSection(aboutRef)}
               className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
@@ -546,6 +573,255 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
 
         </div>
 
+      </section>
+
+      {/* 2. DUAL-ENGINE INTERACTIVE SHOWCASE (3D CARD ROTATOR + LIVE BIO PREVIEW + VALUE PROPOSITIONS) */}
+      <section 
+        ref={dualEngineRef} 
+        id="dual-engine-showcase" 
+        className="py-20 sm:py-28 px-5 sm:px-8 md:px-12 bg-neutral-950 text-[#D7E2EA] relative z-20 border-t border-white/10 overflow-hidden"
+      >
+        {/* Subtle Ambient Radial Backdrops */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#B600A8]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
+        <div className="max-w-7xl mx-auto">
+          
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <FadeIn y={20} delay={0}>
+              <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full mb-4">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="font-mono text-xs tracking-widest text-white/80 uppercase">
+                  PHYSICAL NFC HARDWARE × CLOUD LINK-IN-BIO ENGINE
+                </span>
+              </div>
+            </FadeIn>
+            
+            <FadeIn y={25} delay={0.1}>
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-display font-black text-white tracking-tight uppercase">
+                The Physical-to-Digital Networking Engine
+              </h2>
+            </FadeIn>
+
+            <FadeIn y={30} delay={0.2}>
+              <p className="text-sm sm:text-base md:text-lg text-white/70 mt-4 leading-relaxed">
+                One physical tap instantly transmits your interactive digital portfolio and full contact vCard to any smartphone with zero app requirement. Customize the 3D card and interact with the live phone engine below.
+              </p>
+            </FadeIn>
+
+            {/* Material Selector Tabs (Plastic, Custom Metal, Matte Gold) */}
+            <FadeIn y={20} delay={0.25} className="mt-8 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              {[
+                { id: 'metal_spacegray', label: 'Space Gray Steel (28g)', badge: 'Aerospace Metal' },
+                { id: 'metal_gold', label: '24K Matte Gold', badge: 'Mirror Luxe' },
+                { id: 'plastic_black', label: 'Matte Obsidian', badge: 'Smart Polymer' },
+                { id: 'plastic_white', label: 'Glacier White', badge: 'Smart Polymer' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setHeroCardMaterial(m.id as CardMaterial)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    heroCardMaterial === m.id
+                      ? 'bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white shadow-lg shadow-purple-900/40 border border-white/20 scale-105'
+                      : 'bg-white/5 hover:bg-white/10 text-white/70 border border-white/10'
+                  }`}
+                >
+                  <span>{m.label}</span>
+                  <span className="text-[9px] font-mono uppercase opacity-60 hidden sm:inline">
+                    [{m.badge}]
+                  </span>
+                </button>
+              ))}
+            </FadeIn>
+          </div>
+
+          {/* Interactive Dual-Engine Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center bg-black/40 border border-white/10 rounded-3xl p-6 sm:p-10 backdrop-blur-md">
+            
+            {/* Left Engine: Interactive 3D Card Rotator with Tap-to-Flip */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-between w-full max-w-sm mb-4">
+                <span className="text-xs font-mono text-white/60 uppercase tracking-wider flex items-center gap-2">
+                  <Wifi className="w-3.5 h-3.5 text-[#B600A8]" />
+                  <span>Engine 1: Physical Smart Card</span>
+                </span>
+                <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Tap Card to Flip</span>
+                </span>
+              </div>
+
+              {/* 3D Card Component with 100% Opaque Solid Backing */}
+              <div className="w-full flex justify-center py-2">
+                <Card3DRotator
+                  material={heroCardMaterial}
+                  customName={heroCardName}
+                  customTitle={heroCardTitle}
+                  customCompany={heroCardCompany}
+                  qrUrl={`https://chipng.com/@${heroCardHandle}`}
+                  className="w-full max-w-[380px]"
+                />
+              </div>
+
+              {/* Real-Time Dual-Sync Input Controls */}
+              <div className="mt-8 w-full max-w-sm flex flex-col gap-2.5 bg-white/[0.03] border border-white/10 rounded-2xl p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-white/50">
+                    Live Customization Sync
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-400">
+                    ● Synchronized Live
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-mono text-white/40 uppercase w-14 shrink-0">Name:</span>
+                  <input
+                    type="text"
+                    value={heroCardName}
+                    onChange={(e) => setHeroCardName(e.target.value)}
+                    className="w-full bg-transparent text-xs text-white focus:outline-none placeholder-white/30"
+                    placeholder="Type name to see real-time card & bio sync..."
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-mono text-white/40 uppercase w-14 shrink-0">Role:</span>
+                  <input
+                    type="text"
+                    value={heroCardTitle}
+                    onChange={(e) => setHeroCardTitle(e.target.value)}
+                    className="w-full bg-transparent text-xs text-white focus:outline-none placeholder-white/30"
+                    placeholder="Type title or company role..."
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-mono text-white/40 uppercase w-14 shrink-0">Company:</span>
+                  <input
+                    type="text"
+                    value={heroCardCompany}
+                    onChange={(e) => setHeroCardCompany(e.target.value)}
+                    className="w-full bg-transparent text-xs text-white focus:outline-none placeholder-white/30"
+                    placeholder="Company name..."
+                  />
+                </div>
+              </div>
+
+              <p className="text-[11px] font-mono text-white/40 mt-3 text-center">
+                Move mouse to rotate card in 3D • Tap to inspect the non-transparent back
+              </p>
+            </div>
+
+            {/* Right Engine: Live Bio Profile Phone Mockup */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-between w-full max-w-[310px] mb-4">
+                <span className="text-xs font-mono text-white/60 uppercase tracking-wider flex items-center gap-2">
+                  <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Engine 2: Cloud Bio & vCard Engine</span>
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Instant Load
+                </span>
+              </div>
+
+              {/* Live Bio Preview Screen Component */}
+              <LiveBioPreview
+                name={heroCardName}
+                title={heroCardTitle}
+                company={heroCardCompany}
+                handle={heroCardHandle}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          {/* STRUCTURED VALUE PROPOSITIONS HIGHLIGHTING IMMEDIATE PHYSICAL-TO-DIGITAL UTILITY */}
+          <div className="mt-16 pt-12 border-t border-white/10">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#B600A8] font-bold">
+                PHYSICAL-TO-DIGITAL ARCHITECTURE
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-display font-black text-white mt-1">
+                How NFC Hardware & Cloud Bio Profiles Solve Networking Friction
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  icon: Zap,
+                  tag: '0.2s Handover',
+                  title: 'Instant Contactless Tap',
+                  desc: 'Tap your physical card to the top of any iPhone or the center of any Android. Opens instantaneously without forcing your contact to download any third-party app.',
+                  badgeColor: 'bg-amber-400/10 text-amber-300 border-amber-400/20',
+                  iconBg: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                },
+                {
+                  icon: RefreshCw,
+                  tag: 'Dynamic Cloud Hub',
+                  title: 'Live Bio Profile Platform',
+                  desc: 'Aggregate all your social channels, Calendly meeting bookings, portfolio decks, and banking info in one responsive destination. Update links anytime without reprinting.',
+                  badgeColor: 'bg-purple-400/10 text-purple-300 border-purple-400/20',
+                  iconBg: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+                },
+                {
+                  icon: Download,
+                  tag: 'Zero Lost Contacts',
+                  title: '1-Tap Direct vCard Sync',
+                  desc: '88% of paper business cards end up in the trash within 24 hours. CHIP delivers a one-touch vCard prompt that saves your phone number, email, and photo straight into their contacts book.',
+                  badgeColor: 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20',
+                  iconBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                },
+                {
+                  icon: Shield,
+                  tag: 'Military-Grade Finish',
+                  title: 'Indestructible Hardware',
+                  desc: 'Precision CNC-machined from 28g weighted stainless steel or scratch-resistant matte polymers. Completely waterproof, drop-proof, and requires zero batteries or charging forever.',
+                  badgeColor: 'bg-sky-400/10 text-sky-300 border-sky-400/20',
+                  iconBg: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+                },
+              ].map((val, idx) => (
+                <div
+                  key={idx}
+                  className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between group hover:-translate-y-1 duration-300"
+                >
+                  <div>
+                    <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-4 ${val.iconBg}`}>
+                      <val.icon className="w-6 h-6" />
+                    </div>
+                    <span className={`text-[10px] font-mono uppercase px-2.5 py-1 rounded-full border ${val.badgeColor}`}>
+                      {val.tag}
+                    </span>
+                    <h4 className="text-lg font-bold text-white mt-3">{val.title}</h4>
+                    <p className="text-xs sm:text-sm text-white/60 leading-relaxed mt-2">{val.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Action Navigation Buttons */}
+            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button
+                onClick={() => onNavigate('nfc-sales')}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#B600A8] to-[#7621B0] hover:brightness-110 text-white text-xs sm:text-sm font-bold uppercase tracking-wider shadow-lg shadow-purple-900/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Order Your NFC Card (From ₦14,999)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => onNavigate('nfc-sales')}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs sm:text-sm font-medium uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Launch Interactive 3D Funnel</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
       </section>
 
       {/* 3. ABOUT SECTION */}

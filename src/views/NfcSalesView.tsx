@@ -33,6 +33,7 @@ import { LiveBioPreview } from '../components/funnel/LiveBioPreview';
 import { CardCustomizerModal, CardCustomizationData } from '../components/funnel/CardCustomizerModal';
 import { CheckoutOnboardingModal } from '../components/funnel/CheckoutOnboardingModal';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
+import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialMediaIconSet';
 
 type PersonaType = 'executive' | 'founder' | 'creator';
 
@@ -479,6 +480,48 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Luxury Glassmorphic Social Media Ecosystem Section */}
+          <div className="mt-16 p-8 sm:p-10 rounded-3xl bg-gradient-to-b from-white/[0.04] to-black/60 border border-white/10 relative overflow-hidden backdrop-blur-md">
+            {/* Subtle Gold Ambient Radial Glow */}
+            <div className="absolute top-0 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+            <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
+            <div className="max-w-3xl mx-auto text-center flex flex-col items-center">
+              <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 mb-3">
+                Omni-Channel Handover
+              </span>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-display font-black text-white tracking-tight">
+                One Tap Connects All 6 Major Ecosystems
+              </h3>
+              <p className="text-sm sm:text-base text-white/60 mt-2 max-w-xl leading-relaxed">
+                Empower your prospects to reach you on whichever network they prefer. Our smart squircle engine links directly to your verified profiles with zero friction.
+              </p>
+
+              {/* Interactive Luxury Glassmorphic Social Media Icon Set */}
+              <div className="mt-8 mb-4">
+                <SocialMediaIconSet
+                  size="lg"
+                  showLabels={true}
+                  onPlatformClick={(platform) => {
+                    const el = document.getElementById('social-toast-notice');
+                    if (el) {
+                      el.innerText = `✓ Instant Tap: Handing over to your verified ${platform.toUpperCase()} profile`;
+                      el.classList.remove('opacity-0');
+                      setTimeout(() => el.classList.add('opacity-0'), 2500);
+                    }
+                  }}
+                />
+              </div>
+
+              <div
+                id="social-toast-notice"
+                className="opacity-0 transition-opacity duration-300 text-xs font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 rounded-full mt-2"
+              >
+                ✓ Tap simulated
+              </div>
+            </div>
           </div>
 
           {/* Video Demonstration Proof (Real TikTok Embeds) */}

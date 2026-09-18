@@ -65,18 +65,26 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
     switch (material) {
       case 'plastic_white':
         return {
-          bg: 'bg-gradient-to-br from-slate-50 via-white to-slate-100',
+          solidBg: '#FFFFFF',
+          bg: 'bg-white',
+          gradientOverlay: 'bg-gradient-to-br from-slate-50 via-white to-slate-100',
           border: 'border-slate-300 shadow-[0_20px_50px_rgba(0,0,0,0.3)]',
           textColor: 'text-slate-900',
-          subTextColor: 'text-slate-500',
+          subTextColor: 'text-slate-600',
           accentColor: 'text-indigo-600',
           chipColor: 'bg-amber-100 border-amber-300',
           badge: 'Smart Matte PVC',
           sheen: 'from-white/80 via-transparent to-white/40',
+          backTextColor: 'text-slate-800',
+          backMutedColor: 'text-slate-500',
+          backBorderColor: 'border-slate-200',
+          magStripe: 'bg-neutral-900 border-neutral-800',
         };
       case 'metal_spacegray':
         return {
-          bg: 'bg-gradient-to-br from-[#1C2028] via-[#242A35] to-[#12151B]',
+          solidBg: '#13161D',
+          bg: 'bg-[#13161D]',
+          gradientOverlay: 'bg-gradient-to-br from-[#1C2028] via-[#242A35] to-[#12151B]',
           border: 'border-slate-500/40 shadow-[0_25px_60px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.3)]',
           textColor: 'text-white',
           subTextColor: 'text-slate-300',
@@ -84,10 +92,16 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
           chipColor: 'bg-gradient-to-br from-amber-400/80 to-amber-600 border-amber-300/60',
           badge: '28g Stainless Steel',
           sheen: 'from-white/25 via-transparent to-white/5',
+          backTextColor: 'text-white',
+          backMutedColor: 'text-white/60',
+          backBorderColor: 'border-white/10',
+          magStripe: 'bg-black border-neutral-700/60',
         };
       case 'metal_gold':
         return {
-          bg: 'bg-gradient-to-br from-[#413009] via-[#86631E] to-[#2D1F03]',
+          solidBg: '#261A04',
+          bg: 'bg-[#261A04]',
+          gradientOverlay: 'bg-gradient-to-br from-[#413009] via-[#86631E] to-[#2D1F03]',
           border: 'border-[#F8E3A1]/50 shadow-[0_25px_60px_rgba(218,165,32,0.25),inset_0_1px_2px_rgba(255,245,210,0.6)]',
           textColor: 'text-[#FFF8E7]',
           subTextColor: 'text-[#E8D4A2]',
@@ -95,11 +109,17 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
           chipColor: 'bg-gradient-to-br from-amber-300 to-amber-500 border-amber-200',
           badge: '24K Mirror Luxe Finish',
           sheen: 'from-amber-200/40 via-transparent to-amber-100/10',
+          backTextColor: 'text-[#FFF8E7]',
+          backMutedColor: 'text-[#E8D4A2]/70',
+          backBorderColor: 'border-[#F8E3A1]/20',
+          magStripe: 'bg-[#181002] border-[#F8E3A1]/30',
         };
       case 'plastic_black':
       default:
         return {
-          bg: 'bg-gradient-to-br from-[#141517] via-[#1A1C20] to-[#0A0B0D]',
+          solidBg: '#0A0B0E',
+          bg: 'bg-[#0A0B0E]',
+          gradientOverlay: 'bg-gradient-to-br from-[#141517] via-[#1A1C20] to-[#0A0B0D]',
           border: 'border-neutral-700/60 shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.15)]',
           textColor: 'text-white',
           subTextColor: 'text-neutral-400',
@@ -107,6 +127,10 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
           chipColor: 'bg-neutral-800 border-neutral-600',
           badge: 'Matte Obsidian PVC',
           sheen: 'from-white/20 via-transparent to-white/5',
+          backTextColor: 'text-white',
+          backMutedColor: 'text-neutral-400',
+          backBorderColor: 'border-neutral-800',
+          magStripe: 'bg-black border-neutral-800',
         };
     }
   };
@@ -140,21 +164,29 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
           {/* ================= FRONT SIDE ================= */}
           <div
             style={{
+              transform: 'translateZ(1px)',
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
+              backgroundColor: config.solidBg,
             }}
-            className={`absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl p-6 md:p-7 flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border}`}
+            className={`absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl p-6 md:p-7 flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border} z-20`}
           >
+            {/* Solid opaque backdrop fill */}
+            <div
+              className={`absolute inset-0 z-0 ${config.gradientOverlay}`}
+              style={{ backgroundColor: config.solidBg }}
+            />
+
             {/* Specular glare overlay */}
             <div
-              className={`absolute inset-0 bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-80 mix-blend-overlay transition-opacity duration-200`}
+              className={`absolute inset-0 z-0 bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-80 mix-blend-overlay transition-opacity duration-200`}
               style={{
                 transform: `translate(${glarePosition.x - 50}%, ${glarePosition.y - 50}%)`,
               }}
             />
 
             {/* Micro brushed metal grain texture overlay */}
-            <div className="absolute inset-0 opacity-[0.08] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
+            <div className="absolute inset-0 z-0 opacity-[0.08] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
 
             {/* Top Row: Brand & NFC Signal */}
             <div className="relative z-10 flex items-center justify-between">
@@ -224,27 +256,41 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
             </div>
           </div>
 
-          {/* ================= BACK SIDE ================= */}
+          {/* ================= BACK SIDE (100% NON-TRANSPARENT OPAQUE) ================= */}
           <div
             style={{
-              transform: 'rotateY(180deg)',
+              transform: 'rotateY(180deg) translateZ(1px)',
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
+              backgroundColor: config.solidBg,
             }}
-            className={`absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl p-6 md:p-7 flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border}`}
+            className={`absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl p-6 md:p-7 flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border} z-20 shadow-2xl`}
           >
+            {/* Opaque Solid Base Shield to completely prevent transparency */}
+            <div
+              className={`absolute inset-0 z-0 ${config.gradientOverlay}`}
+              style={{ backgroundColor: config.solidBg }}
+            />
+
+            {/* Specular Glare on Back */}
+            <div
+              className={`absolute inset-0 z-0 bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-50 mix-blend-overlay`}
+            />
+
             {/* Magnetic Stripe representation */}
-            <div className="absolute top-5 left-0 w-full h-10 bg-neutral-900/90 border-y border-neutral-700/50" />
+            <div
+              className={`absolute top-5 left-0 w-full h-10 border-y z-10 ${config.magStripe}`}
+            />
 
             {/* Top row spacing */}
-            <div className="relative z-10 pt-10 flex justify-between items-center text-[10px] font-mono text-white/50">
+            <div className={`relative z-20 pt-10 flex justify-between items-center text-[10px] font-mono ${config.backMutedColor}`}>
               <span>SECURITY CHIP #9482-NG</span>
               <span>LIFETIME CLOUD SYNC</span>
             </div>
 
             {/* Center: Dynamic QR code for older non-NFC phones */}
-            <div className="relative z-10 flex items-center justify-between gap-4 my-2">
-              <div className="p-2.5 bg-white rounded-xl shadow-lg shrink-0">
+            <div className="relative z-20 flex items-center justify-between gap-4 my-2">
+              <div className="p-2.5 bg-white rounded-xl shadow-lg shrink-0 border border-black/10">
                 <QRCodeSVG
                   value={qrUrl}
                   size={68}
@@ -255,11 +301,11 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
                 />
               </div>
 
-              <div className="flex flex-col text-left text-white/80 pr-2">
-                <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <div className={`flex flex-col text-left pr-2 ${config.backTextColor}`}>
+                <span className="text-xs font-bold uppercase tracking-wider">
                   Instant Bio Link
                 </span>
-                <span className="text-[11px] text-white/60 leading-snug mt-0.5">
+                <span className={`text-[11px] leading-snug mt-0.5 ${config.backMutedColor}`}>
                   Scan with any camera or tap phone back to open your live CHIP profile.
                 </span>
                 <span className="text-[10px] font-mono text-indigo-400 mt-1 truncate">
@@ -269,7 +315,7 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
             </div>
 
             {/* Bottom: Signature Strip & Legal */}
-            <div className="relative z-10 flex justify-between items-center border-t border-white/10 pt-2 text-[9px] font-mono text-white/40">
+            <div className={`relative z-20 flex justify-between items-center border-t ${config.backBorderColor} pt-2 text-[9px] font-mono ${config.backMutedColor}`}>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-amber-400" />
                 <span>OFFICIAL CHIP HARDWARE</span>
