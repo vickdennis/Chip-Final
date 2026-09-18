@@ -58,22 +58,6 @@ const MARQUEE_GIFS = [
   "https://motionsites.ai/assets/hero-celestia-preview-0yO3jXO8.gif"
 ];
 
-// Reusable ContactButton Component (now Signup Button)
-const ContactButton = ({ onClick, text = "Login" }: { onClick?: () => void, text?: string }) => (
-  <button 
-    onClick={onClick}
-    style={{
-      background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
-      boxShadow: '0px 4px 4px rgba(181, 1, 167, 0.25), inset 4px 4px 12px #7721B1',
-      outline: '2px solid white',
-      outlineOffset: '-3px'
-    }}
-    className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-[11px] sm:text-[12px] md:text-sm font-semibold uppercase tracking-widest text-black dark:text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
-  >
-    Signup
-  </button>
-);
-
 // Reusable LiveProjectButton Component
 const LiveProjectButton = ({ onClick, label = "Live Project" }: { onClick?: () => void, label?: string }) => (
   <button 
@@ -469,83 +453,64 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
   return (
     <div className="dark bg-[#0C0C0C] min-h-screen text-[#D7E2EA] font-sans overflow-x-clip relative">
       
-      {/* 1. HERO SECTION */}
-      <section className="min-h-screen lg:h-screen flex flex-col justify-between overflow-hidden relative z-20 px-6 md:px-10 pb-10">
-        
-        {/* Navbar */}
-        <FadeIn y={-20} delay={0} className="w-full flex justify-between items-center pt-6 md:pt-8">
+      {/* TOP NAVBAR HEADER */}
+      <header className="w-full relative z-30 px-6 md:px-10 py-6 md:py-8 border-b border-white/5 bg-[#0C0C0C]/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <span className="font-sans font-black tracking-tighter text-lg md:text-2xl text-black dark:text-white uppercase">
             CHIP NG
           </span>
-          <div className="flex gap-6 sm:gap-10 items-center justify-end">
+          <div className="flex gap-4 sm:gap-8 items-center justify-end">
             <button 
               onClick={() => scrollToSection(dualEngineRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden sm:block"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden sm:block"
             >
               Dual Engine
             </button>
             <button 
               onClick={() => onNavigate('blog-directory')}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
               Blog
             </button>
             <button 
               onClick={() => scrollToSection(shopRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
               Price
             </button>
             <button 
               onClick={() => scrollToSection(projectsRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
             >
               Projects
             </button>
             <button 
               onClick={() => scrollToSection(testimonialsRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden lg:block"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden lg:block"
             >
               Testimonials
             </button>
             <button 
               onClick={() => onNavigate('nfc-sales')}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-[#B600A8] dark:text-[#B600A8] hover:opacity-70 transition-opacity duration-200 cursor-pointer animate-pulse"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-[#B600A8] dark:text-[#B600A8] hover:opacity-70 transition-opacity duration-200 cursor-pointer animate-pulse font-bold"
             >
               Buy NFC Card
             </button>
             <button 
               onClick={() => scrollToSection(faqRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
               FAQ
             </button>
             <button 
               onClick={() => onNavigate(session ? 'user-dashboard' : 'login')}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer border border-white/20"
+              className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider text-black dark:text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer border border-white/20"
             >
               {session ? 'Dashboard' : 'Login'}
             </button>
           </div>
-        </FadeIn>
-
-        {/* Hero Heading Section */}
-        <div className="w-full flex-1 flex flex-col justify-center items-center relative py-12 sm:py-20 md:py-28">
-          <FadeIn y={30} delay={0.15}>
-            <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[12vw] sm:text-[13vw] md:text-[14vw] lg:text-[15vw] w-full block text-black dark:text-white select-none">
-              Welcome to chipng
-            </h1>
-          </FadeIn>
         </div>
-
-        {/* Bottom Bar Section */}
-        <div className="w-full flex justify-end items-center relative z-20 pb-4 sm:pb-6 md:pb-10">
-          <FadeIn y={20} delay={0.3}>
-            <ContactButton onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} text={session ? 'Dashboard' : 'Login'} />
-          </FadeIn>
-        </div>
-
-      </section>
+      </header>
 
       {/* 2. DUAL-ENGINE INTERACTIVE SHOWCASE (3D CARD ROTATOR + LIVE BIO PREVIEW + VALUE PROPOSITIONS) */}
       <section 
