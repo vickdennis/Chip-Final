@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
-import { LinkMeMotionGraphics } from '../components/LinkMeMotionGraphics';
 import { AutoSlidingMedia } from '../components/AutoSlidingMedia';
 import { NigeriaAnalyticsShowcase } from '../components/NigeriaAnalyticsShowcase';
 import { DigitalStorefrontShowcase } from '../components/DigitalStorefrontShowcase';
@@ -396,7 +395,6 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
   const [checkoutPhone, setCheckoutPhone] = useState('');
 
   // Refs for scrolling navigation
-  const aboutRef = useRef<HTMLDivElement>(null);
   const dualEngineRef = useRef<HTMLDivElement>(null);
   const shopRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
@@ -487,12 +485,6 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
               Dual Engine
             </button>
             <button 
-              onClick={() => scrollToSection(aboutRef)}
-              className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer hidden md:block"
-            >
-              Why Us
-            </button>
-            <button 
               onClick={() => onNavigate('blog-directory')}
               className="text-xs sm:text-sm md:text-lg lg:text-[1.4rem] font-medium uppercase tracking-wider text-black dark:text-[#D7E2EA] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
             >
@@ -538,39 +530,19 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
         </FadeIn>
 
         {/* Hero Heading Section */}
-        <div className="w-full flex-1 flex flex-col justify-center relative mt-6 md:mt-0 py-8 lg:py-0">
-          
-          {/* Centered Dynamic LinkMe Motion Graphics System */}
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <FadeIn y={30} delay={0.4} duration={0.9} className="w-full">
-              <LinkMeMotionGraphics />
-            </FadeIn>
-          </div>
-
-          {/* Massively Scaled Title (Z-0, background watermarked banner behind the active screen simulator) */}
-          <div className="absolute -top-4 md:top-0 left-0 w-full select-none z-20 pointer-events-none opacity-50 lg:opacity-60">
-            <FadeIn y={40} delay={0.15}>
-              <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[11vw] sm:text-[12vw] md:text-[13vw] lg:text-[14vw] xl:text-[15vw] w-full block">
-                Welcome to chipng
-              </h1>
-            </FadeIn>
-          </div>
-
+        <div className="w-full flex-1 flex flex-col justify-center items-center relative py-12 sm:py-20 md:py-28">
+          <FadeIn y={30} delay={0.15}>
+            <h1 className="hero-heading font-sans font-black uppercase tracking-tight leading-none text-center text-[12vw] sm:text-[13vw] md:text-[14vw] lg:text-[15vw] w-full block text-black dark:text-white select-none">
+              Welcome to chipng
+            </h1>
+          </FadeIn>
         </div>
 
         {/* Bottom Bar Section */}
-        <div className="w-full flex justify-between items-end gap-4 relative z-20 pb-4 sm:pb-6 md:pb-10">
-          
-          <FadeIn y={20} delay={0.35} className="flex-1 max-w-[160px] sm:max-w-[220px] md:max-w-[260px]">
-            <p className="text-black dark:text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-left text-[11px] sm:text-xs md:text-sm lg:text-base">
-              a 3d business card known for creating unforgettable connections
-            </p>
-          </FadeIn>
-
-          <FadeIn y={20} delay={0.5}>
+        <div className="w-full flex justify-end items-center relative z-20 pb-4 sm:pb-6 md:pb-10">
+          <FadeIn y={20} delay={0.3}>
             <ContactButton onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} text={session ? 'Dashboard' : 'Login'} />
           </FadeIn>
-
         </div>
 
       </section>
@@ -824,79 +796,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
         </div>
       </section>
 
-      {/* 3. ABOUT SECTION */}
-      <section ref={aboutRef} className="min-h-screen flex flex-col justify-center items-center relative py-20 px-5 sm:px-8 md:px-10 overflow-hidden bg-white dark:bg-[#0C0C0C]">
-        
-        {/* Absolute 3D Corner Decor Items */}
-        {/* Top-Left Moon */}
-        <div className="absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%] z-0 select-none pointer-events-none">
-          <FadeIn x={-80} y={0} delay={0.1} duration={0.9}>
-            <img 
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png" 
-              alt="Decorative 3D moon icon" 
-              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto opacity-75 animate-bounce [animation-duration:8s]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Bottom-Left 3D Object */}
-        <div className="absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%] z-0 select-none pointer-events-none">
-          <FadeIn x={-80} y={0} delay={0.25} duration={0.9}>
-            <img 
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png" 
-              alt="Decorative 3D design node object" 
-              className="w-[100px] sm:w-[140px] md:w-[180px] h-auto opacity-60 animate-pulse [animation-duration:5s]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Top-Right Lego */}
-        <div className="absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%] z-0 select-none pointer-events-none">
-          <FadeIn x={80} y={0} delay={0.15} duration={0.9}>
-            <img 
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png" 
-              alt="Decorative 3D lego brick icon" 
-              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto opacity-75 animate-bounce [animation-duration:6s]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Bottom-Right 3D Group */}
-        <div className="absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%] z-0 select-none pointer-events-none">
-          <FadeIn x={80} y={0} delay={0.3} duration={0.9}>
-            <img 
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png" 
-              alt="Decorative 3D grid layout elements" 
-              className="w-[130px] sm:w-[170px] md:w-[220px] h-auto opacity-60 animate-pulse [animation-duration:7s]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Center Text Block Container */}
-        <div className="max-w-4xl w-full mx-auto flex flex-col justify-center items-center gap-10 sm:gap-14 md:gap-16 relative z-10 text-center">
-          
-          <FadeIn y={40} delay={0}>
-            <h2 className="hero-heading font-sans font-black uppercase text-center text-4xl sm:text-6xl md:text-8xl lg:text-[140px] xl:text-[160px] tracking-tight leading-none">
-              Why you need us
-            </h2>
-          </FadeIn>
-
-          <div className="flex flex-col items-center gap-16 sm:gap-20 md:gap-24 w-full">
-            <AnimatedText 
-              text="Your first impression is everything. A Link in Bio serves as your 24/7 digital hub, aggregating all your portfolios, services, socials, and contact touchpoints into one seamless, high-converting destination. Paired with a tactile NFC business card, you can instantly share this entire interactive experience directly to anyone's phone with a simple physical tap. No paper waste, no friction—just unforgettable, high-impact connections."
-              className="text-black dark:text-[#D7E2EA] font-medium text-center leading-relaxed text-base sm:text-lg md:text-xl lg:text-2xl max-w-3xl"
-            />
-
-            <FadeIn y={20} delay={0.1}>
-              <ContactButton onClick={() => onNavigate(session ? 'user-dashboard' : 'login')} text={session ? 'Dashboard' : 'Login'} />
-            </FadeIn>
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* 4. SERVICES SECTION */}
+      {/* 3. SERVICES SECTION */}
       <section className="bg-white text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32 relative z-30">
         
         <div className="max-w-5xl mx-auto w-full">
