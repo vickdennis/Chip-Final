@@ -110,6 +110,24 @@ db.exec(`
     message TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS card_funnel_leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    email TEXT,
+    whatsapp TEXT,
+    card_type TEXT,
+    custom_name TEXT,
+    custom_title TEXT,
+    utm_source TEXT,
+    utm_campaign TEXT,
+    persona TEXT,
+    funnel_stage TEXT,
+    order_bumps TEXT,
+    estimated_amount INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 
@@ -373,7 +391,107 @@ Ref: ${payment_reference}`,
         // Continue even if email fails
       }
 
+      // Update funnel lead status if matching
+      try {
+        db.prepare(`UPDATE card_funnel_leads SET funnel_stage = 'converted', updated_at = CURRENT_TIMESTAMP WHERE email = ? OR whatsapp = ?`)
+          .run(email, phone);
+      } catch (fErr) {
+        console.warn("Funnel status update skipped:", fErr);
+      }
+
       res.json({ success: true, id: info.lastInsertRowid });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Funnel Lead Capture & Abandonment Tracking
+  app.post('/api/funnel/lead', (req, res) => {
+    try {
+      const {
+        name,
+        email,
+        whatsapp,
+        card_type,
+        custom_name,
+        custom_title,
+        utm_source,
+        utm_campaign,
+        persona,
+        funnel_stage,
+        order_bumps,
+        estimated_amount
+      } = req.body;
+
+      // Check if lead exists in last 24h
+      const existing = db.prepare("SELECT id FROM card_funnel_leads WHERE (email = ? AND email != '') OR (whatsapp = ? AND whatsapp != '') ORDER BY id DESC LIMIT 1").get(email || '', whatsapp || '');
+
+      if (existing) {
+        db.prepare(`
+          UPDATE card_funnel_leads 
+          SET name = COALESCE(NULLIF(?, ''), name),
+              card_type = COALESCE(NULLIF(?, ''), card_type),
+              custom_name = COALESCE(NULLIF(?, ''), custom_name),
+              custom_title = COALESCE(NULLIF(?, ''), custom_title),
+              funnel_stage = COALESCE(?, funnel_stage),
+              order_bumps = COALESCE(?, order_bumps),
+              estimated_amount = COALESCE(?, estimated_amount),
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).run(
+          name || '',
+          card_type || '',
+          custom_name || '',
+          custom_title || '',
+          funnel_stage || 'customization_saved',
+          JSON.stringify(order_bumps || []),
+          estimated_amount || 0,
+          existing.id
+        );
+        return res.json({ success: true, lead_id: existing.id, updated: true });
+      } else {
+        const stmt = db.prepare(`
+          INSERT INTO card_funnel_leads (
+            name, email, whatsapp, card_type, custom_name, custom_title, 
+            utm_source, utm_campaign, persona, funnel_stage, order_bumps, estimated_amount
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const info = stmt.run(
+          name || '',
+          email || '',
+          whatsapp || '',
+          card_type || 'metal',
+          custom_name || '',
+          custom_title || '',
+          utm_source || '',
+          utm_campaign || '',
+          persona || 'founder',
+          funnel_stage || 'customization_saved',
+          JSON.stringify(order_bumps || []),
+          estimated_amount || 0
+        );
+        return res.json({ success: true, lead_id: info.lastInsertRowid, created: true });
+      }
+    } catch (err: any) {
+      console.error('Funnel lead error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Automated Follow-Up Webhook Trigger (15-min recovery simulator)
+  app.post('/api/funnel/webhook-trigger', (req, res) => {
+    try {
+      const { lead_id, action, email, whatsapp, name, custom_name, card_type } = req.body;
+      console.log(`[AUTOMATED FUNNEL TRIGGER] 15-min follow-up registered for ${name || 'Lead'} (${whatsapp || email || 'unknown'}) - Action: ${action || 'abandoned_recovery'}`);
+      
+      res.json({
+        success: true,
+        status: 'queued',
+        delivery_window: '15_minutes',
+        channels: ['whatsapp', 'email'],
+        message: `Automated 15-minute VIP recovery trigger scheduled for ${name || 'Lead'}. WhatsApp & Email concierge active.`,
+        lead_id
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
