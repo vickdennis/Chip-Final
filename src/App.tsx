@@ -8,9 +8,11 @@ import EnterpriseDashboard from './views/EnterpriseDashboard';
 import BlogDirectoryView from './views/BlogDirectoryView';
 import BlogArticleView from './views/BlogArticleView';
 import NfcSalesView from './views/NfcSalesView';
+import PrivacyPolicyView from './views/PrivacyPolicyView';
+import TermsOfServiceView from './views/TermsOfServiceView';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales';
+export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales' | 'privacy-policy' | 'terms-of-service';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -38,6 +40,8 @@ export default function App() {
     if (path === '/dashboard') return 'user-dashboard';
     if (path === '/blog') return 'blog-directory';
     if (path === '/buy-card') return 'nfc-sales';
+    if (path === '/privacy-policy') return 'privacy-policy';
+    if (path === '/terms-of-service') return 'terms-of-service';
     if (path.startsWith('/blog/')) return 'blog-article';
     if (path !== '' && path !== '/') {
       return 'public-profile';
@@ -138,6 +142,10 @@ export default function App() {
       window.history.pushState({}, '', '/enterprise');
     } else if (view === 'nfc-sales') {
       window.history.pushState({}, '', '/buy-card');
+    } else if (view === 'privacy-policy') {
+      window.history.pushState({}, '', '/privacy-policy');
+    } else if (view === 'terms-of-service') {
+      window.history.pushState({}, '', '/terms-of-service');
     } else if (view === 'blog-directory') {
       window.history.pushState({}, '', '/blog');
     }
@@ -161,7 +169,9 @@ export default function App() {
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} />}
-      {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+            {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
+      {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
     </div>
   );
 }

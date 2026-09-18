@@ -4,6 +4,7 @@ import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { PaystackButton } from 'react-paystack';
 import { LinkMeMotionGraphics } from '../components/LinkMeMotionGraphics';
+import { AutoSlidingMedia } from '../components/AutoSlidingMedia';
 import { NigeriaAnalyticsShowcase } from '../components/NigeriaAnalyticsShowcase';
 import { DigitalStorefrontShowcase } from '../components/DigitalStorefrontShowcase';
 import { 
@@ -729,28 +730,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
                       } catch {
                         media = p.image_url ? [p.image_url] : [];
                       }
-                      
-                      if (media.length === 0) {
-                        return (
-                          <div className="absolute inset-0 flex items-center justify-center text-black/20 dark:text-white/20">
-                            <CreditCard className="w-12 h-12 stroke-[1.5]" />
-                          </div>
-                        );
-                      }
-                      
-                      return (
-                        <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide">
-                          {media.map((url: string, i: number) => (
-                            <div key={i} className="w-full h-full flex-shrink-0 snap-center relative">
-                              {url.match(/\.(mp4|webm)$/i) ? (
-                                <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              ) : (
-                                <img src={url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      );
+                      return <AutoSlidingMedia mediaUrls={media} productName={p.name} />;
                     })()}
                     {/* Badge */}
                     <div className="absolute top-2 right-2 bg-black/40 dark:bg-black/80 backdrop-blur-md text-black dark:text-[#D7E2EA] font-mono text-[10px] tracking-wider px-2 py-1 rounded-2xl border border-black/10 dark:border-white/10 z-10 pointer-events-none">
@@ -1058,8 +1038,8 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
-          <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Privacy Policy</a>
-          <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Terms of Service</a>
+          <button onClick={() => onNavigate('privacy-policy')} className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Privacy Policy</button>
+          <button onClick={() => onNavigate('terms-of-service')} className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Terms of Service</button>
           <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Security</a>
           <a href="#" className="text-[14px] text-black/60 dark:text-white/50 hover:text-black dark:text-white font-medium transition-colors">Help Center</a>
         </div>
