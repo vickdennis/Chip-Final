@@ -74,7 +74,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
   // Base price in NGN
   const getBasePrice = () => {
     switch (tier) {
-      case 'plastic': return 30000;
+      case 'plastic': return 35000;
       case 'debit': return 100000;
       case 'metal':
       default: return 50000;
@@ -225,7 +225,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
-                      { id: 'plastic', label: 'Smart Plastic', price: '₦30,000', badge: 'Entry' },
+                      { id: 'plastic', label: 'Smart Plastic (Black)', price: '₦35,000', badge: 'Starter' },
                       { id: 'metal', label: 'Smart Metal', price: '₦50,000', badge: 'Bestseller (28g)' },
                       { id: 'debit', label: 'Metal Debit Convert', price: '₦100,000', badge: 'Dual-Chip Luxe' },
                     ].map((t) => (

@@ -595,20 +595,20 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white/80">
                 Starter Hardware
               </span>
-              <h3 className="text-2xl font-bold text-white mt-4">Smart Plastic NFC</h3>
-              <p className="text-xs text-white/60 mt-1">High-density matte PVC with custom full-color printing.</p>
+              <h3 className="text-2xl font-bold text-white mt-4">Smart Plastic NFC (Black)</h3>
+              <p className="text-xs text-white/60 mt-1">High-density matte obsidian PVC with instant contactless chip & dynamic QR.</p>
 
               <div className="flex items-baseline gap-2 my-6">
-                <span className="text-4xl font-black text-white">₦30,000</span>
-                <span className="text-white/40 line-through text-sm">₦45,000</span>
-                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 33%</span>
+                <span className="text-4xl font-black text-white">₦35,000</span>
+                <span className="text-white/40 line-through text-sm">₦50,000</span>
+                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 30%</span>
               </div>
 
               <ul className="flex flex-col gap-3 text-xs sm:text-sm text-white/80">
                 {[
-                  'Durable Matte Black or White Finish',
-                  'Instant NFC Contactless Chip',
-                  'Dynamic Backside QR Code',
+                  'Deep Matte Obsidian Black Finish',
+                  'Instant 0.2s NFC Contactless Chip',
+                  'Dynamic Backside Laser/Silk QR Code',
                   'Free Digital Profile Hosting Forever',
                   'One-Tap vCard Phonebook Sync',
                   'Nationwide Delivery in Nigeria',
@@ -625,7 +625,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               onClick={() => handleOpenCustomizer('plastic')}
               className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
             >
-              Customize Smart Plastic
+              Customize Smart Plastic (Black)
             </button>
           </div>
 

@@ -825,17 +825,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
 
       </section>
 
-      {/* REALTIME ANALYTICS SHOWCASE SECTION */}
-      <section className="bg-gray-50 dark:bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
-        <NigeriaAnalyticsShowcase />
-      </section>
-
-      {/* DIGITAL PRODUCT STOREFRONT SHOWCASE SECTION */}
-      <section className="bg-white dark:bg-black text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
-        <DigitalStorefrontShowcase />
-      </section>
-
-      {/* BRANDING SHOP & NFC CARDS SECTION (Price Navbar anchor) */}
+      {/* 4. BRANDING SHOP & NFC CARDS SECTION (Moved in between Services and Realtime Analytics) */}
       <section ref={shopRef} className="bg-gray-50 dark:bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
         
         <div className="max-w-5xl mx-auto w-full">
@@ -905,8 +895,9 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
                 </FadeIn>
               ))
             ) : (
-              // Beautiful Placeholder Products
+              // Beautiful Placeholder Products with Smart Plastic NFC (Black) included
               [
+                { id: "p1", name: "Smart Plastic NFC (Black)", desc: "High-density matte obsidian PVC with instant contactless chip & dynamic QR.", price: 35000 },
                 { id: "1", name: "CHIP Classic Card", desc: "Matte black smart card with clean printed NFC tech.", price: 7500 },
                 { id: "2", name: "CHIP Pro Premium", desc: "Premium textured composite hybrid card with gold embossed detailing.", price: 12000 },
                 { id: "4", name: "CHIP Micro Sticker", desc: "Mini adhesive smart tag that attaches directly behind any phone casing.", price: 4000 }
@@ -1014,6 +1005,16 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
           </div>
         </div>
 
+      </section>
+
+      {/* 5. REALTIME ANALYTICS SHOWCASE SECTION */}
+      <section className="bg-white dark:bg-black text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
+        <NigeriaAnalyticsShowcase />
+      </section>
+
+      {/* 6. DIGITAL PRODUCT STOREFRONT SHOWCASE SECTION */}
+      <section className="bg-gray-50 dark:bg-neutral-950 text-black dark:text-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 px-5 sm:px-8 md:px-10 py-24 sm:py-32 relative z-30 border-t border-black/5 dark:border-white/5">
+        <DigitalStorefrontShowcase />
       </section>
 
       {/* 5. PROJECTS SECTION */}
