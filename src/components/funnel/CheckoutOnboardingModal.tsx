@@ -35,10 +35,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
 
   if (!isOpen) return null;
 
-  // Base price calculation
+  // Base price calculation: White plastic is 30,000, Black plastic is 35,000
   const getBasePrice = () => {
+    if (data.tier === 'plastic') {
+      return data.material === 'plastic_white' ? 30000 : 35000;
+    }
     switch (data.tier) {
-      case 'plastic': return 35000;
       case 'debit': return 100000;
       case 'metal':
       default: return 50000;
@@ -178,7 +180,11 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/80">
-                  {data.tier === 'plastic' ? 'Smart Plastic NFC (Black) Card' : data.tier === 'debit' ? 'Metal Debit Convert Dual-Chip Card' : 'Smart Metal NFC Card (28g Aerospace)'}
+                  {data.tier === 'plastic' 
+                    ? (data.material === 'plastic_white' ? 'Smart Plastic NFC (White) Card' : 'Smart Plastic NFC (Black) Card') 
+                    : data.tier === 'debit' 
+                    ? 'Metal Debit Convert Dual-Chip Card' 
+                    : 'Smart Metal NFC Card (28g Aerospace)'}
                 </span>
                 <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
               </div>

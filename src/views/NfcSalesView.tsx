@@ -79,6 +79,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedInitialTier, setSelectedInitialTier] = useState<'plastic' | 'metal' | 'debit'>('metal');
+  const [selectedInitialMaterial, setSelectedInitialMaterial] = useState<CardMaterial>('metal_spacegray');
   const [customizationData, setCustomizationData] = useState<CardCustomizationData | null>(null);
 
   // 4. Scarcity & Urgency Timer (15 Minutes)
@@ -181,9 +182,18 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
 
   const personaContent = getPersonaCopy();
 
-  // Open Customizer for a specific tier
-  const handleOpenCustomizer = (tier: 'plastic' | 'metal' | 'debit' = 'metal') => {
+  // Open Customizer for a specific tier and material
+  const handleOpenCustomizer = (tier: 'plastic' | 'metal' | 'debit' = 'metal', material?: CardMaterial) => {
     setSelectedInitialTier(tier);
+    if (material) {
+      setSelectedInitialMaterial(material);
+    } else if (tier === 'plastic') {
+      setSelectedInitialMaterial('plastic_white');
+    } else if (tier === 'debit') {
+      setSelectedInitialMaterial('metal_gold');
+    } else {
+      setSelectedInitialMaterial('metal_spacegray');
+    }
     setIsCustomizerOpen(true);
   };
 
@@ -587,10 +597,50 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
           
-          {/* TIER 1: SMART PLASTIC */}
-          <div className="p-8 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
+          {/* TIER 1A: SMART PLASTIC (WHITE) */}
+          <div className="p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white/80">
+                Starter Hardware
+              </span>
+              <h3 className="text-2xl font-bold text-white mt-4">Smart Plastic NFC (White)</h3>
+              <p className="text-xs text-white/60 mt-1">High-density glacier white pearl PVC with instant contactless chip & dynamic QR.</p>
+
+              <div className="flex items-baseline gap-2 my-6">
+                <span className="text-4xl font-black text-white">₦30,000</span>
+                <span className="text-white/40 line-through text-sm">₦45,000</span>
+                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 33%</span>
+              </div>
+
+              <ul className="flex flex-col gap-3 text-xs sm:text-sm text-white/80">
+                {[
+                  'Clean Pearl Glacier White Finish',
+                  'Instant 0.2s NFC Contactless Chip',
+                  'Dynamic Backside Laser/Silk QR Code',
+                  'Free Digital Profile Hosting Forever',
+                  'One-Tap vCard Phonebook Sync',
+                  'Nationwide Delivery in Nigeria',
+                ].map((feat, i) => (
+                  <li key={i} className="flex items-center gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handleOpenCustomizer('plastic', 'plastic_white')}
+              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
+            >
+              Customize Smart Plastic (White)
+            </button>
+          </div>
+
+          {/* TIER 1B: SMART PLASTIC (BLACK) */}
+          <div className="p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
             <div>
               <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white/80">
                 Starter Hardware
@@ -622,7 +672,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
             </div>
 
             <button
-              onClick={() => handleOpenCustomizer('plastic')}
+              onClick={() => handleOpenCustomizer('plastic', 'plastic_black')}
               className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
             >
               Customize Smart Plastic (Black)
@@ -630,18 +680,18 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           </div>
 
           {/* TIER 2: SMART METAL (MOST POPULAR / CRO BESTSELLER) */}
-          <div className="relative p-8 rounded-3xl bg-gradient-to-b from-[#1E1824] via-[#120F17] to-black border-2 border-[#B600A8] shadow-[0_0_50px_rgba(182,0,168,0.25)] flex flex-col justify-between transform lg:-translate-y-4">
+          <div className="relative p-7 rounded-3xl bg-gradient-to-b from-[#1E1824] via-[#120F17] to-black border-2 border-[#B600A8] shadow-[0_0_50px_rgba(182,0,168,0.25)] flex flex-col justify-between transform xl:-translate-y-4">
             
             {/* Bestseller Badge */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#B600A8] to-purple-600 text-white px-5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-md">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#B600A8] to-purple-600 text-white px-4 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
               ★ Most Popular • Executive Pick
             </div>
 
             <div>
               <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-[#B600A8]/20 text-[#E0A3F8] border border-[#B600A8]/30">
-                28g Weighted Stainless Steel
+                28g Weighted Steel
               </span>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mt-4">Smart Metal NFC</h3>
+              <h3 className="text-2xl font-bold text-white mt-4">Smart Metal NFC</h3>
               <p className="text-xs text-white/60 mt-1">Deep fiber-laser etched stainless steel with matte titanium finish.</p>
 
               <div className="flex items-baseline gap-2 my-6">
@@ -671,8 +721,8 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
             </div>
 
             <button
-              onClick={() => handleOpenCustomizer('metal')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm sm:text-base bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/60 active:scale-98 transition-all"
+              onClick={() => handleOpenCustomizer('metal', 'metal_spacegray')}
+              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/60 active:scale-98 transition-all"
             >
               <span>Build Custom Metal Card (10% Off)</span>
               <ArrowRight className="w-4 h-4" />
@@ -680,7 +730,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           </div>
 
           {/* TIER 3: METAL DEBIT CONVERT (LUXURY DUAL-CHIP) */}
-          <div className="p-8 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
+          <div className="p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
             <div>
               <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
                 👑 Luxury Dual-Chip
@@ -714,7 +764,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
             </div>
 
             <button
-              onClick={() => handleOpenCustomizer('debit')}
+              onClick={() => handleOpenCustomizer('debit', 'metal_gold')}
               className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
             >
               Order Metal Debit Convert
@@ -802,6 +852,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
         isOpen={isCustomizerOpen}
         onClose={() => setIsCustomizerOpen(false)}
         initialTier={selectedInitialTier}
+        initialMaterial={selectedInitialMaterial}
         onProceedToCheckout={handleProceedToCheckout}
       />
 

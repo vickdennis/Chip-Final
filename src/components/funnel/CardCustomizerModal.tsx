@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Card3DRotator, CardMaterial } from './Card3DRotator';
 import { Sparkles, CheckCircle2, Shield, ArrowRight, ArrowLeft, Tag, Lock, HelpCircle } from 'lucide-react';
@@ -24,6 +24,7 @@ interface CardCustomizerModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTier?: 'plastic' | 'metal' | 'debit';
+  initialMaterial?: CardMaterial;
   onProceedToCheckout: (data: CardCustomizationData) => void;
 }
 
@@ -31,20 +32,40 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
   isOpen,
   onClose,
   initialTier = 'metal',
+  initialMaterial,
   onProceedToCheckout,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Form State
   const [tier, setTier] = useState<'plastic' | 'metal' | 'debit'>(initialTier);
-  const [material, setMaterial] = useState<CardMaterial>(
-    initialTier === 'plastic' ? 'plastic_black' : initialTier === 'debit' ? 'metal_gold' : 'metal_spacegray'
-  );
+  const [material, setMaterial] = useState<CardMaterial>(() => {
+    if (initialMaterial) return initialMaterial;
+    if (initialTier === 'plastic') return 'plastic_white';
+    if (initialTier === 'debit') return 'metal_gold';
+    return 'metal_spacegray';
+  });
 
   const [cardName, setCardName] = useState('');
   const [cardTitle, setCardTitle] = useState('');
   const [cardCompany, setCardCompany] = useState('');
   const [handle, setHandle] = useState('');
+
+  // Sync state when modal opens or initial props update
+  useEffect(() => {
+    if (isOpen) {
+      setTier(initialTier);
+      if (initialMaterial) {
+        setMaterial(initialMaterial);
+      } else if (initialTier === 'plastic') {
+        setMaterial('plastic_white');
+      } else if (initialTier === 'debit') {
+        setMaterial('metal_gold');
+      } else {
+        setMaterial('metal_spacegray');
+      }
+    }
+  }, [isOpen, initialTier, initialMaterial]);
 
   // Lead capture fields
   const [fullName, setFullName] = useState('');
@@ -60,10 +81,12 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
   if (!isOpen) return null;
 
   // Handle tier selection and default matching material
-  const handleTierSelect = (selectedTier: 'plastic' | 'metal' | 'debit') => {
+  const handleTierSelect = (selectedTier: 'plastic' | 'metal' | 'debit', defaultMat?: CardMaterial) => {
     setTier(selectedTier);
-    if (selectedTier === 'plastic') {
-      setMaterial('plastic_black');
+    if (defaultMat) {
+      setMaterial(defaultMat);
+    } else if (selectedTier === 'plastic') {
+      setMaterial('plastic_white');
     } else if (selectedTier === 'metal') {
       setMaterial('metal_spacegray');
     } else {
@@ -71,10 +94,12 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
     }
   };
 
-  // Base price in NGN
+  // Base price in NGN: White plastic is 30,000, Black plastic is 35,000
   const getBasePrice = () => {
+    if (tier === 'plastic') {
+      return material === 'plastic_white' ? 30000 : 35000;
+    }
     switch (tier) {
-      case 'plastic': return 35000;
       case 'debit': return 100000;
       case 'metal':
       default: return 50000;
@@ -223,31 +248,38 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                     <p className="text-xs text-white/60">Choose the foundation for your physical NFC card.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     {[
-                      { id: 'plastic', label: 'Smart Plastic (Black)', price: '₦35,000', badge: 'Starter' },
-                      { id: 'metal', label: 'Smart Metal', price: '₦50,000', badge: 'Bestseller (28g)' },
-                      { id: 'debit', label: 'Metal Debit Convert', price: '₦100,000', badge: 'Dual-Chip Luxe' },
-                    ].map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() => handleTierSelect(t.id as any)}
-                        className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
-                          tier === t.id
-                            ? 'border-[#B600A8] bg-[#B600A8]/15 shadow-lg shadow-purple-950/40'
-                            : 'border-white/10 bg-white/5 hover:border-white/20'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-white/10 text-white/80">
-                            {t.badge}
-                          </span>
-                          {tier === t.id && <CheckCircle2 className="w-4 h-4 text-[#B600A8]" />}
+                      { id: 'plastic_white', tier: 'plastic' as const, material: 'plastic_white' as CardMaterial, label: 'Smart Plastic (White)', price: '₦30,000', badge: 'Starter' },
+                      { id: 'plastic_black', tier: 'plastic' as const, material: 'plastic_black' as CardMaterial, label: 'Smart Plastic (Black)', price: '₦35,000', badge: 'Starter' },
+                      { id: 'metal', tier: 'metal' as const, material: 'metal_spacegray' as CardMaterial, label: 'Smart Metal', price: '₦50,000', badge: 'Bestseller' },
+                      { id: 'debit', tier: 'debit' as const, material: 'metal_gold' as CardMaterial, label: 'Metal Debit', price: '₦100,000', badge: 'Dual-Chip' },
+                    ].map((t) => {
+                      const isSelected = tier === t.tier && (t.tier !== 'plastic' || material === t.material);
+                      return (
+                        <div
+                          key={t.id}
+                          onClick={() => {
+                            setTier(t.tier);
+                            setMaterial(t.material);
+                          }}
+                          className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-[#B600A8] bg-[#B600A8]/15 shadow-lg shadow-purple-950/40'
+                              : 'border-white/10 bg-white/5 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-white/10 text-white/80">
+                              {t.badge}
+                            </span>
+                            {isSelected && <CheckCircle2 className="w-4 h-4 text-[#B600A8]" />}
+                          </div>
+                          <h4 className="font-bold text-xs sm:text-sm text-white mt-1.5 leading-tight">{t.label}</h4>
+                          <p className="text-xs font-semibold text-white/80 mt-1">{t.price}</p>
                         </div>
-                        <h4 className="font-bold text-sm text-white mt-2 leading-tight">{t.label}</h4>
-                        <p className="text-xs font-semibold text-white/80 mt-1">{t.price}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Material Finishes */}
@@ -257,15 +289,22 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
-                        { id: 'metal_spacegray', label: 'Space Gray Steel', desc: 'Titanium matte' },
-                        { id: 'metal_gold', label: '24K Matte Gold', desc: 'Brushed brass' },
-                        { id: 'plastic_black', label: 'Obsidian Black', desc: 'Matte PVC' },
-                        { id: 'plastic_white', label: 'Glacier White', desc: 'Pearl PVC' },
+                        { id: 'plastic_white', label: 'Glacier White', desc: 'Pearl PVC • ₦30k', tierTarget: 'plastic' as const },
+                        { id: 'plastic_black', label: 'Obsidian Black', desc: 'Matte PVC • ₦35k', tierTarget: 'plastic' as const },
+                        { id: 'metal_spacegray', label: 'Space Gray Steel', desc: 'Titanium • ₦50k', tierTarget: 'metal' as const },
+                        { id: 'metal_gold', label: '24K Matte Gold', desc: 'Brushed brass • ₦50k', tierTarget: 'metal' as const },
                       ].map((m) => (
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() => setMaterial(m.id as CardMaterial)}
+                          onClick={() => {
+                            setMaterial(m.id as CardMaterial);
+                            if (tier === 'plastic' && (m.id === 'metal_spacegray' || m.id === 'metal_gold')) {
+                              setTier('metal');
+                            } else if (tier !== 'plastic' && (m.id === 'plastic_white' || m.id === 'plastic_black')) {
+                              setTier('plastic');
+                            }
+                          }}
                           className={`p-2.5 rounded-xl border text-left transition-all ${
                             material === m.id
                               ? 'border-[#B600A8] bg-white/10 text-white'

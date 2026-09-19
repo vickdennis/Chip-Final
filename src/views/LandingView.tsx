@@ -897,6 +897,7 @@ export default function LandingView({ onNavigate, isDarkMode, toggleDarkMode, se
             ) : (
               // Beautiful Placeholder Products with Smart Plastic NFC (Black) included
               [
+                { id: "p0", name: "Smart Plastic NFC (White)", desc: "High-density glacier white pearl PVC with instant contactless chip & dynamic QR.", price: 30000 },
                 { id: "p1", name: "Smart Plastic NFC (Black)", desc: "High-density matte obsidian PVC with instant contactless chip & dynamic QR.", price: 35000 },
                 { id: "1", name: "CHIP Classic Card", desc: "Matte black smart card with clean printed NFC tech.", price: 7500 },
                 { id: "2", name: "CHIP Pro Premium", desc: "Premium textured composite hybrid card with gold embossed detailing.", price: 12000 },
