@@ -64,7 +64,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
       name: data.customerName,
       phone: data.whatsapp,
       custom_fields: [
+        { display_name: 'Product Category', variable_name: 'product_category', value: data.productCategory || 'AEROSPACE PHYSICAL CARD' },
         { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier },
+        { display_name: 'Card Color', variable_name: 'card_color', value: data.material },
+        { display_name: 'Hardware Distinction', variable_name: 'hardware_type', value: data.hardwareType || (data.tier === 'debit' ? 'Dual-Chip EMV' : 'Pure NFC Smart Card (No EMV Chip)') },
+        { display_name: 'Front Artwork', variable_name: 'artwork_front', value: data.customArtworkFront ? 'Custom Uploaded Art' : 'Standard Template' },
+        { display_name: 'Back Artwork', variable_name: 'artwork_back', value: data.customArtworkBack ? 'Custom Uploaded Art' : 'Standard Template' },
         { display_name: 'Laser Name', variable_name: 'laser_name', value: data.name },
         { display_name: 'Laser Title', variable_name: 'laser_title', value: data.title },
         { display_name: 'Handle', variable_name: 'handle', value: data.handle },
@@ -188,6 +193,39 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 </span>
                 <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
               </div>
+
+              {/* Critical Hardware Distinction Callout */}
+              <div className="px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-[11px] text-emerald-300">
+                <span className="font-mono font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Hardware: Pure NFC Smart Card</span>
+                </span>
+                <span className="text-emerald-400 font-medium">100% Flush • No EMV Chip</span>
+              </div>
+
+              {/* Uploaded Artwork Confirmation Thumbs */}
+              {(data.customArtworkFront || data.customArtworkBack) && (
+                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
+                  <div className="flex gap-2 shrink-0">
+                    {data.customArtworkFront && (
+                      <div className="relative w-14 h-9 rounded-lg overflow-hidden border border-purple-400/40 shadow-sm">
+                        <img src={data.customArtworkFront} alt="Front Art" className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0 right-0 text-[8px] font-mono bg-black/80 px-1 text-white">FR</span>
+                      </div>
+                    )}
+                    {data.customArtworkBack && (
+                      <div className="relative w-14 h-9 rounded-lg overflow-hidden border border-purple-400/40 shadow-sm">
+                        <img src={data.customArtworkBack} alt="Back Art" className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0 right-0 text-[8px] font-mono bg-black/80 px-1 text-white">BK</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col text-[11px] leading-tight text-white/80">
+                    <span className="font-semibold text-white">Custom Artwork Bundled</span>
+                    <span className="text-white/50 text-[10px]">Laser/UV production files will be applied to your card.</span>
+                  </div>
+                </div>
+              )}
 
               {data.appliedDiscount && (
                 <div className="flex justify-between items-center text-sm text-emerald-400">

@@ -25,7 +25,8 @@ import {
   QrCode,
   Building2,
   Users,
-  Briefcase
+  Briefcase,
+  Upload
 } from 'lucide-react';
 
 import { Card3DRotator, CardMaterial } from '../components/funnel/Card3DRotator';
@@ -34,6 +35,7 @@ import { CardCustomizerModal, CardCustomizationData } from '../components/funnel
 import { CheckoutOnboardingModal } from '../components/funnel/CheckoutOnboardingModal';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
 import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialMediaIconSet';
+import { AerospaceCardCustomizer } from '../components/funnel/AerospaceCardCustomizer';
 
 type PersonaType = 'executive' | 'founder' | 'creator';
 
@@ -315,10 +317,13 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
             {/* CTA Group */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
               <button
-                onClick={() => handleOpenCustomizer('metal')}
+                onClick={() => {
+                  const el = document.getElementById('aerospace-customizer');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-base bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/60 active:scale-95 transition-all"
               >
-                <span>{personaContent.ctaPrimary}</span>
+                <span>Customize Aerospace Card (₦30k / ₦35k)</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -329,7 +334,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                 }}
                 className="w-full sm:w-auto px-7 py-4 rounded-full font-bold text-sm bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
-                <span>Compare Pricing Tiers</span>
+                <span>Compare All Tiers</span>
               </button>
             </div>
 
@@ -572,6 +577,16 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
         </div>
       </section>
 
+      {/* ================= STEP 6: AEROSPACE PHYSICAL CARD DUAL-COLUMN LIVE CUSTOMIZER ENGINE ================= */}
+      <section id="aerospace-customizer" className="py-24 px-4 sm:px-6 relative z-10 border-t border-white/10 bg-gradient-to-b from-black via-[#0E0B14] to-[#07090D]">
+        <AerospaceCardCustomizer
+          onProceedToCheckout={handleProceedToCheckout}
+          defaultName={heroCustomName}
+          defaultTitle={heroCustomTitle}
+          defaultHandle={heroHandle}
+        />
+      </section>
+
       {/* ================= STAGE 4 & 5: STRATEGIC OFFER & TIERED PRICING ================= */}
       <section id="pricing" className="py-24 px-4 sm:px-6 relative z-10 max-w-7xl mx-auto">
         
@@ -631,12 +646,24 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               </ul>
             </div>
 
-            <button
-              onClick={() => handleOpenCustomizer('plastic', 'plastic_white')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
-            >
-              Customize Smart Plastic (White)
-            </button>
+            <div className="mt-8 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  const el = document.getElementById('aerospace-customizer');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="w-full py-3.5 rounded-2xl font-bold text-xs bg-white text-black hover:bg-slate-200 transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+              >
+                <Upload className="w-3.5 h-3.5 text-purple-600" />
+                <span>Upload Art & Customize in 3D</span>
+              </button>
+              <button
+                onClick={() => handleOpenCustomizer('plastic', 'plastic_white')}
+                className="w-full py-2.5 rounded-xl text-xs text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+              >
+                Quick Order Modal (₦30,000)
+              </button>
+            </div>
           </div>
 
           {/* TIER 1B: SMART PLASTIC (BLACK) */}
@@ -671,12 +698,24 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               </ul>
             </div>
 
-            <button
-              onClick={() => handleOpenCustomizer('plastic', 'plastic_black')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
-            >
-              Customize Smart Plastic (Black)
-            </button>
+            <div className="mt-8 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  const el = document.getElementById('aerospace-customizer');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="w-full py-3.5 rounded-2xl font-bold text-xs bg-[#B600A8] text-white hover:brightness-110 transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Art & Customize in 3D</span>
+              </button>
+              <button
+                onClick={() => handleOpenCustomizer('plastic', 'plastic_black')}
+                className="w-full py-2.5 rounded-xl text-xs text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+              >
+                Quick Order Modal (₦35,000)
+              </button>
+            </div>
           </div>
 
           {/* TIER 2: SMART METAL (MOST POPULAR / CRO BESTSELLER) */}

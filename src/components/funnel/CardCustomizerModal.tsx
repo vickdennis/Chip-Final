@@ -18,6 +18,12 @@ export interface CardCustomizationData {
     laserEngraving: boolean; // +5,000
     lifetimeAnalytics: boolean; // +10,000
   };
+  customArtworkFront?: string | null;
+  customArtworkBack?: string | null;
+  artworkColor?: 'white' | 'black';
+  hasEmvChip?: boolean;
+  hardwareType?: string;
+  productCategory?: string;
 }
 
 interface CardCustomizerModalProps {
