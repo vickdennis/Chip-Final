@@ -14,11 +14,6 @@ interface Card3DRotatorProps {
   isFlipped?: boolean;
   onFlipToggle?: () => void;
   className?: string;
-  customArtworkFront?: string | null;
-  customArtworkBack?: string | null;
-  hideEmvChip?: boolean;
-  showLaserText?: boolean;
-  cardCategoryLabel?: string;
 }
 
 export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
@@ -30,11 +25,6 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
   isFlipped: controlledFlipped,
   onFlipToggle,
   className = '',
-  customArtworkFront = null,
-  customArtworkBack = null,
-  hideEmvChip = true,
-  showLaserText = true,
-  cardCategoryLabel,
 }) => {
   const [internalFlipped, setInternalFlipped] = useState(false);
   const isFlipped = controlledFlipped !== undefined ? controlledFlipped : internalFlipped;
@@ -187,118 +177,81 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
               style={{ backgroundColor: config.solidBg }}
             />
 
-            {/* Custom Front Artwork Overlay (Full-Bleed Print) */}
-            {customArtworkFront && (
-              <div className="absolute inset-0 z-[1] overflow-hidden rounded-2xl md:rounded-3xl pointer-events-none">
-                <img
-                  src={customArtworkFront}
-                  alt="Custom Front Art"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-
-            {/* Specular glare overlay (sits above artwork for realistic physical gloss/matte reflection) */}
+            {/* Specular glare overlay */}
             <div
-              className={`absolute inset-0 z-[2] bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-80 mix-blend-overlay transition-opacity duration-200`}
+              className={`absolute inset-0 z-0 bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-80 mix-blend-overlay transition-opacity duration-200`}
               style={{
                 transform: `translate(${glarePosition.x - 50}%, ${glarePosition.y - 50}%)`,
               }}
             />
 
-            {/* Micro brushed grain texture overlay */}
-            <div className="absolute inset-0 z-[2] opacity-[0.06] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
+            {/* Micro brushed metal grain texture overlay */}
+            <div className="absolute inset-0 z-0 opacity-[0.08] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
 
             {/* Top Row: Brand & NFC Signal */}
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-black/40 border border-white/20 flex items-center justify-center shadow-inner backdrop-blur-xs">
+                <div className="w-8 h-8 rounded-lg bg-black/30 border border-white/20 flex items-center justify-center shadow-inner">
                   <span className="font-display font-black text-sm tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">
                     CHIP
                   </span>
                 </div>
-                <span className="text-[10px] tracking-widest font-mono uppercase px-2 py-0.5 rounded-full bg-black/40 text-white/90 border border-white/15 backdrop-blur-xs">
-                  {cardCategoryLabel || config.badge}
+                <span className="text-[10px] tracking-widest font-mono uppercase px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/10">
+                  {config.badge}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/40 border border-white/15 backdrop-blur-xs">
-                <Wifi className={`w-4 h-4 rotate-90 ${config.accentColor}`} />
-                <span className="text-[9px] font-mono tracking-widest uppercase text-white/90 font-semibold">
-                  NFC 0.2s TAP
+              <div className="flex items-center gap-2.5">
+                <Wifi className={`w-5 h-5 rotate-90 ${config.accentColor}`} />
+                <span className="text-[9px] font-mono tracking-widest uppercase opacity-70 text-white">
+                  NFC 2.4GHz
                 </span>
               </div>
             </div>
 
-            {/* Middle: Hardware distinction (Embedded NFC Antenna vs EMV Chip) */}
+            {/* Middle: Smart Chip Visual (for Metal / High-end cards) */}
             <div className="relative z-10 my-auto flex items-center justify-between">
-              {hideEmvChip ? (
-                // Pure NFC Smart Card Visual: Internal high-frequency antenna watermark (No physical contact EMV chip)
-                <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/15 backdrop-blur-xs shadow-md">
-                  <div className="relative w-8 h-6 border border-dashed border-emerald-400/50 rounded flex items-center justify-center bg-emerald-500/10">
-                    <div className="w-5 h-3.5 border border-emerald-400/30 rounded-xs flex items-center justify-center">
-                      <Wifi className="w-3 h-3 text-emerald-400 rotate-90" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[8px] font-mono tracking-wider uppercase text-emerald-300 font-bold">
-                      NTAG216 Embedded
-                    </span>
-                    <span className="text-[7px] font-mono uppercase text-white/60">
-                      100% Flush • No EMV Chip
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                // Traditional EMV Chip Visual (Only for dual-chip debit converter)
-                <div
-                  className={`w-11 h-9 rounded-md border flex flex-col justify-between p-1 shadow-md ${config.chipColor}`}
-                >
-                  <div className="flex justify-between h-1 border-b border-black/20" />
-                  <div className="flex justify-between h-1 border-b border-black/20" />
-                  <div className="flex justify-between h-1 border-b border-black/20" />
-                </div>
-              )}
+              <div
+                className={`w-11 h-9 rounded-md border flex flex-col justify-between p-1 shadow-md ${config.chipColor}`}
+              >
+                <div className="flex justify-between h-1 border-b border-black/20" />
+                <div className="flex justify-between h-1 border-b border-black/20" />
+                <div className="flex justify-between h-1 border-b border-black/20" />
+              </div>
 
-              {/* Contactless Sync Watermark */}
-              <div className="text-right px-2.5 py-1 rounded-xl bg-black/40 border border-white/15 backdrop-blur-xs">
-                <p className="text-[9px] font-mono uppercase tracking-widest text-white/60 font-semibold">
-                  Aerospace Physical
+              {/* Laser Engraving Brand Watermark */}
+              <div className="text-right">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-white/50">
+                  Contactless Sync
                 </p>
-                <p className="text-[11px] font-bold text-white">Apple & Android</p>
+                <p className="text-xs font-semibold text-white/80">iOS & Android</p>
               </div>
             </div>
 
-            {/* Bottom Row: Laser Engraved Custom Name & Title (or hidden if custom artwork has its own typography) */}
+            {/* Bottom Row: Laser Engraved Custom Name & Title */}
             <div className="relative z-10 flex justify-between items-end">
-              {showLaserText && (
-                <div className="max-w-[75%] px-3 py-1.5 rounded-xl bg-black/40 border border-white/15 backdrop-blur-xs">
-                  <h3
-                    className={`text-base md:text-lg font-bold tracking-tight truncate leading-tight ${
-                      customArtworkFront ? 'text-white' : config.textColor
-                    }`}
-                  >
-                    {customName || 'Your Name Here'}
-                  </h3>
-                  <p
-                    className={`text-[11px] md:text-xs font-medium tracking-wide truncate ${
-                      customArtworkFront ? 'text-white/80' : config.subTextColor
-                    }`}
-                  >
-                    {customTitle || 'Your Title / Role'}
+              <div className="max-w-[75%]">
+                <h3
+                  className={`text-lg md:text-xl font-bold tracking-tight truncate leading-tight ${config.textColor}`}
+                >
+                  {customName || 'Your Name Here'}
+                </h3>
+                <p
+                  className={`text-xs md:text-sm font-medium tracking-wide truncate ${config.subTextColor}`}
+                >
+                  {customTitle || 'Your Title / Role'}
+                </p>
+                {customCompany && (
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-white/40 mt-0.5 truncate">
+                    {customCompany}
                   </p>
-                  {customCompany && (
-                    <p className="text-[9px] font-mono uppercase tracking-wider text-white/60 mt-0.5 truncate">
-                      {customCompany}
-                    </p>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Tap to Flip badge */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 border border-white/15 backdrop-blur-xs text-[10px] font-mono uppercase text-white/70 group-hover:text-white transition-colors ml-auto">
-                <RotateCcw className="w-3 h-3 text-purple-400" />
-                <span>Flip Back</span>
+              <div className="flex items-center gap-1 text-[10px] font-mono uppercase text-white/40 group-hover:text-white/80 transition-colors">
+                <RotateCcw className="w-3 h-3" />
+                <span>Flip</span>
               </div>
             </div>
           </div>
@@ -319,37 +272,20 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
               style={{ backgroundColor: config.solidBg }}
             />
 
-            {/* Custom Back Artwork Overlay (Full-Bleed Print) */}
-            {customArtworkBack && (
-              <div className="absolute inset-0 z-[1] overflow-hidden rounded-2xl md:rounded-3xl pointer-events-none">
-                <img
-                  src={customArtworkBack}
-                  alt="Custom Back Art"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-
             {/* Specular Glare on Back */}
             <div
-              className={`absolute inset-0 z-[2] bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-50 mix-blend-overlay`}
+              className={`absolute inset-0 z-0 bg-gradient-to-tr ${config.sheen} pointer-events-none opacity-50 mix-blend-overlay`}
             />
 
-            {/* Magnetic Stripe representation (only if no custom back artwork) */}
-            {!customArtworkBack && (
-              <div
-                className={`absolute top-5 left-0 w-full h-10 border-y z-10 ${config.magStripe}`}
-              />
-            )}
+            {/* Magnetic Stripe representation */}
+            <div
+              className={`absolute top-5 left-0 w-full h-10 border-y z-10 ${config.magStripe}`}
+            />
 
             {/* Top row spacing */}
-            <div className={`relative z-20 ${!customArtworkBack ? 'pt-10' : 'pt-1'} flex justify-between items-center text-[10px] font-mono ${customArtworkBack ? 'text-white' : config.backMutedColor}`}>
-              <span className="px-2 py-0.5 rounded bg-black/40 backdrop-blur-xs border border-white/10">
-                NTAG216 CHIP #9482-NG
-              </span>
-              <span className="px-2 py-0.5 rounded bg-black/40 backdrop-blur-xs border border-white/10 text-emerald-400">
-                NO EMV CHIP • 100% FLUSH
-              </span>
+            <div className={`relative z-20 pt-10 flex justify-between items-center text-[10px] font-mono ${config.backMutedColor}`}>
+              <span>SECURITY CHIP #9482-NG</span>
+              <span>LIFETIME CLOUD SYNC</span>
             </div>
 
             {/* Center: Dynamic QR code for older non-NFC phones */}
@@ -357,7 +293,7 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
               <div className="p-2.5 bg-white rounded-xl shadow-lg shrink-0 border border-black/10">
                 <QRCodeSVG
                   value={qrUrl}
-                  size={64}
+                  size={68}
                   level="M"
                   includeMargin={false}
                   fgColor="#000000"
@@ -365,24 +301,24 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
                 />
               </div>
 
-              <div className={`flex flex-col text-left pr-2 px-3 py-1.5 rounded-xl bg-black/50 border border-white/15 backdrop-blur-xs ${customArtworkBack ? 'text-white' : config.backTextColor}`}>
-                <span className="text-xs font-bold uppercase tracking-wider text-white">
+              <div className={`flex flex-col text-left pr-2 ${config.backTextColor}`}>
+                <span className="text-xs font-bold uppercase tracking-wider">
                   Instant Bio Link
                 </span>
-                <span className="text-[10px] leading-snug mt-0.5 text-white/70">
-                  Tap card or scan QR to open your verified CHIP cloud profile.
+                <span className={`text-[11px] leading-snug mt-0.5 ${config.backMutedColor}`}>
+                  Scan with any camera or tap phone back to open your live CHIP profile.
                 </span>
-                <span className="text-[10px] font-mono text-purple-300 mt-1 truncate">
+                <span className="text-[10px] font-mono text-indigo-400 mt-1 truncate">
                   {qrUrl.replace('https://', '')}
                 </span>
               </div>
             </div>
 
             {/* Bottom: Signature Strip & Legal */}
-            <div className="relative z-20 flex justify-between items-center border-t border-white/15 pt-2 text-[9px] font-mono text-white/70 px-2 py-1 rounded bg-black/40 backdrop-blur-xs">
+            <div className={`relative z-20 flex justify-between items-center border-t ${config.backBorderColor} pt-2 text-[9px] font-mono ${config.backMutedColor}`}>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>OFFICIAL CHIP AEROSPACE</span>
+                <span>OFFICIAL CHIP HARDWARE</span>
               </div>
               <span>MADE IN LAGOS, NIGERIA</span>
             </div>
