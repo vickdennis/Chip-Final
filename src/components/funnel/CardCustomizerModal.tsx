@@ -374,13 +374,13 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                     onClick={() => setStep(2)}
                     className="mt-4 w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-900/30"
                   >
-                    <span>Proceed to Laser Engraving Details</span>
+                    <span>{tier === 'metal' ? 'Proceed to Laser Engraving Details' : 'Proceed to Card Printing Details'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </motion.div>
               )}
 
-              {/* STEP 2: ENGRAVING & BIO PREVIEW */}
+              {/* STEP 2: ENGRAVING / PRINTING & BIO PREVIEW */}
               {step === 2 && (
                 <motion.div
                   key="step2"
@@ -391,8 +391,14 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-white">Laser Engraving Layout</h3>
-                      <p className="text-xs text-white/60">This will be physically laser-etched onto your card.</p>
+                      <h3 className="text-lg font-bold text-white">
+                        {tier === 'metal' ? 'Laser Engraving Layout' : 'Card Printing Layout'}
+                      </h3>
+                      <p className="text-xs text-white/60">
+                        {tier === 'metal'
+                          ? 'This will be physically fiber-laser etched onto your metal card.'
+                          : 'This will be precision UV printed onto your PVC card.'}
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -488,7 +494,9 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                         <Tag className="w-3.5 h-3.5" />
                         <span>Instant 10% Reservation Discount</span>
                       </div>
-                      <h3 className="text-xl font-bold text-white">Reserve Your Custom Engraving</h3>
+                      <h3 className="text-xl font-bold text-white">
+                        {tier === 'metal' ? 'Reserve Your Custom Engraving' : 'Reserve Your Custom Printing'}
+                      </h3>
                       <p className="text-xs text-white/60">
                         Save your custom card build so it won't be lost. Unlocks 10% off your checkout today.
                       </p>
@@ -592,7 +600,9 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                               <span className="text-xs font-bold text-amber-300">+₦5,000</span>
                             </div>
                             <p className="text-[11px] text-white/60 leading-tight mt-0.5">
-                              Jump to the front of the laser-engraving line for expedited 24-hour dispatch, plus unlock real-time link click heatmaps, contact download tracking, and profile view analytics for life.
+                              {tier === 'metal'
+                                ? 'Jump to the front of the laser-engraving line for expedited 24-hour dispatch, plus unlock real-time link click heatmaps, contact download tracking, and profile view analytics for life.'
+                                : 'Jump to the front of the UV printing queue for expedited 24-hour dispatch, plus unlock real-time link click heatmaps, contact download tracking, and profile view analytics for life.'}
                             </p>
                           </div>
                         </label>

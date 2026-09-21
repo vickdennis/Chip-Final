@@ -11,6 +11,7 @@ import AdminSeoManager from './AdminSeoManager';
 import AdminBroadcastManager from './AdminBroadcastManager';
 import AdminNotificationManager from './AdminNotificationManager';
 import AdminSalesManager from './AdminSalesManager';
+import AdminPixelManager from './AdminPixelManager';
 import { MessageCircle, Send, Bell, Link as LinkIcon } from 'lucide-react';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -21,7 +22,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel'>('analytics');
   const [search, setSearch] = useState('');
 
   // Product form state
@@ -530,6 +531,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             >
               <Bell className="w-4 h-4" /> In-App Notifications
             </button>
+            <button 
+              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'pixel' ? 'border-[#25F4EE] text-[#0ea5e9] dark:text-[#25F4EE]' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
+              onClick={() => setActiveTab('pixel')}
+            >
+              <Activity className="w-4 h-4 text-[#25F4EE]" /> Pixels & Tracking
+            </button>
 
           </div>
         </div>
@@ -1021,6 +1028,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
         {activeTab === 'sales' && (
           <AdminSalesManager />
+        )}
+        {activeTab === 'pixel' && (
+          <AdminPixelManager />
         )}
       </div>
     </div>

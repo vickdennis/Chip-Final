@@ -39,7 +39,6 @@ import { CardCustomizerModal, CardCustomizationData } from '../components/funnel
 import { CheckoutOnboardingModal } from '../components/funnel/CheckoutOnboardingModal';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
 import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialMediaIconSet';
-import { TikTokPixelTesterModal } from '../components/analytics/TikTokPixelTesterModal';
 import { trackTikTokEvent } from '../utils/tiktokPixel';
 
 type PersonaType = 'executive' | 'founder' | 'creator';
@@ -90,30 +89,28 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   const getMaterialPrice = (mat: CardMaterial) => {
     switch (mat) {
       case 'plastic_white':
-        return 30000;
       case 'plastic_black':
-        return 35000;
+        return 30000;
       case 'metal_spacegray':
       case 'metal_gold':
       default:
-        return 50000;
+        return 100000;
     }
   };
 
   const getMaterialOriginalPrice = (mat: CardMaterial) => {
     switch (mat) {
       case 'plastic_white':
-        return 35000;
       case 'plastic_black':
-        return 40000;
+        return 45000;
       case 'metal_spacegray':
       case 'metal_gold':
       default:
-        return 55000;
+        return 150000;
     }
   };
 
-  const getMaterialTier = (mat: CardMaterial): 'plastic' | 'metal' | 'debit' => {
+  const getMaterialTier = (mat: CardMaterial): 'plastic' | 'metal' => {
     if (mat === 'plastic_white' || mat === 'plastic_black') return 'plastic';
     return 'metal';
   };
@@ -171,8 +168,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   // 3. Modals & Funnel State
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [isPixelTesterOpen, setIsPixelTesterOpen] = useState(false);
-  const [selectedInitialTier, setSelectedInitialTier] = useState<'plastic' | 'metal' | 'debit'>('metal');
+  const [selectedInitialTier, setSelectedInitialTier] = useState<'plastic' | 'metal'>('metal');
   const [selectedInitialMaterial, setSelectedInitialMaterial] = useState<CardMaterial>('metal_spacegray');
   const [customizationData, setCustomizationData] = useState<CardCustomizationData | null>(null);
 
@@ -285,26 +281,22 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   const personaContent = getPersonaCopy();
 
   // Open Customizer for a specific tier and material
-  const handleOpenCustomizer = (tier: 'plastic' | 'metal' | 'debit' = 'metal', material?: CardMaterial) => {
+  const handleOpenCustomizer = (tier: 'plastic' | 'metal' = 'metal', material?: CardMaterial) => {
     setSelectedInitialTier(tier);
     if (material) {
       setSelectedInitialMaterial(material);
     } else if (tier === 'plastic') {
       setSelectedInitialMaterial('plastic_white');
-    } else if (tier === 'debit') {
-      setSelectedInitialMaterial('metal_gold');
     } else {
       setSelectedInitialMaterial('metal_spacegray');
     }
 
-    // Track TikTok AddToCart event
-    const itemPrice = tier === 'plastic' 
-      ? (material === 'plastic_white' ? 30000 : 35000) 
-      : tier === 'debit' ? 100000 : 50000;
+    // Track TikTok AddToCart event (₦30,000 for PVC, ₦100,000 for Metal)
+    const itemPrice = tier === 'plastic' ? 30000 : 100000;
 
     trackTikTokEvent('AddToCart', {
       content_type: 'product',
-      content_name: `${tier.toUpperCase()} NFC Card (${material || 'default'})`,
+      content_name: `${tier === 'plastic' ? 'Custom PVC NFC Card' : 'Custom Metal NFC Card'} (${material || 'standard'})`,
       content_id: tier,
       value: itemPrice,
       currency: 'NGN',
@@ -352,17 +344,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
 
           {/* Quick CTA & Guarantee */}
           <div className="flex items-center gap-2.5 sm:gap-4">
-            <button
-              onClick={() => setIsPixelTesterOpen(true)}
-              title="Test & Inspect TikTok Pixel Events"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono bg-black/60 border border-[#25F4EE]/40 text-[#25F4EE] hover:bg-[#25F4EE]/10 transition-all cursor-pointer"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#25F4EE] animate-pulse" />
-              <span className="hidden sm:inline">TikTok Pixel</span>
-              <span className="sm:hidden">Pixel</span>
-            </button>
-
-            <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-emerald-400">
+            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Lagos Workshop Active</span>
             </div>
@@ -500,8 +482,8 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                     <span className="font-bold">{getMaterialLabel(heroMaterial)}</span>
                   </div>
 
-                  <span className="text-xs font-mono text-white/50">
-                    {heroMaterial.includes('metal') ? '28g Aerospace Solid Steel' : 'High-Density Matte PVC'}
+                  <span className="text-xs font-mono text-white/60">
+                    {heroMaterial.includes('metal') ? '28g Aerospace Solid Steel • Fiber-Laser Engraved' : 'High-Density Polymer PVC • Full-Color UV Printed'}
                   </span>
                 </div>
 
@@ -607,34 +589,34 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                       {
                         id: 'metal_spacegray' as CardMaterial,
                         label: 'Space Gray Steel',
-                        price: '₦50,000',
-                        weight: '28g Weighted Solid Steel',
+                        price: '₦100,000',
+                        weight: '28g Solid Aerospace Steel',
                         swatch: 'from-slate-500 via-slate-700 to-slate-900 border-slate-400',
-                        tag: 'Popular',
+                        tag: 'Engraved',
                       },
                       {
                         id: 'metal_gold' as CardMaterial,
                         label: '24K Matte Gold',
-                        price: '₦50,000',
-                        weight: '28g Mirror / Matte Brass',
+                        price: '₦100,000',
+                        weight: '28g PVD Gold Plate',
                         swatch: 'from-[#FFE082] via-[#FFB300] to-[#8D6E63] border-[#FFE082]',
-                        tag: 'Luxury',
+                        tag: 'Engraved',
                       },
                       {
                         id: 'plastic_black' as CardMaterial,
-                        label: 'Matte Obsidian',
-                        price: '₦35,000',
+                        label: 'Matte Obsidian PVC',
+                        price: '₦30,000',
                         weight: '5g Stealth Matte PVC',
                         swatch: 'from-neutral-700 via-neutral-900 to-black border-neutral-600',
-                        tag: 'Classic',
+                        tag: 'UV Printed',
                       },
                       {
                         id: 'plastic_white' as CardMaterial,
-                        label: 'Glacier White',
+                        label: 'Glacier White PVC',
                         price: '₦30,000',
-                        weight: '5g Clean Ultra-Matte PVC',
+                        weight: '5g Pearl White PVC',
                         swatch: 'from-white via-slate-100 to-slate-300 border-white',
-                        tag: 'Minimal',
+                        tag: 'UV Printed',
                       },
                     ].map((item) => {
                       const isSelected = heroMaterial === item.id;
@@ -678,16 +660,18 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                   </div>
                 </div>
 
-                {/* Control 2: Real-time Laser Engraving Inputs */}
+                {/* Control 2: Real-time Engraving / Printing Inputs */}
                 <div>
                   <label className="block text-xs font-bold text-white/90 uppercase tracking-wider font-mono mb-2.5">
-                    2. Laser Engrave Your Identity
+                    {heroMaterial.includes('metal') ? '2. Fiber-Laser Engrave Your Identity' : '2. Precision UV Print Your Identity'}
                   </label>
 
                   <div className="flex flex-col gap-2.5">
                     {/* Full Name */}
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-mono text-white/60">Laser Engraved Name:</span>
+                      <span className="text-[10px] font-mono text-white/60">
+                        {heroMaterial.includes('metal') ? 'Laser Engraved Name:' : 'UV Printed Name:'}
+                      </span>
                       <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#B600A8] transition-colors">
                         <input
                           type="text"
@@ -702,7 +686,9 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
 
                     {/* Title / Role */}
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-mono text-white/60">Executive Title / Role:</span>
+                      <span className="text-[10px] font-mono text-white/60">
+                        {heroMaterial.includes('metal') ? 'Engraved Executive Title / Role:' : 'Printed Title / Role:'}
+                      </span>
                       <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#B600A8] transition-colors">
                         <input
                           type="text"
@@ -780,7 +766,9 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
 
                   <p className="text-[11px] text-white/50 text-center mt-2.5 flex items-center justify-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Engraved & dispatched from Lagos within 24h • Free Lagos delivery</span>
+                    <span>
+                      {heroMaterial.includes('metal') ? 'Precision fiber-laser engraved' : 'Precision UV printed'} & dispatched within 24h • Insured delivery via GHL & GIG Logistics
+                    </span>
                   </p>
                 </div>
 
@@ -973,179 +961,128 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
           
-          {/* TIER 1A: SMART PLASTIC (WHITE) */}
-          <div className="p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
+          {/* TIER 1: CUSTOM PVC CARD (₦30,000) - FULL-COLOR UV PRINTING */}
+          <div className="p-8 sm:p-9 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between relative">
             <div>
-              <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white/80">
-                Starter Hardware
-              </span>
-              <h3 className="text-2xl font-bold text-white mt-4">Smart Plastic NFC (White)</h3>
-              <p className="text-xs text-white/60 mt-1">High-density glacier white pearl PVC with instant contactless chip & dynamic QR.</p>
-
-              <div className="flex items-baseline gap-2 my-6">
-                <span className="text-4xl font-black text-white">₦30,000</span>
-                <span className="text-white/40 line-through text-sm">₦45,000</span>
-                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 33%</span>
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white/90 border border-white/10">
+                  Starter Choice • UV Printing
+                </span>
+                <span className="text-xs font-mono text-emerald-400 font-bold">5g Polymer PVC</span>
               </div>
 
-              <ul className="flex flex-col gap-3 text-xs sm:text-sm text-white/80">
-                {[
-                  'Clean Pearl Glacier White Finish',
-                  'Instant 0.2s NFC Contactless Chip',
-                  'Dynamic Backside Laser/Silk QR Code',
-                  'Free Digital Profile Hosting Forever',
-                  'One-Tap vCard Phonebook Sync',
-                  'Nationwide Delivery in Nigeria',
-                ].map((feat, i) => (
-                  <li key={i} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-white">Custom PVC Card</h3>
+              <p className="text-xs sm:text-sm text-white/60 mt-1.5 leading-relaxed">
+                Lightweight, scratch-resistant polymer PVC with high-definition full-color UV printing and instant contactless chip. Available in Glacier White & Matte Obsidian.
+              </p>
+
+              <div className="flex items-baseline gap-3 my-7 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                <span className="text-4xl sm:text-5xl font-black text-white">₦30,000</span>
+                <span className="text-white/40 line-through text-base">₦45,000</span>
+                <span className="text-xs font-bold font-mono text-emerald-400 ml-auto px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  Save 33%
+                </span>
+              </div>
+
+              <div className="mb-6">
+                <span className="text-[11px] font-mono text-white/50 uppercase tracking-wider block mb-3">
+                  Production & Hardware Specs:
+                </span>
+                <ul className="flex flex-col gap-3.5 text-xs sm:text-sm text-white/80">
+                  {[
+                    'Precision Full-Color UV Printing (Front & Back)',
+                    'Glacier White or Matte Obsidian Finish Options',
+                    'Scratch-Resistant UV Polymer Protective Cure',
+                    'Instant 0.2s NFC Contactless Microchip',
+                    'Dynamic High-Contrast Backside QR Code',
+                    'Free Lifetime Cloud Bio & Contactless Profile',
+                    'One-Tap vCard Phonebook Sync (iOS & Android)',
+                    'Insured Nationwide Delivery via GHL & GIG Logistics',
+                  ].map((feat, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span className={i === 0 ? 'font-bold text-white' : ''}>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             <button
               onClick={() => handleOpenCustomizer('plastic', 'plastic_white')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
+              className="mt-6 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40 transition-all cursor-pointer shadow-lg active:scale-98 flex items-center justify-center gap-2"
             >
-              Customize Smart Plastic (White)
+              <span>Customize PVC Card (₦30,000)</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* TIER 1B: SMART PLASTIC (BLACK) */}
-          <div className="p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
-            <div>
-              <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white/80">
-                Starter Hardware
-              </span>
-              <h3 className="text-2xl font-bold text-white mt-4">Smart Plastic NFC (Black)</h3>
-              <p className="text-xs text-white/60 mt-1">High-density matte obsidian PVC with instant contactless chip & dynamic QR.</p>
-
-              <div className="flex items-baseline gap-2 my-6">
-                <span className="text-4xl font-black text-white">₦35,000</span>
-                <span className="text-white/40 line-through text-sm">₦50,000</span>
-                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 30%</span>
-              </div>
-
-              <ul className="flex flex-col gap-3 text-xs sm:text-sm text-white/80">
-                {[
-                  'Deep Matte Obsidian Black Finish',
-                  'Instant 0.2s NFC Contactless Chip',
-                  'Dynamic Backside Laser/Silk QR Code',
-                  'Free Digital Profile Hosting Forever',
-                  'One-Tap vCard Phonebook Sync',
-                  'Nationwide Delivery in Nigeria',
-                ].map((feat, i) => (
-                  <li key={i} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <button
-              onClick={() => handleOpenCustomizer('plastic', 'plastic_black')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
-            >
-              Customize Smart Plastic (Black)
-            </button>
-          </div>
-
-          {/* TIER 2: SMART METAL (MOST POPULAR / CRO BESTSELLER) */}
-          <div className="relative p-7 rounded-3xl bg-gradient-to-b from-[#1E1824] via-[#120F17] to-black border-2 border-[#B600A8] shadow-[0_0_50px_rgba(182,0,168,0.25)] flex flex-col justify-between transform xl:-translate-y-4">
+          {/* TIER 2: CUSTOM METAL CARD (₦100,000) - PRECISION FIBER-LASER ENGRAVING */}
+          <div className="relative p-8 sm:p-9 rounded-3xl bg-gradient-to-b from-[#1F1728] via-[#140F1D] to-black border-2 border-[#B600A8] shadow-[0_0_60px_rgba(182,0,168,0.3)] flex flex-col justify-between transform lg:-translate-y-2">
             
             {/* Bestseller Badge */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#B600A8] to-purple-600 text-white px-4 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
-              ★ Most Popular • Executive Pick
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-xl shadow-purple-950/80 whitespace-nowrap border border-white/20">
+              ★ Most Popular • Executive Bestseller
             </div>
 
             <div>
-              <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-[#B600A8]/20 text-[#E0A3F8] border border-[#B600A8]/30">
-                28g Weighted Steel
-              </span>
-              <h3 className="text-2xl font-bold text-white mt-4">Smart Metal NFC</h3>
-              <p className="text-xs text-white/60 mt-1">Deep fiber-laser etched stainless steel with matte titanium finish.</p>
-
-              <div className="flex items-baseline gap-2 my-6">
-                <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-[#B600A8]">
-                  ₦50,000
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-[#B600A8]/20 text-[#E0A3F8] border border-[#B600A8]/40">
+                  Heavyweight • Laser Engraving
                 </span>
-                <span className="text-white/40 line-through text-sm">₦75,000</span>
-                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 33%</span>
+                <span className="text-xs font-mono text-purple-300 font-bold">28g Solid Steel</span>
               </div>
 
-              <ul className="flex flex-col gap-3 text-xs sm:text-sm text-white/80">
-                {[
-                  'Heavyweight 28g Aerospace Stainless Steel',
-                  'Precision Fiber Laser Etched Name & Logo',
-                  'Space Gray or 24K Matte Gold Finish',
-                  'Priority Production Queue (24h Dispatch)',
-                  'Dynamic Contactless Chip + Dynamic QR',
-                  'Lifetime Cloud Profile & vCard Engine',
-                  'Insured DHL / GIG Express Shipping',
-                ].map((feat, i) => (
-                  <li key={i} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#B600A8] shrink-0" />
-                    <span className={i === 0 || i === 1 ? 'font-bold text-white' : ''}>{feat}</span>
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-white">Custom Metal Card</h3>
+              <p className="text-xs sm:text-sm text-white/70 mt-1.5 leading-relaxed">
+                Heavyweight 28g aerospace stainless steel with permanent deep fiber-laser CNC engraving that never fades. Available in Space Gray Steel & 24K Matte Gold.
+              </p>
+
+              <div className="flex items-baseline gap-3 my-7 p-4 rounded-2xl bg-white/[0.03] border border-[#B600A8]/30">
+                <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-[#B600A8]">
+                  ₦100,000
+                </span>
+                <span className="text-white/40 line-through text-base">₦150,000</span>
+                <span className="text-xs font-bold font-mono text-emerald-400 ml-auto px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  Save 33%
+                </span>
+              </div>
+
+              <div className="mb-6">
+                <span className="text-[11px] font-mono text-[#E0A3F8] uppercase tracking-wider block mb-3">
+                  Executive Craftsmanship Specs:
+                </span>
+                <ul className="flex flex-col gap-3.5 text-xs sm:text-sm text-white/90">
+                  {[
+                    'Deep Fiber-Laser CNC Engraving (Name, Role & Logo)',
+                    'Heavyweight 28g Aerospace Solid Stainless Steel',
+                    'Space Gray Brushed Steel or 24K Matte Gold PVD Finish',
+                    'Permanent High-Contrast Laser Etched QR Code',
+                    'Dual-Frequency High-Gain NFC Contactless Antenna',
+                    'Priority 24h Lagos Workshop Fabrication Queue',
+                    'Real-Time Link Click & Contact Download Analytics',
+                    'Priority Express Insured Delivery via GHL & GIG Logistics',
+                  ].map((feat, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-[#B600A8] shrink-0 mt-0.5" />
+                      <span className={i === 0 || i === 1 ? 'font-bold text-white' : ''}>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             <button
               onClick={() => handleOpenCustomizer('metal', 'metal_spacegray')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/60 active:scale-98 transition-all"
+              className="mt-6 w-full py-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/60 active:scale-98 transition-all"
             >
               <span>Build Custom Metal Card (10% Off)</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* TIER 3: METAL DEBIT CONVERT (LUXURY DUAL-CHIP) */}
-          <div className="p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between">
-            <div>
-              <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                👑 Luxury Dual-Chip
-              </span>
-              <h3 className="text-2xl font-bold text-white mt-4">Metal Debit Convert</h3>
-              <p className="text-xs text-white/60 mt-1">
-                Converts your existing bank card into a heavyweight metal card with EMV payment + CHIP NFC networking.
-              </p>
-
-              <div className="flex items-baseline gap-2 my-6">
-                <span className="text-4xl font-black text-white">₦100,000</span>
-                <span className="text-white/40 line-through text-sm">₦140,000</span>
-                <span className="text-[11px] font-bold text-emerald-400 ml-auto">Save 28%</span>
-              </div>
-
-              <ul className="flex flex-col gap-3 text-xs sm:text-sm text-white/80">
-                {[
-                  'EMV Banking Chip Transplant (Pay for dinners)',
-                  'Integrated CHIP NFC Digital Networking',
-                  '24K Gold Mirror or Stealth Black Steel',
-                  'Heavyweight 32g Luxury Weight',
-                  'Full Laser Engraving (Front & Back)',
-                  'VIP Private Concierge Delivery',
-                ].map((feat, i) => (
-                  <li key={i} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <button
-              onClick={() => handleOpenCustomizer('debit', 'metal_gold')}
-              className="mt-8 w-full py-4 rounded-2xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
-            >
-              Order Metal Debit Convert
-            </button>
-          </div>
         </div>
       </section>
 
@@ -1173,11 +1110,11 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               },
               {
                 q: 'How do I submit my custom logo and design?',
-                a: 'During customization you can specify your text and handle. Immediately after checkout, you can upload high-resolution vector logos via our dedicated VIP WhatsApp Concierge, where our master engravers will send you a digital proof before laser etching.',
+                a: 'During customization you can specify your text and handle. Immediately after checkout, you can upload high-resolution vector logos via our dedicated VIP WhatsApp Concierge. PVC cards are precision full-color UV printed with protective coating, while Metal cards are fiber-laser deep engraved. Our production team sends you a digital proof before fabrication.',
               },
               {
                 q: 'How fast is delivery across Nigeria?',
-                a: 'We manufacture and laser-engrave all cards in our Lagos facility. Deliveries within Lagos arrive in 24–48 hours. Abuja, Port Harcourt, and other states take 2–4 business days via DHL Express or GIG Logistics.',
+                a: 'We manufacture and customize all cards in our Lagos facility. Deliveries within Lagos arrive in 24–48 hours. Nationwide deliveries to Abuja, Port Harcourt, and other states take 2–4 business days via GHL & GIG Logistics.',
               },
             ].map((faq, i) => (
               <div key={i} className="p-6 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2">
@@ -1219,22 +1156,10 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       <footer className="py-10 px-4 sm:px-6 border-t border-white/10 text-center text-xs font-mono text-white/40">
         <p>© {new Date().getFullYear()} CHIP NG Technologies Limited. All rights reserved.</p>
         <p className="mt-1">Crafted with precision for Nigeria's ambitious founders, executives, and creators.</p>
-        <button
-          onClick={() => setIsPixelTesterOpen(true)}
-          className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-[#25F4EE]/70 hover:text-[#25F4EE] transition-colors cursor-pointer"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#25F4EE] animate-pulse" />
-          Test TikTok Pixel Events (Pixel ID: DAO7GLRC77U5LL2S2TIG)
-        </button>
+        <p className="mt-1.5 text-[11px] text-white/30">Nationwide delivery insured by GHL & GIG Logistics.</p>
       </footer>
 
       {/* ================= MODALS & INTERACTIVE FUNNELS ================= */}
-      
-      {/* TikTok Pixel Inspector & Test Diagnostic Tool */}
-      <TikTokPixelTesterModal
-        isOpen={isPixelTesterOpen}
-        onClose={() => setIsPixelTesterOpen(false)}
-      />
 
       {/* 1. Multi-Step Card Customizer & Lead Capture (Interest & Urgency) */}
       <CardCustomizerModal
@@ -1259,7 +1184,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       <div className="fixed bottom-0 left-0 w-full p-3.5 bg-black/95 backdrop-blur-xl border-t border-white/10 z-40 md:hidden flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-xs font-mono text-emerald-400 font-bold">10% VIP Coupon Available</span>
-          <span className="text-sm font-bold text-white">Smart Metal ₦50,000</span>
+          <span className="text-sm font-bold text-white">Custom PVC ₦30k • Metal ₦100k</span>
         </div>
 
         <button

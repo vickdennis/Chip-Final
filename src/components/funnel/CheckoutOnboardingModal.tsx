@@ -4,6 +4,7 @@ import { usePaystackPayment } from 'react-paystack';
 import { CardCustomizationData } from './CardCustomizerModal';
 import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
+import { GhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
 
 interface CheckoutOnboardingModalProps {
   isOpen: boolean;
@@ -250,9 +251,25 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 <span className="font-mono text-amber-300 font-semibold">+{bumpVipQueue ? '₦5,000' : '₦0'}</span>
               </div>
 
-              <div className="flex justify-between items-center text-xs text-white/60">
-                <span>Insured Nationwide Delivery (DHL / GIG Logistics)</span>
-                <span className="text-emerald-400 font-bold uppercase">Free</span>
+              {/* Delivery with GHL & GIG Logistics */}
+              <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs text-white/70">
+                  <span className="font-medium">Insured Nationwide Delivery (GHL & GIG Logistics)</span>
+                  <span className="text-emerald-400 font-bold font-mono uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Free
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-white/50 uppercase">Carriers:</span>
+                    <div className="flex items-center gap-2">
+                      <GhlLogisticsLogo className="h-6" />
+                      <GigLogisticsLogo className="h-6" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">Lagos &bull; Nationwide</span>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-white/15 flex justify-between items-baseline">
@@ -322,7 +339,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <div>
                       <span className="font-bold text-white block">Express Dispatch Guarantee</span>
                       <span className="text-white/60 text-[11px] leading-relaxed">
-                        Custom orders approved before 12:00 PM WAT enter production same-day. Delivered in 24–48 hours across Lagos; 48–72 hours nationwide via DHL/GIG Logistics.
+                        Custom orders approved before 12:00 PM WAT enter production same-day. Delivered in 24–48 hours across Lagos; 48–72 hours nationwide via GHL & GIG Logistics.
                       </span>
                     </div>
                   </div>
@@ -345,6 +362,9 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     </div>
                   </div>
                 </div>
+
+                {/* Logistics Partner Trust Banner with GHL and GIG Logistics Logos */}
+                <LogisticsTrustBanner />
               </div>
             ) : (
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-3">
@@ -381,7 +401,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
 
                 <a
                   href={`https://wa.me/2348100764154?text=${encodeURIComponent(
-                    `Hello CHIP Concierge! I have made a direct bank transfer of ₦${totalAmountNgn.toLocaleString()} for my ${data.tier.toUpperCase()} NFC Card.\n\nName: ${data.customerName}\nLaser Engraved Name: ${data.name}\nHandle: chipng.com/@${data.handle}\nEmail: ${data.email}\nPhone: ${data.whatsapp}\nOrder Total: ₦${totalAmountNgn.toLocaleString()}`
+                    `Hello CHIP Concierge! I have made a direct bank transfer of ₦${totalAmountNgn.toLocaleString()} for my ${data.tier.toUpperCase()} NFC Card.\n\nName: ${data.customerName}\nCustom Name on Card: ${data.name}\nHandle: chipng.com/@${data.handle}\nEmail: ${data.email}\nPhone: ${data.whatsapp}\nOrder Total: ₦${totalAmountNgn.toLocaleString()}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -393,6 +413,9 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   <MessageCircle className="w-4 h-4 fill-current" />
                   <span>I Have Transferred • Send Receipt on WhatsApp</span>
                 </a>
+
+                {/* Logistics Partner Trust Banner with GHL and GIG Logistics Logos */}
+                <LogisticsTrustBanner className="mt-1" />
               </div>
             )}
           </div>
@@ -411,7 +434,8 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 Your Custom Card is Being Handcrafted!
               </h2>
               <p className="text-xs sm:text-sm text-white/70 max-w-lg mx-auto mt-2 leading-relaxed">
-                Our master technicians in Lagos have received your laser-engraving layout for{' '}
+                Our master technicians in Lagos have received your{' '}
+                {data.tier === 'metal' ? 'laser-engraving layout' : 'custom UV printing layout'} for{' '}
                 <strong className="text-white">{data.name}</strong>. While your physical hardware is crafted, let's activate your live digital bio engine right now!
               </p>
             </div>
