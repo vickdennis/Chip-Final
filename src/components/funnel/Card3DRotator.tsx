@@ -13,6 +13,8 @@ interface Card3DRotatorProps {
   qrUrl?: string;
   isFlipped?: boolean;
   onFlipToggle?: () => void;
+  size?: 'standard' | 'hero';
+  isTapping?: boolean;
   className?: string;
 }
 
@@ -24,6 +26,8 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
   qrUrl = 'https://chipng.com/@victor',
   isFlipped: controlledFlipped,
   onFlipToggle,
+  size = 'standard',
+  isTapping = false,
   className = '',
 }) => {
   const [internalFlipped, setInternalFlipped] = useState(false);
@@ -43,8 +47,8 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rX = ((y - centerY) / centerY) * -14;
-    const rY = ((x - centerX) / centerX) * 14;
+    const rX = ((y - centerY) / centerY) * -16;
+    const rY = ((x - centerX) / centerX) * 16;
 
     setRotateX(rX);
     setRotateY(rY);
@@ -55,6 +59,32 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
   };
 
   const handleMouseLeave = () => {
+    setRotateX(0);
+    setRotateY(0);
+    setGlarePosition({ x: 50, y: 50 });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!cardRef.current || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rX = Math.max(-18, Math.min(18, ((y - centerY) / centerY) * -18));
+    const rY = Math.max(-18, Math.min(18, ((x - centerX) / centerX) * 18));
+
+    setRotateX(rX);
+    setRotateY(rY);
+    setGlarePosition({
+      x: (x / rect.width) * 100,
+      y: (y / rect.height) * 100,
+    });
+  };
+
+  const handleTouchEnd = () => {
     setRotateX(0);
     setRotateY(0);
     setGlarePosition({ x: 50, y: 50 });
@@ -136,6 +166,7 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
   };
 
   const config = getMaterialConfig();
+  const isHero = size === 'hero';
 
   return (
     <div className={`relative flex flex-col items-center select-none ${className}`}>
@@ -144,10 +175,22 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={toggleFlip}
-        style={{ perspective: 1200 }}
-        className="relative w-full max-w-[400px] aspect-[1.586] cursor-pointer group"
+        style={{ perspective: 1400 }}
+        className={`relative w-full aspect-[1.586] cursor-pointer group touch-none ${
+          isHero ? 'max-w-[480px] sm:max-w-[530px] md:max-w-[560px]' : 'max-w-[400px]'
+        }`}
       >
+        {/* Contactless Radio Waves on Tap Simulation */}
+        {isTapping && (
+          <div className="absolute -inset-4 sm:-inset-8 pointer-events-none z-40 flex items-center justify-center">
+            <div className="w-32 h-32 sm:w-44 sm:h-44 rounded-full border-2 border-[#25F4EE] animate-ping opacity-80" />
+            <div className="absolute w-48 h-48 sm:w-60 sm:h-60 rounded-full border border-purple-400 animate-ping opacity-50 [animation-delay:250ms]" />
+          </div>
+        )}
+
         <motion.div
           animate={{
             rotateX,
@@ -159,7 +202,7 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
             damping: 24,
           }}
           style={{ transformStyle: 'preserve-3d' }}
-          className="w-full h-full relative rounded-2xl md:rounded-3xl transition-shadow duration-300"
+          className="w-full h-full relative rounded-2xl sm:rounded-3xl transition-shadow duration-300 ring-1 ring-white/10"
         >
           {/* ================= FRONT SIDE ================= */}
           <div
@@ -169,7 +212,9 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
               WebkitBackfaceVisibility: 'hidden',
               backgroundColor: config.solidBg,
             }}
-            className={`absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl p-6 md:p-7 flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border} z-20`}
+            className={`absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl ${
+              isHero ? 'p-6 sm:p-8 md:p-9' : 'p-5 md:p-7'
+            } flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border} z-20`}
           >
             {/* Solid opaque backdrop fill */}
             <div
@@ -190,20 +235,22 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
 
             {/* Top Row: Brand & NFC Signal */}
             <div className="relative z-10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-black/30 border border-white/20 flex items-center justify-center shadow-inner">
-                  <span className="font-display font-black text-sm tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">
+              <div className="flex items-center gap-2.5">
+                <div className={`${isHero ? 'w-9 h-9 sm:w-10 sm:h-10' : 'w-8 h-8'} rounded-xl bg-black/40 border border-white/20 flex items-center justify-center shadow-inner`}>
+                  <span className={`font-display font-black ${isHero ? 'text-sm sm:text-base' : 'text-sm'} tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-300`}>
                     CHIP
                   </span>
                 </div>
-                <span className="text-[10px] tracking-widest font-mono uppercase px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/10">
-                  {config.badge}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] sm:text-[11px] tracking-widest font-mono uppercase px-2 py-0.5 rounded-full bg-white/10 text-white/90 border border-white/15 w-fit font-bold">
+                    {config.badge}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                <Wifi className={`w-5 h-5 rotate-90 ${config.accentColor}`} />
-                <span className="text-[9px] font-mono tracking-widest uppercase opacity-70 text-white">
+              <div className="flex items-center gap-2">
+                <Wifi className={`${isHero ? 'w-5 h-5 sm:w-6 sm:h-6' : 'w-5 h-5'} rotate-90 ${config.accentColor}`} />
+                <span className="text-[9px] sm:text-[10px] font-mono tracking-widest uppercase opacity-80 text-white font-semibold">
                   NFC 2.4GHz
                 </span>
               </div>
@@ -212,45 +259,61 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
             {/* Middle: Smart Chip Visual (for Metal / High-end cards) */}
             <div className="relative z-10 my-auto flex items-center justify-between">
               <div
-                className={`w-11 h-9 rounded-md border flex flex-col justify-between p-1 shadow-md ${config.chipColor}`}
+                className={`${
+                  isHero ? 'w-12 h-10 sm:w-14 sm:h-11' : 'w-11 h-9'
+                } rounded-lg border flex flex-col justify-between p-1.5 shadow-md relative overflow-hidden ${config.chipColor}`}
               >
-                <div className="flex justify-between h-1 border-b border-black/20" />
-                <div className="flex justify-between h-1 border-b border-black/20" />
-                <div className="flex justify-between h-1 border-b border-black/20" />
+                {/* Microchip Contact Pins Architecture */}
+                <div className="flex justify-between h-1.5 border-b border-black/25">
+                  <span className="w-1.5 h-full bg-black/15 rounded-sm" />
+                  <span className="w-1.5 h-full bg-black/15 rounded-sm" />
+                </div>
+                <div className="flex justify-between h-1.5 border-b border-black/25">
+                  <span className="w-2 h-full bg-black/15 rounded-sm" />
+                  <span className="w-2 h-full bg-black/15 rounded-sm" />
+                </div>
+                <div className="flex justify-between h-1.5">
+                  <span className="w-1.5 h-full bg-black/15 rounded-sm" />
+                  <span className="w-1.5 h-full bg-black/15 rounded-sm" />
+                </div>
               </div>
 
               {/* Laser Engraving Brand Watermark */}
               <div className="text-right">
-                <p className="text-[10px] font-mono uppercase tracking-widest text-white/50">
+                <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-white/50 font-bold">
                   Contactless Sync
                 </p>
-                <p className="text-xs font-semibold text-white/80">iOS & Android</p>
+                <p className="text-xs sm:text-sm font-semibold text-white/90">iOS & Android</p>
               </div>
             </div>
 
             {/* Bottom Row: Laser Engraved Custom Name & Title */}
             <div className="relative z-10 flex justify-between items-end">
-              <div className="max-w-[75%]">
+              <div className="max-w-[78%]">
                 <h3
-                  className={`text-lg md:text-xl font-bold tracking-tight truncate leading-tight ${config.textColor}`}
+                  className={`${
+                    isHero ? 'text-xl sm:text-2xl md:text-3xl font-black' : 'text-lg md:text-xl font-bold'
+                  } tracking-tight truncate leading-tight ${config.textColor}`}
                 >
                   {customName || 'Your Name Here'}
                 </h3>
                 <p
-                  className={`text-xs md:text-sm font-medium tracking-wide truncate ${config.subTextColor}`}
+                  className={`${
+                    isHero ? 'text-xs sm:text-sm md:text-base font-semibold mt-0.5' : 'text-xs md:text-sm font-medium'
+                  } tracking-wide truncate ${config.subTextColor}`}
                 >
                   {customTitle || 'Your Title / Role'}
                 </p>
                 {customCompany && (
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-white/40 mt-0.5 truncate">
+                  <p className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-white/50 mt-1 truncate">
                     {customCompany}
                   </p>
                 )}
               </div>
 
               {/* Tap to Flip badge */}
-              <div className="flex items-center gap-1 text-[10px] font-mono uppercase text-white/40 group-hover:text-white/80 transition-colors">
-                <RotateCcw className="w-3 h-3" />
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono uppercase text-white/50 group-hover:text-white/90 transition-colors bg-black/20 px-2 py-1 rounded-md border border-white/10">
+                <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>Flip</span>
               </div>
             </div>
@@ -264,9 +327,11 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
               WebkitBackfaceVisibility: 'hidden',
               backgroundColor: config.solidBg,
             }}
-            className={`absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl p-6 md:p-7 flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border} z-20 shadow-2xl`}
+            className={`absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl ${
+              isHero ? 'p-6 sm:p-8 md:p-9' : 'p-5 md:p-7'
+            } flex flex-col justify-between overflow-hidden border ${config.bg} ${config.border} z-20 shadow-2xl`}
           >
-            {/* Opaque Solid Base Shield to completely prevent transparency */}
+            {/* Opaque Solid Base Shield */}
             <div
               className={`absolute inset-0 z-0 ${config.gradientOverlay}`}
               style={{ backgroundColor: config.solidBg }}
@@ -279,21 +344,21 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
 
             {/* Magnetic Stripe representation */}
             <div
-              className={`absolute top-5 left-0 w-full h-10 border-y z-10 ${config.magStripe}`}
+              className={`absolute ${isHero ? 'top-6 sm:top-8 h-11 sm:h-12' : 'top-5 h-10'} left-0 w-full border-y z-10 ${config.magStripe}`}
             />
 
             {/* Top row spacing */}
-            <div className={`relative z-20 pt-10 flex justify-between items-center text-[10px] font-mono ${config.backMutedColor}`}>
+            <div className={`relative z-20 ${isHero ? 'pt-11 sm:pt-14' : 'pt-10'} flex justify-between items-center text-[10px] sm:text-xs font-mono ${config.backMutedColor}`}>
               <span>SECURITY CHIP #9482-NG</span>
               <span>LIFETIME CLOUD SYNC</span>
             </div>
 
             {/* Center: Dynamic QR code for older non-NFC phones */}
             <div className="relative z-20 flex items-center justify-between gap-4 my-2">
-              <div className="p-2.5 bg-white rounded-xl shadow-lg shrink-0 border border-black/10">
+              <div className="p-2 sm:p-2.5 bg-white rounded-xl shadow-lg shrink-0 border border-black/10">
                 <QRCodeSVG
                   value={qrUrl}
-                  size={68}
+                  size={isHero ? 78 : 68}
                   level="M"
                   includeMargin={false}
                   fgColor="#000000"
@@ -302,20 +367,20 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
               </div>
 
               <div className={`flex flex-col text-left pr-2 ${config.backTextColor}`}>
-                <span className="text-xs font-bold uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">
                   Instant Bio Link
                 </span>
-                <span className={`text-[11px] leading-snug mt-0.5 ${config.backMutedColor}`}>
+                <span className={`text-[11px] sm:text-xs leading-snug mt-0.5 ${config.backMutedColor}`}>
                   Scan with any camera or tap phone back to open your live CHIP profile.
                 </span>
-                <span className="text-[10px] font-mono text-indigo-400 mt-1 truncate">
+                <span className="text-[10px] sm:text-xs font-mono text-indigo-400 mt-1 truncate">
                   {qrUrl.replace('https://', '')}
                 </span>
               </div>
             </div>
 
             {/* Bottom: Signature Strip & Legal */}
-            <div className={`relative z-20 flex justify-between items-center border-t ${config.backBorderColor} pt-2 text-[9px] font-mono ${config.backMutedColor}`}>
+            <div className={`relative z-20 flex justify-between items-center border-t ${config.backBorderColor} pt-2 text-[9px] sm:text-[10px] font-mono ${config.backMutedColor}`}>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-amber-400" />
                 <span>OFFICIAL CHIP HARDWARE</span>
@@ -331,12 +396,13 @@ export const Card3DRotator: React.FC<Card3DRotatorProps> = ({
         <button
           type="button"
           onClick={toggleFlip}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-mono transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-mono transition-colors cursor-pointer border border-white/10 hover:border-white/25"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Flip Card (Front / Back)</span>
         </button>
-        <span className="text-xs text-white/40">Hover/Drag to Tilt 3D</span>
+        <span className="text-xs text-white/40 hidden sm:inline">Move cursor to tilt in 3D</span>
+        <span className="text-xs text-white/40 sm:hidden">Drag with finger to tilt</span>
       </div>
     </div>
   );

@@ -26,7 +26,11 @@ import {
   Building2,
   Users,
   Briefcase,
-  Activity
+  Activity,
+  Sliders,
+  RotateCcw,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 
 import { Card3DRotator, CardMaterial } from '../components/funnel/Card3DRotator';
@@ -77,6 +81,92 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   const [heroCustomTitle, setHeroCustomTitle] = useState('Managing Partner & Founder');
   const [heroCompany, setHeroCompany] = useState('Apex Ventures');
   const [heroHandle, setHeroHandle] = useState('victor');
+
+  // Card Studio Interactive State
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [isSimulatingTap, setIsSimulatingTap] = useState(false);
+  const [showTapBanner, setShowTapBanner] = useState(false);
+
+  const getMaterialPrice = (mat: CardMaterial) => {
+    switch (mat) {
+      case 'plastic_white':
+        return 30000;
+      case 'plastic_black':
+        return 35000;
+      case 'metal_spacegray':
+      case 'metal_gold':
+      default:
+        return 50000;
+    }
+  };
+
+  const getMaterialOriginalPrice = (mat: CardMaterial) => {
+    switch (mat) {
+      case 'plastic_white':
+        return 35000;
+      case 'plastic_black':
+        return 40000;
+      case 'metal_spacegray':
+      case 'metal_gold':
+      default:
+        return 55000;
+    }
+  };
+
+  const getMaterialTier = (mat: CardMaterial): 'plastic' | 'metal' | 'debit' => {
+    if (mat === 'plastic_white' || mat === 'plastic_black') return 'plastic';
+    return 'metal';
+  };
+
+  const getMaterialLabel = (mat: CardMaterial) => {
+    switch (mat) {
+      case 'metal_gold':
+        return '24K Matte Gold';
+      case 'metal_spacegray':
+        return 'Space Gray Steel';
+      case 'plastic_black':
+        return 'Matte Obsidian';
+      case 'plastic_white':
+        return 'Glacier White';
+    }
+  };
+
+  const handleSimulateTap = () => {
+    setIsSimulatingTap(true);
+    setShowTapBanner(true);
+    trackTikTokEvent('ViewContent', {
+      content_type: 'product_interaction',
+      content_name: 'Simulate NFC Tap Demo',
+      content_id: heroMaterial,
+      value: getMaterialPrice(heroMaterial),
+      currency: 'NGN',
+    });
+
+    setTimeout(() => {
+      setIsSimulatingTap(false);
+    }, 2400);
+
+    setTimeout(() => {
+      setShowTapBanner(false);
+    }, 5500);
+  };
+
+  const handleOrderHeroCard = () => {
+    const tier = getMaterialTier(heroMaterial);
+    const price = getMaterialPrice(heroMaterial);
+    setSelectedInitialTier(tier);
+    setSelectedInitialMaterial(heroMaterial);
+
+    trackTikTokEvent('AddToCart', {
+      content_type: 'product',
+      content_name: `${tier.toUpperCase()} NFC Card (${heroMaterial})`,
+      content_id: tier,
+      value: price,
+      currency: 'NGN',
+    });
+
+    setIsCustomizerOpen(true);
+  };
 
   // 3. Modals & Funnel State
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
@@ -320,7 +410,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
         </div>
 
         {/* Hero Copywriting Block */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
           <FadeIn y={15}>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#B600A8]/15 border border-[#B600A8]/30 text-[#E395F7] text-xs font-mono uppercase tracking-wider mb-4">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
@@ -331,12 +421,12 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               {personaContent.headline}
             </h1>
 
-            <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-white/70 leading-relaxed max-w-2xl mx-auto">
+            <p className="mt-4 sm:mt-5 text-sm sm:text-lg text-white/70 leading-relaxed max-w-2xl mx-auto">
               {personaContent.subheadline}
             </p>
 
             {/* Persona highlights pill row */}
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-5 text-xs text-white/80 font-mono">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4 text-xs text-white/80 font-mono">
               {personaContent.keyPillars.map((pillar, idx) => (
                 <span
                   key={idx}
@@ -348,131 +438,381 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               ))}
             </div>
 
-            {/* CTA Group */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
-              <button
-                onClick={() => handleOpenCustomizer('metal')}
-                className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-base bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/60 active:scale-95 transition-all"
-              >
-                <span>{personaContent.ctaPrimary}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => {
-                  const el = document.getElementById('pricing');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="w-full sm:w-auto px-7 py-4 rounded-full font-bold text-sm bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 flex items-center justify-center gap-2 cursor-pointer transition-colors"
-              >
-                <span>Compare Pricing Tiers</span>
-              </button>
-            </div>
-
-            <p className="text-xs text-white/50 mt-4 flex items-center justify-center gap-2">
+            <p className="text-xs text-white/50 mt-3 flex items-center justify-center gap-2">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
               <span>{personaContent.socialProof}</span>
             </p>
           </FadeIn>
         </div>
 
-        {/* ================= DUAL-ENGINE INTERACTIVE SHOWCASE ================= */}
-        {/* Shows 3D Card Rotator + Live Bio Preview side-by-side */}
-        <div className="bg-gradient-to-b from-white/[0.04] to-transparent border border-white/10 rounded-3xl p-6 sm:p-10 backdrop-blur-xl">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-8 pb-6 border-b border-white/10 gap-4">
-            <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-[#B600A8] font-bold">
-                The Dual-Engine Experience
-              </span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">
-                Physical Hardware + Cloud Bio Engine
-              </h3>
-              <p className="text-xs sm:text-sm text-white/60 mt-0.5">
-                Rotate the 3D card on the left. Tap or preview the instantaneous live mobile bio profile on the right.
-              </p>
-            </div>
-
-            {/* Quick Material Switcher for Hero */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/10 shrink-0">
-              {[
-                { id: 'metal_spacegray', label: 'Space Gray Steel' },
-                { id: 'metal_gold', label: '24K Matte Gold' },
-                { id: 'plastic_black', label: 'Matte Obsidian' },
-                { id: 'plastic_white', label: 'Glacier White' },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setHeroMaterial(m.id as CardMaterial)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    heroMaterial === m.id
-                      ? 'bg-white/20 text-white border border-white/20'
-                      : 'text-white/50 hover:text-white'
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        {/* ================= HERO SHOWCASE: BOLD PHYSICAL SMART CARD & SIDE FUNCTION CONTROLS ================= */}
+        {/* On desktop: Physical Smart Card is prominent on left with Function Controls by the side.
+            On mobile: Physical Smart Card is at top with Function Controls directly below it. */}
+        <div className="mt-6 sm:mt-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
             
-            {/* Left Engine: 3D Card Rotator */}
-            <div className="lg:col-span-6 flex flex-col items-center justify-center">
-              <span className="text-xs font-mono text-white/50 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Wifi className="w-3.5 h-3.5 text-[#B600A8]" />
-                <span>Engine 1: Aerospace Physical Card</span>
-              </span>
+            {/* ================= LEFT / HERO CENTERPIECE: BOLD PHYSICAL SMART CARD STAGE ================= */}
+            <div className="lg:col-span-7 flex flex-col items-center w-full relative">
+              
+              {/* Floating iOS / Android Contactless Tap Simulation Banner */}
+              <AnimatePresence>
+                {showTapBanner && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -25, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                    className="absolute -top-4 sm:top-2 left-1/2 -translate-x-1/2 z-50 w-[94%] sm:w-[420px] bg-neutral-950/95 backdrop-blur-2xl border border-white/20 rounded-2xl p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex items-center gap-3.5 text-left ring-1 ring-white/10 cursor-pointer"
+                    onClick={() => setShowTapBanner(false)}
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#B600A8] to-purple-800 flex items-center justify-center shrink-0 shadow-lg shadow-purple-950/50">
+                      <Wifi className="w-5 h-5 text-white rotate-90" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          NFC Tag Detected • CHIP.NG
+                        </span>
+                        <span className="text-[10px] font-mono text-white/40">Just Now</span>
+                      </div>
+                      <p className="text-xs font-bold text-white truncate mt-0.5">
+                        {heroCustomName || 'Victor Dennis'} • {heroCompany || 'Apex Ventures'}
+                      </p>
+                      <p className="text-[11px] text-white/70 truncate">
+                        Opened chipng.com/@{heroHandle} • One-tap "Save Contact" ready
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              <Card3DRotator
-                material={heroMaterial}
-                customName={heroCustomName}
-                customTitle={heroCustomTitle}
-                customCompany={heroCompany}
-                qrUrl={`https://chipng.com/@${heroHandle}`}
-                className="w-full"
-              />
+              {/* Card Plinth Container with Ambient Glow */}
+              <div className="w-full relative rounded-3xl p-4 sm:p-8 bg-gradient-to-b from-white/[0.04] via-white/[0.01] to-transparent border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center">
+                
+                {/* Stage Ambient Radial Light */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[480px] h-[320px] sm:h-[480px] bg-gradient-to-br from-[#B600A8]/20 via-purple-600/10 to-transparent blur-[110px] pointer-events-none z-0" />
 
-              {/* Quick Input Sync Controls */}
-              <div className="mt-6 w-full max-w-sm flex flex-col gap-2">
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
-                  <span className="text-[10px] font-mono text-white/40 uppercase">Name:</span>
-                  <input
-                    type="text"
-                    value={heroCustomName}
-                    onChange={(e) => setHeroCustomName(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white focus:outline-none"
-                    placeholder="Type name to reflect on 3D card..."
+                {/* Card Hardware Status Bar */}
+                <div className="relative z-10 flex items-center justify-between w-full max-w-[560px] mb-4 sm:mb-6">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-white/90">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-bold">{getMaterialLabel(heroMaterial)}</span>
+                  </div>
+
+                  <span className="text-xs font-mono text-white/50">
+                    {heroMaterial.includes('metal') ? '28g Aerospace Solid Steel' : 'High-Density Matte PVC'}
+                  </span>
+                </div>
+
+                {/* The Bold 3D Smart Card Rotator */}
+                <div className="relative z-10 w-full flex justify-center py-2 sm:py-4">
+                  <Card3DRotator
+                    material={heroMaterial}
+                    customName={heroCustomName}
+                    customTitle={heroCustomTitle}
+                    customCompany={heroCompany}
+                    qrUrl={`https://chipng.com/@${heroHandle}`}
+                    isFlipped={isCardFlipped}
+                    onFlipToggle={() => setIsCardFlipped((prev) => !prev)}
+                    size="hero"
+                    isTapping={isSimulatingTap}
+                    className="w-full"
                   />
                 </div>
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
-                  <span className="text-[10px] font-mono text-white/40 uppercase">Title:</span>
-                  <input
-                    type="text"
-                    value={heroCustomTitle}
-                    onChange={(e) => setHeroCustomTitle(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white focus:outline-none"
-                    placeholder="Type title..."
-                  />
+
+                {/* Interactive Action Bar under Card */}
+                <div className="relative z-10 w-full max-w-[560px] mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    onClick={handleSimulateTap}
+                    className="px-5 py-2.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#B600A8] to-purple-700 hover:brightness-110 text-white flex items-center gap-2 shadow-lg shadow-purple-950/50 cursor-pointer active:scale-95 transition-all"
+                  >
+                    <Wifi className="w-3.5 h-3.5 rotate-90 text-white" />
+                    <span>Simulate Phone Tap</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsCardFlipped((prev) => !prev)}
+                    className="px-5 py-2.5 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 text-white/90 border border-white/15 flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-white/70" />
+                    <span>Flip Card ({isCardFlipped ? 'Show Front' : 'Show Reverse Side'})</span>
+                  </button>
                 </div>
+
+                {/* 3D Tilt Instruction */}
+                <div className="relative z-10 mt-3 text-[11px] font-mono text-white/40 text-center flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>Interactive 3D: Hover or touch and drag card to tilt with specular reflection</span>
+                </div>
+
+                {/* Hardware Credibility Badges */}
+                <div className="relative z-10 mt-6 pt-5 border-t border-white/10 w-full max-w-[560px] grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2 rounded-xl bg-white/[0.02] border border-white/5">
+                    <span className="block text-[11px] font-bold text-white">NTAG216 Chip</span>
+                    <span className="text-[10px] font-mono text-white/40">0.2s Fast Contactless</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white/[0.02] border border-white/5">
+                    <span className="block text-[11px] font-bold text-white">Zero Battery</span>
+                    <span className="text-[10px] font-mono text-white/40">Inductive RF Field</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white/[0.02] border border-white/5">
+                    <span className="block text-[11px] font-bold text-white">No App Needed</span>
+                    <span className="text-[10px] font-mono text-white/40">iOS & Android Native</span>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            {/* Right Engine: Live Bio Profile Phone Mockup */}
-            <div className="lg:col-span-6 flex flex-col items-center justify-center">
-              <span className="text-xs font-mono text-white/50 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Engine 2: Cloud Bio & vCard Engine</span>
-              </span>
+            {/* ================= RIGHT / FUNCTION CONTROL CONSOLE: BY THE SIDE ON DESKTOP, BELOW ON MOBILE ================= */}
+            <div className="lg:col-span-5 w-full">
+              <div className="bg-[#0D1017]/90 border border-white/15 rounded-3xl p-5 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl ring-1 ring-white/10 flex flex-col gap-6">
+                
+                {/* Console Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-[#B600A8]/20 border border-[#B600A8]/40 flex items-center justify-center text-[#E395F7]">
+                      <Sliders className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white tracking-wide">
+                        Card Function & Customization
+                      </h3>
+                      <p className="text-[11px] text-white/50">
+                        Live hardware configuration console
+                      </p>
+                    </div>
+                  </div>
 
-              <LiveBioPreview
-                name={heroCustomName}
-                title={heroCustomTitle}
-                company={heroCompany}
-                handle={heroHandle}
-                className="w-full"
-              />
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Live Sync</span>
+                  </div>
+                </div>
+
+                {/* Control 1: Material & Finish Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <label className="text-xs font-bold text-white/90 uppercase tracking-wider font-mono">
+                      1. Physical Material & Finish
+                    </label>
+                    <span className="text-[11px] text-[#25F4EE] font-mono">
+                      Selected: {getMaterialLabel(heroMaterial)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {[
+                      {
+                        id: 'metal_spacegray' as CardMaterial,
+                        label: 'Space Gray Steel',
+                        price: '₦50,000',
+                        weight: '28g Weighted Solid Steel',
+                        swatch: 'from-slate-500 via-slate-700 to-slate-900 border-slate-400',
+                        tag: 'Popular',
+                      },
+                      {
+                        id: 'metal_gold' as CardMaterial,
+                        label: '24K Matte Gold',
+                        price: '₦50,000',
+                        weight: '28g Mirror / Matte Brass',
+                        swatch: 'from-[#FFE082] via-[#FFB300] to-[#8D6E63] border-[#FFE082]',
+                        tag: 'Luxury',
+                      },
+                      {
+                        id: 'plastic_black' as CardMaterial,
+                        label: 'Matte Obsidian',
+                        price: '₦35,000',
+                        weight: '5g Stealth Matte PVC',
+                        swatch: 'from-neutral-700 via-neutral-900 to-black border-neutral-600',
+                        tag: 'Classic',
+                      },
+                      {
+                        id: 'plastic_white' as CardMaterial,
+                        label: 'Glacier White',
+                        price: '₦30,000',
+                        weight: '5g Clean Ultra-Matte PVC',
+                        swatch: 'from-white via-slate-100 to-slate-300 border-white',
+                        tag: 'Minimal',
+                      },
+                    ].map((item) => {
+                      const isSelected = heroMaterial === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setHeroMaterial(item.id)}
+                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                            isSelected
+                              ? 'bg-white/10 border-[#B600A8] ring-2 ring-[#B600A8]/50 shadow-lg shadow-[#B600A8]/20'
+                              : 'bg-white/[0.02] border-white/10 hover:bg-white/5 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 mb-2">
+                            <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${item.swatch} border shadow-sm shrink-0`} />
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/70">
+                              {item.tag}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="block text-xs font-bold text-white leading-snug">
+                              {item.label}
+                            </span>
+                            <span className="block text-[10px] text-white/50 leading-tight mt-0.5">
+                              {item.weight}
+                            </span>
+                          </div>
+
+                          <div className="mt-2.5 pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span className="text-xs font-bold font-mono text-emerald-400">
+                              {item.price}
+                            </span>
+                            {isSelected && (
+                              <Check className="w-3.5 h-3.5 text-[#E395F7]" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Control 2: Real-time Laser Engraving Inputs */}
+                <div>
+                  <label className="block text-xs font-bold text-white/90 uppercase tracking-wider font-mono mb-2.5">
+                    2. Laser Engrave Your Identity
+                  </label>
+
+                  <div className="flex flex-col gap-2.5">
+                    {/* Full Name */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-mono text-white/60">Laser Engraved Name:</span>
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#B600A8] transition-colors">
+                        <input
+                          type="text"
+                          value={heroCustomName}
+                          onChange={(e) => setHeroCustomName(e.target.value)}
+                          placeholder="Your Full Name..."
+                          maxLength={32}
+                          className="w-full bg-transparent text-xs text-white placeholder-white/30 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Title / Role */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-mono text-white/60">Executive Title / Role:</span>
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#B600A8] transition-colors">
+                        <input
+                          type="text"
+                          value={heroCustomTitle}
+                          onChange={(e) => setHeroCustomTitle(e.target.value)}
+                          placeholder="e.g. Managing Partner & Founder"
+                          maxLength={40}
+                          className="w-full bg-transparent text-xs text-white placeholder-white/30 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Company / Enterprise */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-mono text-white/60">Company / Brand:</span>
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#B600A8] transition-colors">
+                          <input
+                            type="text"
+                            value={heroCompany}
+                            onChange={(e) => setHeroCompany(e.target.value)}
+                            placeholder="Company Name"
+                            maxLength={28}
+                            className="w-full bg-transparent text-xs text-white placeholder-white/30 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-mono text-white/60">Bio Handle:</span>
+                        <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#B600A8] transition-colors">
+                          <span className="text-white/40 text-xs font-mono">@</span>
+                          <input
+                            type="text"
+                            value={heroHandle}
+                            onChange={(e) => setHeroHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                            placeholder="handle"
+                            maxLength={20}
+                            className="w-full bg-transparent text-xs text-white placeholder-white/30 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Control 3: Pricing and Direct Order Action */}
+                <div className="pt-2 border-t border-white/10">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <div>
+                      <span className="text-[10px] font-mono text-white/50 block">Investment Price</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-display font-black text-white">
+                          ₦{getMaterialPrice(heroMaterial).toLocaleString()}
+                        </span>
+                        <span className="text-xs text-white/40 line-through">
+                          ₦{getMaterialOriginalPrice(heroMaterial).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
+                      10% VIP Coupon Applied
+                    </span>
+                  </div>
+
+                  {/* Primary Order CTA */}
+                  <button
+                    onClick={handleOrderHeroCard}
+                    className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-gradient-to-r from-[#B600A8] via-purple-600 to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 shadow-xl shadow-purple-950/60 active:scale-98 transition-all cursor-pointer"
+                  >
+                    <span>Order This Custom Card</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  <p className="text-[11px] text-white/50 text-center mt-2.5 flex items-center justify-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Engraved & dispatched from Lagos within 24h • Free Lagos delivery</span>
+                  </p>
+                </div>
+
+              </div>
             </div>
+
+          </div>
+        </div>
+
+        {/* ================= COMPANION ENGINE: CLOUD BIO & PHONE DISPLAY ================= */}
+        {/* Shows what happens on the recipient's phone when they tap this physical card */}
+        <div className="mt-14 sm:mt-20 pt-10 sm:pt-14 border-t border-white/10">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs font-mono uppercase tracking-widest text-[#B600A8] font-bold">
+              Engine 2: Cloud Bio & vCard Engine
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-display font-bold text-white mt-1">
+              What Appears On Their Phone In 0.2 Seconds
+            </h3>
+            <p className="text-xs sm:text-sm text-white/60 mt-1">
+              When anyone taps your physical card with iPhone or Android, their mobile browser instantly opens your synchronized live executive profile. No app download needed.
+            </p>
+          </div>
+
+          <div className="max-w-xl mx-auto flex justify-center">
+            <LiveBioPreview
+              name={heroCustomName}
+              title={heroCustomTitle}
+              company={heroCompany}
+              handle={heroHandle}
+              className="w-full"
+            />
           </div>
         </div>
       </section>
