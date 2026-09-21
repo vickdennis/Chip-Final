@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { usePaystackPayment } from 'react-paystack';
 import { CardCustomizationData } from './CardCustomizerModal';
 import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { trackTikTokEvent } from '../../utils/tiktokPixel';
 
 interface CheckoutOnboardingModalProps {
   isOpen: boolean;
@@ -32,6 +33,20 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   // Order bumps state within checkout
   const [bumpLaser, setBumpLaser] = useState(data.orderBumps.laserEngraving);
   const [bumpAnalytics, setBumpAnalytics] = useState(data.orderBumps.lifetimeAnalytics);
+
+  // Track TikTok InitiateCheckout when checkout modal opens
+  useEffect(() => {
+    if (isOpen && data) {
+      trackTikTokEvent('InitiateCheckout', {
+        content_type: 'product',
+        content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
+        content_id: data.tier,
+        quantity: 1,
+        value: totalAmountNgn,
+        currency: 'NGN',
+      });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -106,6 +121,16 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           order_bumps: [bumpLaser ? 'laser_engraving' : null, bumpAnalytics ? 'lifetime_analytics' : null].filter(Boolean),
           estimated_amount: totalAmountNgn,
         }),
+      });
+
+      // Track TikTok CompletePayment
+      trackTikTokEvent('CompletePayment', {
+        content_type: 'product',
+        content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
+        content_id: data.tier,
+        quantity: 1,
+        value: totalAmountNgn,
+        currency: 'NGN',
       });
     } catch (err) {
       console.error('Failed to register converted sale:', err);
