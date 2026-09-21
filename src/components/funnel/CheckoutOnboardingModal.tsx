@@ -31,8 +31,8 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const [onboardingSaved, setOnboardingSaved] = useState(false);
 
   // Order bumps state within checkout
-  const [bumpLaser, setBumpLaser] = useState(data.orderBumps.laserEngraving);
-  const [bumpAnalytics, setBumpAnalytics] = useState(data.orderBumps.lifetimeAnalytics);
+  const [bumpPhoneTag, setBumpPhoneTag] = useState(data.orderBumps?.phoneTagSticker ?? false);
+  const [bumpVipQueue, setBumpVipQueue] = useState(data.orderBumps?.vipAnalyticsQueue ?? false);
 
   // Track TikTok InitiateCheckout when checkout modal opens
   useEffect(() => {
@@ -50,23 +50,19 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
 
   if (!isOpen) return null;
 
-  // Base price calculation: White plastic is 30,000, Black plastic is 35,000
+  // Base price calculation: Custom PVC is 30,000, Custom Metal is 100,000
   const getBasePrice = () => {
     if (data.tier === 'plastic') {
-      return data.material === 'plastic_white' ? 30000 : 35000;
+      return 30000;
     }
-    switch (data.tier) {
-      case 'debit': return 100000;
-      case 'metal':
-      default: return 50000;
-    }
+    return 100000;
   };
 
   const basePrice = getBasePrice();
   const discountAmount = data.appliedDiscount ? Math.round(basePrice * 0.1) : 0;
-  const laserPrice = bumpLaser ? 5000 : 0;
-  const analyticsPrice = bumpAnalytics ? 10000 : 0;
-  const totalAmountNgn = basePrice - discountAmount + laserPrice + analyticsPrice;
+  const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
+  const vipQueuePrice = bumpVipQueue ? 5000 : 0;
+  const totalAmountNgn = basePrice - discountAmount + phoneTagPrice + vipQueuePrice;
   const totalAmountKobo = totalAmountNgn * 100;
 
   // Paystack config
@@ -79,12 +75,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
       name: data.customerName,
       phone: data.whatsapp,
       custom_fields: [
-        { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier },
+        { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card' },
         { display_name: 'Laser Name', variable_name: 'laser_name', value: data.name },
         { display_name: 'Laser Title', variable_name: 'laser_title', value: data.title },
         { display_name: 'Handle', variable_name: 'handle', value: data.handle },
-        { display_name: 'Priority Laser Engraving', variable_name: 'bump_laser', value: bumpLaser ? 'Yes' : 'No' },
-        { display_name: 'Lifetime Analytics', variable_name: 'bump_analytics', value: bumpAnalytics ? 'Yes' : 'No' },
+        { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
+        { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
       ],
     },
   };
@@ -104,7 +100,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           name: data.customerName,
           email: data.email,
           phone: data.whatsapp,
-          card_type: `${data.tier.toUpperCase()} (${data.material})`,
+          card_type: data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card',
           amount: totalAmountKobo,
           payment_reference: reference.reference,
         }),
@@ -118,7 +114,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           email: data.email,
           whatsapp: data.whatsapp,
           funnel_stage: 'converted',
-          order_bumps: [bumpLaser ? 'laser_engraving' : null, bumpAnalytics ? 'lifetime_analytics' : null].filter(Boolean),
+          order_bumps: [bumpPhoneTag ? 'phone_tag_sticker' : null, bumpVipQueue ? 'vip_analytics_queue' : null].filter(Boolean),
           estimated_amount: totalAmountNgn,
         }),
       });
@@ -150,7 +146,8 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         whatsapp: data.whatsapp,
         name: data.customerName,
         custom_name: data.name,
-        card_type: data.tier,
+        card_type: data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card',
+        estimated_amount: totalAmountNgn,
       }),
     }).catch(() => {});
   };
@@ -204,12 +201,8 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             {/* Itemized Price Breakdown Table */}
             <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-white/80">
-                  {data.tier === 'plastic' 
-                    ? (data.material === 'plastic_white' ? 'Smart Plastic NFC (White) Card' : 'Smart Plastic NFC (Black) Card') 
-                    : data.tier === 'debit' 
-                    ? 'Metal Debit Convert Dual-Chip Card' 
-                    : 'Smart Metal NFC Card (28g Aerospace)'}
+                <span className="text-white/80 font-medium">
+                  {data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card'}
                 </span>
                 <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
               </div>
@@ -217,38 +210,44 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
               {data.appliedDiscount && (
                 <div className="flex justify-between items-center text-sm text-emerald-400">
                   <span className="flex items-center gap-1">
-                    <span>VIP Reservation Coupon (10% OFF)</span>
+                    <span>VIP Courtesy Coupon (10% OFF)</span>
                   </span>
                   <span className="font-bold">-₦{discountAmount.toLocaleString()}</span>
                 </div>
               )}
 
               {/* Order Bump 1 Toggle */}
-              <div className="pt-2 border-t border-white/10 flex justify-between items-center text-xs">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="pt-2 border-t border-white/10 flex justify-between items-start text-xs gap-2">
+                <label className="flex items-start gap-2 cursor-pointer flex-1">
                   <input
                     type="checkbox"
-                    checked={bumpLaser}
-                    onChange={(e) => setBumpLaser(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
+                    checked={bumpPhoneTag}
+                    onChange={(e) => setBumpPhoneTag(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
                   />
-                  <span className="text-white/80">Priority Laser Engraving & 24h Queue Pass</span>
+                  <div>
+                    <span className="text-white/90 font-medium block">Add ChipNG Phone Tap Sticker</span>
+                    <span className="text-[10px] text-white/50 block">Stick to phone case. Works when wallet is in bag.</span>
+                  </div>
                 </label>
-                <span className="font-mono text-white/90">+{bumpLaser ? '₦5,000' : '₦0'}</span>
+                <span className="font-mono text-amber-300 font-semibold">+{bumpPhoneTag ? '₦7,500' : '₦0'}</span>
               </div>
 
               {/* Order Bump 2 Toggle */}
-              <div className="flex justify-between items-center text-xs">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex justify-between items-start text-xs gap-2">
+                <label className="flex items-start gap-2 cursor-pointer flex-1">
                   <input
                     type="checkbox"
-                    checked={bumpAnalytics}
-                    onChange={(e) => setBumpAnalytics(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
+                    checked={bumpVipQueue}
+                    onChange={(e) => setBumpVipQueue(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
                   />
-                  <span className="text-white/80">Lifetime Lead Capture & Tap Analytics Suite</span>
+                  <div>
+                    <span className="text-white/90 font-medium block">VIP Production & Lifetime Advanced Analytics</span>
+                    <span className="text-[10px] text-white/50 block">Expedited 24h dispatch + click heatmaps & lead tracking</span>
+                  </div>
                 </label>
-                <span className="font-mono text-white/90">+{bumpAnalytics ? '₦10,000' : '₦0'}</span>
+                <span className="font-mono text-amber-300 font-semibold">+{bumpVipQueue ? '₦5,000' : '₦0'}</span>
               </div>
 
               <div className="flex justify-between items-center text-xs text-white/60">
@@ -316,12 +315,35 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   <span>Pay ₦{totalAmountNgn.toLocaleString()} with Paystack</span>
                 </button>
 
-                <div className="flex items-center justify-center gap-4 text-xs text-white/50 pt-2">
-                  <span>🔒 256-Bit SSL Encryption</span>
-                  <span>•</span>
-                  <span>Direct Paystack Integration</span>
-                  <span>•</span>
-                  <span>Instant Confirmation</span>
+                {/* Cart Page Reassurance Bullets */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 flex flex-col gap-2.5 text-left text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-amber-300 font-bold text-sm leading-none mt-0.5">⚡</span>
+                    <div>
+                      <span className="font-bold text-white block">Express Dispatch Guarantee</span>
+                      <span className="text-white/60 text-[11px] leading-relaxed">
+                        Custom orders approved before 12:00 PM WAT enter production same-day. Delivered in 24–48 hours across Lagos; 48–72 hours nationwide via DHL/GIG Logistics.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-emerald-400 font-bold text-sm leading-none mt-0.5">🔒</span>
+                    <div>
+                      <span className="font-bold text-white block">Bank-Grade Checkout Security</span>
+                      <span className="text-white/60 text-[11px] leading-relaxed">
+                        Processed via Paystack using 256-bit SSL encryption. We never see or store your banking credentials.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-purple-300 font-bold text-sm leading-none mt-0.5">🛡️</span>
+                    <div>
+                      <span className="font-bold text-white block">1-on-1 WhatsApp Verification</span>
+                      <span className="text-white/60 text-[11px] leading-relaxed">
+                        You will receive a personal WhatsApp message from our production manager with your high-res design proof within 2 hours of payment.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (

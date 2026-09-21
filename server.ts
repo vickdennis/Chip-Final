@@ -478,19 +478,40 @@ Ref: ${payment_reference}`,
     }
   });
 
-  // Automated Follow-Up Webhook Trigger (15-min recovery simulator)
+  // Automated Abandoned Cart Recovery Sequence Trigger
   app.post('/api/funnel/webhook-trigger', (req, res) => {
     try {
-      const { lead_id, action, email, whatsapp, name, custom_name, card_type } = req.body;
-      console.log(`[AUTOMATED FUNNEL TRIGGER] 15-min follow-up registered for ${name || 'Lead'} (${whatsapp || email || 'unknown'}) - Action: ${action || 'abandoned_recovery'}`);
-      
+      const { lead_id, action, email, whatsapp, name, custom_name, card_type, estimated_amount } = req.body;
+      const firstName = (name || custom_name || 'there').split(' ')[0];
+      const tierName = card_type === 'Custom PVC Card' || card_type === 'plastic' ? 'Custom PVC' : 'Custom Metal';
+
+      // Sequence Message 1: 1 hour later (Design Concierge Angle)
+      const message1 = {
+        trigger: '1_hour_abandonment',
+        channel: 'WhatsApp & Email',
+        subject: `Quick question about your ${tierName} Card design proof`,
+        body: `Hi ${firstName}, Victor here from the ChipNG design workshop in Lagos.\n\nI noticed you were customizing your ${tierName} Card earlier but didn't get to finish checking out. Often founders, creatives, and team leads pause here because they aren't sure if their company logo resolution is sharp enough, or they want advice on how their name and title will look laser-engraved.\n\nDid you run into any issues uploading your logo or setting up your profile handle? Or would you like me to create a quick 3D mockup proof for you before you pay?\n\nJust reply to this message directly with your logo file, vector, or question and I'll personally take care of it right now.\n\n— Victor Dennis\nHead of Production, ChipNG\nLagos, Nigeria`,
+      };
+
+      // Sequence Message 2: 24 hours later (Urgency / Workshop Capacity Angle)
+      const message2 = {
+        trigger: '24_hours_abandonment',
+        channel: 'WhatsApp & Email',
+        subject: `[Expiring Today] Your ChipNG ${tierName} production slot & 10% courtesy voucher`,
+        body: `Hi ${firstName},\n\nBecause our Lagos workshop operates on a strict daily laser-engraving capacity to guarantee our 24–48 hour dispatch turnaround, we can only hold temporary card configurations in our active queue for 24 hours.\n\nYour customized ${tierName} card layout is scheduled to be archived this evening to release the machine slot.\n\nIf you're ready to lock in your card today, use courtesy code VIPFIRST10 at checkout for an immediate 10% discount off your order.\n\nTap here to resume your checkout with your saved layout: https://chip-ng.web.app/nfc?resume=true&code=VIPFIRST10\n\nNeed team or bulk invoicing instead? Just reply to this text and I'll send our corporate VAT quote.\n\n— Victor Dennis, ChipNG Production`,
+      };
+
+      console.log(`[ABANDONED RECOVERY] 2-Part sequence registered for ${firstName} (${whatsapp || email}) - Tier: ${tierName}`);
+
       res.json({
         success: true,
-        status: 'queued',
-        delivery_window: '15_minutes',
-        channels: ['whatsapp', 'email'],
-        message: `Automated 15-minute VIP recovery trigger scheduled for ${name || 'Lead'}. WhatsApp & Email concierge active.`,
-        lead_id
+        status: 'sequence_scheduled',
+        lead_id,
+        sequence: [
+          { delay: '1 hour', ...message1 },
+          { delay: '24 hours', coupon_code: 'VIPFIRST10', discount_pct: 10, ...message2 }
+        ],
+        message: `2-part recovery sequence scheduled: 1h Design Concierge + 24h Workshop Capacity Urgency.`
       });
     } catch (err: any) {
       res.status(500).json({ error: err.message });

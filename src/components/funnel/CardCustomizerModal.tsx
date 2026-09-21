@@ -15,8 +15,10 @@ export interface CardCustomizationData {
   whatsapp: string;
   appliedDiscount: boolean;
   orderBumps: {
-    laserEngraving: boolean; // +5,000
-    lifetimeAnalytics: boolean; // +10,000
+    phoneTagSticker: boolean; // +7,500 (Normally ₦12,000)
+    vipAnalyticsQueue: boolean; // +5,000
+    laserEngraving?: boolean;
+    lifetimeAnalytics?: boolean;
   };
 }
 
@@ -75,8 +77,8 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
   const [discountUnlocked, setDiscountUnlocked] = useState(false);
 
   // Order Bumps
-  const [bumpLaser, setBumpLaser] = useState(false);
-  const [bumpAnalytics, setBumpAnalytics] = useState(false);
+  const [bumpPhoneTag, setBumpPhoneTag] = useState(false);
+  const [bumpVipQueue, setBumpVipQueue] = useState(false);
 
   if (!isOpen) return null;
 
@@ -94,16 +96,12 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
     }
   };
 
-  // Base price in NGN: White plastic is 30,000, Black plastic is 35,000
+  // Base price in NGN: Custom PVC Card: ₦30,000, Custom Metal Card: ₦100,000
   const getBasePrice = () => {
     if (tier === 'plastic') {
-      return material === 'plastic_white' ? 30000 : 35000;
+      return 30000;
     }
-    switch (tier) {
-      case 'debit': return 100000;
-      case 'metal':
-      default: return 50000;
-    }
+    return 100000;
   };
 
   // Handle lead submission & discount claim
@@ -126,8 +124,10 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
       whatsapp,
       appliedDiscount: true,
       orderBumps: {
-        laserEngraving: bumpLaser,
-        lifetimeAnalytics: bumpAnalytics,
+        phoneTagSticker: bumpPhoneTag,
+        vipAnalyticsQueue: bumpVipQueue,
+        laserEngraving: bumpVipQueue,
+        lifetimeAnalytics: bumpVipQueue,
       },
     };
 
@@ -144,8 +144,8 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
           custom_title: cardTitle,
           funnel_stage: 'customization_saved',
           order_bumps: [
-            bumpLaser ? 'laser_engraving' : null,
-            bumpAnalytics ? 'lifetime_analytics' : null,
+            bumpPhoneTag ? 'phone_tag_sticker' : null,
+            bumpVipQueue ? 'vip_analytics_queue' : null,
           ].filter(Boolean),
           estimated_amount: getBasePrice(),
         }),
@@ -248,22 +248,44 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                     <p className="text-xs text-white/60">Choose the foundation for your physical NFC card.</p>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
-                      { id: 'plastic_white', tier: 'plastic' as const, material: 'plastic_white' as CardMaterial, label: 'Smart Plastic (White)', price: '₦30,000', badge: 'Starter' },
-                      { id: 'plastic_black', tier: 'plastic' as const, material: 'plastic_black' as CardMaterial, label: 'Smart Plastic (Black)', price: '₦35,000', badge: 'Starter' },
-                      { id: 'metal', tier: 'metal' as const, material: 'metal_spacegray' as CardMaterial, label: 'Smart Metal', price: '₦50,000', badge: 'Bestseller' },
-                      { id: 'debit', tier: 'debit' as const, material: 'metal_gold' as CardMaterial, label: 'Metal Debit', price: '₦100,000', badge: 'Dual-Chip' },
+                      {
+                        id: 'plastic',
+                        tier: 'plastic' as const,
+                        defaultMaterial: 'plastic_white' as CardMaterial,
+                        label: 'Custom PVC Card',
+                        price: '₦30,000',
+                        badge: 'Starter Choice',
+                        desc: 'Lightweight, ultra-durable polymer PVC with instant contactless chip & dynamic QR code.',
+                      },
+                      {
+                        id: 'metal',
+                        tier: 'metal' as const,
+                        defaultMaterial: 'metal_spacegray' as CardMaterial,
+                        label: 'Custom Metal Card',
+                        price: '₦100,000',
+                        badge: 'Executive Bestseller',
+                        desc: 'Heavyweight 28g aerospace stainless steel with deep laser etching & high-status feel.',
+                      },
                     ].map((t) => {
-                      const isSelected = tier === t.tier && (t.tier !== 'plastic' || material === t.material);
+                      const isSelected = tier === t.tier;
                       return (
                         <div
                           key={t.id}
                           onClick={() => {
                             setTier(t.tier);
-                            setMaterial(t.material);
+                            if (t.tier === 'plastic') {
+                              if (material !== 'plastic_white' && material !== 'plastic_black') {
+                                setMaterial('plastic_white');
+                              }
+                            } else {
+                              if (material !== 'metal_spacegray' && material !== 'metal_gold') {
+                                setMaterial('metal_spacegray');
+                              }
+                            }
                           }}
-                          className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                             isSelected
                               ? 'border-[#B600A8] bg-[#B600A8]/15 shadow-lg shadow-purple-950/40'
                               : 'border-white/10 bg-white/5 hover:border-white/20'
@@ -275,8 +297,9 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                             </span>
                             {isSelected && <CheckCircle2 className="w-4 h-4 text-[#B600A8]" />}
                           </div>
-                          <h4 className="font-bold text-xs sm:text-sm text-white mt-1.5 leading-tight">{t.label}</h4>
-                          <p className="text-xs font-semibold text-white/80 mt-1">{t.price}</p>
+                          <h4 className="font-bold text-sm text-white mt-1.5 leading-tight">{t.label}</h4>
+                          <p className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 mt-1">{t.price}</p>
+                          <p className="text-[11px] text-white/60 mt-1 leading-relaxed">{t.desc}</p>
                         </div>
                       );
                     })}
@@ -285,36 +308,64 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                   {/* Material Finishes */}
                   <div className="mt-2">
                     <label className="text-xs font-bold text-white/70 uppercase tracking-wider block mb-2">
-                      Choose Finish & Tone
+                      {tier === 'plastic' ? 'Choose PVC Colorway' : 'Choose Metal Finish & Tone'}
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        { id: 'plastic_white', label: 'Glacier White', desc: 'Pearl PVC • ₦30k', tierTarget: 'plastic' as const },
-                        { id: 'plastic_black', label: 'Obsidian Black', desc: 'Matte PVC • ₦35k', tierTarget: 'plastic' as const },
-                        { id: 'metal_spacegray', label: 'Space Gray Steel', desc: 'Titanium • ₦50k', tierTarget: 'metal' as const },
-                        { id: 'metal_gold', label: '24K Matte Gold', desc: 'Brushed brass • ₦50k', tierTarget: 'metal' as const },
-                      ].map((m) => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => {
-                            setMaterial(m.id as CardMaterial);
-                            if (tier === 'plastic' && (m.id === 'metal_spacegray' || m.id === 'metal_gold')) {
-                              setTier('metal');
-                            } else if (tier !== 'plastic' && (m.id === 'plastic_white' || m.id === 'plastic_black')) {
-                              setTier('plastic');
-                            }
-                          }}
-                          className={`p-2.5 rounded-xl border text-left transition-all ${
-                            material === m.id
-                              ? 'border-[#B600A8] bg-white/10 text-white'
-                              : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
-                          }`}
-                        >
-                          <span className="text-xs font-bold block truncate">{m.label}</span>
-                          <span className="text-[10px] opacity-60 block truncate">{m.desc}</span>
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-2 gap-2">
+                      {tier === 'plastic' ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setMaterial('plastic_white')}
+                            className={`p-3 rounded-xl border text-left transition-all ${
+                              material === 'plastic_white'
+                                ? 'border-[#B600A8] bg-white/10 text-white'
+                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold block">Glacier White</span>
+                            <span className="text-[10px] opacity-60 block">Pearl White UV Polymer</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMaterial('plastic_black')}
+                            className={`p-3 rounded-xl border text-left transition-all ${
+                              material === 'plastic_black'
+                                ? 'border-[#B600A8] bg-white/10 text-white'
+                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold block">Matte Obsidian</span>
+                            <span className="text-[10px] opacity-60 block">Stealth Black Finish</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setMaterial('metal_spacegray')}
+                            className={`p-3 rounded-xl border text-left transition-all ${
+                              material === 'metal_spacegray'
+                                ? 'border-[#B600A8] bg-white/10 text-white'
+                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold block">Space Gray Steel</span>
+                            <span className="text-[10px] opacity-60 block">Brushed Aerospace Steel</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMaterial('metal_gold')}
+                            className={`p-3 rounded-xl border text-left transition-all ${
+                              material === 'metal_gold'
+                                ? 'border-[#B600A8] bg-white/10 text-white'
+                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold block">24K Matte Gold</span>
+                            <span className="text-[10px] opacity-60 block">Executive Gold PVD Plate</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -502,44 +553,46 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                       </span>
 
                       <div className="flex flex-col gap-2">
-                        {/* Bump 1: Laser Engraving */}
+                        {/* Bump 1: Phone Tap Sticker */}
                         <label className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={bumpLaser}
-                            onChange={(e) => setBumpLaser(e.target.checked)}
+                            checked={bumpPhoneTag}
+                            onChange={(e) => setBumpPhoneTag(e.target.checked)}
                             className="mt-0.5 w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
                           />
                           <div className="flex-1 text-left">
                             <div className="flex justify-between items-center">
                               <span className="text-xs font-bold text-white">
-                                Priority Custom Fiber-Laser Engraving
+                                YES! Add the ChipNG Phone Tap Sticker
                               </span>
-                              <span className="text-xs font-bold text-amber-300">+₦5,000</span>
+                              <span className="text-xs font-bold text-amber-300">
+                                +₦7,500 <span className="text-[10px] text-white/40 line-through">₦12,000</span>
+                              </span>
                             </div>
                             <p className="text-[11px] text-white/60 leading-tight mt-0.5">
-                              High-contrast laser etching for corporate logos & signatures. Cuts queue time for 24h dispatch.
+                              Never leave home without your network. Stick this ultra-thin, frequency-shielded NFC disc to the back of your phone case. Works even when your wallet is in your bag or car.
                             </p>
                           </div>
                         </label>
 
-                        {/* Bump 2: Lifetime Analytics */}
+                        {/* Bump 2: VIP Production & Lifetime Analytics */}
                         <label className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={bumpAnalytics}
-                            onChange={(e) => setBumpAnalytics(e.target.checked)}
+                            checked={bumpVipQueue}
+                            onChange={(e) => setBumpVipQueue(e.target.checked)}
                             className="mt-0.5 w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
                           />
                           <div className="flex-1 text-left">
                             <div className="flex justify-between items-center">
                               <span className="text-xs font-bold text-white">
-                                Lifetime Lead Capture & Analytics Suite
+                                YES! Upgrade to VIP Production & Lifetime Advanced Analytics
                               </span>
-                              <span className="text-xs font-bold text-amber-300">+₦10,000</span>
+                              <span className="text-xs font-bold text-amber-300">+₦5,000</span>
                             </div>
                             <p className="text-[11px] text-white/60 leading-tight mt-0.5">
-                              Capture contact details from anyone who taps your card into exportable CSV + tap geo-analytics.
+                              Jump to the front of the laser-engraving line for expedited 24-hour dispatch, plus unlock real-time link click heatmaps, contact download tracking, and profile view analytics for life.
                             </p>
                           </div>
                         </label>
