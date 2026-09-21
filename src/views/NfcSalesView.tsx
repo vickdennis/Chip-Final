@@ -25,7 +25,8 @@ import {
   QrCode,
   Building2,
   Users,
-  Briefcase
+  Briefcase,
+  Activity
 } from 'lucide-react';
 
 import { Card3DRotator, CardMaterial } from '../components/funnel/Card3DRotator';
@@ -34,6 +35,8 @@ import { CardCustomizerModal, CardCustomizationData } from '../components/funnel
 import { CheckoutOnboardingModal } from '../components/funnel/CheckoutOnboardingModal';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
 import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialMediaIconSet';
+import { TikTokPixelTesterModal } from '../components/analytics/TikTokPixelTesterModal';
+import { trackTikTokEvent } from '../utils/tiktokPixel';
 
 type PersonaType = 'executive' | 'founder' | 'creator';
 
@@ -78,6 +81,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   // 3. Modals & Funnel State
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isPixelTesterOpen, setIsPixelTesterOpen] = useState(false);
   const [selectedInitialTier, setSelectedInitialTier] = useState<'plastic' | 'metal' | 'debit'>('metal');
   const [selectedInitialMaterial, setSelectedInitialMaterial] = useState<CardMaterial>('metal_spacegray');
   const [customizationData, setCustomizationData] = useState<CardCustomizationData | null>(null);
@@ -86,8 +90,16 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
   const [hasDiscountLocked, setHasDiscountLocked] = useState(false);
 
-  // Parse UTM parameters on mount
+  // Parse UTM parameters on mount & track TikTok ViewContent
   useEffect(() => {
+    trackTikTokEvent('ViewContent', {
+      content_type: 'product',
+      content_name: 'CHIP Smart NFC Cards & Digital Profiles',
+      content_category: 'Smart Hardware',
+      value: 50000,
+      currency: 'NGN',
+    });
+
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const source = urlParams.get('utm_source')?.toLowerCase() || '';
@@ -194,6 +206,20 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
     } else {
       setSelectedInitialMaterial('metal_spacegray');
     }
+
+    // Track TikTok AddToCart event
+    const itemPrice = tier === 'plastic' 
+      ? (material === 'plastic_white' ? 30000 : 35000) 
+      : tier === 'debit' ? 100000 : 50000;
+
+    trackTikTokEvent('AddToCart', {
+      content_type: 'product',
+      content_name: `${tier.toUpperCase()} NFC Card (${material || 'default'})`,
+      content_id: tier,
+      value: itemPrice,
+      currency: 'NGN',
+    });
+
     setIsCustomizerOpen(true);
   };
 
@@ -235,10 +261,20 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           </div>
 
           {/* Quick CTA & Guarantee */}
-          <div className="flex items-center gap-3 sm:gap-5">
-            <div className="hidden md:flex items-center gap-2 text-xs font-mono text-emerald-400">
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            <button
+              onClick={() => setIsPixelTesterOpen(true)}
+              title="Test & Inspect TikTok Pixel Events"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono bg-black/60 border border-[#25F4EE]/40 text-[#25F4EE] hover:bg-[#25F4EE]/10 transition-all cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#25F4EE] animate-pulse" />
+              <span className="hidden sm:inline">TikTok Pixel</span>
+              <span className="sm:hidden">Pixel</span>
+            </button>
+
+            <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Lagos Workshop Active • 24h Laser Queue</span>
+              <span>Lagos Workshop Active</span>
             </div>
 
             <button
@@ -843,10 +879,23 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       <footer className="py-10 px-4 sm:px-6 border-t border-white/10 text-center text-xs font-mono text-white/40">
         <p>© {new Date().getFullYear()} CHIP NG Technologies Limited. All rights reserved.</p>
         <p className="mt-1">Crafted with precision for Nigeria's ambitious founders, executives, and creators.</p>
+        <button
+          onClick={() => setIsPixelTesterOpen(true)}
+          className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-[#25F4EE]/70 hover:text-[#25F4EE] transition-colors cursor-pointer"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#25F4EE] animate-pulse" />
+          Test TikTok Pixel Events (Pixel ID: DAO7GLRC77U5LL2S2TIG)
+        </button>
       </footer>
 
       {/* ================= MODALS & INTERACTIVE FUNNELS ================= */}
       
+      {/* TikTok Pixel Inspector & Test Diagnostic Tool */}
+      <TikTokPixelTesterModal
+        isOpen={isPixelTesterOpen}
+        onClose={() => setIsPixelTesterOpen(false)}
+      />
+
       {/* 1. Multi-Step Card Customizer & Lead Capture (Interest & Urgency) */}
       <CardCustomizerModal
         isOpen={isCustomizerOpen}
