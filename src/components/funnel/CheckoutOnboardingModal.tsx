@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { usePaystackPayment } from 'react-paystack';
+import PaystackPop from '@paystack/inline-js';
 import { CardCustomizationData } from './CardCustomizerModal';
-import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import { GhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
 
@@ -12,6 +13,10 @@ interface CheckoutOnboardingModalProps {
   data: CardCustomizationData;
   onNavigate?: (view: any) => void;
 }
+
+const PAYSTACK_PUBLIC_KEY =
+  (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY ||
+  'pk_live_98c73643bf533425b945bb3c328918539f3100ca';
 
 export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = ({
   isOpen,
@@ -23,6 +28,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const [copiedBank, setCopiedBank] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paystackError, setPaystackError] = useState<string | null>(null);
 
   // Onboarding profile setup state
   const [profileBio, setProfileBio] = useState('Connecting leaders and creators with next-generation NFC technology.');
@@ -32,8 +38,23 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const [onboardingSaved, setOnboardingSaved] = useState(false);
 
   // Order bumps state within checkout
-  const [bumpPhoneTag, setBumpPhoneTag] = useState(data.orderBumps?.phoneTagSticker ?? false);
-  const [bumpVipQueue, setBumpVipQueue] = useState(data.orderBumps?.vipAnalyticsQueue ?? false);
+  const [bumpPhoneTag, setBumpPhoneTag] = useState(data?.orderBumps?.phoneTagSticker ?? false);
+  const [bumpVipQueue, setBumpVipQueue] = useState(data?.orderBumps?.vipAnalyticsQueue ?? false);
+
+  // Base price calculation: Custom PVC is 30,000, Custom Metal is 100,000
+  const getBasePrice = () => {
+    if (data?.tier === 'plastic') {
+      return 30000;
+    }
+    return 100000;
+  };
+
+  const basePrice = getBasePrice();
+  const discountAmount = data?.appliedDiscount ? Math.round(basePrice * 0.1) : 0;
+  const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
+  const vipQueuePrice = bumpVipQueue ? 5000 : 0;
+  const totalAmountNgn = basePrice - discountAmount + phoneTagPrice + vipQueuePrice;
+  const totalAmountKobo = totalAmountNgn * 100;
 
   // Track TikTok InitiateCheckout when checkout modal opens
   useEffect(() => {
@@ -47,50 +68,38 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         currency: 'NGN',
       });
     }
-  }, [isOpen]);
+  }, [isOpen, data, totalAmountNgn]);
 
-  if (!isOpen) return null;
-
-  // Base price calculation: Custom PVC is 30,000, Custom Metal is 100,000
-  const getBasePrice = () => {
-    if (data.tier === 'plastic') {
-      return 30000;
-    }
-    return 100000;
-  };
-
-  const basePrice = getBasePrice();
-  const discountAmount = data.appliedDiscount ? Math.round(basePrice * 0.1) : 0;
-  const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
-  const vipQueuePrice = bumpVipQueue ? 5000 : 0;
-  const totalAmountNgn = basePrice - discountAmount + phoneTagPrice + vipQueuePrice;
-  const totalAmountKobo = totalAmountNgn * 100;
-
-  // Paystack config
-  const paystackConfig = {
+  // Hook config for react-paystack fallback
+  const fallbackPaystackConfig = {
     reference: `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    email: data.email,
+    email: data?.email?.trim() || 'customer@chipng.com',
     amount: totalAmountKobo,
-    publicKey: (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_dummy',
+    publicKey: PAYSTACK_PUBLIC_KEY,
+    currency: 'NGN',
     metadata: {
-      name: data.customerName,
-      phone: data.whatsapp,
+      name: data?.customerName || data?.name || 'Customer',
+      phone: data?.whatsapp || '',
       custom_fields: [
-        { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card' },
-        { display_name: 'Laser Name', variable_name: 'laser_name', value: data.name },
-        { display_name: 'Laser Title', variable_name: 'laser_title', value: data.title },
-        { display_name: 'Handle', variable_name: 'handle', value: data.handle },
+        { display_name: 'Card Tier', variable_name: 'card_tier', value: data?.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)' },
+        { display_name: 'Surface Name', variable_name: 'surface_name', value: data?.name || '' },
+        { display_name: 'Surface Title', variable_name: 'surface_title', value: data?.title || '' },
+        { display_name: 'Handle', variable_name: 'handle', value: data?.handle || '' },
         { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
         { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
       ],
     },
   };
 
-  const initializePayment = usePaystackPayment(paystackConfig);
+  const initializePaymentFallback = usePaystackPayment(fallbackPaystackConfig);
+
+  if (!isOpen) return null;
 
   const handlePaystackSuccess = async (reference: any) => {
     setIsProcessing(true);
-    setPaymentSuccess(reference);
+    setPaystackError(null);
+    const refString = reference?.reference || reference?.trxref || `CHIP-${Date.now()}`;
+    setPaymentSuccess({ ...reference, reference: refString });
 
     try {
       // Save sale to SQLite database
@@ -98,12 +107,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: data.customerName,
-          email: data.email,
-          phone: data.whatsapp,
-          card_type: data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card',
+          name: data.customerName || data.name,
+          email: data.email?.trim() || 'customer@chipng.com',
+          phone: data.whatsapp || '',
+          card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
           amount: totalAmountKobo,
-          payment_reference: reference.reference,
+          payment_reference: refString,
         }),
       });
 
@@ -137,6 +146,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   };
 
   const handlePaystackClose = () => {
+    setIsProcessing(false);
     // Trigger automated follow-up webhook for abandoned checkout
     fetch('/api/funnel/webhook-trigger', {
       method: 'POST',
@@ -145,16 +155,92 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         action: 'checkout_abandoned',
         email: data.email,
         whatsapp: data.whatsapp,
-        name: data.customerName,
+        name: data.customerName || data.name,
         custom_name: data.name,
-        card_type: data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card',
+        card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
         estimated_amount: totalAmountNgn,
       }),
     }).catch(() => {});
   };
 
+  // Dedicated robust payment launcher
+  const triggerPaystack = () => {
+    setPaystackError(null);
+    setIsProcessing(true);
+
+    const txRef = `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const customerEmail = data.email?.trim() || 'customer@chipng.com';
+
+    const transactionOptions = {
+      key: PAYSTACK_PUBLIC_KEY,
+      publicKey: PAYSTACK_PUBLIC_KEY,
+      email: customerEmail,
+      amount: totalAmountKobo,
+      currency: 'NGN',
+      ref: txRef,
+      reference: txRef,
+      firstname: (data.customerName || data.name || '').split(' ')[0] || 'Valued',
+      lastname: (data.customerName || data.name || '').split(' ').slice(1).join(' ') || 'Customer',
+      phone: data.whatsapp || '',
+      metadata: {
+        name: data.customerName || data.name,
+        phone: data.whatsapp,
+        custom_fields: [
+          { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)' },
+          { display_name: 'Surface Name', variable_name: 'surface_name', value: data.name },
+          { display_name: 'Surface Title', variable_name: 'surface_title', value: data.title },
+          { display_name: 'Handle', variable_name: 'handle', value: data.handle },
+          { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
+          { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
+        ],
+      },
+    };
+
+    try {
+      const paystack = new PaystackPop();
+      paystack.newTransaction({
+        ...transactionOptions,
+        onSuccess: (res: any) => {
+          setIsProcessing(false);
+          handlePaystackSuccess(res || { reference: txRef });
+        },
+        onCancel: () => {
+          setIsProcessing(false);
+          handlePaystackClose();
+        },
+        onError: (err: any) => {
+          console.error('Paystack popup error:', err);
+          setIsProcessing(false);
+          setPaystackError(err?.message || 'Unable to open Paystack payment modal. You can choose Direct Bank Transfer below.');
+        },
+        onLoad: () => {
+          setIsProcessing(false);
+        },
+      });
+    } catch (err: any) {
+      console.warn('PaystackPop newTransaction failed, using hook fallback:', err);
+      try {
+        initializePaymentFallback({
+          config: transactionOptions as any,
+          onSuccess: (res: any) => {
+            setIsProcessing(false);
+            handlePaystackSuccess(res || { reference: txRef });
+          },
+          onClose: () => {
+            setIsProcessing(false);
+            handlePaystackClose();
+          },
+        });
+      } catch (hookErr: any) {
+        console.error('All Paystack initialization failed:', hookErr);
+        setIsProcessing(false);
+        setPaystackError('Paystack checkout could not open. Please use Direct Bank Transfer below for instant dispatch.');
+      }
+    }
+  };
+
   const copyBankDetails = () => {
-    navigator.clipboard.writeText('0123456789');
+    navigator.clipboard.writeText('8100764154');
     setCopiedBank(true);
     setTimeout(() => setCopiedBank(false), 2500);
   };
@@ -195,7 +281,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 Complete Your Custom Card Order
               </h2>
               <p className="text-xs sm:text-sm text-white/60 mt-1">
-                Custom laser-engraved for <strong className="text-white">{data.name}</strong> • Nationwide insured delivery included.
+                {data.tier === 'metal' ? 'Custom laser-engraved' : 'Custom UV printed'} for <strong className="text-white">{data.name}</strong> • Nationwide insured delivery included.
               </p>
             </div>
 
@@ -203,7 +289,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/80 font-medium">
-                  {data.tier === 'plastic' ? 'Custom PVC Card' : 'Custom Metal Card'}
+                  {data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)'}
                 </span>
                 <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
               </div>
@@ -289,7 +375,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('paystack')}
+                  onClick={() => {
+                    setPaystackError(null);
+                    setPaymentMethod('paystack');
+                  }}
                   className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
                     paymentMethod === 'paystack'
                       ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
@@ -302,7 +391,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
 
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('transfer')}
+                  onClick={() => {
+                    setPaystackError(null);
+                    setPaymentMethod('transfer');
+                  }}
                   className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
                     paymentMethod === 'transfer'
                       ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
@@ -318,18 +410,40 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             {/* Payment Action Pane */}
             {paymentMethod === 'paystack' ? (
               <div className="flex flex-col gap-3">
+                {paystackError && (
+                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2.5 text-xs text-amber-200">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-amber-300 mb-1">Paystack Notice</p>
+                      <p className="leading-relaxed opacity-90">{paystackError}</p>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('transfer')}
+                        className="mt-2 text-xs font-bold text-white underline underline-offset-2 hover:text-amber-300"
+                      >
+                        Switch to Direct Bank Transfer →
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => {
-                    initializePayment({
-                      onSuccess: handlePaystackSuccess,
-                      onClose: handlePaystackClose,
-                    });
-                  }}
-                  className="w-full py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/50 active:scale-98 transition-all"
+                  disabled={isProcessing}
+                  onClick={triggerPaystack}
+                  className="w-full py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/50 active:scale-98 transition-all disabled:opacity-75 disabled:cursor-wait"
                 >
-                  <Lock className="w-4 h-4" />
-                  <span>Pay ₦{totalAmountNgn.toLocaleString()} with Paystack</span>
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Connecting to Paystack...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>Pay ₦{totalAmountNgn.toLocaleString()} with Paystack</span>
+                    </>
+                  )}
                 </button>
 
                 {/* Cart Page Reassurance Bullets */}
