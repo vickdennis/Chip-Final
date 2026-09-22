@@ -82,6 +82,11 @@ export const LiveBioPreview: React.FC<LiveBioPreviewProps> = ({
                 <img
                   src={avatarUrl}
                   alt={name}
+                  loading="lazy"
+                  decoding="async"
+                  width="80"
+                  height="80"
+                  referrerPolicy="no-referrer"
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
