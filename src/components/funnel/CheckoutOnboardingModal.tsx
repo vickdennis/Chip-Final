@@ -5,7 +5,7 @@ import PaystackPop from '@paystack/inline-js';
 import { CardCustomizationData } from './CardCustomizerModal';
 import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
-import { GhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
+import { DhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
 
 interface CheckoutOnboardingModalProps {
   isOpen: boolean;
@@ -337,10 +337,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 <span className="font-mono text-amber-300 font-semibold">+{bumpVipQueue ? '₦5,000' : '₦0'}</span>
               </div>
 
-              {/* Delivery with GHL & GIG Logistics */}
+              {/* Delivery with DHL & GIG Logistics */}
               <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
                 <div className="flex justify-between items-center text-xs text-white/70">
-                  <span className="font-medium">Insured Nationwide Delivery (GHL & GIG Logistics)</span>
+                  <span className="font-medium">Insured Nationwide Delivery (DHL & GIG Logistics)</span>
                   <span className="text-emerald-400 font-bold font-mono uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                     Free
                   </span>
@@ -350,7 +350,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono text-white/50 uppercase">Carriers:</span>
                     <div className="flex items-center gap-2">
-                      <GhlLogisticsLogo className="h-6" />
+                      <DhlLogisticsLogo className="h-6" />
                       <GigLogisticsLogo className="h-6" />
                     </div>
                   </div>
@@ -453,7 +453,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <div>
                       <span className="font-bold text-white block">Express Dispatch Guarantee</span>
                       <span className="text-white/60 text-[11px] leading-relaxed">
-                        Custom orders approved before 12:00 PM WAT enter production same-day. Delivered in 24–48 hours across Lagos; 48–72 hours nationwide via GHL & GIG Logistics.
+                        Custom orders approved before 12:00 PM WAT enter production same-day. Delivered in 24–48 hours across Lagos; 48–72 hours nationwide via DHL & GIG Logistics.
                       </span>
                     </div>
                   </div>
@@ -477,7 +477,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   </div>
                 </div>
 
-                {/* Logistics Partner Trust Banner with GHL and GIG Logistics Logos */}
+                {/* Logistics Partner Trust Banner with DHL and GIG Logistics Logos */}
                 <LogisticsTrustBanner />
               </div>
             ) : (
@@ -492,30 +492,33 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 <div className="bg-black/60 rounded-xl p-3 border border-white/10 flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-white/50 uppercase">Bank Name</span>
-                    <span className="text-sm font-bold text-white">Moniepoint Microfinance Bank</span>
-                    <span className="text-[10px] text-white/50 uppercase mt-1">Account Number</span>
-                    <span className="text-lg font-mono font-black text-amber-300">8100764154</span>
-                    <span className="text-[10px] text-white/50 uppercase mt-0.5">Account Name</span>
-                    <span className="text-xs font-semibold text-white/80">CHIP TECHNOLOGIES LIMITED</span>
+                    <span className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                      <span>Opay</span>
+                      <span className="text-[10px] text-white/50 font-normal">(OPay Digital Services)</span>
+                    </span>
+                    <span className="text-[10px] text-white/50 uppercase mt-1.5">Account Number</span>
+                    <span className="text-xl font-mono font-black text-amber-300 tracking-wider">8100764154</span>
+                    <span className="text-[10px] text-white/50 uppercase mt-1">Account Name</span>
+                    <span className="text-sm font-bold text-white tracking-wide">Okoye Chuka Victor</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={copyBankDetails}
-                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="p-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    <span>{copiedBank ? 'Copied!' : 'Copy'}</span>
+                    <span>{copiedBank ? 'Copied!' : 'Copy Number'}</span>
                   </button>
                 </div>
 
                 <p className="text-[11px] text-white/60">
-                  After transferring <strong>₦{totalAmountNgn.toLocaleString()}</strong>, click the button below to send your transfer receipt directly to our WhatsApp Concierge for instant dispatch queueing:
+                  After transferring <strong>₦{totalAmountNgn.toLocaleString()}</strong> to <strong>Okoye Chuka Victor (Opay: 8100764154)</strong>, click the button below to send your transfer receipt directly to our WhatsApp Concierge for instant dispatch queueing:
                 </p>
 
                 <a
                   href={`https://wa.me/2348100764154?text=${encodeURIComponent(
-                    `Hello CHIP Concierge! I have made a direct bank transfer of ₦${totalAmountNgn.toLocaleString()} for my ${data.tier.toUpperCase()} NFC Card.\n\nName: ${data.customerName}\nCustom Name on Card: ${data.name}\nHandle: chipng.com/@${data.handle}\nEmail: ${data.email}\nPhone: ${data.whatsapp}\nOrder Total: ₦${totalAmountNgn.toLocaleString()}`
+                    `Hello CHIP Concierge! I have made a direct bank transfer of ₦${totalAmountNgn.toLocaleString()} to Okoye Chuka Victor (Opay: 8100764154) for my ${data.tier.toUpperCase()} NFC Card.\n\nCustomer Name: ${data.customerName}\nCustom Name on Card: ${data.name}\nHandle: chipng.com/@${data.handle}\nEmail: ${data.email}\nPhone: ${data.whatsapp}\nOrder Total: ₦${totalAmountNgn.toLocaleString()}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -528,7 +531,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   <span>I Have Transferred • Send Receipt on WhatsApp</span>
                 </a>
 
-                {/* Logistics Partner Trust Banner with GHL and GIG Logistics Logos */}
+                {/* Logistics Partner Trust Banner with DHL and GIG Logistics Logos */}
                 <LogisticsTrustBanner className="mt-1" />
               </div>
             )}

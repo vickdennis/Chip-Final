@@ -1,9 +1,10 @@
 import React from 'react';
 
 /**
- * High-definition SVG Logo for GHL (Global Haulage / GHL Express Logistics)
+ * World-famous official SVG Logo for DHL Express Logistics
+ * Features iconic DHL Yellow (#FFCC00), DHL Red (#D40511), and dynamic speed stripes
  */
-export function GhlLogisticsLogo({ className = 'h-6' }: { className?: string }) {
+export function DhlLogisticsLogo({ className = 'h-6' }: { className?: string }) {
   return (
     <div className={`inline-flex items-center gap-1.5 ${className}`}>
       <svg
@@ -11,62 +12,64 @@ export function GhlLogisticsLogo({ className = 'h-6' }: { className?: string }) 
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="h-full w-auto"
-        aria-label="GHL Logistics"
+        aria-label="DHL Express Logistics"
       >
-        {/* Background shield/pill badge */}
-        <rect width="160" height="40" rx="8" fill="#0D111A" />
-        <rect x="0.5" y="0.5" width="159" height="39" rx="7.5" stroke="#E21836" strokeOpacity="0.3" />
+        {/* Iconic DHL Yellow Badge */}
+        <rect width="160" height="40" rx="8" fill="#FFCC00" />
+        <rect x="0.5" y="0.5" width="159" height="39" rx="7.5" stroke="#D40511" strokeOpacity="0.2" />
 
-        {/* Dynamic Logistics Wings/Arrows */}
+        {/* Left DHL Speed Stripes */}
+        <path d="M12 14H24L20 18H8L12 14Z" fill="#D40511" />
+        <path d="M7 20H22L18 24H3L7 20Z" fill="#D40511" />
+        <path d="M16 26H28L24 30H12L16 26Z" fill="#D40511" />
+
+        {/* The World-Famous DHL Bold Slanted Wordmark */}
+        {/* Letter 'D' */}
         <path
-          d="M12 26L22 14L32 26H26L22 20L18 26H12Z"
-          fill="#FFCC00"
-        />
-        <path
-          d="M18 29L22 23L26 29H18Z"
-          fill="#E21836"
+          d="M32 12H44C49.5 12 52.5 15.5 50.5 21C48.5 26.5 44 29 38.5 29H26.5L32 12ZM35.5 24H39C42 24 44.5 22.5 45.5 19.5C46.5 16.5 45 15.5 42 15.5H38.5L35.5 24Z"
+          fill="#D40511"
         />
 
-        {/* GHL Bold Wordmark */}
+        {/* Letter 'H' */}
+        <path
+          d="M52 12H58L55.5 18.5H63.5L66 12H72L65.5 29H59.5L62 22.5H54L51.5 29H45.5L52 12Z"
+          fill="#D40511"
+        />
+
+        {/* Letter 'L' */}
+        <path
+          d="M73 12H79L74.5 24H86L84.5 29H68L73 12Z"
+          fill="#D40511"
+        />
+
+        {/* Right DHL Speed Stripes */}
+        <path d="M89 14H102L98 18H85L89 14Z" fill="#D40511" />
+        <path d="M86 20H100L96 24H82L86 20Z" fill="#D40511" />
+        <path d="M93 26H107L103 30H89L93 26Z" fill="#D40511" />
+
+        {/* EXPRESS Tagline */}
         <text
-          x="38"
-          y="24"
+          x="110"
+          y="23"
           fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="900"
-          fontSize="17"
+          fontSize="9.5"
           fontStyle="italic"
-          letterSpacing="0.5px"
-          fill="#FFFFFF"
-        >
-          GHL
-        </text>
-        
-        {/* Fast delivery underline bar */}
-        <rect x="38" y="27" width="37" height="2.5" rx="1" fill="#E21836" />
-        <rect x="76" y="27" width="12" height="2.5" rx="1" fill="#FFCC00" />
-
-        {/* Subtitle */}
-        <text
-          x="82"
-          y="19"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontWeight="800"
-          fontSize="7.5"
-          letterSpacing="1px"
-          fill="#E21836"
+          letterSpacing="0.8px"
+          fill="#D40511"
         >
           EXPRESS
         </text>
         <text
-          x="82"
-          y="26"
+          x="110"
+          y="31"
           fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="700"
-          fontSize="6.5"
-          letterSpacing="0.8px"
-          fill="#94A3B8"
+          fontSize="5.5"
+          letterSpacing="1px"
+          fill="#7A0009"
         >
-          LOGISTICS
+          WORLDWIDE
         </text>
       </svg>
     </div>
@@ -74,7 +77,13 @@ export function GhlLogisticsLogo({ className = 'h-6' }: { className?: string }) 
 }
 
 /**
- * High-definition SVG Logo for GIG Logistics (GIGL - Nigeria's leading courier)
+ * Backward compatibility alias for DhlLogisticsLogo
+ */
+export const GhlLogisticsLogo = DhlLogisticsLogo;
+
+/**
+ * High-definition authentic SVG Logo for GIG Logistics (GIGL - Nigeria's leading courier)
+ * Features signature Navy Blue, vibrant GIG Orange (#FF5500), and speed chevron
  */
 export function GigLogisticsLogo({ className = 'h-6' }: { className?: string }) {
   return (
@@ -87,66 +96,68 @@ export function GigLogisticsLogo({ className = 'h-6' }: { className?: string }) 
         aria-label="GIG Logistics"
       >
         {/* Background badge */}
-        <rect width="170" height="40" rx="8" fill="#0D111A" />
-        <rect x="0.5" y="0.5" width="169" height="39" rx="7.5" stroke="#FF5E14" strokeOpacity="0.3" />
+        <rect width="170" height="40" rx="8" fill="#0A1931" />
+        <rect x="0.5" y="0.5" width="169" height="39" rx="7.5" stroke="#FF5500" strokeOpacity="0.4" />
 
-        {/* GIG Iconic Speed Emblem */}
-        <circle cx="22" cy="20" r="12" fill="#0B1E48" stroke="#FF5E14" strokeWidth="2" />
+        {/* GIG Iconic Speed Emblem Disc with dual chevron */}
+        <circle cx="21" cy="20" r="13" fill="#12284C" stroke="#FF5500" strokeWidth="1.8" />
+        {/* First chevron */}
         <path
-          d="M17 17L23 20L17 23"
-          stroke="#FF5E14"
+          d="M15 15L20 20L15 25"
+          stroke="#FF5500"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        {/* Second chevron */}
         <path
-          d="M21 15L27 20L21 25"
+          d="M20 15L25 20L20 25"
           stroke="#FFFFFF"
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
-        {/* GIG Text */}
+        {/* GIG Bold Text */}
         <text
-          x="40"
+          x="39"
           y="23"
           fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="900"
           fontSize="17"
-          letterSpacing="0.5px"
+          letterSpacing="0.8px"
           fill="#FFFFFF"
         >
           GIG
         </text>
 
         {/* Divider dot */}
-        <circle cx="80" cy="19" r="2" fill="#FF5E14" />
+        <circle cx="79" cy="19" r="2.2" fill="#FF5500" />
 
         {/* LOGISTICS */}
         <text
-          x="87"
+          x="86"
           y="23"
           fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="800"
-          fontSize="11.5"
-          letterSpacing="1.2px"
-          fill="#FF5E14"
+          fontSize="12"
+          letterSpacing="1px"
+          fill="#FF5500"
         >
           LOGISTICS
         </text>
 
         {/* Nationwide Delivery Tag */}
         <text
-          x="40"
+          x="39"
           y="32"
           fontFamily="system-ui, -apple-system, sans-serif"
-          fontWeight="600"
+          fontWeight="700"
           fontSize="6.5"
           letterSpacing="0.8px"
           fill="#94A3B8"
         >
-          NIGERIA &bull; 36 STATES COURIER
+          NIGERIA &bull; 36 STATES DOORSTEP
         </text>
       </svg>
     </div>
@@ -170,10 +181,10 @@ export function LogisticsTrustBanner({ className = '' }: { className?: string })
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="p-1 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center">
-          <GhlLogisticsLogo className="h-8 w-full" />
+        <div className="p-1 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden">
+          <DhlLogisticsLogo className="h-8 w-full" />
         </div>
-        <div className="p-1 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center">
+        <div className="p-1 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden">
           <GigLogisticsLogo className="h-8 w-full" />
         </div>
       </div>

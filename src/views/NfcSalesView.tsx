@@ -767,7 +767,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                   <p className="text-[11px] text-white/50 text-center mt-2.5 flex items-center justify-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-emerald-400" />
                     <span>
-                      {heroMaterial.includes('metal') ? 'Precision fiber-laser engraved' : 'Precision UV printed'} & dispatched within 24h • Insured delivery via GHL & GIG Logistics
+                      {heroMaterial.includes('metal') ? 'Precision fiber-laser engraved' : 'Precision UV printed'} & dispatched within 24h • Insured delivery via DHL & GIG Logistics
                     </span>
                   </p>
                 </div>
@@ -999,7 +999,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                     'Dynamic High-Contrast Backside QR Code',
                     'Free Lifetime Cloud Bio & Contactless Profile',
                     'One-Tap vCard Phonebook Sync (iOS & Android)',
-                    'Insured Nationwide Delivery via GHL & GIG Logistics',
+                    'Insured Nationwide Delivery via DHL & GIG Logistics',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
@@ -1063,7 +1063,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
                     'Dual-Frequency High-Gain NFC Contactless Antenna',
                     'Priority 24h Lagos Workshop Fabrication Queue',
                     'Real-Time Link Click & Contact Download Analytics',
-                    'Priority Express Insured Delivery via GHL & GIG Logistics',
+                    'Priority Express Insured Delivery via DHL & GIG Logistics',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2.5">
                       <CheckCircle2 className="w-4 h-4 text-[#B600A8] shrink-0 mt-0.5" />
@@ -1114,7 +1114,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
               },
               {
                 q: 'How fast is delivery across Nigeria?',
-                a: 'We manufacture and customize all cards in our Lagos facility. Deliveries within Lagos arrive in 24–48 hours. Nationwide deliveries to Abuja, Port Harcourt, and other states take 2–4 business days via GHL & GIG Logistics.',
+                a: 'We manufacture and customize all cards in our Lagos facility. Deliveries within Lagos arrive in 24–48 hours. Nationwide deliveries to Abuja, Port Harcourt, and other states take 2–4 business days via DHL & GIG Logistics.',
               },
             ].map((faq, i) => (
               <div key={i} className="p-6 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2">
@@ -1156,7 +1156,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       <footer className="py-10 px-4 sm:px-6 border-t border-white/10 text-center text-xs font-mono text-white/40">
         <p>© {new Date().getFullYear()} CHIP NG Technologies Limited. All rights reserved.</p>
         <p className="mt-1">Crafted with precision for Nigeria's ambitious founders, executives, and creators.</p>
-        <p className="mt-1.5 text-[11px] text-white/30">Nationwide delivery insured by GHL & GIG Logistics.</p>
+        <p className="mt-1.5 text-[11px] text-white/30">Nationwide delivery insured by DHL & GIG Logistics.</p>
       </footer>
 
       {/* ================= MODALS & INTERACTIVE FUNNELS ================= */}
