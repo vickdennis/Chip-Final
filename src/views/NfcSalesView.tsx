@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, 
@@ -35,24 +35,11 @@ import {
 
 import { Card3DRotator, CardMaterial } from '../components/funnel/Card3DRotator';
 import { LiveBioPreview } from '../components/funnel/LiveBioPreview';
-import type { CardCustomizationData } from '../components/funnel/CardCustomizerModal';
+import { CardCustomizerModal, CardCustomizationData } from '../components/funnel/CardCustomizerModal';
+import { CheckoutOnboardingModal } from '../components/funnel/CheckoutOnboardingModal';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
 import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialMediaIconSet';
 import { trackTikTokEvent } from '../utils/tiktokPixel';
-
-// Lazy-load heavier checkout & customization modals to keep the initial page bundle lean
-const CardCustomizerModal = lazy(() =>
-  import('../components/funnel/CardCustomizerModal').then(m => ({ default: m.CardCustomizerModal }))
-);
-const CheckoutOnboardingModal = lazy(() =>
-  import('../components/funnel/CheckoutOnboardingModal').then(m => ({ default: m.CheckoutOnboardingModal }))
-);
-
-// Preload modal chunks during idle time or user interaction
-const preloadFunnelModals = () => {
-  import('../components/funnel/CardCustomizerModal');
-  import('../components/funnel/CheckoutOnboardingModal');
-};
 
 type PersonaType = 'executive' | 'founder' | 'creator';
 
@@ -188,15 +175,6 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
   // 4. Scarcity & Urgency Timer (15 Minutes)
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
   const [hasDiscountLocked, setHasDiscountLocked] = useState(false);
-  const tiktokSectionRef = useRef<HTMLDivElement>(null);
-
-  // Idle preloader for funnel modal chunks
-  useEffect(() => {
-    const idleTimer = setTimeout(() => {
-      preloadFunnelModals();
-    }, 2800);
-    return () => clearTimeout(idleTimer);
-  }, []);
 
   // Parse UTM parameters on mount & track TikTok ViewContent
   useEffect(() => {
@@ -245,29 +223,18 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
     return () => clearInterval(timer);
   }, []);
 
-  // TikTok embed script lazy loader (loads only when user scrolls near the demo section)
+  // TikTok embed script lazy loader
   useEffect(() => {
-    const target = tiktokSectionRef.current;
-    if (!target) return;
-
-    let script: HTMLScriptElement | null = null;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          observer.disconnect();
-          script = document.createElement('script');
-          script.src = 'https://www.tiktok.com/embed.js';
-          script.async = true;
-          document.body.appendChild(script);
-        }
-      },
-      { rootMargin: '400px' }
-    );
-
-    observer.observe(target);
+    let script: HTMLScriptElement;
+    const timer = setTimeout(() => {
+      script = document.createElement('script');
+      script.src = 'https://www.tiktok.com/embed.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, 2500);
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timer);
       if (script && document.body.contains(script)) {
         document.body.removeChild(script);
       }
@@ -384,7 +351,6 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
 
             <button
               onClick={() => handleOpenCustomizer('metal')}
-              onMouseEnter={preloadFunnelModals}
               className="px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all cursor-pointer hover:border-[#B600A8]/50"
             >
               Build Your Card
@@ -425,38 +391,40 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
           )}
         </div>
 
-        {/* Hero Copywriting Block - Rendered immediately for lightning-fast First Contentful Paint */}
+        {/* Hero Copywriting Block */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#B600A8]/15 border border-[#B600A8]/30 text-[#E395F7] text-xs font-mono uppercase tracking-wider mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>{personaContent.badge}</span>
-          </div>
+          <FadeIn y={15}>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#B600A8]/15 border border-[#B600A8]/30 text-[#E395F7] text-xs font-mono uppercase tracking-wider mb-4">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>{personaContent.badge}</span>
+            </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black tracking-tight leading-[1.15] text-white">
-            {personaContent.headline}
-          </h1>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black tracking-tight leading-[1.15] text-white">
+              {personaContent.headline}
+            </h1>
 
-          <p className="mt-4 sm:mt-5 text-sm sm:text-lg text-white/70 leading-relaxed max-w-2xl mx-auto">
-            {personaContent.subheadline}
-          </p>
+            <p className="mt-4 sm:mt-5 text-sm sm:text-lg text-white/70 leading-relaxed max-w-2xl mx-auto">
+              {personaContent.subheadline}
+            </p>
 
-          {/* Persona highlights pill row */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4 text-xs text-white/80 font-mono">
-            {personaContent.keyPillars.map((pillar, idx) => (
-              <span
-                key={idx}
-                className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 flex items-center gap-1.5"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{pillar}</span>
-              </span>
-            ))}
-          </div>
+            {/* Persona highlights pill row */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4 text-xs text-white/80 font-mono">
+              {personaContent.keyPillars.map((pillar, idx) => (
+                <span
+                  key={idx}
+                  className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{pillar}</span>
+                </span>
+              ))}
+            </div>
 
-          <p className="text-xs text-white/50 mt-3 flex items-center justify-center gap-2">
-            <Shield className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{personaContent.socialProof}</span>
-          </p>
+            <p className="text-xs text-white/50 mt-3 flex items-center justify-center gap-2">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{personaContent.socialProof}</span>
+            </p>
+          </FadeIn>
         </div>
 
         {/* ================= HERO SHOWCASE: BOLD PHYSICAL SMART CARD & SIDE FUNCTION CONTROLS ================= */}
@@ -838,7 +806,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       </section>
 
       {/* ================= STAGE 3: VALUE PROPOSITIONS & REAL-WORLD PROOF ================= */}
-      <section className="py-20 px-4 sm:px-6 bg-white/[0.02] border-y border-white/10 relative z-10 content-auto">
+      <section className="py-20 px-4 sm:px-6 bg-white/[0.02] border-y border-white/10 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-display font-black text-white">
@@ -930,8 +898,8 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
             </div>
           </div>
 
-          {/* Video Demonstration Proof (Real TikTok Embeds - Lazy-loaded) */}
-          <div ref={tiktokSectionRef} className="mt-16 pt-12 border-t border-white/10">
+          {/* Video Demonstration Proof (Real TikTok Embeds) */}
+          <div className="mt-16 pt-12 border-t border-white/10">
             <div className="text-center mb-10">
               <span className="text-xs font-mono uppercase tracking-widest text-[#B600A8] font-bold">
                 See It In Action
@@ -969,7 +937,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       </section>
 
       {/* ================= STAGE 4 & 5: STRATEGIC OFFER & TIERED PRICING ================= */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 relative z-10 max-w-7xl mx-auto content-auto">
+      <section id="pricing" className="py-24 px-4 sm:px-6 relative z-10 max-w-7xl mx-auto">
         
         {/* Scarcity Notice */}
         <div className="max-w-xl mx-auto mb-10 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs text-amber-200">
@@ -1119,7 +1087,7 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       </section>
 
       {/* ================= FAQ & ASSURANCE ================= */}
-      <section className="py-20 px-4 sm:px-6 bg-white/[0.02] border-t border-white/10 relative z-10 content-auto">
+      <section className="py-20 px-4 sm:px-6 bg-white/[0.02] border-t border-white/10 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-display font-black text-white">
@@ -1192,26 +1160,25 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
       </footer>
 
       {/* ================= MODALS & INTERACTIVE FUNNELS ================= */}
-      <Suspense fallback={null}>
-        {isCustomizerOpen && (
-          <CardCustomizerModal
-            isOpen={isCustomizerOpen}
-            onClose={() => setIsCustomizerOpen(false)}
-            initialTier={selectedInitialTier}
-            initialMaterial={selectedInitialMaterial}
-            onProceedToCheckout={handleProceedToCheckout}
-          />
-        )}
 
-        {isCheckoutOpen && customizationData && (
-          <CheckoutOnboardingModal
-            isOpen={isCheckoutOpen}
-            onClose={() => setIsCheckoutOpen(false)}
-            data={customizationData}
-            onNavigate={onNavigate}
-          />
-        )}
-      </Suspense>
+      {/* 1. Multi-Step Card Customizer & Lead Capture (Interest & Urgency) */}
+      <CardCustomizerModal
+        isOpen={isCustomizerOpen}
+        onClose={() => setIsCustomizerOpen(false)}
+        initialTier={selectedInitialTier}
+        initialMaterial={selectedInitialMaterial}
+        onProceedToCheckout={handleProceedToCheckout}
+      />
+
+      {/* 2. Seamless Paystack & Post-Purchase Onboarding Engine (Action) */}
+      {customizationData && (
+        <CheckoutOnboardingModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          data={customizationData}
+          onNavigate={onNavigate}
+        />
+      )}
 
       {/* Mobile Sticky Bar */}
       <div className="fixed bottom-0 left-0 w-full p-3.5 bg-black/95 backdrop-blur-xl border-t border-white/10 z-40 md:hidden flex items-center justify-between">
@@ -1222,7 +1189,6 @@ export default function NfcSalesView({ onNavigate }: { onNavigate?: (view: any) 
 
         <button
           onClick={() => handleOpenCustomizer('metal')}
-          onMouseEnter={preloadFunnelModals}
           className="px-6 py-2.5 rounded-full font-bold text-xs bg-gradient-to-r from-[#B600A8] to-purple-600 text-white shadow-lg shadow-purple-950/60"
         >
           Customize Now

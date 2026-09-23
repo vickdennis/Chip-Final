@@ -1,17 +1,16 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
+import LandingView from './views/LandingView';
+import LoginView from './views/LoginView';
+import UserDashboard from './views/UserDashboard';
+import PublicProfileView from './views/PublicProfileView';
+import AdminDashboard from './views/AdminDashboard';
+import EnterpriseDashboard from './views/EnterpriseDashboard';
+import BlogDirectoryView from './views/BlogDirectoryView';
+import BlogArticleView from './views/BlogArticleView';
+import NfcSalesView from './views/NfcSalesView';
+import PrivacyPolicyView from './views/PrivacyPolicyView';
+import TermsOfServiceView from './views/TermsOfServiceView';
 import { supabase } from './supabaseClient';
-
-const LandingView = lazy(() => import('./views/LandingView'));
-const LoginView = lazy(() => import('./views/LoginView'));
-const UserDashboard = lazy(() => import('./views/UserDashboard'));
-const PublicProfileView = lazy(() => import('./views/PublicProfileView'));
-const AdminDashboard = lazy(() => import('./views/AdminDashboard'));
-const EnterpriseDashboard = lazy(() => import('./views/EnterpriseDashboard'));
-const BlogDirectoryView = lazy(() => import('./views/BlogDirectoryView'));
-const BlogArticleView = lazy(() => import('./views/BlogArticleView'));
-const NfcSalesView = lazy(() => import('./views/NfcSalesView'));
-const PrivacyPolicyView = lazy(() => import('./views/PrivacyPolicyView'));
-const TermsOfServiceView = lazy(() => import('./views/TermsOfServiceView'));
 
 export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales' | 'privacy-policy' | 'terms-of-service';
 
@@ -162,23 +161,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] dark:text-white font-sans antialiased selection:bg-black selection:text-white">
-      <Suspense fallback={
-        <div className="min-h-screen bg-[#07090D] flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border-2 border-[#B600A8]/30 border-t-[#B600A8] animate-spin" />
-        </div>
-      }>
-        {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
-        {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-        {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-        {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />}
-        {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-        {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-        {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-        {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} />}
-        {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-        {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
-        {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
-      </Suspense>
+      {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
+      {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />}
+      {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} />}
+            {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
+      {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
     </div>
   );
 }
