@@ -10,9 +10,12 @@ import BlogArticleView from './views/BlogArticleView';
 import NfcSalesView from './views/NfcSalesView';
 import PrivacyPolicyView from './views/PrivacyPolicyView';
 import TermsOfServiceView from './views/TermsOfServiceView';
+import { MakroCompanyView } from './views/MakroCompanyView';
+import { MakroUpdatesView } from './views/MakroUpdatesView';
+import { MakroContactView } from './views/MakroContactView';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales' | 'privacy-policy' | 'terms-of-service';
+export type ViewState = 'landing' | 'company' | 'updates' | 'contact' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales' | 'privacy-policy' | 'terms-of-service';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -39,6 +42,9 @@ export default function App() {
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
     if (path === '/blog') return 'blog-directory';
+    if (path === '/company') return 'company';
+    if (path === '/updates') return 'updates';
+    if (path === '/contact') return 'contact';
     if (path === '/buy-card') return 'nfc-sales';
     if (path === '/privacy-policy') return 'privacy-policy';
     if (path === '/terms-of-service') return 'terms-of-service';
@@ -52,7 +58,7 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/buy-card' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && !path.startsWith('/blog/')) {
+    if (path !== '' && path !== '/' && path !== '/buy-card' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && path !== '/company' && path !== '/updates' && path !== '/contact' && path !== '/privacy-policy' && path !== '/terms-of-service' && !path.startsWith('/blog/')) {
       try {
         let username = decodeURIComponent(path.slice(1)).trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
@@ -148,6 +154,12 @@ export default function App() {
       window.history.pushState({}, '', '/terms-of-service');
     } else if (view === 'blog-directory') {
       window.history.pushState({}, '', '/blog');
+    } else if (view === 'company') {
+      window.history.pushState({}, '', '/company');
+    } else if (view === 'updates') {
+      window.history.pushState({}, '', '/updates');
+    } else if (view === 'contact') {
+      window.history.pushState({}, '', '/contact');
     }
 
     setCurrentView(view);
@@ -160,8 +172,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] dark:text-white font-sans antialiased selection:bg-black selection:text-white">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white font-sans antialiased selection:bg-[#D2F843] selection:text-neutral-950">
       {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
+      {currentView === 'company' && <MakroCompanyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
+      {currentView === 'updates' && <MakroUpdatesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
+      {currentView === 'contact' && <MakroContactView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />}
@@ -169,7 +184,7 @@ export default function App() {
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} />}
-            {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
       {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
     </div>

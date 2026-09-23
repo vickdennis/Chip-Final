@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { 
-  MemoryStick, 
   LayoutDashboard, 
   Users, 
   LogOut,
   Moon,
-  Sun
+  Sun,
+  ExternalLink,
+  Home
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -20,133 +21,136 @@ interface AdminLayoutProps {
   toggleDarkMode: () => void;
 }
 
-export default function AdminLayout({ children, onNavigate, activePath, isDarkMode, toggleDarkMode, hideMobileNav, topRightContent }: AdminLayoutProps) {
-  
+export default function AdminLayout({
+  children,
+  onNavigate,
+  activePath,
+  isDarkMode,
+  toggleDarkMode,
+  hideMobileNav,
+  topRightContent,
+}: AdminLayoutProps) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     onNavigate('landing');
   };
 
   return (
-    <div className="flex h-screen bg-[#f4f4f5] dark:bg-[#000000] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black font-sans">
-      
-      {/* Desktop Sidebar (Hidden on Mobile) */}
-      <aside className="hidden md:flex flex-col w-[260px] border-r border-black/5 dark:border-white/5 bg-white dark:bg-[#0a0a0a] z-20">
-        <div className="p-8 pb-6 flex items-center gap-3">
-          <div className="w-10 h-10 flex items-center justify-center rounded-[14px] bg-black dark:bg-white shadow-md">
-            <MemoryStick className="w-5 h-5 text-white dark:text-black" />
-          </div>
-          <div>
-            <h1 className="font-bold text-black dark:text-white text-lg tracking-tight leading-tight">CHIP NG</h1>
-            <p className="text-[11px] text-black/50 dark:text-white/50 font-medium uppercase tracking-widest">Admin</p>
-          </div>
+    <div className="flex h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans transition-colors">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-[260px] border-r border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-[#0E1017] z-20">
+        <div className="p-6 pb-6 flex items-center justify-between">
+          <button
+            onClick={() => onNavigate('landing')}
+            className="flex items-center gap-3 group focus:outline-none"
+          >
+            <div className="w-8 h-6 rounded-full bg-neutral-950 dark:bg-white flex items-center justify-center gap-1 px-1.5 group-hover:scale-105 transition-transform">
+              <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-950"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
+            </div>
+            <div>
+              <h1 className="font-bold text-neutral-950 dark:text-white text-base tracking-tight leading-tight">
+                CHIPNG
+              </h1>
+              <p className="text-[10px] text-[#84A900] dark:text-[#D2F843] font-mono uppercase tracking-widest font-semibold">
+                Control Hub
+              </p>
+            </div>
+          </button>
         </div>
 
         <div className="px-4 py-2">
-          <nav className="flex flex-col gap-1">
-            <button 
+          <nav className="flex flex-col gap-1.5">
+            <button
               onClick={() => onNavigate('user-dashboard')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-[15px] ${activePath === 'dashboard' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'}`}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-semibold text-xs cursor-pointer ${
+                activePath === 'dashboard'
+                  ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/60'
+              }`}
             >
-              <LayoutDashboard className="w-5 h-5" />
-              Dashboard
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Personal Console</span>
             </button>
-            <button 
+
+            <button
               onClick={() => onNavigate('enterprise-dashboard')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-[15px] ${activePath === 'enterprise' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'}`}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-semibold text-xs cursor-pointer ${
+                activePath === 'enterprise'
+                  ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/60'
+              }`}
             >
-              <Users className="w-5 h-5" />
-              Enterprise
+              <Users className="w-4 h-4" />
+              <span>Enterprise Fleet</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('landing')}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/60 transition-all font-semibold text-xs cursor-pointer"
+            >
+              <Home className="w-4 h-4" />
+              <span>Main Website</span>
             </button>
           </nav>
         </div>
 
-        <div className="mt-auto p-4 border-t border-black/5 dark:border-white/5 flex flex-col gap-1">
-          <button 
+        <div className="mt-auto p-4 border-t border-neutral-200/80 dark:border-neutral-800/80 flex flex-col gap-1.5">
+          <button
             onClick={toggleDarkMode}
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5 transition-all font-medium text-[15px]"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/60 transition-all font-semibold text-xs cursor-pointer"
           >
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-neutral-700" />}
+            <span>{isDarkMode ? 'Light Surface' : 'Obsidian Surface'}</span>
           </button>
-          <button 
+
+          <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all font-medium text-[15px]"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all font-semibold text-xs cursor-pointer"
           >
-            <LogOut className="w-5 h-5" />
-            Sign Out
+            <LogOut className="w-4 h-4" />
+            <span>Terminate Session</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        
         {/* Mobile Header */}
-        <header className="md:hidden h-[72px] shrink-0 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 flex items-center justify-between px-6 z-30 sticky top-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 flex items-center justify-center rounded-[10px] bg-black dark:bg-white shadow-sm">
-              <MemoryStick className="w-4 h-4 text-white dark:text-black" />
+        <header className="md:hidden h-[64px] shrink-0 bg-white/90 dark:bg-[#0E1017]/90 backdrop-blur-xl border-b border-neutral-200/80 dark:border-neutral-800/80 flex items-center justify-between px-5 z-30 sticky top-0">
+          <button
+            onClick={() => onNavigate('landing')}
+            className="flex items-center gap-2 focus:outline-none"
+          >
+            <div className="w-7 h-5 rounded-full bg-neutral-950 dark:bg-white flex items-center justify-center gap-1 px-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-950"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
             </div>
-            <span className="font-bold text-black dark:text-white tracking-tight">CHIP NG</span>
-          </div>
+            <span className="font-bold text-neutral-950 dark:text-white text-sm tracking-tight">
+              CHIPNG
+            </span>
+          </button>
+
           <div className="flex items-center gap-2">
             {topRightContent}
-            <button onClick={toggleDarkMode} className="p-2 -mr-2 rounded-full text-black/60 dark:text-white/60 active:bg-black/5 dark:active:bg-white/5">
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-full text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+            >
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </header>
-        
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto relative z-10 pb-[100px] md:pb-0">
-          {children}
-        </div>
+
+        {/* Scrollable Children */}
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
-
-      {/* Mobile Bottom Tab Bar */}
-      {!hideMobileNav && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#121212] border-t border-black/5 dark:border-white/5 pb-4 md:pb-0 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-[32px]">
-        <div className="flex items-center justify-around h-[84px] px-2 relative">
-          <button 
-            onClick={() => onNavigate('user-dashboard')}
-            className={`relative flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 transition-all ${activePath === 'dashboard' ? 'text-black dark:text-white -translate-y-5' : 'text-black/40 dark:text-white/40'}`}
-          >
-            {activePath === 'dashboard' && (
-              <div className="absolute -top-3 w-16 h-16 bg-white dark:bg-[#121212] rounded-full shadow-[0_-8px_16px_rgba(0,0,0,0.06)] -z-10" />
-            )}
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${activePath === 'dashboard' ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg shadow-black/20 dark:shadow-white/20' : 'bg-transparent'}`}>
-              <LayoutDashboard className={`w-6 h-6 ${activePath === 'dashboard' ? '' : ''}`} />
-            </div>
-            <span className={`text-[11px] font-semibold tracking-wide transition-all ${activePath === 'dashboard' ? 'opacity-100 translate-y-1' : 'opacity-100'}`}>Home</span>
-          </button>
-          
-          <button 
-            onClick={() => onNavigate('enterprise-dashboard')}
-            className={`relative flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 transition-all ${activePath === 'enterprise' ? 'text-black dark:text-white -translate-y-5' : 'text-black/40 dark:text-white/40'}`}
-          >
-            {activePath === 'enterprise' && (
-              <div className="absolute -top-3 w-16 h-16 bg-white dark:bg-[#121212] rounded-full shadow-[0_-8px_16px_rgba(0,0,0,0.06)] -z-10" />
-            )}
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${activePath === 'enterprise' ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg shadow-black/20 dark:shadow-white/20' : 'bg-transparent'}`}>
-              <Users className={`w-6 h-6 ${activePath === 'enterprise' ? '' : ''}`} />
-            </div>
-            <span className={`text-[11px] font-semibold tracking-wide transition-all ${activePath === 'enterprise' ? 'opacity-100 translate-y-1' : 'opacity-100'}`}>Enterprise</span>
-          </button>
-
-          <button 
-            onClick={handleLogout}
-            className="flex flex-col items-center justify-center w-[72px] h-[72px] gap-1.5 text-black/40 dark:text-white/40 transition-all"
-          >
-            <div className="w-12 h-12 rounded-full flex items-center justify-center">
-              <LogOut className="w-6 h-6" />
-            </div>
-            <span className="text-[11px] font-semibold tracking-wide">Logout</span>
-          </button>
-        </div>
-      </nav>
-      )}
-
     </div>
   );
 }

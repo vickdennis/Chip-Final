@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { MemoryStick, ChevronRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Sparkles, Moon, Sun, ArrowLeft } from 'lucide-react';
 
 interface LoginViewProps {
   onNavigate: (view: ViewState) => void;
@@ -30,18 +30,18 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
           email,
           password,
           options: {
-            data: { full_name: fullName }
-          }
+            data: { full_name: fullName },
+          },
         });
         if (error) throw error;
-        
+
         if (data?.session) {
           onNavigate('user-dashboard');
         } else {
-          setSuccessMsg('Account created successfully! Please check your email to verify.');
+          setSuccessMsg('Account created! Please check your inbox to verify your email.');
         }
       } else {
-        const { error, data } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -49,11 +49,8 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
         onNavigate('user-dashboard');
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Authentication failed');
+      setErrorMsg(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
-      if (!errorMsg && mode === 'signup' && !successMsg) {
-        // if navigating away, we don't necessarily need to stop loading but we can
-      }
       setLoading(false);
     }
   };
@@ -64,8 +61,8 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/dashboard'
-        }
+          redirectTo: window.location.origin + '/dashboard',
+        },
       });
       if (error) throw error;
     } catch (err: any) {
@@ -75,134 +72,225 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] flex items-center justify-center p-4 selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
-      {/* Absolute Header */}
-      <header className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
-          <div className="w-8 h-8 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-md">
-            <MemoryStick className="w-4 h-4 text-white dark:text-black" />
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950 transition-colors">
+      
+      {/* Top Bar */}
+      <header className="px-6 sm:px-8 py-6 flex items-center justify-between">
+        <button
+          onClick={() => onNavigate('landing')}
+          className="flex items-center gap-3 group focus:outline-none"
+        >
+          <div className="w-9 h-6 rounded-full bg-neutral-950 dark:bg-white flex items-center justify-center gap-1 px-1.5 group-hover:scale-105 transition-transform">
+            <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-950"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
           </div>
-          <span className="font-sans text-xl font-bold tracking-tight text-black dark:text-white">CHIP NG</span>
-        </div>
-        <button onClick={toggleDarkMode} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-          {isDarkMode ? (
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-          ) : (
-            <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-          )}
+          <span className="text-lg font-bold tracking-tight text-neutral-950 dark:text-white">
+            CHIPNG
+          </span>
         </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleDarkMode}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-neutral-700" />}
+          </button>
+          <button
+            onClick={() => onNavigate('landing')}
+            className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to home
+          </button>
+        </div>
       </header>
 
-      {/* Main Card Container */}
-      <div className="w-full max-w-[440px] bg-white dark:bg-[#121212] rounded-[32px] p-8 md:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-black/5 dark:border-white/5 relative z-10">
-        
-        <div className="mb-8">
-          <h1 className="text-[28px] md:text-[32px] font-bold text-black dark:text-white tracking-tight leading-tight mb-2">
-            {mode === 'login' ? 'Welcome back.' : 'Create an account.'}
-          </h1>
-          <p className="text-black/50 dark:text-white/50 text-[15px]">
-            {mode === 'login' ? 'Enter your details to access your dashboard.' : 'Start building your professional identity today.'}
-          </p>
-        </div>
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-md bg-white dark:bg-[#12141B] rounded-3xl p-8 sm:p-10 border border-neutral-200/80 dark:border-neutral-800 shadow-xl transition-all">
+          
+          {/* Header & Mode Switcher */}
+          <div className="text-center space-y-2 mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">
+              {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
+              {mode === 'login'
+                ? 'Sign in to access your financial forecast & NFC profile'
+                : 'Join over 25,000 founders and solopreneurs on CHIPNG'}
+            </p>
 
-        {/* Tab Switcher */}
-        <div className="bg-black/5 dark:bg-white/5 p-1 rounded-2xl flex mb-8">
-          <button 
-            className={`flex-1 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${mode === 'login' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-            onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
-          >
-            Sign In
-          </button>
-          <button 
-            className={`flex-1 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${mode === 'signup' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-            onClick={() => { setMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
-          >
-            Sign Up
-          </button>
-        </div>
-
-        <button 
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-white dark:bg-black border border-black/10 dark:border-white/10 text-black dark:text-white font-medium text-[15px] rounded-2xl px-4 py-4 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all disabled:opacity-70 mb-6 shadow-sm"
-        >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
-          </svg>
-          Continue with Google
-        </button>
-
-        <div className="flex items-center my-6">
-          <div className="flex-grow border-t border-black/5 dark:border-white/5"></div>
-          <span className="mx-4 text-[13px] text-black/40 dark:text-white/40 font-medium">or continue with email</span>
-          <div className="flex-grow border-t border-black/5 dark:border-white/5"></div>
-        </div>
-
-        <form className="space-y-4" onSubmit={handleAuth}>
-          {mode === 'signup' && (
-            <div className="space-y-1.5">
-              <label className="block text-[13px] font-medium text-black/70 dark:text-white/70 ml-1">Full Name</label>
-              <input 
-                type="text" 
-                placeholder="Jane Doe" 
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="w-full bg-black/5 dark:bg-white/5 border-transparent rounded-2xl px-5 py-4 text-[15px] text-black dark:text-white focus:bg-white dark:focus:bg-[#1a1a1a] focus:border-black/20 dark:focus:border-white/20 focus:ring-4 focus:ring-black/5 dark:focus:ring-white/5 outline-none transition-all placeholder-black/30 dark:placeholder-white/30"
-              />
+            <div className="pt-4 flex justify-center">
+              <div className="inline-flex p-1 bg-neutral-100 dark:bg-neutral-800 rounded-full">
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
+                  className={`px-5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    mode === 'login'
+                      ? 'bg-white dark:bg-neutral-700 text-neutral-950 dark:text-white shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
+                  className={`px-5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    mode === 'signup'
+                      ? 'bg-white dark:bg-neutral-700 text-neutral-950 dark:text-white shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  Register
+                </button>
+              </div>
             </div>
-          )}
-          <div className="space-y-1.5">
-            <label className="block text-[13px] font-medium text-black/70 dark:text-white/70 ml-1">Email Address</label>
-            <input 
-              type="email" 
-              placeholder="name@example.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-black/5 dark:bg-white/5 border-transparent rounded-2xl px-5 py-4 text-[15px] text-black dark:text-white focus:bg-white dark:focus:bg-[#1a1a1a] focus:border-black/20 dark:focus:border-white/20 focus:ring-4 focus:ring-black/5 dark:focus:ring-white/5 outline-none transition-all placeholder-black/30 dark:placeholder-white/30"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-[13px] font-medium text-black/70 dark:text-white/70 ml-1">Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-black/5 dark:bg-white/5 border-transparent rounded-2xl px-5 py-4 text-[15px] text-black dark:text-white focus:bg-white dark:focus:bg-[#1a1a1a] focus:border-black/20 dark:focus:border-white/20 focus:ring-4 focus:ring-black/5 dark:focus:ring-white/5 outline-none transition-all placeholder-black/30 dark:placeholder-white/30"
-            />
           </div>
 
+          {/* Feedback messages */}
           {errorMsg && (
-            <div className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-2xl text-[14px] font-medium">
+            <div className="mb-6 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-medium">
               {errorMsg}
             </div>
           )}
+
           {successMsg && (
-            <div className="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 p-4 rounded-2xl text-[14px] font-medium flex items-center gap-2">
-              <Check className="w-5 h-5" />
+            <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
               {successMsg}
             </div>
           )}
-          
-          <div className="pt-4">
-            <button 
+
+          {/* Google Sign In */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-colors mb-6 cursor-pointer"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+              />
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          {/* Divider */}
+          <div className="relative flex py-2 items-center mb-6">
+            <div className="flex-grow border-t border-neutral-200 dark:border-neutral-800"></div>
+            <span className="flex-shrink mx-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
+              Or with email
+            </span>
+            <div className="flex-grow border-t border-neutral-200 dark:border-neutral-800"></div>
+          </div>
+
+          {/* Auth Form */}
+          <form onSubmit={handleAuth} className="space-y-4">
+            {mode === 'signup' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Amara Vance"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                Work Email
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                  Password
+                </label>
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => alert('Password reset link sent to your registered email.')}
+                    className="text-[11px] font-medium text-neutral-500 hover:text-neutral-950 dark:hover:text-white transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
+              />
+            </div>
+
+            <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black dark:bg-white text-white dark:text-black font-semibold text-[16px] rounded-2xl px-4 py-4 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center shadow-lg shadow-black/10 dark:shadow-white/10"
+              className="w-full mt-2 group flex items-center justify-center gap-2 py-3 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-bold text-sm hover:opacity-90 active:scale-98 transition-all cursor-pointer shadow-md disabled:opacity-50"
             >
-              {loading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
+              <span>{loading ? 'Authenticating...' : mode === 'login' ? 'Sign In' : 'Create Account'}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
-          </div>
-        </form>
-      </div>
+          </form>
 
+          {/* Legal disclaimer */}
+          <div className="mt-6 text-center text-[11px] text-neutral-400">
+            By continuing, you agree to CHIPNG's{' '}
+            <button
+              onClick={() => onNavigate('terms-of-service')}
+              className="underline hover:text-neutral-950 dark:hover:text-white"
+            >
+              Terms of Service
+            </button>{' '}
+            and{' '}
+            <button
+              onClick={() => onNavigate('privacy-policy')}
+              className="underline hover:text-neutral-950 dark:hover:text-white"
+            >
+              Privacy Policy
+            </button>.
+          </div>
+
+        </div>
+      </main>
+
+      <footer className="py-6 text-center text-xs text-neutral-400">
+        © {new Date().getFullYear()} CHIPNG Inc. High-security SSL 256-bit encryption.
+      </footer>
     </div>
   );
 }
