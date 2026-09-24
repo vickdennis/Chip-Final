@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase, adminAuthClient } from '../supabaseClient';
-import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye, Sun, Moon, X, CreditCard } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { ebooksData } from '../utils/ebooksData';
 import AdminBlogManager from './AdminBlogManager';
@@ -438,228 +438,282 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const proPlanUsers = users.filter(u => u.enterprise_id).length; // Rough mock of premium users if they have enterprise
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] dark:bg-[#000000] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black pb-20">
-      
-      <header className="bg-[#f4f4f5] dark:bg-black border-b border-black/5 dark:border-white/5 text-black dark:text-white p-5 sticky top-0 z-30 flex justify-between items-center shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 flex items-center justify-center rounded-[14px] bg-black dark:bg-white shadow-md">
-            <Shield className="w-5 h-5 text-white dark:text-black" />
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans transition-colors pb-24">
+      {/* Top Navbar matching homepage MakroNavbar */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 border-b border-neutral-200/80 dark:border-white/10 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('landing')}
+              className="flex items-center gap-3 group focus:outline-none cursor-pointer"
+              aria-label="CHIPNG Home"
+            >
+              {/* Double-dot capsule icon matching homepage */}
+              <div className="w-10 h-7 rounded-full bg-neutral-900 dark:bg-white flex items-center justify-center gap-1.5 px-2 group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-white dark:bg-neutral-900"></span>
+                <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+              </div>
+              <span className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">
+                CHIPNG
+              </span>
+            </button>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider">
+              <Shield className="w-3 h-3" /> Super Admin
+            </span>
           </div>
-          <div>
-            <h1 className="font-sans font-bold text-lg tracking-tight leading-tight">Super Admin Hub</h1>
-            <p className="text-[11px] text-black/50 dark:text-white/50 font-medium uppercase tracking-widest">Command Center</p>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('user-dashboard')}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#111318] text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#161922] transition-all shadow-xs cursor-pointer"
+            >
+              <span>Personal Console</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('landing')}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#111318] text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#161922] transition-all shadow-xs cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Live Website</span>
+            </button>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 transition-colors focus:outline-none cursor-pointer"
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-neutral-700" />}
+            </button>
+
+            {/* Sign Out */}
+            <button 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                onNavigate('landing');
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button onClick={toggleDarkMode} className="p-2 rounded-full text-black/60 dark:text-white/60 active:bg-black/5 dark:active:bg-white/5">
-            <Globe className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={async () => {
-              await supabase.auth.signOut();
-              onNavigate('landing');
-            }}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 transition-all"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6">
-        {/* Modern Nav Bar */}
-        <div className="mb-10 flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-1">
-          <div className="flex gap-6 overflow-x-auto scrollbar-hide">
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap ${activeTab === 'analytics' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('analytics')}
-            >
-              Analytics
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap ${activeTab === 'users' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('users')}
-            >
-              Users
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap ${activeTab === 'products' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('products')}
-            >
-              Shop
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap ${activeTab === 'blog' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('blog')}
-            >
-              Blog
-            </button>
+      <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-8">
+        {/* Header Title Section */}
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span> Command Hub
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+            Super Admin Control Center
+          </h1>
+          <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 mt-1">
+            Manage link-in-bio members, NFC hardware store inventory, conversion pixels, and system leads.
+          </p>
+        </div>
 
-                        <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${activeTab === 'leads' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('leads')}
-            >
-              <Users className="w-4 h-4" /> Leads
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${activeTab === 'buybox' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('buybox')}
-            >
-              <Package className="w-4 h-4" /> Buy Box
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${activeTab === 'seo' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('seo')}
-            >
-              <Search className="w-4 h-4" /> SEO
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${activeTab === 'sales' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('sales')}
-            >
-              <DollarSign className="w-4 h-4" /> NFC Sales
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${activeTab === 'broadcast' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('broadcast')}
-            >
-              <Send className="w-4 h-4" /> Broadcast
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1 ${activeTab === 'notifications' ? 'border-black dark:border-white text-black dark:text-white' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('notifications')}
-            >
-              <Bell className="w-4 h-4" /> In-App Notifications
-            </button>
-            <button 
-              className={`pb-4 font-semibold text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'pixel' ? 'border-[#25F4EE] text-[#0ea5e9] dark:text-[#25F4EE]' : 'border-transparent text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              onClick={() => setActiveTab('pixel')}
-            >
-              <Activity className="w-4 h-4 text-[#25F4EE]" /> Pixels & Tracking
-            </button>
-
+        {/* Modern Nav Bar - Pill Strip matching homepage */}
+        <div className="mb-8 overflow-x-auto scrollbar-hide py-1">
+          <div className="inline-flex p-1.5 rounded-2xl bg-neutral-200/60 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 gap-1.5">
+            {[
+              { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+              { id: 'users', label: 'Users', icon: Users },
+              { id: 'products', label: 'Shop', icon: Package },
+              { id: 'blog', label: 'Blog', icon: FileText },
+              { id: 'leads', label: 'Leads', icon: MessageCircle },
+              { id: 'buybox', label: 'Buy Box', icon: Package },
+              { id: 'seo', label: 'SEO', icon: Search },
+              { id: 'sales', label: 'NFC Sales', icon: DollarSign },
+              { id: 'broadcast', label: 'Broadcast', icon: Send },
+              { id: 'notifications', label: 'Notifications', icon: Bell },
+              { id: 'pixel', label: 'Pixels & Tracking', icon: Activity },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D2F843] dark:text-neutral-950' : ''}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-
         {activeTab === 'analytics' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 flex flex-col items-center justify-center text-center">
-              <Users className="w-8 h-8 text-black/40 dark:text-white/40 mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-black/40 dark:text-white/40 uppercase tracking-widest mb-1">Total Users</h3>
-              <p className="text-4xl font-sans font-bold">{totalUsers}</p>
-              <p className="text-[12px] text-green-600 mt-2 flex items-center gap-1 font-mono">
-                <CheckCircle className="w-3 h-3" /> {verifiedUsers} Verified
-              </p>
+            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <Users className="w-5 h-5" />
+                </div>
+                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Members</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Users</h3>
+                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{totalUsers}</p>
+                <div className="text-[12px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5 font-medium">
+                  <CheckCircle className="w-3.5 h-3.5" /> {verifiedUsers} Verified Accounts
+                </div>
+              </div>
             </div>
             
-            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 flex flex-col items-center justify-center text-center">
-              <Package className="w-8 h-8 text-black/40 dark:text-white/40 mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-black/40 dark:text-white/40 uppercase tracking-widest mb-1">Total Shop Sales</h3>
-              <p className="text-4xl font-sans font-bold">₦{totalShopRevenue.toLocaleString()}</p>
-              <p className="text-[12px] text-black/40 dark:text-white/40 mt-2 font-mono">
-                From {digitalProductPurchases.length} digital product sales
-              </p>
+            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <Package className="w-5 h-5" />
+                </div>
+                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Store</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Shop Sales</h3>
+                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalShopRevenue.toLocaleString()}</p>
+                <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
+                  From {digitalProductPurchases.length} digital purchases
+                </p>
+              </div>
             </div>
 
-            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 flex flex-col items-center justify-center text-center">
-              <DollarSign className="w-8 h-8 text-black/40 dark:text-white/40 mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-black/40 dark:text-white/40 uppercase tracking-widest mb-1">Platform Earnings</h3>
-              <p className="text-4xl font-sans font-bold">₦{totalPlatformFees.toLocaleString()}</p>
-              <p className="text-[12px] text-black/40 dark:text-white/40 mt-2 font-mono flex flex-col items-center gap-1">
-                <span>Shop Fees (5%): ₦{digitalProductFees.toLocaleString()}</span>
-                <span>Theme Sales: ₦{themeSalesRevenue.toLocaleString()}</span>
-                <span>Verification: ₦{verificationEarnings.toLocaleString()}</span>
-              </p>
+            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Earnings</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Platform Revenue</h3>
+                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalPlatformFees.toLocaleString()}</p>
+                <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 flex flex-col gap-0.5">
+                  <span>Shop Take (5%): ₦{digitalProductFees.toLocaleString()}</span>
+                  <span>Theme Upgrades: ₦{themeSalesRevenue.toLocaleString()}</span>
+                  <span>Verification: ₦{verificationEarnings.toLocaleString()}</span>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 flex flex-col items-center justify-center text-center">
-              <Eye className="w-8 h-8 text-black/40 dark:text-white/40 mb-3" />
-              <h3 className="font-mono text-[11px] font-bold text-black/40 dark:text-white/40 uppercase tracking-widest mb-1">Blog Views</h3>
-              <p className="text-4xl font-sans font-bold">{blogViews}</p>
-              <p className="text-[12px] text-black/40 dark:text-white/40 mt-2 font-mono flex items-center gap-1">
-                Across {posts.length} posts
-              </p>
+            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <Eye className="w-5 h-5" />
+                </div>
+                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Reach</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Blog Views</h3>
+                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{blogViews}</p>
+                <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
+                  Across {posts.length} published articles
+                </p>
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'users' && (
-          <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-sm border border-black/10 dark:border-white/10 p-6 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold font-sans">User Management</h2>
-              <div className="flex gap-4 items-center">
-                <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40" />
+          <div className="bg-white dark:bg-[#111318] rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 p-6 sm:p-8 mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">User Directory</h2>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Search, verify, and manage registered accounts across CHIPNG.</p>
+              </div>
+              <div className="flex gap-3 items-center w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input 
                     type="text" 
                     placeholder="Search users..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9 pr-4 py-2 border border-black/10 dark:border-white/10 rounded-2xl outline-none focus:border-black dark:focus:border-white font-sans text-sm"
+                    className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-full text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] transition-all"
                   />
                 </div>
-                <button
+                <button 
                   onClick={() => setCreatingUser(true)}
-                  className="px-4 py-2 bg-black text-black dark:text-white rounded-2xl font-mono text-[13px] font-bold flex items-center gap-2"
+                  className="px-4 py-2 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 rounded-full font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm cursor-pointer whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" /> Create User
                 </button>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto rounded-2xl border border-neutral-200/80 dark:border-white/10">
+              <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-black/10 dark:border-white/10 text-black/40 dark:text-white/40 font-mono text-[11px] uppercase tracking-widest">
-                    <th className="py-3 px-4">User</th>
-                    <th className="py-3 px-4">Username</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Role</th>
-                    <th className="py-3 px-4">Actions</th>
+                  <tr className="bg-neutral-50 dark:bg-[#151821] border-b border-neutral-200/80 dark:border-white/10 text-neutral-500 dark:text-neutral-400 text-xs font-semibold uppercase tracking-wider">
+                    <th className="py-3.5 px-4">User</th>
+                    <th className="py-3.5 px-4">Handle</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4">Role</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
                   {filteredUsers.map(u => (
-                    <tr key={u.id} className="border-b border-[#f3f3f4] hover:bg-[#fafafa]">
-                      <td className="py-3 px-4">
-                        <div className="font-sans font-bold text-[14px]">{u.full_name || 'No Name'}</div>
-                        <div className="font-mono text-[11px] text-black/40 dark:text-white/40 truncate w-32" title={u.id}>{u.id}</div>
+                    <tr key={u.id} className="hover:bg-neutral-50/60 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          {u.cover_image_url ? (
+                            <img src={u.cover_image_url} alt="" className="w-9 h-9 rounded-full object-cover border border-neutral-200 dark:border-white/10" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-[#1C202B] text-neutral-700 dark:text-neutral-200 font-bold flex items-center justify-center text-xs">
+                              {(u.full_name || 'U').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-neutral-950 dark:text-white text-sm">{u.full_name || 'No Name'}</div>
+                            <div className="font-mono text-[11px] text-neutral-400 truncate max-w-[140px]" title={u.id}>{u.id}</div>
+                          </div>
+                        </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <a href={`/${u.username}`} target="_blank" className="font-mono text-[13px] text-[#0066cc] hover:underline">@{u.username}</a>
+                      <td className="py-3.5 px-4">
+                        <a href={`/${u.username}`} target="_blank" rel="noreferrer" className="font-mono text-xs text-neutral-900 dark:text-neutral-100 font-medium hover:text-[#596e00] dark:hover:text-[#D2F843] transition-colors">
+                          @{u.username || 'unknown'}
+                        </a>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         {u.is_verified ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded-full font-mono text-[10px] font-bold uppercase">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-semibold">
                             <CheckCircle className="w-3 h-3" /> Verified
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-500 rounded-full font-mono text-[10px] font-bold uppercase">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 text-[11px] font-medium">
                             Standard
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         {u.is_admin ? (
-                          <span className="inline-flex flex items-center gap-1 px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full font-mono text-[10px] font-bold uppercase">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-[11px] font-bold uppercase tracking-wider">
                             <Shield className="w-3 h-3" /> Admin
                           </span>
                         ) : (
-                          <span className="font-mono text-[10px] text-gray-400 uppercase">User</span>
+                          <span className="font-mono text-xs text-neutral-400 uppercase">User</span>
                         )}
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <button 
                             onClick={() => toggleVerification(u)}
-                            className="px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors"
+                            className="px-3 py-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors cursor-pointer text-neutral-700 dark:text-neutral-300"
                           >
-                            {u.is_verified ? 'Revoke Verif.' : 'Verify'}
+                            {u.is_verified ? 'Revoke' : 'Verify'}
                           </button>
                           <button 
                             onClick={() => toggleAdmin(u.id, u.is_admin)}
-                            className="px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors disabled:opacity-50"
+                            className="px-3 py-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors disabled:opacity-40 cursor-pointer text-neutral-700 dark:text-neutral-300"
                             disabled={u.id === currentUserId}
                           >
                             {u.is_admin ? 'Revoke Admin' : 'Make Admin'}
@@ -673,130 +727,84 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 if(data) setUserSocialLinks(data);
                               });
                             }}
-                            className="px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-[#e2e2e2] rounded-[4px] font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
+                            className="p-2 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors flex items-center justify-center cursor-pointer text-neutral-700 dark:text-neutral-300"
+                            title="Edit Profile"
                           >
-                            <Edit2 className="w-3 h-3" /> Edit
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-neutral-400 text-sm">
+                        No users found matching your search.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
             {/* Modals for User Management */}
             {editingUser && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
-                  <h3 className="font-sans font-bold text-lg mb-4">Edit User Profile</h3>
+              <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl my-8 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="font-bold text-lg text-neutral-950 dark:text-white">Edit User Profile</h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">Update contact and bio info for @{editingUser.username}</p>
+                    </div>
+                    <button 
+                      onClick={() => setEditingUser(null)} 
+                      className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
                   <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Full Name</label>
-                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Full Name</label>
+                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Username</label>
-                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Username</label>
+                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Headline/Job Title</label>
-                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Headline / Job Title</label>
+                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Bio</label>
-                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Bio</label>
+                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Contact Email</label>
-                      <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Phone Number</label>
-                      <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Cover Image</label>
-                      {userForm.cover_image_url && <img src={userForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-xl" />}
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, (url) => setUserForm({...userForm, cover_image_url: url}))}
-                        className="w-full text-[13px]" 
-                      />
-                      {userForm.cover_image_url && (
-                        <input value={userForm.cover_image_url || ''} onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} className="w-full mt-2 px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" placeholder="Or paste image URL..." />
-                      )}
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Social Links Style</label>
-                      <select 
-                        value={userForm.social_links_style || 'color-circle'}
-                        onChange={(e) => setUserForm({...userForm, social_links_style: e.target.value})}
-                        className="w-full px-3 py-2 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl font-sans text-[13px] outline-none focus:border-black dark:focus:border-white"
-                      >
-                        <option value="color-circle">Color Circle</option>
-                        <option value="white-circle">White Circle</option>
-                        <option value="white-icon">Solid White</option>
-                      </select>
-                    </div>
-                    
-                    <div className="pt-2 border-t border-black/10 dark:border-white/10">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase">User Social Links</label>
-                        <button 
-                          type="button"
-                          onClick={() => setUserSocialLinks([...userSocialLinks, { platform: SOCIAL_PLATFORMS[0].name, url: '' }])}
-                          className="text-black dark:text-white hover:underline font-mono text-[11px] font-bold flex items-center gap-1"
-                        >
-                          <Plus className="w-3 h-3" /> Add Link
-                        </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Contact Email</label>
+                        <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                       </div>
-                      <div className="flex flex-col gap-2">
-                        {userSocialLinks.map((item, i) => (
-                          <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                            <select 
-                              value={item.platform}
-                              onChange={(e) => {
-                                const newLinks = [...userSocialLinks];
-                                newLinks[i].platform = e.target.value;
-                                setUserSocialLinks(newLinks);
-                              }}
-                              className="w-full sm:w-1/3 px-2 py-1.5 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-sans text-[12px] bg-white/40 dark:bg-black/40 backdrop-blur-xl"
-                            >
-                              {SOCIAL_PLATFORMS.map(p => (
-                                <option key={p.name} value={p.name}>{p.name}</option>
-                              ))}
-                            </select>
-                            <input 
-                              type="text" 
-                              value={item.url} 
-                              onChange={(e) => {
-                                const newLinks = [...userSocialLinks];
-                                newLinks[i].url = e.target.value;
-                                setUserSocialLinks(newLinks);
-                              }}
-                              placeholder="https://" 
-                              className="flex-1 px-2 py-1.5 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-mono text-[11px] text-black dark:text-white w-full" 
-                            />
-                            <button 
-                              type="button"
-                              onClick={() => setUserSocialLinks(userSocialLinks.filter((_, idx) => idx !== i))}
-                              className="p-1.5 text-black/40 dark:text-white/40 hover:text-[#ba1a1a] transition-colors rounded-xl hover:bg-[#ffdad6] shrink-0"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number</label>
+                        <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                       </div>
                     </div>
 
-                    <div className="flex gap-2 mt-4">
-                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-black dark:text-white py-2 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50">
-                        {uploadingImage ? 'Uploading...' : 'Save Changes'}
-                      </button>
-                      <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold">
+                    <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-neutral-200/80 dark:border-white/10">
+                      <button 
+                        type="button" 
+                        onClick={() => setEditingUser(null)} 
+                        className="px-5 py-2.5 rounded-full border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs cursor-pointer"
+                      >
                         Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="px-6 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs shadow-sm cursor-pointer"
+                      >
+                        Save Changes
                       </button>
                     </div>
                   </form>
@@ -805,60 +813,56 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             )}
 
             {creatingUser && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 w-full max-w-md shadow-xl my-8">
-                  <h3 className="font-sans font-bold text-lg mb-2 text-black dark:text-white">Create New User</h3>
-                  <p className="font-sans text-xs text-black/60 dark:text-white/60 mb-4">Create a new user account.</p>
+              <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl my-8 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="font-bold text-lg text-neutral-950 dark:text-white">Create New User</h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">Provision fresh accounts on the network</p>
+                    </div>
+                    <button 
+                      onClick={() => setCreatingUser(false)} 
+                      className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Number of Accounts</label>
-                      <input required type="number" min="1" max="100" value={newUserForm.number_of_accounts} onChange={e => setNewUserForm({...newUserForm, number_of_accounts: parseInt(e.target.value) || 1})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
-                      <p className="text-[10px] text-black/50 dark:text-white/50 mt-1">If &gt;1, it will create alias emails like user+1@email.com</p>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Number of Accounts</label>
+                      <input required type="number" min="1" max="100" value={newUserForm.number_of_accounts} onChange={e => setNewUserForm({...newUserForm, number_of_accounts: parseInt(e.target.value) || 1})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <p className="text-[11px] text-neutral-400 mt-1">If &gt;1, creates aliases like user+1@email.com</p>
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Email *</label>
-                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Email *</label>
+                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Password *</label>
-                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Password *</label>
+                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
                     <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Full Name *</label>
-                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Full Name *</label>
+                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                     </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Username</label>
-                      <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Username</label>
+                        <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional handle" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number</label>
+                        <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="+234..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Phone Number</label>
-                      <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Headline/Job Title</label>
-                      <input value={newUserForm.headline} onChange={e => setNewUserForm({...newUserForm, headline: e.target.value})} placeholder="Optional" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Bio</label>
-                      <textarea rows={3} value={newUserForm.bio} onChange={e => setNewUserForm({...newUserForm, bio: e.target.value})} placeholder="Optional bio" className="w-full px-3 py-2 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-xl text-[13px] font-sans text-black dark:text-white outline-none focus:border-black dark:focus:border-white" />
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Cover Image</label>
-                      {newUserForm.cover_image_url && <img src={newUserForm.cover_image_url} className="w-full h-24 object-cover mb-2 rounded-xl border border-black/10 dark:border-white/10" />}
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, (url) => setNewUserForm({...newUserForm, cover_image_url: url}))}
-                        className="w-full text-[13px] text-black/60 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-black/5 file:text-black hover:file:bg-black/10 dark:file:bg-white/10 dark:file:text-white dark:hover:file:bg-white/20" 
-                      />
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-white dark:bg-white dark:text-black py-2.5 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50 transition-colors">
-                        {uploadingImage ? 'Uploading...' : 'Create User'}
-                      </button>
-                      <button type="button" onClick={() => setCreatingUser(false)} className="px-6 py-2.5 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+
+                    <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-neutral-200/80 dark:border-white/10">
+                      <button type="button" onClick={() => setCreatingUser(false)} className="px-5 py-2.5 rounded-full border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs cursor-pointer">
                         Cancel
+                      </button>
+                      <button disabled={uploadingImage} type="submit" className="px-6 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs shadow-sm cursor-pointer disabled:opacity-50">
+                        {uploadingImage ? 'Uploading...' : 'Create Account'}
                       </button>
                     </div>
                   </form>
@@ -869,29 +873,35 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
 
         {activeTab === 'products' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 bg-white/40 dark:bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 h-fit">
-              <h3 className="font-sans font-bold text-lg mb-4">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-5 bg-white dark:bg-[#111318] p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 h-fit">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+                Inventory Sync
+              </div>
+              <h3 className="text-xl font-bold text-neutral-950 dark:text-white mb-4">
+                {editingProduct ? 'Edit NFC Card / Product' : 'Add NFC Card / Product'}
+              </h3>
+              
               <form onSubmit={handleSaveProduct} className="flex flex-col gap-4">
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Name</label>
-                  <input required value={prodForm.name} onChange={e=>setProdForm({...prodForm, name: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Product Name</label>
+                  <input required value={prodForm.name} onChange={e=>setProdForm({...prodForm, name: e.target.value})} placeholder="e.g. Matte Obsidian NFC Business Card" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Price (₦)</label>
-                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Price (₦)</label>
+                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} placeholder="e.g. 25000" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Media Upload (Images & Videos)</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Product Media (Images & Videos)</label>
                   
                   {prodForm.media_urls.length > 0 && (
                     <div className="flex gap-2 overflow-x-auto py-2 mb-2">
                       {prodForm.media_urls.map((url, i) => (
-                        <div key={i} className="relative w-24 h-24 flex-shrink-0 group rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+                        <div key={i} className="relative w-20 h-20 flex-shrink-0 group rounded-2xl overflow-hidden border border-neutral-200 dark:border-white/10">
                           {url.match(/\.(mp4|webm)$/i) ? (
                             <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
                           ) : (
-                            <img src={url} className="w-full h-full object-cover" />
+                            <img src={url} className="w-full h-full object-cover" alt="" />
                           )}
                           <button type="button" onClick={() => setProdForm({...prodForm, media_urls: prodForm.media_urls.filter((_, idx) => idx !== i)})} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                              <Trash2 className="w-3 h-3" />
@@ -924,19 +934,19 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       setProdForm({...prodForm, media_urls: urls});
                       setUploadingImage(false);
                     }}
-                    className="w-full text-[13px]" 
+                    className="w-full text-xs text-neutral-500 dark:text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-neutral-200/70 dark:file:bg-white/10 file:text-neutral-900 dark:file:text-white hover:file:bg-neutral-300 cursor-pointer" 
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase mb-1">Description</label>
-                  <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} className="w-full px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-[13px] font-sans" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Description</label>
+                  <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} placeholder="Hardware specifications, NFC chip details..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
                 </div>
-                <div className="flex gap-2 mt-2">
-                  <button disabled={uploadingImage} type="submit" className="flex-1 bg-black text-black dark:text-white py-2 rounded-xl font-mono text-[13px] font-bold disabled:opacity-50">
-                    {uploadingImage ? 'Uploading...' : (editingProduct ? 'Update' : 'Create')}
+                <div className="flex gap-3 mt-2">
+                  <button disabled={uploadingImage} type="submit" className="flex-1 py-3 px-5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-50">
+                    {uploadingImage ? 'Uploading...' : (editingProduct ? 'Update Product' : 'Create Product')}
                   </button>
                   {editingProduct && (
-                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', media_urls: []}); }} className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black dark:text-white rounded-xl font-mono text-[13px] font-bold">
+                    <button type="button" onClick={() => { setEditingProduct(null); setProdForm({name:'', price:'', description:'', media_urls: []}); }} className="px-5 py-3 rounded-full border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 font-semibold text-xs hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer">
                       Cancel
                     </button>
                   )}
@@ -944,19 +954,31 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               </form>
             </div>
             
-            <div className="md:col-span-2">
+            <div className="lg:col-span-7">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">Active Shop Inventory</h3>
+                <span className="text-xs text-neutral-400">{products.length} Products synced to Homepage</span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {products.map(p => (
-                  <div key={p.id} className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-                    {p.image_url && <img src={p.image_url} alt={p.name} className="w-full h-40 object-cover" />}
-                    <div className="p-4 flex flex-col flex-1">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold font-sans text-[15px]">{p.name}</h4>
-                        <span className="font-mono font-bold text-black dark:text-white bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-xl text-[12px]">₦{p.price}</span>
+                  <div key={p.id} className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm flex flex-col hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+                    {p.image_url ? (
+                      <img src={p.image_url.startsWith('[') ? JSON.parse(p.image_url)[0] : p.image_url} alt={p.name} className="w-full h-44 object-cover" />
+                    ) : (
+                      <div className="w-full h-44 bg-neutral-100 dark:bg-[#151821] flex items-center justify-center text-neutral-400">
+                        <CreditCard className="w-10 h-10 stroke-[1.5]" />
                       </div>
-                      <p className="text-[13px] text-black/40 dark:text-white/40 flex-1 mb-4">{p.description}</p>
+                    )}
+                    <div className="p-5 flex flex-col flex-1">
+                      <div className="flex justify-between items-start mb-2 gap-2">
+                        <h4 className="font-bold text-neutral-950 dark:text-white text-base leading-snug">{p.name}</h4>
+                        <span className="font-bold text-neutral-950 dark:text-white bg-[#D2F843]/20 text-[#596e00] dark:text-[#D2F843] px-2.5 py-1 rounded-full text-xs shrink-0">
+                          ₦{Number(p.price).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 mb-4 line-clamp-2">{p.description}</p>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 pt-2 border-t border-neutral-100 dark:border-white/5">
                         <button 
                           onClick={() => {
                             setEditingProduct(p);
@@ -964,13 +986,14 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                             try { media = JSON.parse(p.image_url); } catch { if (p.image_url) media = [p.image_url]; }
                             setProdForm({ name: p.name, description: p.description || '', price: p.price.toString(), media_urls: media });
                           }}
-                          className="flex-1 py-1.5 flex items-center justify-center gap-1 border border-black/10 dark:border-white/10 rounded-[4px] hover:bg-black/5 dark:bg-white/5 transition-colors font-mono text-[11px] font-bold"
+                          className="flex-1 py-2 px-3 flex items-center justify-center gap-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors text-xs font-semibold cursor-pointer text-neutral-800 dark:text-neutral-200"
                         >
-                          <Edit2 className="w-3 h-3" /> Edit
+                          <Edit2 className="w-3.5 h-3.5" /> Edit
                         </button>
                         <button 
                           onClick={() => deleteProduct(p.id)}
-                          className="px-3 py-1.5 border border-red-200 text-red-500 rounded-[4px] hover:bg-red-50 transition-colors"
+                          className="p-2 border border-rose-200 dark:border-rose-900/40 text-rose-500 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer"
+                          title="Delete product"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -979,25 +1002,28 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   </div>
                 ))}
                 {products.length === 0 && (
-                  <div className="col-span-2 p-8 text-center text-black/40 dark:text-white/40 font-mono text-[13px] bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-dashed border-black/10 dark:border-white/10 rounded-2xl">
-                    No products found. Use the form to add some.
+                  <div className="col-span-2 p-12 text-center text-neutral-400 text-sm bg-white dark:bg-[#111318] border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
+                    No active hardware products found. Use the inventory form to publish your first NFC card.
                   </div>
                 )}
               </div>
 
               <div className="mt-8">
-                <h3 className="font-sans font-bold text-lg mb-4">Digital Products & E-books</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">Digital Guides & Playbooks</h3>
+                  <span className="text-xs text-neutral-400">Bundled assets</span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {ebooksData.map(b => (
-                    <div key={b.id} className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-4 flex flex-col items-start text-left">
-                      <span className="font-mono text-[9px] bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-400 px-2 py-0.5 rounded uppercase tracking-widest font-bold mb-2">{b.category}</span>
-                      <h4 className="font-bold font-sans text-[15px] leading-tight mb-1">{b.title}</h4>
-                      <p className="font-mono text-[11px] text-black/40 dark:text-white/40 mb-4">By {b.author}</p>
+                    <div key={b.id} className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 flex flex-col items-start text-left hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+                      <span className="text-[10px] bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold mb-2">{b.category}</span>
+                      <h4 className="font-bold text-neutral-950 dark:text-white text-sm leading-snug mb-1">{b.title}</h4>
+                      <p className="text-xs text-neutral-400 mb-4">By {b.author}</p>
                       <button
                         onClick={() => triggerEbookDownload(b.id, b.title)}
-                        className="mt-auto w-full py-2 flex items-center justify-center gap-2 border border-black/10 dark:border-white/10 rounded-[4px] hover:bg-black/5 dark:bg-white/5 transition-colors font-mono text-[11px] font-bold"
+                        className="mt-auto w-full py-2 flex items-center justify-center gap-2 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors text-xs font-semibold cursor-pointer"
                       >
-                        <Download className="w-4 h-4" /> Download File
+                        <Download className="w-3.5 h-3.5" /> Download Asset
                       </button>
                     </div>
                   ))}

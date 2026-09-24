@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Link as LinkIcon, AlertTriangle, Plus, Trash2, Activity } from 'lucide-react';
+import { Search, Link as LinkIcon, AlertTriangle, Plus, Trash2, Activity, CheckCircle2 } from 'lucide-react';
 
 export default function AdminSeoManager() {
   const [keywords, setKeywords] = useState<any[]>([]);
@@ -56,109 +56,136 @@ export default function AdminSeoManager() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4">
       {/* Keyword Bank */}
-      <div className="lg:col-span-2 space-y-6">
-        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-sans font-bold text-lg flex items-center gap-2">
-              <Search className="w-5 h-5 text-blue-500" />
-              Auto-Link Keyword Bank
-            </h3>
-            <button className="text-xs bg-gray-100 dark:bg-[#222] px-3 py-1 rounded border border-black/10 dark:border-white/10 font-bold">
-              Upload CSV
-            </button>
-          </div>
-
-          <form onSubmit={handleAddKeyword} className="flex gap-2 mb-6">
-            <input required placeholder="Keyword Phrase (e.g. nfc card)" className="flex-1 px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm" value={form.keyword_phrase} onChange={e=>setForm({...form, keyword_phrase: e.target.value})} />
-            <input required placeholder="Target Slug (e.g. /blog/post-slug)" className="flex-1 px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm" value={form.target_url_slug} onChange={e=>setForm({...form, target_url_slug: e.target.value})} />
-            <select className="px-3 py-2 border border-black/10 dark:border-white/10 rounded-xl text-sm" value={form.type} onChange={e=>setForm({...form, type: e.target.value})}>
-              <option value="post">Post</option>
-              <option value="product">Product</option>
-              <option value="page">Page</option>
-            </select>
-            <button type="submit" className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-xl font-bold flex items-center gap-1">
-              <Plus className="w-4 h-4" /> Add
-            </button>
-          </form>
-
-          {loading ? <p>Loading...</p> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-black/10 dark:border-white/10">
-                    <th className="pb-3 font-medium">Keyword</th>
-                    <th className="pb-3 font-medium">Target URL</th>
-                    <th className="pb-3 font-medium">Type</th>
-                    <th className="pb-3 font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#cfc4c5] dark:divide-[#333]">
-                  {keywords.map(kw => (
-                    <tr key={kw.id}>
-                      <td className="py-3 font-bold">{kw.keyword_phrase}</td>
-                      <td className="py-3 text-black/40 dark:text-white/40">{kw.target_url_slug}</td>
-                      <td className="py-3"><span className="bg-gray-100 dark:bg-[#222] px-2 py-1 rounded text-xs">{kw.type}</span></td>
-                      <td className="py-3 text-right">
-                        <button onClick={() => handleDeleteKeyword(kw.id)} className="text-red-500 hover:text-red-700 p-1">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {keywords.length === 0 && (
-                    <tr><td colSpan={4} className="py-4 text-center text-gray-500">No keywords added.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+      <div className="lg:col-span-8 bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+          <Search className="w-3.5 h-3.5" /> Organic Search & Internal Linking
         </div>
+        <h3 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white mb-1">
+          Auto-Link Keyword Bank
+        </h3>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-6">
+          Define target anchor keywords to automatically generate contextual internal backlinks in published articles.
+        </p>
+
+        <form onSubmit={handleAddKeyword} className="flex flex-col sm:flex-row gap-2.5 mb-6">
+          <input 
+            required 
+            placeholder="Keyword Phrase (e.g. NFC card)" 
+            className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+            value={form.keyword_phrase} 
+            onChange={e=>setForm({...form, keyword_phrase: e.target.value})} 
+          />
+          <input 
+            required 
+            placeholder="Target Slug (e.g. /blog/nfc-guide)" 
+            className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+            value={form.target_url_slug} 
+            onChange={e=>setForm({...form, target_url_slug: e.target.value})} 
+          />
+          <select 
+            className="px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+            value={form.type} 
+            onChange={e=>setForm({...form, type: e.target.value})}
+          >
+            <option value="post">Post</option>
+            <option value="product">Product</option>
+            <option value="page">Page</option>
+          </select>
+          <button 
+            type="submit" 
+            className="px-5 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 rounded-full font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:opacity-90 transition-opacity cursor-pointer whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" /> Add Rule
+          </button>
+        </form>
+
+        {loading ? (
+          <div className="py-12 text-center text-neutral-400 text-xs font-semibold uppercase tracking-wider">Loading keywords...</div>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-neutral-200/80 dark:border-white/10">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="bg-neutral-50 dark:bg-[#151821] border-b border-neutral-200/80 dark:border-white/10 text-neutral-500 dark:text-neutral-400 text-xs font-semibold uppercase tracking-wider">
+                  <th className="py-3 px-4">Keyword Phrase</th>
+                  <th className="py-3 px-4">Target Slug</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
+                {keywords.map(kw => (
+                  <tr key={kw.id} className="hover:bg-neutral-50/60 dark:hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 px-4 font-semibold text-neutral-950 dark:text-white text-xs sm:text-sm">{kw.keyword_phrase}</td>
+                    <td className="py-3 px-4 font-mono text-xs text-neutral-500 dark:text-neutral-400">{kw.target_url_slug}</td>
+                    <td className="py-3 px-4">
+                      <span className="bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase">
+                        {kw.type}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button 
+                        onClick={() => handleDeleteKeyword(kw.id)} 
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
+                        title="Delete rule"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {keywords.length === 0 && (
+                  <tr><td colSpan={4} className="py-8 text-center text-neutral-400 text-xs">No keywords added to link bank.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Broken Link Report */}
-      <div className="lg:col-span-1 space-y-6">
-        <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6">
-          <h3 className="font-sans font-bold text-lg flex items-center gap-2 mb-6">
-            <Activity className="w-5 h-5 text-green-500" />
-            Link Health Report
+      <div className="lg:col-span-4 bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between">
+        <div>
+          <h3 className="text-base font-bold text-neutral-950 dark:text-white flex items-center gap-2 mb-4">
+            <Activity className="w-4 h-4 text-[#6c8600] dark:text-[#D2F843]" />
+            Internal Link Health Monitor
           </h3>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center">
-              <div className="text-3xl font-mono font-bold mb-1">{report.total}</div>
-              <div className="text-xs text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Total Links</div>
+            <div className="bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 p-4 rounded-2xl text-center">
+              <div className="text-2xl font-extrabold text-neutral-950 dark:text-white mb-1">{report.total}</div>
+              <div className="text-[10px] text-neutral-400 uppercase font-semibold tracking-wider">Total Active Links</div>
             </div>
-            <div className="border border-black/10 dark:border-white/10 p-4 rounded-2xl text-center">
-              <div className="text-3xl font-mono font-bold mb-1 text-red-500">{report.broken}</div>
-              <div className="text-xs text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Broken Links</div>
+            <div className="bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 p-4 rounded-2xl text-center">
+              <div className="text-2xl font-extrabold text-rose-500 mb-1">{report.broken}</div>
+              <div className="text-[10px] text-neutral-400 uppercase font-semibold tracking-wider">Broken Paths</div>
             </div>
           </div>
 
-          <button onClick={handleRunCron} className="w-full mb-6 border border-black dark:border-white py-2 rounded-xl font-bold text-sm hover:bg-gray-50 dark:hover:bg-[#222] transition-colors">
-            Run Manual Link Check
+          <button 
+            onClick={handleRunCron} 
+            className="w-full py-2.5 px-4 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs text-neutral-800 dark:text-neutral-200 transition-colors cursor-pointer mb-6"
+          >
+            Run Deep Link Audit
           </button>
 
-          <h4 className="font-bold text-sm mb-3">Recent Auto-Links</h4>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto">
+          <h4 className="font-bold text-xs uppercase tracking-wider text-neutral-400 mb-3">Recent Auto-Link Actions</h4>
+          <div className="space-y-2.5 max-h-[240px] overflow-y-auto pr-1">
             {report.logs.slice(0, 5).map((log: any) => (
-              <div key={log.id} className="text-xs border border-black/10 dark:border-white/10 p-3 rounded bg-gray-50 dark:bg-[#1a1a1a]">
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold">From: /{log.post_slug}</span>
-                  <span className="text-green-600 font-bold">{log.status}</span>
+              <div key={log.id} className="text-xs border border-neutral-200/80 dark:border-white/10 p-3 rounded-xl bg-neutral-50 dark:bg-[#151821]">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-semibold text-neutral-950 dark:text-white">/{log.post_slug}</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">{log.status}</span>
                 </div>
-                <div className="text-black/40 dark:text-white/40 break-all">To: {log.linked_url}</div>
-                <div className="mt-1 opacity-70">Keyword: "{log.keyword_used}"</div>
+                <div className="text-neutral-400 font-mono text-[11px] truncate">To: {log.linked_url}</div>
+                <div className="mt-1 text-[11px] text-neutral-500">Keyword: "{log.keyword_used}"</div>
               </div>
             ))}
-            {report.logs.length === 0 && <p className="text-sm text-gray-500">No links logged yet.</p>}
+            {report.logs.length === 0 && <p className="text-xs text-neutral-400 text-center py-4">No automated links logged yet.</p>}
           </div>
-
         </div>
       </div>
-
     </div>
   );
 }

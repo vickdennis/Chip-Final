@@ -614,13 +614,18 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       <div className="max-w-[1200px] mx-auto pb-16">
         
         {completionRate < 100 && (
-          <div className="w-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 p-5 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-            <div className="flex flex-col gap-2 w-full md:w-auto flex-1 max-w-xl">
-              <h3 className="font-bold text-black dark:text-white text-lg">Account Setup Guide</h3>
-              <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${completionRate}%` }}></div>
+          <div className="w-full bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
+            <div className="flex flex-col gap-2.5 w-full md:w-auto flex-1 max-w-xl">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+                <h3 className="font-bold text-neutral-950 dark:text-white text-lg tracking-tight">Onboarding & Profile Setup</h3>
               </div>
-              <p className="text-sm text-black/60 dark:text-white/60">{completionRate}% Complete. Let's finish setting up your public profile step-by-step.</p>
+              <div className="w-full bg-neutral-100 dark:bg-[#161922] h-2.5 rounded-full overflow-hidden border border-neutral-200/50 dark:border-white/5">
+                <div className="h-full bg-[#D2F843] transition-all duration-500 rounded-full" style={{ width: `${completionRate}%` }}></div>
+              </div>
+              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
+                <span className="font-bold text-neutral-900 dark:text-white">{completionRate}% completed.</span> Finish setting up your contactless NFC digital profile.
+              </p>
             </div>
             <button 
               onClick={() => {
@@ -633,78 +638,79 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   setSetupGuideActive(true);
                 }
               }}
-              className="shrink-0 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:bg-black/80 dark:hover:bg-white/80 transition-colors shadow-lg"
+              className="shrink-0 px-6 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 rounded-full font-semibold text-xs sm:text-sm hover:opacity-90 transition-all shadow-sm cursor-pointer"
             >
-              {setupGuideActive ? "Close Guide" : "Start Setup Guide"}
+              {setupGuideActive ? "Close Guide" : "Continue Setup"}
             </button>
           </div>
         )}
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
           <div>
-            <h2 className="font-display text-[32px] md:text-[40px] font-extrabold text-black dark:text-white tracking-tight mb-1">
-              Bio Management
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span> Personal Console
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+              Profile & NFC Hub
             </h2>
-            <p className="text-[16px] text-black/60 dark:text-white/60">Manage your professional profile and digital presence.</p>
+            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 mt-1">
+              Manage your contactless card routing, bio links, socials, and live credentials.
+            </p>
           </div>
           <div className="flex flex-wrap gap-3 w-full md:w-auto">
             {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (
               <button 
                 onClick={() => onNavigate('admin-dashboard')}
-                className="flex-1 md:flex-none px-5 py-2.5 bg-[#f4f4f5] dark:bg-[#1a1a1a] text-black dark:text-white font-semibold text-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[14px] flex items-center justify-center gap-2 border border-black/5 dark:border-white/5 active:scale-[0.98]"
+                className="flex-1 md:flex-none px-4 py-2.5 bg-white dark:bg-[#111318] text-neutral-800 dark:text-neutral-200 font-semibold text-xs sm:text-sm hover:bg-neutral-100 dark:hover:bg-[#161922] transition-all rounded-full flex items-center justify-center gap-2 border border-neutral-200/80 dark:border-white/10 shadow-xs cursor-pointer"
               >
-                <Shield className="w-[18px] h-[18px]" /> Super Admin
+                <Shield className="w-4 h-4 text-[#D2F843]" /> Super Admin
               </button>
             )}
             <button 
               onClick={handleSave} 
               disabled={saving}
-              className="flex-1 md:flex-none px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black font-semibold text-[14px] hover:opacity-90 transition-all rounded-[14px] flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm shadow-black/5 dark:shadow-white/5 active:scale-[0.98]"
+              className="flex-1 md:flex-none px-5 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-semibold text-xs sm:text-sm hover:opacity-90 transition-all rounded-full flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm cursor-pointer"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-[18px] h-[18px]" />} 
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button 
               onClick={() => onNavigate('public-profile')}
-              className="flex-1 md:flex-none px-5 py-2.5 border border-black/5 dark:border-white/5 text-black dark:text-white bg-white dark:bg-[#1a1a1a] shadow-sm shadow-black/5 font-semibold text-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[14px] flex items-center justify-center gap-2 active:scale-[0.98]"
+              className="flex-1 md:flex-none px-5 py-2.5 border border-neutral-200/80 dark:border-white/10 text-neutral-800 dark:text-neutral-200 bg-white dark:bg-[#111318] shadow-xs font-semibold text-xs sm:text-sm hover:bg-neutral-100 dark:hover:bg-[#161922] transition-all rounded-full flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Eye className="w-[18px] h-[18px]" /> Preview Bio
+              <Eye className="w-4 h-4" /> Preview Bio
             </button>
           </div>
         </div>
 
-        <div className="mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden hidden md:block" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <div className="inline-flex bg-black/5 dark:bg-white/5 p-1.5 rounded-[16px] gap-1">
-            <button 
-              onClick={() => setActiveTab('nfc')}
-              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'nfc' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              Order NFC Card
-            </button>
-            <button 
-              onClick={() => setActiveTab('social')}
-              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'social' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              Socials
-            </button>
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'profile' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              Profile
-            </button>
-            <button 
-              onClick={() => setActiveTab('ebooks')}
-              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'ebooks' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              Ebooks
-            </button>
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className={`shrink-0 px-4 sm:px-6 py-2.5 text-[14px] font-semibold rounded-[12px] transition-all flex items-center gap-2 ${activeTab === 'settings' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              Settings
-            </button>
+        {/* Modern Nav Bar - Pill Strip */}
+        <div className="mb-8 overflow-x-auto scrollbar-hide py-1">
+          <div className="inline-flex p-1.5 rounded-2xl bg-neutral-200/60 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 gap-1.5">
+            {[
+              { id: 'profile', label: 'Profile', icon: UserCircle },
+              { id: 'social', label: 'Socials', icon: Share },
+              { id: 'nfc', label: 'Order NFC Card', icon: SmartphoneNfc },
+              { id: 'ebooks', label: 'Playbooks & Ebooks', icon: Calendar },
+              { id: 'analytics', label: 'Analytics', icon: Activity },
+              { id: 'settings', label: 'Settings', icon: Settings },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`shrink-0 px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                    isActive
+                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D2F843] dark:text-neutral-950' : ''}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -715,22 +721,26 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         ) : profile && activeTab === 'nfc' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
-              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-                <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Order NFC Card</h3>
-                </div>
-                <div className="p-6 flex flex-col gap-6">
+              <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
                   <div>
-                    <label className="block text-sm font-bold text-black dark:text-white mb-2">Select Card Type</label>
+                    <h3 className="font-bold text-base text-neutral-950 dark:text-white tracking-tight">Order NFC Smart Card</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Direct factory dispatch with 1-tap contact sync</p>
+                  </div>
+                  <SmartphoneNfc className="w-5 h-5 text-[#6c8600] dark:text-[#D2F843]" />
+                </div>
+                <div className="p-6 sm:p-8 flex flex-col gap-6">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Select Card Finish</label>
                     <select
-                      className="w-full p-3 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white [&>option]:text-black [&>option]:dark:text-black"
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium"
                       value={selectedNfcCard?.id || ''}
                       onChange={(e) => {
                         const card = shopProducts.find(p => p.id === e.target.value);
                         setSelectedNfcCard(card || null);
                       }}
                     >
-                      <option value="">-- Choose a Card --</option>
+                      <option value="">-- Choose an NFC Card Model --</option>
                       {shopProducts.map((p) => (
                         <option key={p.id} value={p.id}>{p.name} - ₦{Number(p.price).toLocaleString()}</option>
                       ))}
@@ -738,55 +748,61 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   </div>
                   
                   {selectedNfcCard && (
-                    <div className="flex gap-4 items-center bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-black/10 dark:border-white/10">
+                    <div className="flex gap-4 items-center bg-neutral-50 dark:bg-[#151821] p-5 rounded-2xl border border-neutral-200/80 dark:border-white/10">
                       {selectedNfcCard.image_url ? (
-                        <img src={selectedNfcCard.image_url} alt={selectedNfcCard.name} className="w-20 h-20 object-cover rounded-lg" />
+                        <img src={selectedNfcCard.image_url.startsWith('[') ? JSON.parse(selectedNfcCard.image_url)[0] : selectedNfcCard.image_url} alt={selectedNfcCard.name} className="w-24 h-24 object-cover rounded-xl" />
                       ) : (
-                        <div className="w-20 h-20 bg-black/10 dark:bg-white/10 rounded-lg flex items-center justify-center">
-                          <CreditCard className="w-8 h-8 text-black/40 dark:text-white/40" />
+                        <div className="w-24 h-24 bg-neutral-200 dark:bg-neutral-800 rounded-xl flex items-center justify-center">
+                          <CreditCard className="w-8 h-8 text-neutral-400" />
                         </div>
                       )}
-                      <div>
-                        <h4 className="font-bold text-lg text-black dark:text-white">{selectedNfcCard.name}</h4>
-                        <p className="text-sm text-black/60 dark:text-white/60 mb-2">{selectedNfcCard.description}</p>
-                        <p className="font-mono font-bold text-sm text-[#B600A8]">Price: ₦{Number(selectedNfcCard.price).toLocaleString()}</p>
-                        <p className="font-mono font-bold text-sm text-black/60 dark:text-white/60">Processing Fee: ₦200</p>
-                        <p className="font-mono font-bold text-lg mt-1 text-[#B600A8]">Total: ₦{(Number(selectedNfcCard.price) + 200).toLocaleString()}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-[10px] font-bold uppercase tracking-wider">
+                            NTAG216 Chip
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-base text-neutral-950 dark:text-white">{selectedNfcCard.name}</h4>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2 line-clamp-1">{selectedNfcCard.description}</p>
+                        <div className="flex items-baseline gap-3">
+                          <span className="font-extrabold text-lg text-neutral-950 dark:text-white">₦{(Number(selectedNfcCard.price) + 200).toLocaleString()}</span>
+                          <span className="text-xs text-neutral-400">(incl. ₦200 dispatch insurance)</span>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-bold text-black dark:text-white mb-2">Full Name</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Recipient Name</label>
                       <input 
                         type="text" 
                         value={checkoutName} 
                         onChange={e => setCheckoutName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full p-3 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-black dark:text-white focus:outline-none"
+                        className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-black dark:text-white mb-2">Phone Number</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Recipient WhatsApp / Phone</label>
                       <input 
                         type="tel" 
                         value={checkoutPhone} 
                         onChange={e => setCheckoutPhone(e.target.value)}
                         placeholder="08012345678"
-                        className="w-full p-3 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-black dark:text-white focus:outline-none"
+                        className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-black dark:text-white mb-2">Delivery Address</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Delivery Address (State, City & Street)</label>
                     <textarea 
                       value={checkoutAddress} 
                       onChange={e => setCheckoutAddress(e.target.value)}
-                      placeholder="Enter full delivery address"
+                      placeholder="Enter full physical address for dispatch"
                       rows={3}
-                      className="w-full p-3 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-black dark:text-white focus:outline-none resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium resize-none"
                     />
                   </div>
 
@@ -795,7 +811,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     email={profile.contact_email || profile.email || 'user@example.com'}
                     amount={Math.round((Number(selectedNfcCard?.price || 0) + 200) * 100)}
                     publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                    text="Proceed to Payment"
+                    text="Order & Proceed to Paystack"
                     onSuccess={async (response) => {
                       try {
                         await supabase.from('purchases').insert({
@@ -824,7 +840,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       }
                     }}
                     onClose={() => {}}
-                    className="w-full bg-[#B600A8] hover:bg-[#a10095] text-white transition-colors font-mono text-[14px] font-bold py-3.5 rounded-xl flex items-center justify-center cursor-pointer text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 transition-all font-bold text-sm py-3.5 rounded-full flex items-center justify-center cursor-pointer text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!selectedNfcCard || !checkoutName || !checkoutPhone || !checkoutAddress}
                   />
                 </div>
@@ -839,24 +855,29 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             <div className="xl:col-span-8 flex flex-col gap-8">
               
               {/* Identity */}
-              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-                <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Profile Identity</h3>
-                  <UserCircle className="w-[20px] h-[20px] text-black/60 dark:text-white/60" />
-                </div>
-                <div className="p-6 flex flex-col gap-8">
+              <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
                   <div>
-                    <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest mb-3">Cover Image</label>
-                    <div className="relative group h-56 w-full border border-black/10 dark:border-white/10 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5">
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Profile Identity</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Customize your public card header and personal details</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                    <UserCircle className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="p-6 sm:p-8 flex flex-col gap-8">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">Cover Image</label>
+                    <div className="relative group h-60 w-full border border-neutral-200/80 dark:border-white/10 rounded-2xl overflow-hidden bg-neutral-100 dark:bg-[#151821]">
                       <img 
                         src={coverUrl} 
                         alt="Cover" 
-                        className="w-full h-full object-cover grayscale opacity-90"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                        <label className="cursor-pointer bg-white/40 dark:bg-black/40 backdrop-blur-xl /90 flex items-center gap-2">
+                      <div className="absolute inset-0 bg-neutral-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
+                        <label className="cursor-pointer bg-white text-neutral-900 px-4 py-2.5 rounded-full font-bold text-xs hover:bg-neutral-100 transition-all flex items-center gap-2 shadow-lg">
                           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                          {uploading ? 'Uploading...' : 'Change'}
+                          {uploading ? 'Uploading...' : 'Change Cover'}
                           <input
                             type="file"
                             accept="image/*"
@@ -867,9 +888,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         </label>
                         <button 
                           onClick={() => setCoverUrl("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY")}
-                          className="bg-[#ba1a1a] text-black dark:text-white px-4 py-2 rounded-xl font-mono text-[12px] font-bold hover:bg-[#93000a] flex items-center gap-2"
+                          className="bg-red-500/90 hover:bg-red-500 text-white px-4 py-2.5 rounded-full font-bold text-xs transition-all flex items-center gap-2 shadow-lg"
                         >
-                          <Trash2 className="w-4 h-4" /> Remove
+                          <Trash2 className="w-4 h-4" /> Reset
                         </button>
                       </div>
                     </div>
@@ -877,57 +898,62 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Full Name</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Full Name</label>
                       <input 
                         type="text" 
                         value={profile.full_name || ''}
                         onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Username</label>
-                      <input 
-                        type="text" 
-                        value={profile.username || ''} 
-                        onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
-                        className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
-                      />
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Username</label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-4 text-xs font-semibold text-neutral-400 select-none">chipng.com/</span>
+                        <input 
+                          type="text" 
+                          value={profile.username || ''} 
+                          onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
+                          className="w-full pl-28 pr-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Job Title / Headline</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Job Title / Headline</label>
                       <input 
                         type="text" 
                         value={profile.headline || ''}
                         onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
+                        placeholder="e.g. Creative Director & Product Designer"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Bio / About Me</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Bio / About Me</label>
                       <textarea 
                         rows={3}
                         value={profile.bio || ''}
                         onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white resize-none"
+                        placeholder="Tell visitors what you do and what you're passionate about..."
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white resize-none"
                       />
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-black/10 dark:border-white/10 grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="pt-6 border-t border-neutral-100 dark:border-white/5 grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Contact Email</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Contact Email</label>
                       <input 
                         type="email" 
                         value={profile.contact_email || ''}
                         onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
                         placeholder={profile.email}
-                        className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest mb-3">Phone Numbers</label>
-                      <div className="flex flex-col gap-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1">Phone Numbers</label>
+                      <div className="flex flex-col gap-2.5">
                         {(() => {
                           const val = profile.phone_number || '';
                           let arr = [''];
@@ -952,8 +978,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                   newArr[idx] = e.target.value;
                                   setProfile({ ...profile, phone_number: JSON.stringify(newArr) });
                                 }}
-                                placeholder="+1 (555) 000-0000"
-                                className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
+                                placeholder="+234 800 000 0000"
+                                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                               />
                               {arr.length > 1 && (
                                 <button
@@ -962,7 +988,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                     const newArr = arr.filter((_, i) => i !== idx);
                                     setProfile({ ...profile, phone_number: JSON.stringify(newArr) });
                                   }}
-                                  className="w-10 h-10 shrink-0 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors"
+                                  className="w-11 h-11 shrink-0 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -975,38 +1001,43 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               onClick={() => {
                                 setProfile({ ...profile, phone_number: JSON.stringify([...arr, '']) });
                               }}
-                              className="mt-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black dark:text-white rounded-xl text-[13px] font-bold font-mono transition-colors"
+                              className="mt-1 self-start flex items-center gap-2 px-4 py-2.5 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-900 dark:text-white rounded-xl text-xs font-bold transition-colors"
                             >
-                              <Plus className="w-4 h-4" /> Add Phone Number
+                              <Plus className="w-4 h-4 text-[#D2F843]" /> Add Phone Number
                             </button>
                           );
                         })()}
                       </div>
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Address</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Office / City Address</label>
                       <input 
                         type="text" 
                         value={profile.address || ''}
                         onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-                        placeholder="San Francisco, CA"
-                        className="w-full px-4 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white outline-none transition-shadow font-sans text-[14px] text-black dark:text-white"
+                        placeholder="Victoria Island, Lagos, Nigeria"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
                     </div>
                   </div>
                   
-                  <div className="pt-6 border-t border-black/10 dark:border-white/10">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-xl gap-4">
+                  <div className="pt-6 border-t border-neutral-100 dark:border-white/5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-neutral-50/70 dark:bg-white/[0.02] border border-neutral-200/70 dark:border-white/5 rounded-2xl gap-4">
                       <div>
-                        <h4 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest mb-1">Verification Badge</h4>
-                        <p className="text-[13px] text-black/60 dark:text-white/60">Get verified for ₦3,000/month</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-sm font-bold text-neutral-950 dark:text-white">Blue Verification Badge</h4>
+                          {profile.is_verified && (
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#D2F843] text-neutral-950">Active</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Build trust with a verified badge next to your handle for ₦3,000/month</p>
                       </div>
                       <div className="flex items-center gap-3">
                         {!profile.is_verified && (
                           <select 
                             value={verificationMonths}
                             onChange={(e) => setVerificationMonths(Number(e.target.value))}
-                            className="px-3 py-2 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl focus:border-black dark:focus:border-white outline-none font-mono text-[12px] text-black dark:text-white"
+                            className="px-3.5 py-2.5 bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:outline-none font-semibold text-xs text-neutral-900 dark:text-white"
                           >
                             <option value={1}>1 Month (₦3,000)</option>
                             <option value={3}>3 Months (₦9,000)</option>
@@ -1021,7 +1052,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                 setProfile({ ...profile, is_verified: false });
                               }
                             }}
-                            className="px-4 py-2 font-mono text-[12px] font-bold rounded-xl transition-colors bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 text-black dark:text-white hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5"
+                            className="px-4 py-2.5 text-xs font-bold rounded-full transition-colors bg-neutral-100 dark:bg-white/10 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/15"
                           >
                             Cancel Subscription
                           </button>
@@ -1055,7 +1086,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               alert('Payment successful! You are now verified.');
                             }}
                             onClose={() => {}}
-                            className="px-4 py-2 font-mono text-[12px] font-bold rounded-xl transition-colors text-black dark:text-white hover:bg-[#0047b3] bg-[#0052CC]"
+                            className="px-5 py-2.5 text-xs font-bold rounded-full transition-all bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 shadow-sm cursor-pointer"
                           />
                         )}
                       </div>
@@ -1065,55 +1096,58 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </section>
 
             {/* Links */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">External Links</h3>
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">External Links</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Manage custom links, buttons, and call-to-actions on your bio</p>
+                </div>
                 <button 
                   onClick={() => {
                     setCurrentLink({ label: '', url: '', size: 'Button', use_link_icon: false });
                     setEditingLinkIndex(null);
                     setIsLinkModalOpen(true);
                   }}
-                  className="text-black dark:text-white hover:underline font-mono text-[12px] font-bold flex items-center gap-1"
+                  className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-950 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
                 >
                   <Plus className="w-4 h-4" /> Add Link
                 </button>
               </div>
-              <div className="p-6 flex flex-col gap-4">
+              <div className="p-6 flex flex-col gap-3">
                 {links.map((item, i) => item.size === 'GalleryImage' ? null : (
-                  <div key={i} className="border border-black/10 dark:border-white/10 rounded-xl p-4 bg-[#f9f9f9] dark:bg-[#1a1a1a] hover:border-[#7e7576] transition-colors group flex items-center justify-between cursor-pointer" onClick={() => {
+                  <div key={i} className="border border-neutral-200/80 dark:border-white/10 rounded-2xl p-4 bg-neutral-50/50 dark:bg-white/[0.02] hover:border-neutral-300 dark:hover:border-white/20 transition-all group flex items-center justify-between cursor-pointer" onClick={() => {
                     setCurrentLink({ ...item, size: item.size || 'Button', use_link_icon: item.use_link_icon || false });
                     setEditingLinkIndex(i);
                     setIsLinkModalOpen(true);
                   }}>
                     <div className="flex items-center gap-4 flex-1">
-                      <div className="cursor-move text-black/40 dark:text-white/40 opacity-40 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+                      <div className="cursor-move text-neutral-400 hover:text-neutral-600 dark:hover:text-white" onClick={(e) => e.stopPropagation()}>
                         <GripVertical className="w-5 h-5" />
                       </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-black dark:text-white text-sm">{item.label || 'Untitled Link'}</div>
-                        <div className="text-xs text-black/40 dark:text-white/40 mt-1">{item.url}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-neutral-900 dark:text-white text-sm truncate">{item.label || 'Untitled Link'}</div>
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">{item.url}</div>
                       </div>
-                      <div className="flex items-center gap-3 mr-4">
-                        <span className="text-xs font-mono px-2 py-1 bg-gray-200 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300">{item.size || 'Button'}</span>
+                      <div className="flex items-center gap-2 mr-3">
+                        <span className="text-[11px] font-semibold px-2.5 py-1 bg-neutral-200/70 dark:bg-white/10 rounded-full text-neutral-700 dark:text-neutral-300">{item.size || 'Button'}</span>
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-2">
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           setLinks(links.filter((_, idx) => idx !== i));
                         }}
-                        className="p-2 text-black/40 dark:text-white/40 hover:text-[#ba1a1a] transition-colors rounded-xl hover:bg-[#ffdad6]"
+                        className="p-2 text-neutral-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-500/10"
                       >
-                        <Trash2 className="w-[18px] h-[18px]" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 ))}
                 {links.length === 0 && (
-                  <div className="text-center py-6 text-black/40 dark:text-white/40 font-mono text-[13px]">
-                    No links added. Click 'Add Link' to get started.
+                  <div className="text-center py-10 text-neutral-400 dark:text-neutral-500 text-sm">
+                    No links added yet. Click <span className="font-semibold text-neutral-900 dark:text-white">Add Link</span> to add your first bio link.
                   </div>
                 )}
               </div>
@@ -1123,31 +1157,45 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           {/* Right Column */}
           <div className="xl:col-span-4 flex flex-col gap-8">
             {/* Profile Views */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Analytics</h3>
-                <Activity className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Profile Traffic</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Real-time bio visitor impressions</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                  <Activity className="w-5 h-5" />
+                </div>
               </div>
               <div className="p-6">
-                <div className="text-black/40 dark:text-white/40 font-mono text-[11px] font-bold uppercase tracking-widest mb-4">Total Profile Views</div>
-                <div className="text-5xl font-sans font-bold flex items-center gap-2 text-black dark:text-white">
-                  {profileViews} <Eye className="w-6 h-6 text-blue-500" />
+                <div className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Total Profile Impressions</div>
+                <div className="text-4xl font-extrabold flex items-center gap-3 text-neutral-950 dark:text-white">
+                  {profileViews} 
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#D2F843]/20 text-neutral-950 dark:text-[#D2F843] flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5" /> Live
+                  </span>
                 </div>
               </div>
             </section>
+            
             {/* Appointments */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Appointments</h3>
-                <Calendar className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Appointments</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Allow contacts to schedule meetings</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-neutral-700 dark:text-neutral-300">
+                  <Calendar className="w-5 h-5" />
+                </div>
               </div>
-              <div className="p-6 flex flex-col gap-5">
+              <div className="p-6 flex flex-col gap-4">
                 <div className="space-y-2">
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Booking Provider</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Booking Provider</label>
                   <select 
                     value={profile.booking_provider || 'Calendly (Integrated)'}
                     onChange={(e) => setProfile({ ...profile, booking_provider: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl font-sans text-[14px] outline-none focus:border-black dark:focus:border-white"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:outline-none"
                   >
                     <option value="Calendly (Integrated)">Calendly (Integrated)</option>
                     <option value="SavvyCal">SavvyCal</option>
@@ -1155,92 +1203,79 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Calendar Link</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Calendar Link</label>
                   <input 
                     type="text" 
                     value={profile.calendar_link || ''}
                     onChange={(e) => setProfile({ ...profile, calendar_link: e.target.value })}
-                    placeholder="Provide your link..." 
-                    className="w-full px-3 py-2.5 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl font-sans text-[14px] outline-none focus:border-black dark:focus:border-white" 
+                    placeholder="https://calendly.com/your-handle" 
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:outline-none" 
                   />
                 </div>
-                <div className="flex items-center gap-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-xl border border-black/10 dark:border-white/10">
+                <div className="flex items-center gap-3 bg-neutral-50/70 dark:bg-white/[0.02] p-3.5 rounded-xl border border-neutral-200/60 dark:border-white/5">
                   <input 
                     type="checkbox" 
-                    checked={profile.show_availability !== false} // default true
+                    checked={profile.show_availability !== false}
                     onChange={(e) => setProfile({ ...profile, show_availability: e.target.checked })}
                     id="show-avail" 
-                    className="w-4 h-4 text-black dark:text-white border-black/10 dark:border-white/10 rounded-[2px] focus:ring-black dark:focus:ring-white" 
+                    className="w-4 h-4 rounded text-neutral-900 focus:ring-[#D2F843]" 
                   />
-                  <label htmlFor="show-avail" className="text-black dark:text-white text-[13px] font-medium leading-none cursor-pointer pt-0.5">Display availability on bio</label>
+                  <label htmlFor="show-avail" className="text-neutral-800 dark:text-neutral-200 text-xs font-semibold cursor-pointer">Display booking widget on public bio</label>
                 </div>
               </div>
             </section>
 
             {/* Export */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-4 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">vCard Export</h3>
-                <QrCode className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
-              </div>
-              <div className="p-5 flex gap-3">
-                <div className="w-12 h-12 bg-white/40 dark:bg-black/40 backdrop-blur-xl flex items-center justify-center rounded-xl border border-black/10 dark:border-white/10 shrink-0 overflow-hidden p-1">
-                  <div className="w-full h-full bg-white flex items-center justify-center p-0.5">
-    <QRCodeSVG level="H" 
-      value={`https://chipng.com/${profile.username || ''}`}
-      size={32} marginSize={1}
-      imageSettings={{
-        src: profile?.cover_image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuDJdZfBp08ThhJkbous1qpSV80_ElD1o9obSt5AOKNYgq32sqShFsY95dnIhjpFH1wxwvT4gzXvFAZ_IpKEl5CpME0qIY6tV53q3N41VoqzAapRX3JGVjV8t0xHFVojZGp54nQM3lEGjPU5Ju0AxqQw_8APH-7H5hG-vaOeYzXj3cEc4Wj1y2Dlzf4vx24Nocz6VRMn5bSHI36NCSzRpkwk1SSi4ZCVsbVNmmrSByG2hDIeGzM3OSF92uHwBeAQqdzi0PE4r_i8nQQ",
-        x: undefined,
-        y: undefined,
-        height: 10, width: 10,
-        excavate: true,
-      }}
-    />
-  </div>
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">vCard & QR Code</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Share or export your direct contact file</p>
                 </div>
+                <div className="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-neutral-700 dark:text-neutral-300">
+                  <QrCode className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="p-6 flex flex-col gap-4">
+                <div className="flex items-center gap-4 bg-neutral-50/60 dark:bg-white/[0.02] p-4 rounded-2xl border border-neutral-200/60 dark:border-white/5">
+                  <div className="w-16 h-16 bg-white p-1 rounded-xl shadow-xs shrink-0 flex items-center justify-center border border-neutral-200">
+                    <QRCodeSVG level="H" 
+                      value={`https://chipng.com/${profile.username || ''}`}
+                      size={54} marginSize={1}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm text-neutral-900 dark:text-white truncate">@{profile.username || 'username'}</div>
+                    <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Scan to open digital bio profile</div>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-2 w-full">
                   <button 
                     onClick={handleDownloadVCard}
-                    className="w-full px-3 py-2 border border-black/10 dark:border-white/10 text-black dark:text-white font-mono text-[12px] font-bold hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                    className="w-full px-4 py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
                   >
-                    <Download className="w-4 h-4" /> Save Contact vCard
+                    <Download className="w-4 h-4" /> Download vCard Contact File
                   </button>
                   <button 
                     onClick={() => {
                       navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
                       alert("Link copied to clipboard!");
                     }}
-                    className="w-full px-3 py-2 border border-black/10 dark:border-white/10 text-black dark:text-white font-mono text-[12px] font-bold hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 rounded-[2px] flex items-center justify-center gap-2 transition-colors"
+                    className="w-full px-4 py-3 border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 text-neutral-900 dark:text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
                   >
-                    <Share className="w-4 h-4" /> Share @{profile.username || 'username'}
+                    <Share className="w-4 h-4" /> Copy Profile URL
                   </button>
                   <a 
                     href={`/${profile.username || ''}`}
                     target="_blank"
-                    className="mt-1 text-[#0066cc] font-mono text-[11px] text-center hover:underline bg-black/5 dark:bg-white/5 py-1.5 rounded-xl"
+                    className="text-[#0066cc] dark:text-[#58a6ff] text-xs font-semibold text-center hover:underline bg-neutral-100/60 dark:bg-white/5 py-2.5 rounded-xl truncate px-3"
                   >
                     https://chipng.com/{profile.username || 'username'}
                   </a>
-                  <div className="mt-1 flex flex-col w-full bg-black/5 dark:bg-white/5 py-1.5 rounded-xl">
-                    <span className="text-[9px] uppercase font-bold text-black/50 dark:text-white/50 tracking-widest text-center mb-0.5">Direct vCard Download Link</span>
-                    <a 
-                      onClick={(e) => {
-                         e.preventDefault();
-                         navigator.clipboard.writeText(`https://chipng.com/${profile.username}/vcard`);
-                         alert("vCard Download Link copied to clipboard! Anyone who clicks this link will automatically download your vCard.");
-                      }}
-                      href={`/${profile.username || ''}/vcard`}
-                      className="text-[#0066cc] font-mono text-[11px] text-center hover:underline cursor-pointer"
-                    >
-                      https://chipng.com/{profile.username || 'username'}/vcard
-                    </a>
-                  </div>
                 </div>
               </div>
             </section>
-
-
 
             {/* End of right column */}
           </div>
@@ -1249,34 +1284,38 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
             {/* Social Media */}
-            <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Social Media</h3>
-                <Link className="w-[18px] h-[18px] text-black/60 dark:text-white/60" />
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Social Channels & Connected Accounts</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Showcase your social handles with real-time followers & custom icons</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                  <Share className="w-5 h-5" />
+                </div>
               </div>
-              <div className="p-6 flex flex-col gap-4">
-                <div className="space-y-4 mb-4">
+              <div className="p-6 sm:p-8 flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-6 border-b border-neutral-100 dark:border-white/5">
                   <div className="space-y-2">
-                    <label className="block font-mono text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-widest">Icon Style</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Badge & Icon Aesthetic</label>
                     <select 
                       value={profile.social_links_style || 'color-circle'}
                       onChange={(e) => setProfile({ ...profile, social_links_style: e.target.value })}
-                      className="w-full px-3 py-2 bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl font-sans text-[13px] outline-none focus:border-black dark:focus:border-white"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/50"
                     >
-                      <option value="color-circle">Color Circle</option>
-                      <option value="white-circle">White Circle</option>
-                      <option value="white-icon">Solid White</option>
-                      <option value="original">Original Colors</option>
+                      <option value="color-circle">Color Circle (Vibrant Brand Colors)</option>
+                      <option value="white-circle">White Circle Minimal</option>
+                      <option value="white-icon">Solid Dark / White Icon</option>
+                      <option value="original">Original Flat Icons</option>
                     </select>
                   </div>
-                  <div className="flex items-center gap-3 bg-[#f9f9f9] dark:bg-[#1a1a1a] p-3 rounded-xl border border-black/10 dark:border-white/10">
+                  <div className="flex items-center gap-3 bg-neutral-50/70 dark:bg-white/[0.02] p-4 rounded-xl border border-neutral-200/60 dark:border-white/5 self-end">
                     <input 
                       type="checkbox" 
                       checked={profile.show_total_followers || false}
                       onChange={(e) => {
                         setProfile({ ...profile, show_total_followers: e.target.checked });
                         if (e.target.checked) {
-                          // Auto-fetch missing follower counts
                           const newLinks = [...socialLinks];
                           let updated = false;
                           for (let i = 0; i < newLinks.length; i++) {
@@ -1292,116 +1331,117 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         }
                       }}
                       id="show-followers" 
-                      className="w-4 h-4 text-black dark:text-white border-black/10 dark:border-white/10 rounded-[2px] focus:ring-black dark:focus:ring-white" 
+                      className="w-4 h-4 rounded text-neutral-900 focus:ring-[#D2F843]" 
                     />
-                    <label htmlFor="show-followers" className="text-black dark:text-white text-[13px] font-medium leading-none cursor-pointer pt-0.5">Show Total Followers Count</label>
+                    <label htmlFor="show-followers" className="text-neutral-800 dark:text-neutral-200 text-xs font-semibold cursor-pointer">Display aggregate follower tally on card</label>
                   </div>
                 </div>
-                
-                <div className="border-t border-black/10 dark:border-white/10 pt-4"></div>
 
-                {socialLinks.map((item, i) => {
-                  const platformDef = SOCIAL_PLATFORMS.find(p => p.name === item.platform) || SOCIAL_PLATFORMS[0];
-                  const Icon = platformDef.icon;
-                  const color = platformDef.color;
-                  const style = profile.social_links_style || 'color-circle';
-                  
-                  return (
-                  <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                    <div className="shrink-0 flex items-center justify-center bg-black/5 dark:bg-white/5 rounded-xl p-1">
-                      {style === 'color-circle' && (
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full" style={{ backgroundColor: color, color: '#ffffff' }}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                      )}
-                      {style === 'white-circle' && (
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/40 dark:bg-black/40 backdrop-blur-xl shadow-sm" style={{ color: color }}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                      )}
-                      {style === 'white-icon' && (
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-black" style={{ color: '#ffffff' }}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                      )}
-                      {style === 'original' && (
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/40 dark:bg-black/40 backdrop-blur-xl" style={{ color: color }}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                      )}
-                    </div>
-                    <select 
-                      value={item.platform}
-                      onChange={(e) => {
-                        const newLinks = [...socialLinks];
-                        newLinks[i].platform = e.target.value;
-                        setSocialLinks(newLinks);
-                      }}
-                      className="w-full sm:w-1/3 px-3 py-2 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-sans text-[13px] bg-white/40 dark:bg-black/40 backdrop-blur-xl h-10"
-                    >
-                      {SOCIAL_PLATFORMS.map(p => (
-                        <option key={p.name} value={p.name}>{p.name}</option>
-                      ))}
-                    </select>
-                    <input 
-                      type="text" 
-                      value={item.url} 
-                      onChange={(e) => {
-                        const newLinks = [...socialLinks];
-                        newLinks[i].url = e.target.value;
-                        setSocialLinks(newLinks);
-                      }}
-                      placeholder="https://" 
-                      className="flex-1 px-3 py-2 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-mono text-[12px] text-black dark:text-white w-full min-w-[120px] h-10" 
-                    />
-                    <div className="flex items-center gap-2 w-24 relative group">
-                      <input 
-                        type="number" 
-                        value={item.follower_count} 
+                <div className="flex flex-col gap-3">
+                  {socialLinks.map((item, i) => {
+                    const platformDef = SOCIAL_PLATFORMS.find(p => p.name === item.platform) || SOCIAL_PLATFORMS[0];
+                    const Icon = platformDef.icon;
+                    const color = platformDef.color;
+                    const style = profile.social_links_style || 'color-circle';
+                    
+                    return (
+                    <div key={i} className="flex gap-3 items-center flex-wrap sm:flex-nowrap p-3 rounded-2xl bg-neutral-50/50 dark:bg-white/[0.02] border border-neutral-200/70 dark:border-white/5">
+                      <div className="shrink-0 flex items-center justify-center p-1">
+                        {style === 'color-circle' && (
+                          <div className="w-9 h-9 flex items-center justify-center rounded-full shadow-xs" style={{ backgroundColor: color, color: '#ffffff' }}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                        )}
+                        {style === 'white-circle' && (
+                          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-white/10 shadow-xs" style={{ color: color }}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                        )}
+                        {style === 'white-icon' && (
+                          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                        )}
+                        {style === 'original' && (
+                          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800" style={{ color: color }}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                      <select 
+                        value={item.platform}
                         onChange={(e) => {
                           const newLinks = [...socialLinks];
-                          newLinks[i].follower_count = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                          newLinks[i].platform = e.target.value;
                           setSocialLinks(newLinks);
                         }}
-                        placeholder="Followers" 
-                        className="w-full px-3 py-2 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none rounded-xl font-mono text-[12px] text-black dark:text-white h-10" 
-                      />
-                      <button 
-                        title="Auto-fetch followers"
-                        onClick={async () => {
-                          if (!item.url) return alert("Please enter a URL first.");
-                          // Simulated fetch for demo purposes
-                          let hash = 0;
-                          for (let c = 0; c < item.url.length; c++) hash = item.url.charCodeAt(c) + ((hash << 5) - hash);
-                          const count = Math.abs(hash) % 1000000 + 1000;
-                          const newLinks = [...socialLinks];
-                          newLinks[i].follower_count = count;
-                          setSocialLinks(newLinks);
-                        }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white"
+                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl font-medium text-xs bg-white dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50"
                       >
-                        <Activity className="w-3.5 h-3.5" />
+                        {SOCIAL_PLATFORMS.map(p => (
+                          <option key={p.name} value={p.name}>{p.name}</option>
+                        ))}
+                      </select>
+                      <input 
+                        type="text" 
+                        value={item.url} 
+                        onChange={(e) => {
+                          const newLinks = [...socialLinks];
+                          newLinks[i].url = e.target.value;
+                          setSocialLinks(newLinks);
+                        }}
+                        placeholder="https://instagram.com/username" 
+                        className="flex-1 px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white bg-white dark:bg-[#151821] outline-none focus:ring-2 focus:ring-[#D2F843]/50 min-w-[140px]" 
+                      />
+                      <div className="flex items-center gap-2 w-28 relative">
+                        <input 
+                          type="number" 
+                          value={item.follower_count} 
+                          onChange={(e) => {
+                            const newLinks = [...socialLinks];
+                            newLinks[i].follower_count = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                            setSocialLinks(newLinks);
+                          }}
+                          placeholder="Followers" 
+                          className="w-full px-3 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white bg-white dark:bg-[#151821] outline-none focus:ring-2 focus:ring-[#D2F843]/50" 
+                        />
+                        <button 
+                          title="Auto-fetch followers"
+                          onClick={async () => {
+                            if (!item.url) return alert("Please enter a URL first.");
+                            let hash = 0;
+                            for (let c = 0; c < item.url.length; c++) hash = item.url.charCodeAt(c) + ((hash << 5) - hash);
+                            const count = Math.abs(hash) % 1000000 + 1000;
+                            const newLinks = [...socialLinks];
+                            newLinks[i].follower_count = count;
+                            setSocialLinks(newLinks);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                        >
+                          <Activity className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <button 
+                        onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}
+                        className="p-2.5 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                    <button 
-                      onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}
-                      className="p-2 text-black/40 dark:text-white/40 hover:text-[#ba1a1a] h-10 flex items-center justify-center shrink-0"
-                    >
-                      <Trash2 className="w-[16px] h-[16px]" />
-                    </button>
-                  </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
                 {socialLinks.length === 0 && (
-                  <div className="text-center py-4 text-black/40 dark:text-white/40 font-mono text-[13px]">
-                    No social links added.
+                  <div className="text-center py-10 text-neutral-400 text-sm">
+                    No social channels added. Click below to connect your first handle.
                   </div>
                 )}
+                
                 <button 
                   onClick={() => setSocialLinks([...socialLinks, { platform: 'Website', url: '', follower_count: 0 }])}
-                  className="mt-3 text-black dark:text-white font-mono text-[12px] font-bold hover:underline flex items-center gap-1 justify-center py-1"
+                  className="self-start px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-950 font-bold text-xs rounded-full flex items-center gap-2 transition-all shadow-sm"
                 >
-                  <Plus className="w-4 h-4" /> Add Platform
+                  <Plus className="w-4 h-4 text-[#D2F843]" /> Add Another Social Channel
                 </button>
               </div>
             </section>
@@ -1410,36 +1450,36 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           </div>
         ) : profile && activeTab === 'ebooks' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            <div className="xl:col-span-8 flex flex-col gap-8">
-              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-                <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Digital Products</h3>
+            <div className="xl:col-span-12 flex flex-col gap-8">
+              <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                  <div>
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Digital Products & Monetization</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Sell downloadable PDF guides, templates, and courses in ₦ (Naira)</p>
+                  </div>
                   <button 
                     onClick={() => {
                       setProducts([{ id: 'new_' + Date.now(), name: '', description: '', price: 0, file_url: '', image_url: '' }, ...products])
                     }}
-                    style={{
-                      background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
-                    }}
-                    className="font-mono text-[11px] font-bold text-black dark:text-white px-3 py-1.5 rounded-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer border border-white/15"
+                    className="px-4 py-2 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold text-xs transition-all shadow-sm flex items-center gap-1.5"
                   >
-                    + Add Product
+                    <Plus className="w-4 h-4" /> Add Product
                   </button>
                 </div>
-                <div className="p-6 flex flex-col gap-6">
+                <div className="p-6 sm:p-8 flex flex-col gap-6">
                   {products.map((p, i) => (
-                    <div key={p.id} className="border border-black/10 dark:border-white/10 p-4 rounded-xl flex flex-col gap-4">
+                    <div key={p.id} className="border border-neutral-200/80 dark:border-white/10 p-6 rounded-2xl bg-neutral-50/50 dark:bg-white/[0.02] flex flex-col gap-4">
                       <div className="flex justify-between items-center">
-                        <span className="font-mono text-[12px] font-bold text-black dark:text-white uppercase tracking-widest">Product Details</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Product #{i + 1}</span>
                         <button 
                           onClick={() => {
                             const newProducts = [...products];
                             newProducts.splice(i, 1);
                             setProducts(newProducts);
                           }}
-                          className="font-mono text-[11px] font-bold text-red-500 hover:underline"
+                          className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
                         >
-                          Remove
+                          <Trash2 className="w-3.5 h-3.5" /> Remove
                         </button>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1451,20 +1491,23 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             newP[i].name = e.target.value;
                             setProducts(newP);
                           }}
-                          placeholder="Product Name" 
-                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-black dark:text-white text-[14px] px-3 py-2 rounded-xl outline-none focus:border-black dark:focus:border-white transition-colors" 
+                          placeholder="Product Name (e.g. 2026 Brand Pitch Deck)" 
+                          className="w-full bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-neutral-900 dark:text-white text-sm px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium" 
                         />
-                        <input 
-                          type="number" 
-                          value={p.price}
-                          onChange={(e) => {
-                            const newP = [...products];
-                            newP[i].price = parseFloat(e.target.value) || 0;
-                            setProducts(newP);
-                          }}
-                          placeholder="Price (₦)" 
-                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-black dark:text-white text-[14px] px-3 py-2 rounded-xl outline-none focus:border-black dark:focus:border-white transition-colors" 
-                        />
+                        <div className="relative flex items-center">
+                          <span className="absolute left-4 font-bold text-neutral-400">₦</span>
+                          <input 
+                            type="number" 
+                            value={p.price}
+                            onChange={(e) => {
+                              const newP = [...products];
+                              newP[i].price = parseFloat(e.target.value) || 0;
+                              setProducts(newP);
+                            }}
+                            placeholder="Price in ₦" 
+                            className="w-full pl-9 pr-4 py-3 bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-neutral-900 dark:text-white text-sm rounded-xl outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium" 
+                          />
+                        </div>
                       </div>
                       <textarea
                         value={p.description || ''}
@@ -1473,97 +1516,99 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           newP[i].description = e.target.value;
                           setProducts(newP);
                         }}
-                        placeholder="Product Description"
-                        className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-black dark:text-white text-[14px] px-3 py-2 rounded-xl outline-none focus:border-black dark:focus:border-white transition-colors min-h-[80px]" 
+                        placeholder="Product Description & highlights of what buyer will receive..."
+                        className="w-full bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-neutral-900 dark:text-white text-sm px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium min-h-[90px] resize-none" 
                       />
-                      <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          value={p.file_url || ''}
-                          onChange={(e) => {
-                            const newP = [...products];
-                            newP[i].file_url = e.target.value;
-                            setProducts(newP);
-                          }}
-                          placeholder="Link to file (Google Drive, Dropbox, etc.)" 
-                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-black dark:text-white text-[14px] px-3 py-2 rounded-xl outline-none focus:border-black dark:focus:border-white transition-colors" 
-                        />
-                        <label className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-xl cursor-pointer flex items-center justify-center font-mono text-[11px] font-bold whitespace-nowrap hover:bg-black/80 dark:hover:bg-white/80 transition-colors">
-                          <Upload className="w-3 h-3 mr-1.5" />
-                          Upload
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex gap-2">
                           <input 
-                            type="file" 
-                            className="hidden" 
-                            onChange={async (e) => {
-                              if (!e.target.files || e.target.files.length === 0) return;
-                              const file = e.target.files[0];
-                              setUploading(true);
-                              try {
-                                const fileExt = file.name.split('.').pop();
-                                const filePath = `products/${profile.id}/files/${Math.random()}.${fileExt}`;
-                                const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-                                if (uploadError) throw uploadError;
-                                const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-                                const newP = [...products];
-                                newP[i].file_url = data.publicUrl;
-                                setProducts(newP);
-                              } catch (err: any) {
-                                console.error(err);
-                                alert('Error uploading: ' + err.message);
-                              } finally {
-                                setUploading(false);
-                              }
-                            }} 
+                            type="text" 
+                            value={p.file_url || ''}
+                            onChange={(e) => {
+                              const newP = [...products];
+                              newP[i].file_url = e.target.value;
+                              setProducts(newP);
+                            }}
+                            placeholder="Deliverable File URL or Drive link" 
+                            className="w-full bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-neutral-900 dark:text-white text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium" 
                           />
-                        </label>
-                      </div>
-                      <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          value={p.image_url || ''}
-                          onChange={(e) => {
-                            const newP = [...products];
-                            newP[i].image_url = e.target.value;
-                            setProducts(newP);
-                          }}
-                          placeholder="Product Image URL (Optional)" 
-                          className="w-full bg-[#f9f9f9] dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-black dark:text-white text-[14px] px-3 py-2 rounded-xl outline-none focus:border-black dark:focus:border-white transition-colors" 
-                        />
-                        <label className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-xl cursor-pointer flex items-center justify-center font-mono text-[11px] font-bold whitespace-nowrap hover:bg-black/80 dark:hover:bg-white/80 transition-colors">
-                          <Upload className="w-3 h-3 mr-1.5" />
-                          Upload
+                          <label className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-950 px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center text-xs font-bold whitespace-nowrap transition-colors">
+                            <Upload className="w-3.5 h-3.5 mr-1.5" />
+                            File
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              onChange={async (e) => {
+                                if (!e.target.files || e.target.files.length === 0) return;
+                                const file = e.target.files[0];
+                                setUploading(true);
+                                try {
+                                  const fileExt = file.name.split('.').pop();
+                                  const filePath = `products/${profile.id}/files/${Math.random()}.${fileExt}`;
+                                  const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                                  if (uploadError) throw uploadError;
+                                  const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                                  const newP = [...products];
+                                  newP[i].file_url = data.publicUrl;
+                                  setProducts(newP);
+                                } catch (err: any) {
+                                  console.error(err);
+                                  alert('Error uploading: ' + err.message);
+                                } finally {
+                                  setUploading(false);
+                                }
+                              }} 
+                            />
+                          </label>
+                        </div>
+                        <div className="flex gap-2">
                           <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={async (e) => {
-                              if (!e.target.files || e.target.files.length === 0) return;
-                              const file = e.target.files[0];
-                              setUploading(true);
-                              try {
-                                const fileExt = file.name.split('.').pop();
-                                const filePath = `products/${profile.id}/${Math.random()}.${fileExt}`;
-                                const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-                                if (uploadError) throw uploadError;
-                                const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-                                const newP = [...products];
-                                newP[i].image_url = data.publicUrl;
-                                setProducts(newP);
-                              } catch (err: any) {
-                                console.error(err);
-                                alert('Error uploading: ' + err.message);
-                              } finally {
-                                setUploading(false);
-                              }
-                            }} 
+                            type="text" 
+                            value={p.image_url || ''}
+                            onChange={(e) => {
+                              const newP = [...products];
+                              newP[i].image_url = e.target.value;
+                              setProducts(newP);
+                            }}
+                            placeholder="Product Cover Thumbnail (Optional)" 
+                            className="w-full bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-neutral-900 dark:text-white text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium" 
                           />
-                        </label>
+                          <label className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-950 px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center text-xs font-bold whitespace-nowrap transition-colors">
+                            <Upload className="w-3.5 h-3.5 mr-1.5" />
+                            Cover
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={async (e) => {
+                                if (!e.target.files || e.target.files.length === 0) return;
+                                const file = e.target.files[0];
+                                setUploading(true);
+                                try {
+                                  const fileExt = file.name.split('.').pop();
+                                  const filePath = `products/${profile.id}/${Math.random()}.${fileExt}`;
+                                  const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                                  if (uploadError) throw uploadError;
+                                  const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                                  const newP = [...products];
+                                  newP[i].image_url = data.publicUrl;
+                                  setProducts(newP);
+                                } catch (err: any) {
+                                  console.error(err);
+                                  alert('Error uploading: ' + err.message);
+                                } finally {
+                                  setUploading(false);
+                                }
+                              }} 
+                            />
+                          </label>
+                        </div>
                       </div>
                     </div>
                   ))}
                   {products.length === 0 && (
-                    <div className="text-center py-12 text-black/40 dark:text-white/40 font-mono text-[13px]">
-                      No products added yet. Click "+ Add Product" to get started.
+                    <div className="text-center py-12 text-neutral-400 dark:text-neutral-500 text-sm">
+                      No products added yet. Click <span className="font-semibold text-neutral-900 dark:text-white">Add Product</span> to sell downloadable assets in ₦.
                     </div>
                   )}
                 </div>
@@ -1575,52 +1620,39 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             <div className="xl:col-span-12 flex flex-col gap-8">
               
               <DashboardAnalytics profile={profile} profileViews={profileViews} onUpgrade={() => setActiveTab('appearance')} />
-              <section className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl flex flex-col">
-                <div className="p-6 flex flex-col items-center justify-center text-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center">
-                    <LogOut className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-sans font-bold text-lg text-red-600 dark:text-red-400">Sign Out</h3>
-                    <p className="text-[13px] text-red-500/70 dark:text-red-400/70 mt-1">Ready to leave? You can always sign back in.</p>
-                  </div>
-                  <button 
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                      window.location.href = '/login';
-                    }}
-                    className="mt-2 px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors text-[14px]"
-                  >
-                    Log Out of Account
-                  </button>
-                </div>
-              </section>
 
-              <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-                <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                  <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Public Profile Layout & Color</h3>
+              {/* Public Profile Theme & Visual Styling */}
+              <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                  <div>
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Public Profile Theme & Layout</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Select a layout preset and ambient palette for your public page</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                    <Settings className="w-5 h-5" />
+                  </div>
                 </div>
-                <div className="p-6 flex flex-col gap-8">
+                <div className="p-6 sm:p-8 flex flex-col gap-8">
                   {/* Background Color Picker */}
                   <div>
-                    <label className="block text-sm font-bold text-black dark:text-white mb-3">Background Color</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">Ambient Background Color</label>
                     <div className="flex flex-wrap gap-3">
                       {COLOR_PRESETS.map(color => (
                         <button
                           key={color}
                           onClick={() => { setProfile({ ...profile, bg_color: color }); }}
-                          className={`w-10 h-10 rounded-full border-2 transition-all ${profile.bg_color === color ? 'border-black dark:border-white scale-110 shadow-lg' : 'border-transparent shadow-sm'}`}
+                          className={`w-10 h-10 rounded-full border-2 transition-all cursor-pointer ${profile.bg_color === color ? 'border-[#D2F843] scale-115 shadow-md ring-2 ring-[#D2F843]/50' : 'border-neutral-200 dark:border-white/10 hover:scale-105'}`}
                           style={{ backgroundColor: color }}
                           aria-label={`Select color ${color}`}
                         />
                       ))}
                     </div>
-                    <p className="text-[13px] text-black/50 dark:text-white/50 mt-3">Text colors will automatically adjust to remain visible based on your selected background.</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">All text elements automatically calculate optimal contrast against your chosen backdrop.</p>
                   </div>
                   
                   {/* Profile Layout Grid */}
                   <div>
-                    <label className="block text-sm font-bold text-black dark:text-white mb-3">Profile Layout</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">Card Layout Architecture</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {PROFILE_LAYOUTS.map(layout => {
                         const isActive = profile.theme === layout.id || (layout.id === 'default' && !profile.theme);
@@ -1628,9 +1660,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           <div 
                             key={layout.id} 
                             onClick={() => { setProfile({ ...profile, theme: layout.id }); }}
-                            className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center justify-between gap-3 transition-all ${isActive ? 'border-black dark:border-white bg-black/5 dark:bg-white/5 ring-1 ring-black dark:ring-white' : 'border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                            className={`cursor-pointer rounded-2xl border p-4 flex flex-col items-center justify-between gap-3 transition-all ${isActive ? 'border-[#D2F843] bg-[#D2F843]/10 dark:bg-[#D2F843]/10 shadow-sm ring-1 ring-[#D2F843]' : 'border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 bg-neutral-50/50 dark:bg-white/[0.02]'}`}
                           >
-                            <div className="w-16 h-20 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-md flex flex-col p-1.5 shadow-sm text-black dark:text-white">
+                            <div className="w-16 h-20 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl flex flex-col p-1.5 shadow-xs text-neutral-900 dark:text-white">
                               {layout.id === 'default' && (
                                 <svg viewBox="0 0 100 120" className="w-full h-full stroke-current" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                                   <circle cx="50" cy="50" r="30" className="opacity-20 fill-current" stroke="none" />
@@ -1684,7 +1716,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               )}
                             </div>
                             <div className="text-center">
-                              <h4 className="font-bold text-[12px] whitespace-nowrap">{layout.name}</h4>
+                              <h4 className="font-bold text-xs text-neutral-900 dark:text-white whitespace-nowrap">{layout.name}</h4>
                             </div>
                           </div>
                         );
@@ -1692,127 +1724,159 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     </div>
                   </div>
                   
-                  <div className="flex justify-end pt-4 border-t border-black/10 dark:border-white/10">
-                    <button onClick={handleSave} className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold transition-opacity hover:opacity-90 text-[14px] flex items-center gap-2">
+                  <div className="flex justify-end pt-5 border-t border-neutral-100 dark:border-white/5">
+                    <button 
+                      onClick={handleSave} 
+                      className="px-6 py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold transition-all text-xs flex items-center gap-2 shadow-sm cursor-pointer"
+                    >
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       {saving ? 'Saving...' : 'Save Appearance'}
                     </button>
                   </div>
                 </div>
               </section>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
-                <section className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-xl flex flex-col">
-              <div className="border-b border-black/10 dark:border-white/10 p-5 flex justify-between items-center bg-[#f9f9f9] dark:bg-[#1a1a1a]">
-                <h3 className="font-mono text-[13px] font-bold text-black dark:text-white uppercase tracking-widest">Public Gallery</h3>
-              </div>
-              <div className="p-6 flex flex-col gap-6">
-                <p className="text-black/60 dark:text-white/60 text-[14px]">Upload images to display in your public profile's gallery section.</p>
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-                  {links.filter(l => l.size === 'GalleryImage').map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden group border border-black/10 dark:border-white/10">
-                      <img src={img.url} alt="Gallery item" className="w-full h-full object-cover" />
-                      
-                      <div className="absolute inset-0 bg-white/40 dark:bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                        <label className="w-10 h-10 bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-full flex items-center justify-center text-black dark:text-white cursor-pointer hover:bg-black/80 transition-colors">
-                          <input 
-                            type="file" 
-                            className="hidden" 
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setUploading(true);
-                                try {
-                                  const fileExt = file.name.split('.').pop() || 'jpeg';
-                                  const fileName = `${Math.random()}.${fileExt}`;
-                                  const filePath = `gallery/${fileName}`;
-                                  const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-                                  if (uploadError) throw uploadError;
-                                  const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-                                  
-                                  const { error: dbError } = await supabase.from('links').update({ url: data.publicUrl }).eq('id', img.id);
-                                  if (dbError) throw dbError;
-                                  
-                                  setLinks(links.map(l => l.id === img.id ? { ...l, url: data.publicUrl } : l));
-                                } catch (err: any) {
-                                  alert(err.message);
-                                } finally {
-                                  setUploading(false);
+
+              {/* Public Gallery Section */}
+              <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                  <div>
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Public Image Showcase / Portfolio</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Upload photos, event snapshots, or portfolio samples for visitors</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-neutral-700 dark:text-neutral-300">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="p-6 sm:p-8 flex flex-col gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {links.filter(l => l.size === 'GalleryImage').map((img) => (
+                      <div key={img.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-neutral-200/80 dark:border-white/10 bg-neutral-100 dark:bg-[#151821]">
+                        <img src={img.url} alt="Gallery item" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        
+                        <div className="absolute inset-0 bg-neutral-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
+                          <label className="w-9 h-9 bg-white text-neutral-900 rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-100 transition-all shadow-md">
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setUploading(true);
+                                  try {
+                                    const fileExt = file.name.split('.').pop() || 'jpeg';
+                                    const fileName = `${Math.random()}.${fileExt}`;
+                                    const filePath = `gallery/${fileName}`;
+                                    const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                                    if (uploadError) throw uploadError;
+                                    const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                                    
+                                    const { error: dbError } = await supabase.from('links').update({ url: data.publicUrl }).eq('id', img.id);
+                                    if (dbError) throw dbError;
+                                    
+                                    setLinks(links.map(l => l.id === img.id ? { ...l, url: data.publicUrl } : l));
+                                  } catch (err: any) {
+                                    alert(err.message);
+                                  } finally {
+                                    setUploading(false);
+                                  }
                                 }
+                              }}
+                            />
+                            <Upload className="w-4 h-4 text-neutral-900" />
+                          </label>
+
+                          <button
+                            onClick={async () => {
+                              const { error } = await supabase.from('links').delete().eq('id', img.id);
+                              if (!error) {
+                                setLinks(links.filter(l => l.id !== img.id));
                               }
                             }}
-                          />
-                          <Upload className="w-4 h-4 text-black dark:text-white" />
-                        </label>
-
-                        <button
-                          onClick={async () => {
-                            const { error } = await supabase.from('links').delete().eq('id', img.id);
-                            if (!error) {
-                              setLinks(links.filter(l => l.id !== img.id));
-                            }
-                          }}
-                          className="w-10 h-10 bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-full flex items-center justify-center text-black dark:text-white hover:bg-black/80 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
+                            className="w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all shadow-md"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <label className="aspect-square rounded-xl border-2 border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 transition-colors gap-2">
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setUploading(true);
-                          try {
-                            const fileExt = file.name.split('.').pop() || 'jpeg';
-                            const fileName = `${Math.random()}.${fileExt}`;
-                            const filePath = `gallery/${fileName}`;
-                            const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-                            if (uploadError) throw uploadError;
-                            const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-                            
-                            const { data: newLink, error: dbError } = await supabase.from('links').insert({
-                              profile_id: profile.id,
-                              label: 'Gallery Image',
-                              url: data.publicUrl,
-                              size: 'GalleryImage'
-                            }).select().single();
-                            
-                            if (dbError) throw dbError;
-                            if (newLink) {
-                              setLinks([...links, newLink]);
+                    ))}
+                    <label className="aspect-square rounded-2xl border-2 border-dashed border-neutral-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors gap-2 p-4 text-center">
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setUploading(true);
+                            try {
+                              const fileExt = file.name.split('.').pop() || 'jpeg';
+                              const fileName = `${Math.random()}.${fileExt}`;
+                              const filePath = `gallery/${fileName}`;
+                              const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                              if (uploadError) throw uploadError;
+                              const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                              
+                              const { data: newLink, error: dbError } = await supabase.from('links').insert({
+                                profile_id: profile.id,
+                                label: 'Gallery Image',
+                                url: data.publicUrl,
+                                size: 'GalleryImage'
+                              }).select().single();
+                              
+                              if (dbError) throw dbError;
+                              if (newLink) {
+                                setLinks([...links, newLink]);
+                              }
+                            } catch (err: any) {
+                              alert(err.message);
+                            } finally {
+                              setUploading(false);
                             }
-                          } catch (err: any) {
-                            alert(err.message);
-                          } finally {
-                            setUploading(false);
                           }
-                        }
-                      }}
-                    />
-                    <Upload className="w-6 h-6 text-black/40 dark:text-white/40" />
-                    <span className="font-mono text-[11px] text-black/40 dark:text-white/40 uppercase font-bold tracking-wider">Upload</span>
-                  </label>
+                        }}
+                      />
+                      <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-300">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">Upload Photo</span>
+                    </label>
+                  </div>
                 </div>
-              </div>
-            </section>
-              </div>
+              </section>
+
+              {/* Sign Out Card */}
+              <section className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4 text-center sm:text-left">
+                  <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                    <LogOut className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-neutral-900 dark:text-white">Sign Out of Makro Account</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Securely log out of this session. Your changes will stay saved.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = '/login';
+                  }}
+                  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-bold text-xs transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  Log Out of Makro
+                </button>
+              </section>
+
             </div>
           </div>
         ) : null}
 
       </div>
       {cropModalOpen && tempImageUrl && (
-        <div className="fixed inset-0 z-[100] bg-black bg-opacity-80 flex items-center justify-center p-4">
-          <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl p-4 rounded-2xl w-full max-w-3xl flex flex-col h-[80vh]">
-            <h3 className="font-display font-bold text-xl mb-4">Crop Cover Image</h3>
-            <div className="relative flex-1 bg-gray-100">
+        <div className="fixed inset-0 z-[100] bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111318] p-6 sm:p-8 rounded-3xl w-full max-w-3xl flex flex-col h-[80vh] border border-neutral-200/80 dark:border-white/10 shadow-2xl">
+            <h3 className="font-bold text-lg text-neutral-950 dark:text-white mb-4">Adjust & Crop Header Cover</h3>
+            <div className="relative flex-1 bg-neutral-900 rounded-2xl overflow-hidden">
               <Cropper
                 image={tempImageUrl}
                 crop={crop}
@@ -1824,7 +1888,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               />
             </div>
             <div className="flex items-center gap-4 mt-4">
-              <label className="text-sm font-medium">Zoom</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Zoom</label>
               <input
                 type="range"
                 value={zoom}
@@ -1833,12 +1897,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 step={0.1}
                 aria-labelledby="Zoom"
                 onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full"
+                className="w-full accent-[#D2F843]"
               />
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
-                className="px-4 py-2 border border-gray-300 rounded font-medium text-sm hover:bg-gray-50"
+                className="px-5 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-full font-bold text-xs hover:bg-neutral-100 dark:hover:bg-white/5 transition-all text-neutral-900 dark:text-white"
                 onClick={() => {
                   setCropModalOpen(false);
                   setTempImageUrl(null);
@@ -1847,7 +1911,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 rounded font-medium text-sm flex items-center justify-center min-w-[100px] hover:bg-black/90"
+                className="px-6 py-2.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold text-xs flex items-center justify-center min-w-[110px] shadow-sm transition-all"
                 disabled={uploading}
                 onClick={handleCropSave}
               >
@@ -1860,20 +1924,20 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
       {/* Link Modal */}
       {isLinkModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0f0f0f] w-full max-w-md rounded-2xl p-6 shadow-2xl relative border border-black/10 dark:border-white/10 flex flex-col max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111318] w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative border border-neutral-200/80 dark:border-white/10 flex flex-col max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsLinkModalOpen(false)}
-              className="absolute top-4 right-4 p-2 text-white/50 hover:text-black dark:text-white transition-colors"
+              className="absolute top-6 right-6 p-2 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-sans font-bold text-black dark:text-white mb-6">
+            <h2 className="text-xl font-bold text-neutral-950 dark:text-white mb-6">
               {editingLinkIndex !== null ? 'Edit Featured Link' : 'Add Featured Link'}
             </h2>
 
             {/* Preview Section */}
-            <div className={`relative w-full rounded-2xl overflow-hidden mb-6 flex flex-col items-center justify-center border ${currentLink.size === 'Big' ? 'aspect-[4/3] border-black/10 dark:border-white/10' : currentLink.size === 'Medium' ? 'aspect-[2/1] border-black/10 dark:border-white/10' : currentLink.size === 'Small' ? 'h-24 border-black/10 dark:border-white/10' : 'h-16 border-black/10 dark:border-white/10'}`}
+            <div className={`relative w-full rounded-2xl overflow-hidden mb-6 flex flex-col items-center justify-center border border-neutral-200/80 dark:border-white/10 ${currentLink.size === 'Big' ? 'aspect-[4/3]' : currentLink.size === 'Medium' ? 'aspect-[2/1]' : currentLink.size === 'Small' ? 'h-24' : 'h-16'}`}
                  style={{ 
                    background: currentLink.size !== 'Button' && currentLink.image_url 
                      ? `url('${currentLink.image_url}') center/cover`
@@ -1884,20 +1948,20 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                  
                  {/* Dark overlay to ensure text is readable if there's a background image */}
                  {currentLink.size !== 'Button' && (currentLink.image_url || (currentLink.use_link_icon && currentLink.url)) && (
-                   <div className="absolute inset-0 bg-white/40 dark:bg-black/40 z-0"></div>
+                   <div className="absolute inset-0 bg-neutral-950/50 z-0"></div>
                  )}
                  
                  {/* Top Right Profile Cover (Only for Big) */}
                  {currentLink.size === 'Big' && coverUrl && (
-                   <div className="absolute top-4 right-4 w-10 h-10 rounded-full border border-black/20 dark:border-white/20 bg-black/50 z-10 shadow-lg overflow-hidden flex items-center justify-center">
+                   <div className="absolute top-4 right-4 w-10 h-10 rounded-full border border-white/20 bg-black/50 z-10 shadow-lg overflow-hidden flex items-center justify-center">
                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
                    </div>
                  )}
 
               {/* Center Image Upload Button */}
               {currentLink.size !== 'Button' && (
-                <label className="relative w-12 h-12 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center bg-white/40 dark:bg-black/40 cursor-pointer hover:bg-black/60 transition-colors mb-2 z-10 backdrop-blur-md">
-                  <Camera className="w-5 h-5 text-black dark:text-white" />
+                <label className="relative w-12 h-12 rounded-full border border-white/20 flex items-center justify-center bg-black/50 cursor-pointer hover:bg-black/70 transition-colors mb-2 z-10 backdrop-blur-md">
+                  <Camera className="w-5 h-5 text-white" />
                   <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -1919,10 +1983,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </label>
               )}
 
-              <span className={`font-bold text-black dark:text-white z-10 ${currentLink.size !== 'Button' ? 'text-lg mt-auto mb-6 drop-shadow-md' : 'text-md'}`}>{currentLink.label || 'Title'}</span>
+              <span className={`font-bold text-white z-10 ${currentLink.size !== 'Button' ? 'text-lg mt-auto mb-6 drop-shadow-md' : 'text-sm'}`}>{currentLink.label || 'Link Title'}</span>
             </div>
 
-            <div className="text-center text-white/50 text-xs mb-4">Find the look that fits you best</div>
+            <div className="text-center text-xs font-semibold text-neutral-400 mb-4">Choose display card geometry</div>
 
             {/* Size Selector */}
             <div className="grid grid-cols-4 gap-2 mb-6">
@@ -1930,9 +1994,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <button
                   key={size}
                   onClick={() => setCurrentLink({...currentLink, size})}
-                  className={`flex flex-col items-center justify-center py-3 rounded-xl border ${currentLink.size === size ? 'border-[#B600A8] text-black dark:text-white bg-[#B600A8]/10' : 'border-black/10 dark:border-white/10 text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-black/5 dark:bg-white/5 hover:text-black dark:text-white'} transition-colors`}
+                  className={`flex flex-col items-center justify-center py-3 rounded-2xl border transition-all ${currentLink.size === size ? 'border-[#D2F843] text-neutral-950 dark:text-white bg-[#D2F843]/15' : 'border-neutral-200/80 dark:border-white/10 text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
                 >
-                  <div className={`w-6 border-2 mb-2 rounded-xl ${currentLink.size === size ? 'border-[#B600A8]' : 'border-white/40'} ${size === 'Big' ? 'h-5' : size === 'Medium' ? 'h-3' : size === 'Small' ? 'h-2' : 'h-1'}`}></div>
+                  <div className={`w-6 border-2 mb-2 rounded-md ${currentLink.size === size ? 'border-[#D2F843]' : 'border-neutral-400'} ${size === 'Big' ? 'h-5' : size === 'Medium' ? 'h-3' : size === 'Small' ? 'h-2' : 'h-1'}`}></div>
                   <span className="text-[11px] font-bold">{size}</span>
                 </button>
               ))}
@@ -1940,35 +2004,35 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
             {/* Warning Message */}
             {currentLink.size === 'Big' && !currentLink.image_url && !currentLink.use_link_icon && (
-              <div className="flex items-center gap-3 bg-[#3f290d] border border-[#a66a1a] text-[#facc15] px-4 py-3 rounded-xl mb-6 text-xs font-medium">
+              <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-4 py-3 rounded-2xl mb-6 text-xs font-medium">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
-                This will display as a button because there's no image. Add an image to use big thumbnail.
+                This will display as a button because there's no cover image attached yet.
               </div>
             )}
 
-            <div className="bg-[#1a1a1a] rounded-xl p-4 flex flex-col gap-4">
+            <div className="bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-black dark:text-white">Use Link Icon</span>
+                <span className="text-xs font-bold text-neutral-900 dark:text-white">Auto-Fetch Website Favicon</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={currentLink.use_link_icon} onChange={(e) => setCurrentLink({...currentLink, use_link_icon: e.target.checked})} />
-                  <div className="w-11 h-6 bg-black/10 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#B600A8]"></div>
+                  <div className="w-11 h-6 bg-neutral-300 dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D2F843]"></div>
                 </label>
               </div>
 
               <input
                 type="text"
-                placeholder="Link, phone, number, or email"
+                placeholder="https://yourwebsite.com or @handle"
                 value={currentLink.url}
                 onChange={(e) => setCurrentLink({...currentLink, url: e.target.value})}
-                className="w-full bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-3 text-sm text-black dark:text-white placeholder-white/30 focus:outline-none focus:border-[#B600A8]"
+                className="w-full bg-white dark:bg-[#101216] border border-neutral-200/80 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium"
               />
 
               <input
                 type="text"
-                placeholder="Title"
+                placeholder="Link Title (e.g. Read My Portfolio)"
                 value={currentLink.label}
                 onChange={(e) => setCurrentLink({...currentLink, label: e.target.value})}
-                className="w-full bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-3 text-sm text-black dark:text-white placeholder-white/30 focus:outline-none focus:border-[#B600A8]"
+                className="w-full bg-white dark:bg-[#101216] border border-neutral-200/80 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium"
               />
             </div>
 
@@ -1983,20 +2047,20 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 }
                 setIsLinkModalOpen(false);
               }}
-              className="w-full mt-6 bg-[#B600A8] text-black dark:text-white font-bold py-3 rounded-xl hover:bg-[#B600A8]/80 transition-colors"
+              className="w-full mt-6 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold py-3.5 rounded-full transition-all text-sm shadow-sm cursor-pointer"
             >
-              Save Link
+              Save Link Card
             </button>
           </div>
         </div>
       )}
       
       {setupGuideActive && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-[0_10_40px_rgba(0,0,0,0.3)] z-50 flex flex-col sm:flex-row items-center gap-6 border border-white/20 dark:border-black/20 min-w-[300px] sm:min-w-[500px] max-w-[90vw] animate-in slide-in-from-bottom-10">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-neutral-900 dark:bg-neutral-900 text-white p-5 rounded-3xl shadow-2xl z-50 flex flex-col sm:flex-row items-center gap-6 border border-neutral-700/60 min-w-[300px] sm:min-w-[500px] max-w-[90vw] animate-in slide-in-from-bottom-10">
           <div className="flex-1 flex flex-col">
-            <span className="text-[10px] font-mono uppercase tracking-wider opacity-60 mb-1">Step {setupStep} of {setupSteps.length}</span>
-            <span className="font-bold text-lg">{setupSteps.find(s => s.id === setupStep)?.name}</span>
-            <span className="text-sm opacity-80 mt-1 leading-snug">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#D2F843] mb-1">Step {setupStep} of {setupSteps.length}</span>
+            <span className="font-bold text-base">{setupSteps.find(s => s.id === setupStep)?.name}</span>
+            <span className="text-xs text-neutral-300 mt-1 leading-snug">
               {setupStep === 1 && "Add your full name, headline, and bio in the Profile Identity section."}
               {setupStep === 2 && "Add your email and phone numbers so people can easily contact you."}
               {setupStep === 3 && "Scroll down to add your social media profiles."}
@@ -2007,9 +2071,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           <div className="flex gap-2 w-full sm:w-auto shrink-0">
             <button 
               onClick={() => setSetupGuideActive(false)}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-white/20 dark:border-black/20 hover:bg-white/10 dark:hover:bg-black/10 transition-colors text-[13px] font-bold"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-full border border-white/20 hover:bg-white/10 transition-colors text-xs font-bold"
             >
-              Cancel
+              Dismiss
             </button>
             <button 
               onClick={() => {
@@ -2017,15 +2081,13 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   const nextStep = setupSteps[setupStep];
                   setSetupStep(nextStep.id);
                   setActiveTab(nextStep.tab as any);
-                  
-                  // Auto-scroll slightly to help find it
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                   setSetupGuideActive(false);
-                  alert("🎉 Setup Complete! Your public profile is ready to share.");
+                  alert("🎉 Setup Complete! Your public bio card is ready.");
                 }
               }}
-              className="flex-1 sm:flex-none px-5 py-2.5 bg-white dark:bg-black text-black dark:text-white rounded-xl font-bold hover:opacity-90 transition-opacity text-[13px]"
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold transition-all text-xs shadow-sm"
             >
               {setupStep < setupSteps.length ? "Next Step" : "Finish Setup"}
             </button>
@@ -2033,31 +2095,27 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         </div>
       )}
       
-        {/* Mobile Custom Nav Bar */}
+        {/* Mobile Custom Nav Bar matching homepage design */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-0">
-          <div className="relative bg-white dark:bg-[#0a0a0a] h-[72px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-[24px] flex items-center px-2">
+          <div className="relative bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-md h-[70px] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] border-t border-neutral-200/80 dark:border-white/10 flex items-center px-2">
             
             <motion.div 
               className="absolute top-0 left-2 h-full flex justify-center pointer-events-none z-10"
               style={{ width: `calc((100% - 16px) / 5)` }}
               initial={false}
               animate={{ 
-                x: `${['analytics', 'social', 'profile', 'ebooks', 'settings'].indexOf(activeTab as string) * 100}%` 
+                x: `${['nfc', 'social', 'profile', 'ebooks', 'settings'].indexOf(activeTab as string) * 100}%` 
               }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-               <svg width="104" height="32" viewBox="0 0 104 32" className="absolute top-0 left-1/2 -translate-x-1/2 text-[#f9f9f9] dark:text-black fill-current" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M 0 0 C 20 0, 24 32, 52 32 C 80 32, 84 0, 104 0 Z" />
-               </svg>
-
-               <div className="absolute top-[-24px] w-[48px] h-[48px] bg-white dark:bg-[#0a0a0a] rounded-full flex items-center justify-center shadow-lg shadow-black/10 dark:shadow-white/5" />
+               <div className="absolute -top-3 w-10 h-10 bg-[#D2F843] rounded-full flex items-center justify-center shadow-lg" />
             </motion.div>
 
             {[
-              { id: 'nfc', label: 'Order NFC Card', icon: SmartphoneNfc },
+              { id: 'nfc', label: 'NFC Card', icon: SmartphoneNfc },
               { id: 'social', label: 'Socials', icon: Share },
-              { id: 'profile', label: 'Profile', icon: UserCircle },
-              { id: 'ebooks', label: 'Ebooks', icon: Wallet },
+              { id: 'profile', label: 'Bio Card', icon: UserCircle },
+              { id: 'ebooks', label: 'Shop', icon: Wallet },
               { id: 'settings', label: 'Settings', icon: Settings },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
@@ -2071,23 +2129,22 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 >
                    <motion.div
                      animate={{ 
-                       y: isActive ? -36 : 0,
-                       scale: isActive ? 1.1 : 1
+                       y: isActive ? -14 : 0,
+                       scale: isActive ? 1.15 : 1
                      }}
                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                     className={`absolute flex items-center justify-center ${isActive ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
+                     className={`flex items-center justify-center ${isActive ? 'text-neutral-950 font-bold' : 'text-neutral-400 dark:text-neutral-500'}`}
                    >
-                     <Icon className="w-6 h-6" />
+                     <Icon className="w-5 h-5" />
                    </motion.div>
                    
                    <motion.span 
                      animate={{ 
                        opacity: isActive ? 0 : 1,
-                       y: isActive ? 10 : 20,
-                       scale: isActive ? 0.8 : 1
+                       y: isActive ? 10 : 2
                      }}
                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                     className="absolute font-semibold text-[10px] text-black/50 dark:text-white/50"
+                     className="font-semibold text-[10px] text-neutral-500 dark:text-neutral-400"
                    >
                      {tab.label}
                    </motion.span>
