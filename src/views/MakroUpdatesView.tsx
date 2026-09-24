@@ -18,31 +18,31 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
   toggleDarkMode,
   session,
 }) => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'ai' | 'hardware' | 'payments'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'hardware' | 'bio' | 'analytics'>('all');
 
   const updates = [
     {
       version: 'v2.8.0',
       date: 'September 2026',
-      category: 'ai',
-      badge: 'AI Finance',
-      title: 'Autonomous Multi-Month Cashflow Scenario Engine',
+      category: 'bio',
+      badge: 'Link-in-Bio',
+      title: '2-Way Contact Exchange & Instant WhatsApp Lead Sync',
       description:
-        'You can now stress-test what happens if a major client delays invoice settlement by 30 or 60 days. Our new probabilistic simulation engine alerts you in advance with mitigation tactics.',
+        'When prospective clients tap your physical NFC card, they can now send their contact info right back to your dashboard with one tap, auto-generating a WhatsApp conversation.',
       highlights: [
-        'Interactive 180-day runway graph slider',
-        'Automatic detection of seasonal revenue patterns',
-        'Direct integration with Paystack & Stripe settlement schedules',
+        'Instant bidirectional vCard generation',
+        'Direct synchronization to Google Contacts & CSV export',
+        'Automatic WhatsApp greeting prompt',
       ],
     },
     {
       version: 'v2.7.2',
       date: 'August 2026',
       category: 'hardware',
-      badge: 'NFC & Profile',
-      title: 'Instant Apple Wallet & Google Pass Sync',
+      badge: 'NFC & Wallet',
+      title: 'Instant Apple Wallet & Google Pass NFC Sync',
       description:
-        'Physical card owners can now generate a dynamic, NFC-enabled Apple Wallet pass with one click. Share your profile directly from your lock screen even if your card is in your bag.',
+        'Physical card owners can now generate a dynamic, NFC-enabled Apple Wallet pass with one click. Share your profile directly from your lock screen even if your physical card is in your bag.',
       highlights: [
         'Cryptographically signed .pkpass distribution',
         'Real-time link changes update the pass dynamically',
@@ -52,15 +52,15 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
     {
       version: 'v2.6.0',
       date: 'July 2026',
-      category: 'payments',
-      badge: 'Invoicing',
-      title: 'Zero-Redirect Invoicing & Direct WhatsApp Checkout',
+      category: 'bio',
+      badge: 'Storefront',
+      title: 'Digital Products & Paid 1-on-1 Consultations in ₦',
       description:
-        'Share instant invoice links that clients can settle right inside WhatsApp or mobile Safari with Face ID. Average checkout duration dropped to under 14 seconds.',
+        'Monetize your audience directly from your bio link. Sell e-books, templates, and consulting slots with instant settlements directly in ₦ (Naira) via Paystack.',
       highlights: [
-        'One-tap payment via Apple Pay, Google Pay, and USSD',
-        'Automated polite receipt delivery to client email & SMS',
-        'Instant multi-currency conversion for foreign clients (USD, GBP, EUR, NGN)',
+        'Zero-fee instant bank transfer and debit card checkout',
+        'Automated digital file delivery and consultation calendar sync',
+        'Seamless integration with your Super Admin shop inventory',
       ],
     },
     {
@@ -74,7 +74,7 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
       highlights: [
         'Waterproof, scratch-resistant ceramic coating',
         'Sub-10ms antenna handshake frequency',
-        'Lifetime hardware replacement guarantee for Pro members',
+        'Dispatched directly from our Lagos workshop',
       ],
     },
   ];
@@ -109,7 +109,7 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
             </h1>
 
             <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto">
-              Follow our regular releases, architectural improvements, and new capabilities as we refine the ultimate platform for solopreneurs.
+              Follow our regular releases, hardware innovations, and new software capabilities as we build the premier NFC & link-in-bio ecosystem.
             </p>
 
             {/* Filter Tabs */}
@@ -117,9 +117,9 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
               <div className="inline-flex p-1.5 bg-neutral-200/60 dark:bg-neutral-800 rounded-full">
                 {[
                   { id: 'all', label: 'All Updates' },
-                  { id: 'ai', label: 'AI Finance' },
-                  { id: 'hardware', label: 'NFC & Hardware' },
-                  { id: 'payments', label: 'Invoicing & Payments' },
+                  { id: 'hardware', label: 'NFC Hardware' },
+                  { id: 'bio', label: 'Link-in-Bio' },
+                  { id: 'analytics', label: 'Tap Telemetry' },
                 ].map((tab) => (
                   <button
                     key={tab.id}

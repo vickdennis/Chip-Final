@@ -178,7 +178,7 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
                     >
                       <option value="Product Inquiry">Product Inquiry & Features</option>
                       <option value="Enterprise Hardware">Custom Enterprise NFC Cards</option>
-                      <option value="AI Forecasting">AI Cashflow Algorithms & API</option>
+                      <option value="Link in Bio Customization">Link-in-Bio Custom Domains & Branding</option>
                       <option value="Partnership">Partnership & Distribution</option>
                     </select>
                   </div>

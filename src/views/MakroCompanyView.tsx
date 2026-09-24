@@ -94,11 +94,11 @@ export const MakroCompanyView: React.FC<MakroCompanyViewProps> = ({
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.08]">
-              Empowering solopreneurs to operate like tier-one enterprises.
+              Empowering professionals to connect with physical velocity.
             </h1>
 
             <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-              We started CHIPNG with a singular conviction: independent professionals shouldn't have to glue together six disconnected tools just to plan their cash and share their credentials.
+              We started CHIPNG with a singular conviction: professionals and creators shouldn't have to rely on wasteful paper cards or clunky link trees. One contactless tap or dynamic URL should share your entire identity, verified vCard, and work.
             </p>
           </div>
         </section>
@@ -119,7 +119,7 @@ export const MakroCompanyView: React.FC<MakroCompanyViewProps> = ({
                 In 2024, our founders noticed that 88% of traditional paper business cards are discarded within seven days. Simultaneously, independent contractors and solopreneurs were struggling with erratic payment cycles and opaque cash runway.
               </p>
               <p>
-                We engineered an unified system: aerospace-grade NFC hardware that transfers your dynamic digital home in 10 milliseconds, backed by an autonomous AI finance engine that models cashflow and handles instant invoicing.
+                We engineered a unified ecosystem: aerospace-grade NFC hardware that transfers your dynamic digital profile and vCard in under 10 milliseconds, paired with a blazing-fast link-in-bio platform that lets you showcase portfolios, book consultations, and capture client contacts without friction.
               </p>
               <p>
                 Today, CHIPNG processes millions of touchpoints for founders across Lagos, London, New York, and Nairobi, turning every meeting into a long-term business relationship.

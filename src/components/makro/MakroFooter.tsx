@@ -30,13 +30,13 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-neutral-500 max-w-sm leading-relaxed">
-              The definitive AI finance and digital identity platform for solopreneurs, creators, and modern teams. Designed for clarity, speed, and precision.
+              The premier contactless NFC smart business card and dynamic link-in-bio platform for founders, executives, creators, and modern teams. Designed for zero-friction networking.
             </p>
 
             <div className="pt-2 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300">
-                All systems operational · 99.98%
+                NFC Cloud active · Sub-10ms response
               </span>
             </div>
           </div>
@@ -44,27 +44,32 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
           {/* Column 1: Product */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-950 dark:text-white">
-              Product
+              Hardware & Platform
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <button onClick={() => onNavigate('landing')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
-                  AI Forecasting
+                <button onClick={() => onNavigate('nfc-sales')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
+                  Smart NFC Metal Cards
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('nfc-sales')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
+                  Matte PVC Smart Cards
                 </button>
               </li>
               <li>
                 <button onClick={() => onNavigate('landing')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
-                  Digital Card Customizer
+                  Dynamic Link-in-Bio
                 </button>
               </li>
               <li>
                 <button onClick={() => onNavigate('landing')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
-                  Instant Invoicing
+                  2-Way Contact Exchange
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('landing')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
-                  Lead Capture Funnel
+                <button onClick={() => onNavigate('enterprise-dashboard')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
+                  Enterprise Team Cards
                 </button>
               </li>
             </ul>

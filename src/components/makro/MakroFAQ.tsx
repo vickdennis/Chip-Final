@@ -8,27 +8,32 @@ export const MakroFAQ: React.FC = () => {
     {
       question: 'What is CHIPNG and how does it work?',
       answer:
-        'CHIPNG combines high-precision AI financial forecasting and invoicing with premium NFC smart touchpoints and a modern link-in-bio platform. It allows founders, creators, and professionals to anticipate cashflow, collect instant payments, and exchange verified digital business credentials with a single tap.',
+        'CHIPNG is the premier contactless smart business card and dynamic link-in-bio platform. When you tap your physical NFC card against any modern smartphone, your verified digital profile, vCard, social links, portfolio, and booking calendar open instantaneously in their browser. No app or setup is needed for the other person.',
     },
     {
-      question: 'Do people need an app to read my NFC card or digital profile?',
+      question: 'Do people need an app to tap my NFC card or view my profile?',
       answer:
-        'No app or download is required. When an NFC-enabled smartphone (iOS or Android) taps your card, the browser opens your dynamic profile instantly. Profiles are optimized for ultra-fast load speeds under 200 milliseconds.',
+        'No app is required at all. Both iPhone (iOS 13+) and Android devices have native NFC hardware enabled by default. Tapping the card opens your profile automatically in Safari or Chrome in under 200 milliseconds.',
     },
     {
-      question: 'How does the AI Cash Forecasting predict my runway?',
+      question: 'Can I update my links and contact info after receiving my card?',
       answer:
-        'Our algorithms analyze your historical income timing, recurring retainers, typical client payment delays, and baseline operating expenses. It computes confidence ranges so you know your exact safe buffer weeks ahead of time.',
+        'Yes, absolutely. Your physical card is permanently linked to your dynamic cloud handle (e.g. chipng.com/@yourname). You can edit phone numbers, emails, social handles, portfolio projects, and pricing anytime from your dashboard, and your card updates instantly without re-ordering.',
     },
     {
-      question: 'Can I reconfigure my links and card information after purchase?',
+      question: 'How fast is delivery across Nigeria and internationally?',
       answer:
-        'Yes. Your physical NFC card is permanently linked to your dynamic cloud handle. You can update your links, social media handles, banking details, invoices, and bio anytime from your dashboard with instantaneous reflection.',
+        'We manufacture and laser-engrave all cards in our Lagos workshop. Orders within Lagos arrive in 24 to 48 hours. Other Nigerian states arrive within 2 to 4 business days via verified courier dispatch. International shipments are delivered in 5 to 7 days via DHL Express.',
     },
     {
-      question: 'What payment methods can my clients use to pay invoices?',
+      question: 'Can I use CHIPNG purely as a digital Link-in-Bio without a physical card?',
       answer:
-        'Clients can pay using credit and debit cards, Apple Pay, Google Pay, and direct bank transfers (supported across US, UK, and Africa via Paystack and Stripe). Settlements are fast and secure.',
+        'Yes! You can create your free digital link-in-bio page immediately to share in your Instagram, X, TikTok, and LinkedIn bios. If you later decide you want a contactless metal or PVC card for physical events, you can order one with a single click.',
+    },
+    {
+      question: 'Can our company or startup order custom branded cards for our team?',
+      answer:
+        'Yes. We offer enterprise team packs with your custom company logo, employee names, and corporate branding laser-etched onto premium matte black metal, titanium, or PVC cards. You also get a centralized admin dashboard to manage employee profiles.',
     },
   ];
 
@@ -45,7 +50,7 @@ export const MakroFAQ: React.FC = () => {
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-            Everything you need to know.
+            Everything you need to know about NFC & Link-in-Bio.
           </h2>
         </div>
 

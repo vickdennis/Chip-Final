@@ -3,24 +3,24 @@ import React from 'react';
 export const MakroProofStats: React.FC = () => {
   const stats = [
     {
-      value: '$48M+',
-      label: 'Volume Forecasted & Invoiced',
-      subtext: 'Across 12,000+ solopreneurs and independent teams',
+      value: '₦620M+',
+      label: 'Deals & Client Bookings Generated',
+      subtext: 'Across 25,000+ professionals, founders & creators in Nigeria and globally',
     },
     {
-      value: '1.4M+',
-      label: 'NFC Touchpoints & Profile Views',
-      subtext: 'Average 42% contact exchange conversion rate',
+      value: '1.8M+',
+      label: 'NFC Card Taps & Handshakes',
+      subtext: 'Instant contactless engagement with zero app downloads required',
     },
     {
-      value: '99.98%',
-      label: 'Core Cloud Engine Uptime',
-      subtext: 'Zero latency degradation across mobile browsers',
+      value: '48.2%',
+      label: 'Direct vCard Save Rate',
+      subtext: 'High-intent contact saving directly into iOS & Android address books',
     },
     {
       value: '<10ms',
-      label: 'NFC Instant Tap Handshake',
-      subtext: 'Native hardware chip velocity on iOS & Android',
+      label: 'Hardware Tap Handshake',
+      subtext: 'Native NTAG216 high-frequency microchip response on modern phones',
     },
   ];
 

@@ -4,6 +4,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroHero } from '../components/makro/MakroHero';
 import { MakroMarquee } from '../components/makro/MakroMarquee';
 import { MakroBentoFeatures } from '../components/makro/MakroBentoFeatures';
+import { MakroShop } from '../components/makro/MakroShop';
 import { MakroInteractiveShowcase } from '../components/makro/MakroInteractiveShowcase';
 import { MakroProofStats } from '../components/makro/MakroProofStats';
 import { MakroTestimonials } from '../components/makro/MakroTestimonials';
@@ -47,6 +48,10 @@ export default function LandingView({
         {/* Exact Hero Section matching the user image & preview link */}
         <MakroHero
           onGetStarted={handleGetStarted}
+          onExploreCards={() => {
+            const el = document.getElementById('shop');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
         />
 
         {/* Marquee Ticker */}
@@ -55,6 +60,11 @@ export default function LandingView({
         {/* Makro 4-card Bento Grid */}
         <MakroBentoFeatures
           onAction={handleGetStarted}
+        />
+
+        {/* Official Super Admin Shop Reflection Component */}
+        <MakroShop
+          onNavigate={onNavigate}
         />
 
         {/* Interactive Feature Gallery Component */}

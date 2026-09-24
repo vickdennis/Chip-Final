@@ -4,30 +4,30 @@ export const MakroTestimonials: React.FC = () => {
   const testimonials = [
     {
       quote:
-        "CHIPNG replaced four distinct SaaS subscriptions for our boutique studio. Cash forecasting is razor-sharp, and handing over an NFC card at conferences closes deals right at the booth.",
+        "I swapped out my box of paper business cards for the CHIPNG Matte Obsidian NFC Card. In our first tech conference in Lagos, I closed 8 enterprise contracts from executives who tapped my card and saved my vCard directly to their contacts.",
       author: 'Amara Nwosu',
       role: 'Founding Partner',
       company: 'Studio Kora Architecture',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      metric: '+185% Inbound Retainers in 4 Months',
+      metric: '₦18,500,000 Inbound Contracts in 4 Months',
     },
     {
       quote:
-        "I was constantly running out of cash buffers because of 60-day invoice lags. CHIPNG's AI predicted the shortfalls 3 weeks in advance and automated client milestone follow-ups.",
+        "My CHIPNG link-in-bio page converts 4x higher than standard link hubs. Clients love that they can tap my physical card or click my bio to save my vCard and book a paid strategy session in under 15 seconds.",
       author: 'David Adebayo',
-      role: 'Principal Engineer & Consultant',
+      role: 'Principal Consultant',
       company: 'Adebayo Technical Systems',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      metric: '$62,000 Cash Deficit Avoided',
+      metric: '₦12,400,000 Consulting Bookings',
     },
     {
       quote:
-        "Every executive meeting I attend starts with an NFC tap. The interface is breathtakingly fast. Clients immediately comment on how sleek the digital card looks.",
+        "Every executive meeting I attend starts with an NFC tap. The physical weight of the metal card immediately sparks conversation. They touch their phone to the card and my entire portfolio appears instantly.",
       author: 'Elena Rostova',
       role: 'Venture Partner',
       company: 'Ascent Horizons Fund',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80',
-      metric: '44% Direct Calendar Conversion',
+      metric: '48% Direct Contact Save Rate',
     },
   ];
 
@@ -40,11 +40,11 @@ export const MakroTestimonials: React.FC = () => {
           <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
             <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-              Trusted Social Proof
+              Trusted by Leaders
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-            Loved by founders who refuse to compromise.
+            Loved by founders and creators who network to win.
           </h2>
         </div>
 

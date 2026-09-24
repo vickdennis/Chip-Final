@@ -1,67 +1,64 @@
 import React, { useState } from 'react';
-import { ArrowRight, Share2, Plus, ChevronDown, Sparkles, TrendingUp, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Share2, Plus, ChevronDown, Sparkles, Smartphone, CheckCircle2, Zap, Download } from 'lucide-react';
 import heroPortrait from '../../assets/images/makro_hero_portrait_1790206462182.jpg';
 
 interface MakroHeroProps {
   onGetStarted: () => void;
-  onExploreFeatures?: () => void;
+  onExploreCards?: () => void;
 }
 
-export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
+export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCards }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<'30' | '90' | '180'>('30');
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'finance' | 'identity'>('finance');
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
-  // Dynamic projection data depending on time period
-  const projectionData = {
+  // Dynamic Tap & Link-in-Bio analytics data depending on selected timeframe (all values in ₦)
+  const pulseData = {
     '30': {
-      income: '$27,500',
-      incomeGrowth: '+18%',
-      cashBuffer: '82%',
-      reduction: '96%',
-      statusText: 'No negative cash days expected',
+      taps: '14,850',
+      tapGrowth: '+38%',
+      saveRate: '98.4%',
+      activeCardRate: '100%',
+      statusText: 'Sub-10ms NFC tap response active across all devices',
       bars: [
-        { label: 'W1', value: 68, cash: '$18,400', date: 'Oct 01' },
-        { label: 'W2', value: 75, cash: '$21,200', date: 'Oct 08' },
-        { label: 'W3', value: 88, cash: '$24,900', date: 'Oct 15' },
-        { label: 'W4', value: 96, cash: '$27,500', date: 'Oct 22' },
-        { label: 'W5', value: 92, cash: '$26,800', date: 'Oct 29' },
+        { label: 'W1', value: 65, taps: '2,900 taps', dealVol: '₦380,000' },
+        { label: 'W2', value: 78, taps: '3,450 taps', dealVol: '₦520,000' },
+        { label: 'W3', value: 88, taps: '4,100 taps', dealVol: '₦680,000' },
+        { label: 'W4', value: 96, taps: '4,400 taps', dealVol: '₦850,000' },
       ],
-      runway: '16.4 mos',
-      savings: '$6,420',
+      vCardSaves: '3,420',
+      totalRevenue: '₦2,430,000',
     },
     '90': {
-      income: '$84,200',
-      incomeGrowth: '+26%',
-      cashBuffer: '88%',
-      reduction: '94%',
-      statusText: 'Safe runway surplus +$14.8K',
+      taps: '46,200',
+      tapGrowth: '+52%',
+      saveRate: '98.9%',
+      activeCardRate: '100%',
+      statusText: 'All NFC profiles operating with zero latency',
       bars: [
-        { label: 'M1', value: 72, cash: '$24,500', date: 'Month 1' },
-        { label: 'M2', value: 84, cash: '$28,900', date: 'Month 2' },
-        { label: 'M3', value: 98, cash: '$30,800', date: 'Month 3' },
+        { label: 'M1', value: 70, taps: '13,200 taps', dealVol: '₦1,850,000' },
+        { label: 'M2', value: 85, taps: '15,800 taps', dealVol: '₦2,400,000' },
+        { label: 'M3', value: 98, taps: '17,200 taps', dealVol: '₦3,100,000' },
       ],
-      runway: '18.2 mos',
-      savings: '$19,500',
+      vCardSaves: '11,200',
+      totalRevenue: '₦7,350,000',
     },
     '180': {
-      income: '$178,000',
-      incomeGrowth: '+34%',
-      cashBuffer: '92%',
-      reduction: '98%',
-      statusText: 'All projected cash obligations covered',
+      taps: '108,000',
+      tapGrowth: '+74%',
+      saveRate: '99.2%',
+      activeCardRate: '100%',
+      statusText: 'Institutional NFC fleet synchronization active',
       bars: [
-        { label: 'Q1', value: 70, cash: '$52,000', date: 'Q1' },
-        { label: 'Q2', value: 86, cash: '$61,000', date: 'Q2' },
-        { label: 'Q3', value: 95, cash: '$65,000', date: 'Q3' },
+        { label: 'Q1', value: 72, taps: '48,000 taps', dealVol: '₦6,800,000' },
+        { label: 'Q2', value: 92, taps: '60,000 taps', dealVol: '₦9,200,000' },
       ],
-      runway: '22.5 mos',
-      savings: '$41,200',
+      vCardSaves: '27,800',
+      totalRevenue: '₦16,000,000',
     },
   };
 
-  const currentData = projectionData[selectedPeriod];
+  const currentData = pulseData[selectedPeriod];
 
   return (
     <section className="relative pt-6 pb-20 md:pt-12 md:pb-28 overflow-hidden bg-[#FAFAFA] dark:bg-[#0A0B0E] transition-colors">
@@ -76,29 +73,29 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
             {/* Category Pill Badge with Icon */}
             <div className="inline-flex items-center gap-2 self-start bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
               <span className="w-5 h-5 rounded-full bg-[#D2F843] flex items-center justify-center text-neutral-950">
-                <Sparkles className="w-3 h-3 fill-current" />
+                <Zap className="w-3 h-3 fill-current text-neutral-950" />
               </span>
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">
-                AI-Powered Finance & Networking
+                Smart NFC Cards & Ultimate Link-in-Bio
               </span>
             </div>
 
             {/* Display Headline */}
             <h1 className="text-5xl sm:text-6xl lg:text-[68px] font-extrabold tracking-[-0.04em] text-neutral-950 dark:text-white leading-[1.04]">
-              Know your cash.
+              One tap to connect.
               <br />
               <span className="text-neutral-950 dark:text-white">
-                Plan with AI.
+                Your entire world.
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-300 font-normal leading-relaxed max-w-lg">
-              Stay on top of every transaction, invoice, and forecast in one clean view.
+              Ditch paper business cards forever. Share your verified digital portfolio, contact info, and booking links instantly with a physical NFC tap or one sleek bio link.
             </p>
 
             {/* Action Row & Social Proof */}
-            <div className="pt-2 flex flex-wrap items-center gap-6 sm:gap-8">
+            <div className="pt-2 flex flex-wrap items-center gap-5 sm:gap-6">
               {/* Primary Pill Button with Lime Arrow Circle */}
               <button
                 onClick={onGetStarted}
@@ -108,12 +105,27 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
                   <ArrowRight className="w-5 h-5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
                 </div>
                 <span className="text-base font-semibold tracking-tight whitespace-nowrap">
-                  Get started
+                  Claim your handle
                 </span>
               </button>
 
+              {/* Secondary Button: Browse Cards */}
+              <button
+                onClick={() => {
+                  const shopEl = document.getElementById('shop');
+                  if (shopEl) {
+                    shopEl.scrollIntoView({ behavior: 'smooth' });
+                  } else if (onExploreCards) {
+                    onExploreCards();
+                  }
+                }}
+                className="px-5 py-3 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+              >
+                Browse NFC Cards
+              </button>
+
               {/* Solopreneur Social Proof */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pt-1 sm:pt-0">
                 <div className="flex -space-x-2.5 overflow-hidden">
                   <img
                     className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 object-cover"
@@ -142,16 +154,16 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
                 </div>
                 <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 leading-tight">
                   <span className="font-semibold text-neutral-900 dark:text-white block">
-                    Trusted by 25k+
+                    Trusted by 25,000+
                   </span>
-                  solopreneurs
+                  professionals & creators
                 </div>
               </div>
             </div>
 
           </div>
 
-          {/* Right Column: Editorial Portrait with Floating Financial Metric Cards */}
+          {/* Right Column: Editorial Portrait with Floating NFC Metric Cards */}
           <div className="lg:col-span-6 relative flex items-center justify-center mt-6 lg:mt-0">
             
             {/* Ambient Backlight */}
@@ -161,69 +173,69 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
             <div className="relative w-full max-w-[460px] mx-auto rounded-3xl overflow-hidden shadow-sm">
               <img
                 src={heroPortrait}
-                alt="Fintech & SaaS modern professional"
+                alt="Creator holding smart contactless NFC card"
                 className="w-full h-auto object-cover select-none scale-[1.02]"
               />
               
               {/* Measured Scrim & Bottom Gradient Fade into Canvas */}
               <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#FAFAFA] via-[#FAFAFA]/70 to-transparent dark:from-[#0A0B0E] dark:via-[#0A0B0E]/70 dark:to-transparent pointer-events-none"></div>
 
-              {/* Floating Card 1: Liquidity (Bottom Left) */}
+              {/* Floating Card 1: NFC Taps (Bottom Left) */}
               <div className="absolute bottom-6 left-4 sm:left-6 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-black/5 dark:border-white/10 w-44 transition-transform duration-300 hover:translate-y-[-2px]">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                    Liquidity
+                    Card Taps
                   </span>
                   <span className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-1.5 py-0.5">
-                    +12%
+                    {currentData.tapGrowth}
                   </span>
                 </div>
                 <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-3">
-                  Safe cash buffer
+                  Direct physical taps
                 </p>
                 <div className="flex items-baseline justify-between">
                   <span className="text-2xl font-bold tracking-tight text-neutral-950 dark:text-white tabular-nums">
-                    {currentData.cashBuffer}
+                    {currentData.taps}
                   </span>
-                  <span className="text-emerald-500 text-xs font-semibold flex items-center">
+                  <span className="text-[#84A900] dark:text-[#D2F843] text-xs font-semibold flex items-center">
                     ▲
                   </span>
                 </div>
               </div>
 
-              {/* Floating Card 2: Reduction (Top Right) */}
+              {/* Floating Card 2: vCard Saves (Top Right) */}
               <div className="absolute top-8 right-3 sm:right-5 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-black/5 dark:border-white/10 w-44 transition-transform duration-300 hover:translate-y-[-2px] rotate-1">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                    Reduction
+                    vCard Saves
                   </span>
                   <span className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-1.5 py-0.5">
-                    +6%
+                    1-Tap
                   </span>
                 </div>
                 
                 {/* 3 Day Row matching image */}
                 <div className="grid grid-cols-3 gap-1 text-center mb-3">
+                  <div className="bg-[#D2F843] text-neutral-950 rounded-md py-1">
+                    <div className="text-[10px] font-bold">1</div>
+                    <div className="text-[9px] font-medium">Tap</div>
+                  </div>
                   <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md py-1">
-                    <div className="text-[10px] font-bold text-neutral-900 dark:text-white">1</div>
-                    <div className="text-[9px] text-neutral-500">Mon</div>
-                  </div>
-                  <div className="bg-transparent rounded-md py-1">
                     <div className="text-[10px] font-medium text-neutral-600 dark:text-neutral-400">2</div>
-                    <div className="text-[9px] text-neutral-400">Tue</div>
+                    <div className="text-[9px] text-neutral-400">View</div>
                   </div>
-                  <div className="bg-transparent rounded-md py-1">
+                  <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md py-1">
                     <div className="text-[10px] font-medium text-neutral-600 dark:text-neutral-400">3</div>
-                    <div className="text-[9px] text-neutral-400">Wed</div>
+                    <div className="text-[9px] text-neutral-400">Save</div>
                   </div>
                 </div>
 
                 <div className="flex items-baseline justify-between">
                   <span className="text-2xl font-bold tracking-tight text-neutral-950 dark:text-white tabular-nums">
-                    {currentData.reduction}
+                    {currentData.saveRate}
                   </span>
                   <span className="text-emerald-500 text-xs font-semibold flex items-center">
-                    ▲
+                    ✓
                   </span>
                 </div>
               </div>
@@ -234,7 +246,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
 
         </div>
 
-        {/* Bottom Bento Card: Interactive Projected Balance Dashboard Preview */}
+        {/* Bottom Bento Card: Interactive Tap & Profile Pulse */}
         <div className="mt-12 sm:mt-16 bg-white dark:bg-[#12141B] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl border border-neutral-200/80 dark:border-neutral-800 transition-all">
           
           {/* Bento Header */}
@@ -250,7 +262,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
 
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 dark:text-white tracking-tight">
-                  Projected balance
+                  Tap & Profile Pulse
                 </h2>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -271,7 +283,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200/70 dark:hover:bg-neutral-700 text-xs font-semibold text-neutral-900 dark:text-white transition-colors cursor-pointer"
                 >
                   <span>
-                    {selectedPeriod === '30' ? 'Next 30 days' : selectedPeriod === '90' ? 'Next 90 days' : 'Next 6 months'}
+                    {selectedPeriod === '30' ? 'Past 30 days' : selectedPeriod === '90' ? 'Past 90 days' : 'Past 6 months'}
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-neutral-500" />
                 </button>
@@ -282,21 +294,21 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
                       onClick={() => { setSelectedPeriod('30'); setPeriodDropdownOpen(false); }}
                       className="w-full text-left px-3.5 py-2 text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between"
                     >
-                      Next 30 days
+                      Past 30 days
                       {selectedPeriod === '30' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                     </button>
                     <button
                       onClick={() => { setSelectedPeriod('90'); setPeriodDropdownOpen(false); }}
                       className="w-full text-left px-3.5 py-2 text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between"
                     >
-                      Next 90 days
+                      Past 90 days
                       {selectedPeriod === '90' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                     </button>
                     <button
                       onClick={() => { setSelectedPeriod('180'); setPeriodDropdownOpen(false); }}
                       className="w-full text-left px-3.5 py-2 text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between"
                     >
-                      Next 6 months
+                      Past 6 months
                       {selectedPeriod === '180' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                     </button>
                   </div>
@@ -308,11 +320,11 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
                 onClick={() => {
                   if (navigator.clipboard) {
                     navigator.clipboard.writeText(window.location.href);
-                    alert('Dashboard link copied to clipboard!');
+                    alert('Profile link copied to clipboard!');
                   }
                 }}
                 className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-                title="Share preview"
+                title="Share link"
               >
                 <Share2 className="w-4 h-4" />
               </button>
@@ -321,7 +333,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
               <button
                 onClick={onGetStarted}
                 className="w-9 h-9 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center hover:opacity-90 transition-opacity"
-                title="Add new metric"
+                title="Create profile"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -331,42 +343,42 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
           {/* Interactive Projected Visualization Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-6">
             
-            {/* Left Card: Income $27,500 */}
+            {/* Left Card: Inbound Deal Volume in ₦ */}
             <div className="md:col-span-4 bg-neutral-50 dark:bg-[#181B24] rounded-2xl p-5 border border-neutral-200/60 dark:border-neutral-800 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                    Income
+                    Deal Volume Generated
                   </span>
                   <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
-                    {currentData.incomeGrowth}
+                    {currentData.tapGrowth}
                   </span>
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
-                  {currentData.income}
+                <div className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums font-mono">
+                  {currentData.totalRevenue}
                 </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-neutral-800/80 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-neutral-500">Runway projection</span>
-                  <span className="font-semibold text-neutral-900 dark:text-white tabular-nums">{currentData.runway}</span>
+                  <span className="text-neutral-500">vCards saved directly</span>
+                  <span className="font-semibold text-neutral-900 dark:text-white tabular-nums font-mono">{currentData.vCardSaves} contacts</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-neutral-500">Predicted surplus</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">{currentData.savings}</span>
+                  <span className="text-neutral-500">Average tap response</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums font-mono">&lt; 10ms</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Card: Interactive Forecast Bar Chart */}
+            {/* Right Card: Interactive Tap & Engagement Bar Chart */}
             <div className="md:col-span-8 bg-neutral-50 dark:bg-[#181B24] rounded-2xl p-6 border border-neutral-200/60 dark:border-neutral-800 flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                  Cash Inflow Forecast
+                  NFC Physical Taps vs Bio Link Clicks
                 </span>
                 <span className="text-xs font-mono text-neutral-600 dark:text-neutral-400">
-                  Daily confidence: 99.4%
+                  Hardware Accuracy: 100%
                 </span>
               </div>
 
@@ -383,11 +395,11 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
                     >
                       {/* Tooltip on hover */}
                       <div
-                        className={`text-[10px] font-mono font-semibold px-2 py-1 rounded bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 mb-1.5 transition-all duration-200 ${
+                        className={`text-[10px] font-mono font-semibold px-2 py-1 rounded bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 mb-1.5 transition-all duration-200 whitespace-nowrap ${
                           isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
                         }`}
                       >
-                        {bar.cash}
+                        {bar.taps} · {bar.dealVol}
                       </div>
 
                       {/* Bar Pillar */}
@@ -414,9 +426,9 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted }) => {
               <div className="mt-4 pt-3 border-t border-neutral-200/60 dark:border-neutral-800/80 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
-                  <span>AI projected certainty threshold</span>
+                  <span>Instant contactless handshake via iOS & Android</span>
                 </div>
-                <span className="font-mono text-[11px]">Synced in real-time</span>
+                <span className="font-mono text-[11px]">Zero app installation</span>
               </div>
             </div>
 

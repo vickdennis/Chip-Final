@@ -16,7 +16,7 @@ export const MakroMarquee: React.FC = () => {
     <section className="py-12 border-y border-neutral-200/70 dark:border-neutral-800/80 bg-neutral-50/50 dark:bg-[#0C0E12]/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 mb-6 text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
-          Powering the finances and digital identities of top teams & solopreneurs
+          Powering smart NFC cards and link-in-bio profiles of top founders, executives & creators
         </p>
       </div>
 
