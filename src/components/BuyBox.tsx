@@ -79,10 +79,24 @@ export function BuyBox({ postSlug, onVariantClicked }: BuyBoxProps) {
       (window as any).dataLayer.push({ event: 'buybox_click', postSlug, variant });
     }
 
-    const url = new URL(product.whatsapp_link);
-    url.searchParams.append('utm_source', 'blog_buybox');
-    url.searchParams.append('utm_medium', postSlug);
-    window.open(url.toString(), '_blank');
+    let targetLink = product.whatsapp_link || 'https://wa.me/2348100764154';
+    if (!targetLink.startsWith('http://') && !targetLink.startsWith('https://')) {
+      if (targetLink.startsWith('wa.me')) {
+        targetLink = 'https://' + targetLink;
+      } else {
+        const cleanDigits = targetLink.replace(/[^0-9]/g, '');
+        targetLink = `https://wa.me/${cleanDigits || '2348100764154'}`;
+      }
+    }
+
+    try {
+      const url = new URL(targetLink);
+      url.searchParams.append('utm_source', 'blog_buybox');
+      url.searchParams.append('utm_medium', postSlug);
+      window.open(url.toString(), '_blank');
+    } catch(e) {
+      window.open(targetLink, '_blank');
+    }
   };
 
     const schemaJSON: any = {

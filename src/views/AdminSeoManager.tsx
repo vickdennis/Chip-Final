@@ -46,13 +46,25 @@ export default function AdminSeoManager() {
     } catch (e) { console.error(e); }
   };
 
+  const [checkingLinks, setCheckingLinks] = useState(false);
+
   const handleRunCron = async () => {
+    setCheckingLinks(true);
     try {
-      alert("Running Link Checker...");
-      await fetch('/api/seo/check-links', { method: 'POST' });
-      fetchData();
-      alert("Check complete!");
-    } catch (e) { console.error(e); }
+      const res = await fetch('/api/seo/check-links', { method: 'POST' });
+      if (res.ok) {
+        const json = await res.json();
+        setReport({
+          total: json.total || report.total,
+          broken: json.broken || 0,
+          logs: json.logs || report.logs
+        });
+      }
+    } catch (e) { 
+      console.error(e); 
+    } finally {
+      setCheckingLinks(false);
+    }
   };
 
   return (
@@ -164,10 +176,11 @@ export default function AdminSeoManager() {
           </div>
 
           <button 
+            disabled={checkingLinks}
             onClick={handleRunCron} 
-            className="w-full py-2.5 px-4 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs text-neutral-800 dark:text-neutral-200 transition-colors cursor-pointer mb-6"
+            className="w-full py-2.5 px-4 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs text-neutral-800 dark:text-neutral-200 transition-colors cursor-pointer mb-6 disabled:opacity-50"
           >
-            Run Deep Link Audit
+            {checkingLinks ? 'Auditing Link Targets...' : 'Run Deep Link Audit'}
           </button>
 
           <h4 className="font-bold text-xs uppercase tracking-wider text-neutral-400 mb-3">Recent Auto-Link Actions</h4>

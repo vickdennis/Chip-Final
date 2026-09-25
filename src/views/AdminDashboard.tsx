@@ -435,7 +435,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const verificationEarnings = verificationPurchases.reduce((sum, p) => sum + Number(p.platform_fee || p.amount || 0), 0);
   
   const totalPlatformFees = digitalProductFees + themeSalesRevenue + verificationEarnings;
-  const proPlanUsers = users.filter(u => u.enterprise_id).length; // Rough mock of premium users if they have enterprise
+  const proPlanUsers = users.filter(u => u.is_pro || u.enterprise_id).length;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans transition-colors pb-24">

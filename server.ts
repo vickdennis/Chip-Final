@@ -128,6 +128,27 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS profile_analytics_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id TEXT NOT NULL,
+    source TEXT DEFAULT 'web',
+    ip TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS profile_analytics_clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id TEXT NOT NULL,
+    link_id TEXT,
+    link_url TEXT,
+    link_title TEXT,
+    click_type TEXT DEFAULT 'link',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_pav_profile_id ON profile_analytics_views(profile_id);
+  CREATE INDEX IF NOT EXISTS idx_pac_profile_id ON profile_analytics_clicks(profile_id);
 `);
 
 
@@ -533,14 +554,31 @@ Ref: ${payment_reference}`,
     try { const info = db.prepare(`INSERT INTO app_notifications (title, message) VALUES (?, ?)`).run(title, message); res.json({ success: true, id: info.lastInsertRowid }); } catch(err: any) { res.status(500).json({ error: err.message }); }
   });
 
-  app.get('/api/broadcast/stats', (req, res) => {
+  app.delete('/api/app-updates/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM app_notifications WHERE id = ?').run(req.params.id);
+      res.json({ success: true });
+    } catch(err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
+  app.get('/api/broadcast/stats', (req, res) => {
     try {
       const totalLeads = db.prepare('SELECT COUNT(*) as c FROM leads').get().c;
       const sent7Days = db.prepare("SELECT COUNT(*) as c FROM leads WHERE last_broadcast_at >= datetime('now', '-7 days')").get().c;
       const sent1Hour = db.prepare("SELECT COUNT(*) as c FROM leads WHERE last_broadcast_at >= datetime('now', '-1 hour')").get().c;
       res.json({ totalLeads, sent7Days, sent1Hour, remainingHour: Math.max(0, 50 - sent1Hour) });
-    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("broadcast error", e); res.status(500).json({error: e.message}); }
+  });
+
+  app.get('/api/broadcast/logs', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT * FROM broadcast_logs ORDER BY created_at DESC LIMIT 20').all();
+      res.json(rows);
+    } catch(e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   app.post('/api/broadcast/mark-sent', (req, res) => {
@@ -548,7 +586,7 @@ Ref: ${payment_reference}`,
       const { lead_id } = req.body;
       db.prepare("UPDATE leads SET last_broadcast_at = datetime('now'), broadcast_count = IFNULL(broadcast_count, 0) + 1 WHERE id = ?").run(lead_id);
       res.json({ success: true });
-    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("broadcast error", e); res.status(500).json({error: e.message}); }
   });
 
   app.post('/api/broadcast/toggle-optout', (req, res) => {
@@ -556,17 +594,93 @@ Ref: ${payment_reference}`,
       const { lead_id, opt_out } = req.body;
       db.prepare("UPDATE leads SET opt_out = ? WHERE id = ?").run(opt_out ? 1 : 0, lead_id);
       res.json({ success: true });
-    } catch (e) { console.error("products error", e); res.status(500).json({error: e.message}); }
+    } catch (e) { console.error("broadcast error", e); res.status(500).json({error: e.message}); }
   });
 
+  // --- Real-time User Profile & NFC Analytics API ---
+  app.post('/api/analytics/view', (req, res) => {
+    try {
+      const { profile_id, source } = req.body;
+      if (!profile_id) return res.status(400).json({ error: 'profile_id required' });
+      const ip = req.ip || req.headers['x-forwarded-for'] || '';
+      db.prepare('INSERT INTO profile_analytics_views (profile_id, source, ip) VALUES (?, ?, ?)').run(
+        profile_id, 
+        source || 'web', 
+        String(ip)
+      );
+      res.json({ success: true });
+    } catch(e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "custom",
-    });
-    
+  app.post('/api/analytics/click', (req, res) => {
+    try {
+      const { profile_id, link_id, link_url, link_title, click_type } = req.body;
+      if (!profile_id) return res.status(400).json({ error: 'profile_id required' });
+      db.prepare('INSERT INTO profile_analytics_clicks (profile_id, link_id, link_url, link_title, click_type) VALUES (?, ?, ?, ?, ?)').run(
+        profile_id,
+        link_id || null,
+        link_url || null,
+        link_title || 'Link',
+        click_type || 'link'
+      );
+      res.json({ success: true });
+    } catch(e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get('/api/analytics/user/:profileId', async (req, res) => {
+    try {
+      const { profileId } = req.params;
+      
+      const viewsCountSqlite = db.prepare('SELECT COUNT(*) as c FROM profile_analytics_views WHERE profile_id = ?').get(profileId).c;
+      
+      let viewsCountSupabase = 0;
+      try {
+        const { count } = await getSupabase().from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profileId);
+        if (typeof count === 'number') viewsCountSupabase = count;
+      } catch(e) {}
+      
+      const totalViews = Math.max(viewsCountSqlite, viewsCountSupabase);
+      const totalClicks = db.prepare('SELECT COUNT(*) as c FROM profile_analytics_clicks WHERE profile_id = ?').get(profileId).c;
+      
+      const sourceRows = db.prepare('SELECT source, COUNT(*) as count FROM profile_analytics_views WHERE profile_id = ? GROUP BY source').all(profileId);
+      const nfcTaps = (sourceRows.find((r: any) => r.source === 'nfc') as any)?.count || 0;
+      const qrScans = (sourceRows.find((r: any) => r.source === 'qr') as any)?.count || 0;
+      const webViews = Math.max(0, totalViews - (nfcTaps + qrScans));
+      
+      const clickTypeRows = db.prepare('SELECT click_type, COUNT(*) as count FROM profile_analytics_clicks WHERE profile_id = ? GROUP BY click_type').all(profileId);
+      
+      const topLinks = db.prepare('SELECT link_title, link_url, click_type, COUNT(*) as clicks FROM profile_analytics_clicks WHERE profile_id = ? GROUP BY link_title, link_url ORDER BY clicks DESC LIMIT 5').all(profileId);
+      
+      const recentViews = db.prepare("SELECT 'view' as event_type, source as detail, created_at FROM profile_analytics_views WHERE profile_id = ? ORDER BY id DESC LIMIT 10").all(profileId);
+      const recentClicks = db.prepare("SELECT 'click' as event_type, COALESCE(link_title, click_type) as detail, created_at FROM profile_analytics_clicks WHERE profile_id = ? ORDER BY id DESC LIMIT 10").all(profileId);
+      
+      const recentActivity = [...recentViews, ...recentClicks]
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 10);
+        
+      const ctr = totalViews > 0 ? parseFloat(((totalClicks / totalViews) * 100).toFixed(1)) : 0;
+      
+      res.json({
+        totalViews,
+        totalClicks,
+        ctr,
+        nfcTaps,
+        qrScans,
+        webViews,
+        clicksByType: clickTypeRows,
+        topLinks,
+        recentActivity
+      });
+    } catch(e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // --- SEO Engine Endpoints (Accessible in dev and prod) ---
   app.get('/api/seo/keywords', (req, res) => {
     try {
       const rows = db.prepare('SELECT * FROM seo_keywords ORDER BY id DESC').all();
@@ -592,23 +706,59 @@ Ref: ${payment_reference}`,
   app.get('/api/seo/links-report', (req, res) => {
     try {
       const logs = db.prepare('SELECT * FROM post_links_log ORDER BY created_at DESC LIMIT 50').all();
-      res.json({ total: logs.length, broken: 0, logs });
+      const broken = (logs as any[]).filter(l => l.status === 'BROKEN').length;
+      res.json({ total: logs.length, broken, logs });
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
 
-  app.post('/api/seo/check-links', (req, res) => {
-    // Dummy manual check
-    res.json({ success: true });
+  app.post('/api/seo/check-links', async (req, res) => {
+    try {
+      const logs = db.prepare('SELECT * FROM post_links_log ORDER BY id DESC LIMIT 50').all();
+      let brokenCount = 0;
+      
+      for (const log of (logs as any[])) {
+        try {
+          const url = log.linked_url;
+          if (url.startsWith('/')) {
+            if (url.startsWith('/blog/')) {
+              const slug = url.replace('/blog/', '').split('?')[0].split('#')[0];
+              const { data } = await getSupabase().from('posts').select('id').eq('slug', slug).single();
+              if (!data) {
+                brokenCount++;
+                db.prepare('UPDATE post_links_log SET status = ? WHERE id = ?').run('BROKEN', log.id);
+              } else {
+                db.prepare('UPDATE post_links_log SET status = ? WHERE id = ?').run('OK', log.id);
+              }
+            } else {
+              db.prepare('UPDATE post_links_log SET status = ? WHERE id = ?').run('OK', log.id);
+            }
+          } else {
+            db.prepare('UPDATE post_links_log SET status = ? WHERE id = ?').run('OK', log.id);
+          }
+        } catch(err) {
+          db.prepare('UPDATE post_links_log SET status = ? WHERE id = ?').run('OK', log.id);
+        }
+      }
+      
+      const updatedLogs = db.prepare('SELECT * FROM post_links_log ORDER BY created_at DESC LIMIT 50').all();
+      res.json({ success: true, total: updatedLogs.length, broken: brokenCount, logs: updatedLogs });
+    } catch(e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   app.post('/api/seo/auto-meta', (req, res) => {
     try {
       const { content } = req.body;
       if (!content) return res.status(400).json({error: 'No content'});
-      // Dummy auto generation logic since this would need an AI API to truly work
-      const meta_title = "Auto Generated Title";
-      const meta_description = content.replace(/<[^>]*>?/gm, '').substring(0, 150) + "...";
-      const focus_keyword = "auto keyword";
+      const cleanText = content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+      const firstSentence = cleanText.split('.')[0] || cleanText.substring(0, 60);
+      const meta_title = firstSentence.length > 60 ? firstSentence.substring(0, 57) + '...' : firstSentence;
+      const meta_description = cleanText.length > 155 ? cleanText.substring(0, 152) + '...' : cleanText;
+      
+      const words = cleanText.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter((w: string) => w.length > 4);
+      const focus_keyword = words.find((w: string) => ['nfc', 'card', 'digital', 'profile', 'business', 'networking', 'lagos', 'nigeria', 'smart'].includes(w)) || words[0] || 'nfc card';
+      
       res.json({ meta_title, meta_description, focus_keyword });
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
@@ -639,6 +789,13 @@ Ref: ${payment_reference}`,
       res.json({ success: true });
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
+
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "custom",
+    });
 
     app.use(vite.middlewares);
     

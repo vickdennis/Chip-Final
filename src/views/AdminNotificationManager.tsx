@@ -58,6 +58,18 @@ export default function AdminNotificationManager() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete this broadcast notification?")) return;
+    try {
+      const res = await fetch(`/api/app-updates/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchNotifications();
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
       <div>
@@ -138,9 +150,18 @@ export default function AdminNotificationManager() {
                 <div key={n.id} className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl">
                   <div className="flex justify-between items-start mb-1.5">
                     <h4 className="font-bold text-neutral-950 dark:text-white text-sm">{n.title}</h4>
-                    <span className="text-[10px] text-neutral-400 font-mono">
-                      {new Date(n.created_at.replace(" ", "T") + "Z").toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-neutral-400 font-mono">
+                        {new Date(n.created_at.replace(" ", "T") + "Z").toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
+                      <button 
+                        onClick={() => handleDelete(n.id)}
+                        className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
+                        title="Delete notification"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">{n.message}</p>
                 </div>

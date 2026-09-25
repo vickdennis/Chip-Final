@@ -86,21 +86,15 @@ export default function AdminBroadcastManager() {
     setCurrentPage(1);
   };
 
-  const handleSendOne = async (lead: any) => {
-    if (stats.remainingHour <= 0) {
-      alert("Rate limit reached! Maximum 50 sends per hour to prevent WhatsApp ban.");
-      return;
-    }
-
+  const getWhatsAppUrl = (lead: any) => {
     const message = generateMessage(lead.name, true);
     const encoded = encodeURIComponent(message);
-    
     let phone = lead.whatsapp.replace(/[^0-9]/g, '');
     if (phone.startsWith('0')) phone = '234' + phone.slice(1);
-    
-    const waUrl = `https://wa.me/${phone}?text=${encoded}`;
-    window.open(waUrl, '_blank');
+    return `https://wa.me/${phone}?text=${encoded}`;
+  };
 
+  const handleMarkSent = async (lead: any) => {
     try {
       const res = await fetch('/api/broadcast/mark-sent', {
         method: 'POST',
@@ -109,7 +103,7 @@ export default function AdminBroadcastManager() {
       });
       if (res.ok) {
         setLeads(leads.map(l => l.id === lead.id ? { ...l, last_broadcast_at: new Date().toISOString() } : l));
-        setStats((s: any) => ({ ...s, remainingHour: s.remainingHour - 1, sent7Days: s.sent7Days + 1 }));
+        setStats((s: any) => ({ ...s, remainingHour: Math.max(0, s.remainingHour - 1), sent7Days: s.sent7Days + 1 }));
       }
     } catch (e) {
       console.error("Failed to mark sent", e);
@@ -147,13 +141,15 @@ export default function AdminBroadcastManager() {
                   <div className="font-bold text-neutral-950 dark:text-white text-sm">{lead.name}</div>
                   <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{lead.whatsapp} • {lead.city || 'No City'}</div>
                 </div>
-                <button
-                  onClick={() => handleSendOne(lead)}
-                  disabled={stats.remainingHour <= 0}
-                  className="px-4 py-2 rounded-full bg-[#25D366] text-white font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#20bd5a] transition-all cursor-pointer disabled:opacity-40"
+                <a
+                  href={getWhatsAppUrl(lead)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => handleMarkSent(lead)}
+                  className="px-4 py-2 rounded-full bg-[#25D366] text-white font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#20bd5a] transition-all cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" /> Open Chat & Send
-                </button>
+                </a>
               </div>
             ))}
           </div>

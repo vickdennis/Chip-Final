@@ -93,6 +93,15 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         // Track profile view
         if (username) {
+          const params = new URLSearchParams(window.location.search);
+          const source = params.get('source') || (params.get('tap') === '1' ? 'nfc' : 'web');
+          
+          fetch('/api/analytics/view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ profile_id: targetUserId, source })
+          }).catch(console.error);
+
           supabase.from('profile_views').insert({
              profile_id: targetUserId
           }).then(({error}) => {
@@ -207,8 +216,27 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     return count.toString();
   };
 
+  const recordClick = (linkTitle: string, linkUrl?: string, clickType: string = 'link', linkId?: string) => {
+    const targetId = profile?.id;
+    if (!targetId) return;
+    try {
+      fetch('/api/analytics/click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_id: targetId,
+          link_id: linkId,
+          link_url: linkUrl,
+          link_title: linkTitle,
+          click_type: clickType
+        })
+      }).catch(() => {});
+    } catch(e) {}
+  };
+
   const downloadVCard = async () => {
     if (!profile) return;
+    recordClick('Saved Contact to Phone (vCard)', undefined, 'vcard');
     
     let photoStr = "";
     if (profile.cover_image_url) {
@@ -335,6 +363,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               href={link.url} 
               target="_blank" 
               rel="noopener noreferrer" 
+              onClick={() => recordClick(link.platform || 'Social Link', link.url, 'social', link.id)}
             >
               {iconContent}
             </a>
@@ -606,7 +635,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           <section className="w-full flex-1 flex flex-col items-center pt-8 pb-8 px-6 rounded-t-[40px] z-10" style={{ ...bgStyle, ...textStyle }}>
             {/* Contact/Connect Action Strip */}
             <div className="w-full flex flex-col gap-3 mb-8">
-              <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors`}>
+              <a href={`mailto:${profile?.contact_email || profile?.email || 'hello@example.com'}`} onClick={() => recordClick('Email Connect', profile?.contact_email || profile?.email, 'email')} className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 transition-colors`}>
                 <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
                   <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
                     {profile?.contact_email || profile?.email || "your@email.com"}
@@ -633,7 +662,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 if (arr.length === 0) return null;
 
                 return arr.map((phone, idx) => (
-                  <a key={idx} href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2`}>
+                  <a key={idx} href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" onClick={() => recordClick('WhatsApp Connect', phone, 'whatsapp')} className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2`}>
                     <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
                       <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
                         {phone}
@@ -746,6 +775,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Big') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+                         onClick={() => recordClick(link.label, href, 'link', link.id)}
                          className="relative w-full aspect-[4/3] sm:aspect-[2/1] rounded-2xl overflow-hidden flex flex-col items-center justify-center p-4 group border border-black/10 dark:border-white/10 hover:border-black/30 dark:border-white/30 transition-all shadow-md"
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : 'linear-gradient(135deg, #0c102a 0%, #030614 100%)' 
@@ -766,6 +796,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Medium') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+                         onClick={() => recordClick(link.label, href, 'link', link.id)}
                          className={`relative ${cardBgClass} ${cardBorderClass} border text-current p-4 rounded-2xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full aspect-[2/1] group overflow-hidden`}
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : '#141414' 
@@ -779,6 +810,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   if (link.size === 'Small') {
                     return (
                       <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+                         onClick={() => recordClick(link.label, href, 'link', link.id)}
                          className={`relative ${cardBgClass} ${cardBorderClass} border text-current p-3 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full h-24 group overflow-hidden`}
                          style={{ 
                            background: iconUrl ? `url('${iconUrl}') center/cover` : '#141414' 
@@ -792,6 +824,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   // Default Button size
                   return (
                     <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+                       onClick={() => recordClick(link.label, href, 'link', link.id)}
                        className={`${cardBgClass} ${cardBorderClass} border text-current p-4 rounded-xl shadow-sm hover:border-black/30 dark:border-white/30 hover:bg-[#1a1a1a] transition-colors flex items-center justify-center w-full group relative`}>
                        <h2 className="font-sans text-[15px] font-medium truncate text-center">{link.label}</h2>
                     </a>
