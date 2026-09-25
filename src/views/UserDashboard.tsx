@@ -122,19 +122,44 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   useEffect(() => {
     const fetchNotifs = () => {
+      let localBroadcasts: any[] = [];
+      try {
+        const stored = localStorage.getItem('chip_broadcast_notifications');
+        if (stored) localBroadcasts = JSON.parse(stored);
+      } catch (e) {}
+
       fetch('/api/app-updates')
-        .then(res => res.json())
-        .then(data => {
-          if (data.notifications) {
-            setNotifications(data.notifications);
-          }
+        .then(res => {
+          if (!res.ok) throw new Error('Not ok');
+          return res.json();
         })
-        .catch(err => console.error(err));
+        .then(data => {
+          const serverList = (data && Array.isArray(data.notifications)) ? data.notifications : [];
+          const seen = new Set();
+          const merged = [...serverList, ...localBroadcasts].filter(n => {
+            const key = String(n.id) + '-' + n.title;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setNotifications(merged);
+        })
+        .catch(() => {
+          if (localBroadcasts.length > 0) {
+            setNotifications(localBroadcasts);
+          }
+        });
     };
     
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 15000);
-    return () => clearInterval(interval);
+    window.addEventListener('chip_notifications_updated', fetchNotifs);
+    window.addEventListener('storage', fetchNotifs);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chip_notifications_updated', fetchNotifs);
+      window.removeEventListener('storage', fetchNotifs);
+    };
   }, []);
 
   const systemNotifications = [];

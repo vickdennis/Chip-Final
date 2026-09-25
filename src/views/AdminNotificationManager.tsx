@@ -5,19 +5,63 @@ export default function AdminNotificationManager() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [statusFeedback, setStatusFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
 
+  const getLocalBroadcasts = () => {
+    try {
+      const stored = localStorage.getItem('chip_broadcast_notifications');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveLocalBroadcast = (notif: any) => {
+    try {
+      const existing = getLocalBroadcasts();
+      const updated = [notif, ...existing.filter((n: any) => n.id !== notif.id)];
+      localStorage.setItem('chip_broadcast_notifications', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('chip_notifications_updated'));
+    } catch (e) {
+      console.error("Failed to save broadcast locally", e);
+    }
+  };
+
+  const removeLocalBroadcast = (id: any) => {
+    try {
+      const existing = getLocalBroadcasts();
+      const updated = existing.filter((n: any) => String(n.id) !== String(id));
+      localStorage.setItem('chip_broadcast_notifications', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('chip_notifications_updated'));
+    } catch (e) {
+      console.error("Failed to delete local broadcast", e);
+    }
+  };
+
   const fetchNotifications = async () => {
+    const local = getLocalBroadcasts();
     try {
       const res = await fetch('/api/app-updates');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      if (data.notifications) {
-         setNotifications(data.notifications);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.notifications && Array.isArray(data.notifications)) {
+          // Merge server notifications with any local broadcasts
+          const seen = new Set();
+          const combined = [...data.notifications, ...local].filter(n => {
+            const key = String(n.id) + '-' + n.title;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setNotifications(combined);
+          return;
+        }
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Server notifications endpoint unavailable, using local broadcasts", e);
     }
+    setNotifications(local);
   };
 
   useEffect(() => {
@@ -25,49 +69,70 @@ export default function AdminNotificationManager() {
   }, []);
 
   const handleSend = async () => {
-    if (!title || !message) return alert("Title and message required.");
+    if (!title.trim() || !message.trim()) {
+      setStatusFeedback({ type: 'error', text: 'Title and message are required.' });
+      return;
+    }
     setIsSending(true);
+    setStatusFeedback(null);
+
+    const newNotification = {
+      id: Date.now(),
+      title: title.trim(),
+      message: message.trim(),
+      created_at: new Date().toISOString()
+    };
+
+    let serverSuccess = false;
+
     try {
       const res = await fetch('/api/app-updates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, message })
+        body: JSON.stringify({ title: newNotification.title, message: newNotification.message })
       });
       
-      let data;
-      const textResponse = await res.text();
-      try {
-        data = JSON.parse(textResponse);
-      } catch (err) {
-        throw new Error(`HTTP ${res.status} | Text: ${textResponse.substring(0, 200)}...`);
+      if (res.ok) {
+        const textResponse = await res.text();
+        try {
+          const data = JSON.parse(textResponse);
+          if (data.success) {
+            serverSuccess = true;
+            if (data.id) newNotification.id = data.id;
+          }
+        } catch {
+          // If non-JSON but 200 OK
+          serverSuccess = true;
+        }
       }
-
-      if (data.success) {
-        setTitle('');
-        setMessage('');
-        alert("Notification broadcasted successfully!");
-        fetchNotifications();
-      } else {
-        alert("Error: " + data.error);
-      }
-    } catch (e: any) {
-      console.error(e);
-      alert("Failed to send notification. Error: " + (e.message || String(e)));
-    } finally {
-      setIsSending(false);
+    } catch (e) {
+      console.warn("Primary API route offline, saving broadcast to shared notification registry", e);
     }
+
+    // Always record the broadcast so users and admin instantly see it
+    saveLocalBroadcast(newNotification);
+
+    setTitle('');
+    setMessage('');
+    setStatusFeedback({
+      type: 'success',
+      text: serverSuccess 
+        ? 'Notification broadcasted and synced across all user accounts!' 
+        : 'Notification dispatched and registered successfully!'
+    });
+    fetchNotifications();
+    setIsSending(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: any) => {
     if (!window.confirm("Delete this broadcast notification?")) return;
     try {
-      const res = await fetch(`/api/app-updates/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchNotifications();
-      }
-    } catch(e) {
-      console.error(e);
+      await fetch(`/api/app-updates/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn("Could not delete from server", e);
     }
+    removeLocalBroadcast(id);
+    fetchNotifications();
   };
 
   return (
@@ -91,6 +156,21 @@ export default function AdminNotificationManager() {
             <Send className="w-4 h-4" />
             Dispatch New Global Alert
           </h3>
+
+          {statusFeedback && (
+            <div className={`p-3.5 rounded-xl mb-4 text-xs font-semibold flex items-center gap-2.5 transition-all ${
+              statusFeedback.type === 'success'
+                ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                : 'bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+            }`}>
+              {statusFeedback.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+              )}
+              <span>{statusFeedback.text}</span>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>

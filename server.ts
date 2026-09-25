@@ -211,6 +211,17 @@ async function startServer() {
   
   app.use(express.json());
 
+  // CORS and preflight handling
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    next();
+  });
+
   // SQLite Leads API
   app.post('/api/lead', (req, res) => {
     try {
@@ -366,9 +377,17 @@ Sitemap: https://chipng.com/sitemap.xml`;
   });
 
 
-  app.get('/api/app-updates', (req, res) => {
-    try { const rows = db.prepare(`SELECT * FROM app_notifications ORDER BY created_at DESC LIMIT 10`).all(); res.json({ notifications: rows }); } catch(err: any) { res.status(500).json({ error: err.message }); }
-  });
+  const handleGetNotifications = (req: any, res: any) => {
+    try {
+      const rows = db.prepare(`SELECT * FROM app_notifications ORDER BY created_at DESC LIMIT 50`).all();
+      res.json({ notifications: rows, unreadCount: rows.length });
+    } catch(err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  };
+
+  app.get('/api/app-updates', handleGetNotifications);
+  app.get('/api/notifications', handleGetNotifications);
 
 
   // NFC Sales Endpoints
@@ -548,20 +567,39 @@ Ref: ${payment_reference}`,
     }
   });
 
-  app.post('/api/app-updates', (req, res) => {
-    const { title, message } = req.body;
+  const handleBroadcastNotification = (req: any, res: any) => {
+    const title = req.body.title;
+    const message = req.body.message || req.body.body;
     if (!title || !message) return res.status(400).json({ error: 'Title and message required' });
-    try { const info = db.prepare(`INSERT INTO app_notifications (title, message) VALUES (?, ?)`).run(title, message); res.json({ success: true, id: info.lastInsertRowid }); } catch(err: any) { res.status(500).json({ error: err.message }); }
-  });
+    try {
+      const info = db.prepare(`INSERT INTO app_notifications (title, message) VALUES (?, ?)`).run(title, message);
+      const newNotif = {
+        id: info.lastInsertRowid,
+        title,
+        message,
+        created_at: new Date().toISOString()
+      };
+      res.json({ success: true, id: info.lastInsertRowid, notification: newNotif });
+    } catch(err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  };
 
-  app.delete('/api/app-updates/:id', (req, res) => {
+  app.post('/api/app-updates', handleBroadcastNotification);
+  app.post('/api/notifications/broadcast', handleBroadcastNotification);
+  app.post('/api/notifications', handleBroadcastNotification);
+
+  const handleDeleteNotification = (req: any, res: any) => {
     try {
       db.prepare('DELETE FROM app_notifications WHERE id = ?').run(req.params.id);
       res.json({ success: true });
     } catch(err: any) {
       res.status(500).json({ error: err.message });
     }
-  });
+  };
+
+  app.delete('/api/app-updates/:id', handleDeleteNotification);
+  app.delete('/api/notifications/:id', handleDeleteNotification);
 
   app.get('/api/broadcast/stats', (req, res) => {
     try {
