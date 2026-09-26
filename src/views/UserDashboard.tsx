@@ -112,12 +112,43 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     }
   });
 
+  // Keep read state synchronized with user profile
+  useEffect(() => {
+    if (profile?.id) {
+      try {
+        const userSaved = localStorage.getItem(`chip_read_notifs_${profile.id}`);
+        if (userSaved) {
+          const parsed = JSON.parse(userSaved);
+          setReadNotifs(prev => [...new Set([...prev, ...parsed])]);
+        }
+      } catch (e) {}
+    }
+  }, [profile?.id]);
+
   const markAllAsRead = () => {
     const allIds = allNotifications.map(n => String(n.id));
     const newRead = [...new Set([...readNotifs, ...allIds])];
     setReadNotifs(newRead);
     localStorage.setItem('chip_read_notifs', JSON.stringify(newRead));
+    if (profile?.id) {
+      localStorage.setItem(`chip_read_notifs_${profile.id}`, JSON.stringify(newRead));
+    }
+    fetch('/api/notifications/mark-read', { method: 'POST' }).catch(() => {});
   };
+
+  const markOneAsRead = (id: string | number) => {
+    const idStr = String(id);
+    if (!readNotifs.includes(idStr)) {
+      const newRead = [...readNotifs, idStr];
+      setReadNotifs(newRead);
+      localStorage.setItem('chip_read_notifs', JSON.stringify(newRead));
+      if (profile?.id) {
+        localStorage.setItem(`chip_read_notifs_${profile.id}`, JSON.stringify(newRead));
+      }
+      fetch(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => {});
+    }
+  };
+
   const [hasDismissedNfcPrompt, setHasDismissedNfcPrompt] = useState(false);
 
   useEffect(() => {
@@ -128,31 +159,56 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         if (stored) localBroadcasts = JSON.parse(stored);
       } catch (e) {}
 
-      fetch('/api/app-updates')
-        .then(res => {
-          if (!res.ok) throw new Error('Not ok');
-          return res.json();
-        })
-        .then(data => {
-          const serverList = (data && Array.isArray(data.notifications)) ? data.notifications : [];
-          const seen = new Set();
-          const merged = [...serverList, ...localBroadcasts].filter(n => {
-            const key = String(n.id) + '-' + n.title;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          setNotifications(merged);
-        })
-        .catch(() => {
-          if (localBroadcasts.length > 0) {
-            setNotifications(localBroadcasts);
+      // Fetch from Server API
+      const fetchServer = async () => {
+        try {
+          const res = await fetch('/api/notifications');
+          if (res.ok) {
+            const data = await res.json();
+            return (data && Array.isArray(data.notifications)) ? data.notifications : [];
           }
+          const res2 = await fetch('/api/app-updates');
+          if (res2.ok) {
+            const data2 = await res2.json();
+            return (data2 && Array.isArray(data2.notifications)) ? data2.notifications : [];
+          }
+          return [];
+        } catch {
+          return [];
+        }
+      };
+
+      // Fetch from Supabase app_notifications
+      const fetchSupa = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('app_notifications')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+          return (!error && Array.isArray(data)) ? data : [];
+        } catch {
+          return [];
+        }
+      };
+
+      Promise.all([fetchServer(), fetchSupa()]).then(([serverList, supaList]) => {
+        const combined = [...supaList, ...serverList, ...localBroadcasts];
+        const seen = new Set();
+        const merged = combined.filter(n => {
+          const key = (n.id ? String(n.id) : '') + '-' + (n.title || '').trim();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
         });
+        setNotifications(merged);
+      }).catch(() => {
+        if (localBroadcasts.length > 0) setNotifications(localBroadcasts);
+      });
     };
     
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 15000);
+    const interval = setInterval(fetchNotifs, 10000);
     window.addEventListener('chip_notifications_updated', fetchNotifs);
     window.addEventListener('storage', fetchNotifs);
     return () => {
@@ -177,6 +233,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   const allNotifications = [...systemNotifications, ...notifications];
   const unreadCount = allNotifications.filter(n => !readNotifs.includes(String(n.id))).length;
+  const unreadBroadcasts = notifications.filter(n => !readNotifs.includes(String(n.id)));
+  const latestUnreadBroadcast = unreadBroadcasts[0];
 
   const bellRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -194,60 +252,99 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       <button 
         onClick={() => {
           setShowNotifications(!showNotifications);
-          if (!showNotifications) markAllAsRead();
         }}
-        className="relative p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+        className="relative p-2 rounded-full bg-neutral-200/60 dark:bg-white/10 hover:bg-neutral-300/60 dark:hover:bg-white/15 transition-colors cursor-pointer"
+        title="Notifications"
       >
-        <Bell className="w-5 h-5 text-black dark:text-white" />
+        <Bell className="w-4 h-4 text-neutral-900 dark:text-white" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-[#0E1017] animate-pulse">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </button>
 
       {showNotifications && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-[#121212] rounded-2xl shadow-xl border border-black/5 dark:border-white/5 overflow-hidden z-50">
-          <div className="p-4 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
-            <h3 className="font-bold text-black dark:text-white">Notifications</h3>
+        <div className="absolute top-full right-0 mt-2.5 w-80 sm:w-88 bg-white dark:bg-[#111318] rounded-2xl shadow-xl border border-neutral-200/80 dark:border-white/10 overflow-hidden z-50 animate-in fade-in duration-150">
+          <div className="p-3.5 border-b border-neutral-200/60 dark:border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm text-neutral-950 dark:text-white">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="text-[10px] bg-[#D2F843] text-neutral-950 font-bold px-2 py-0.5 rounded-full">{unreadCount} New</span>
+              )}
+            </div>
             {unreadCount > 0 && (
-              <span className="text-xs bg-[#B600A8] text-white px-2 py-0.5 rounded-full">{unreadCount} New</span>
+              <button
+                onClick={markAllAsRead}
+                className="text-[11px] font-semibold text-neutral-500 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                Mark all read
+              </button>
             )}
           </div>
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[360px] overflow-y-auto divide-y divide-neutral-100 dark:divide-white/5">
             {allNotifications.length === 0 ? (
-              <div className="p-8 text-center text-black/40 dark:text-white/40 text-sm">
+              <div className="p-8 text-center text-neutral-400 text-xs">
                 No notifications yet.
               </div>
             ) : (
               <div className="flex flex-col">
-                {allNotifications.map(notif => (
-                  <div key={notif.id} className="p-4 border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left relative">
-                    <h4 className="font-bold text-sm text-black dark:text-white mb-1 pr-6">{notif.title}</h4>
-                    <p className="text-xs text-black/60 dark:text-white/60">{notif.message}</p>
-                    
-                    {notif.isSystem && (
-                      <div className="mt-3 flex gap-2">
-                        <button 
-                          onClick={() => {
-                            setActiveTab('nfc');
-                            setTimeout(() => {
-                              document.getElementById('nfc-section')?.scrollIntoView({ behavior: 'smooth' });
-                            }, 100);
-                            setShowNotifications(false);
-                          }}
-                          className="text-xs bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-lg font-bold"
-                        >
-                          Order Now
-                        </button>
-                        <button 
-                          onClick={() => setHasDismissedNfcPrompt(true)}
-                          className="text-xs bg-black/10 dark:bg-white/10 text-black dark:text-white px-3 py-1.5 rounded-lg font-bold hover:bg-black/20 dark:hover:bg-white/20"
-                        >
-                          Dismiss
-                        </button>
+                {allNotifications.map(notif => {
+                  const isUnread = !readNotifs.includes(String(notif.id));
+                  return (
+                    <div 
+                      key={notif.id} 
+                      className={`p-3.5 transition-colors text-left relative group ${
+                        isUnread 
+                          ? 'bg-[#D2F843]/5 dark:bg-[#D2F843]/10 hover:bg-[#D2F843]/10 dark:hover:bg-[#D2F843]/15' 
+                          : 'hover:bg-neutral-50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1.5 mb-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] shrink-0" />}
+                          <h4 className="font-bold text-xs text-neutral-950 dark:text-white truncate">{notif.title}</h4>
+                        </div>
+                        {isUnread && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markOneAsRead(notif.id);
+                            }}
+                            className="text-[10px] text-neutral-400 hover:text-neutral-950 dark:hover:text-white font-medium shrink-0 cursor-pointer ml-1 underline decoration-dotted"
+                            title="Mark as read"
+                          >
+                            Mark read
+                          </button>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">{notif.message}</p>
+                      
+                      {notif.isSystem && (
+                        <div className="mt-2.5 flex gap-2">
+                          <button 
+                            onClick={() => {
+                              setActiveTab('nfc');
+                              setTimeout(() => {
+                                document.getElementById('nfc-section')?.scrollIntoView({ behavior: 'smooth' });
+                              }, 100);
+                              setShowNotifications(false);
+                            }}
+                            className="text-xs bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-3 py-1 rounded-lg font-bold cursor-pointer"
+                          >
+                            Order Now
+                          </button>
+                          <button 
+                            onClick={() => setHasDismissedNfcPrompt(true)}
+                            className="text-xs bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-lg font-medium hover:bg-neutral-200 dark:hover:bg-white/20 cursor-pointer"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -638,6 +735,30 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       <div className="pb-24">
       <div className="max-w-[1200px] mx-auto pb-16">
         
+        {/* Live System Broadcast Banner for all unread announcements */}
+        {latestUnreadBroadcast && (
+          <div className="w-full bg-[#D2F843]/15 border border-[#D2F843]/40 p-4 sm:p-5 rounded-2xl flex items-start justify-between gap-4 mb-6 shadow-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-[#D2F843] text-neutral-950 shrink-0">
+                <Bell className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 px-2 py-0.5 rounded-full">System Announcement</span>
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white">{latestUnreadBroadcast.title}</span>
+                </div>
+                <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 mt-1 leading-relaxed">{latestUnreadBroadcast.message}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => markAllAsRead()}
+              className="text-xs bg-white dark:bg-[#111318] text-neutral-700 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white px-3 py-1.5 rounded-xl border border-neutral-300/80 dark:border-white/10 shrink-0 cursor-pointer font-medium transition-colors"
+            >
+              Mark Read
+            </button>
+          </div>
+        )}
+
         {completionRate < 100 && (
           <div className="w-full bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
             <div className="flex flex-col gap-2.5 w-full md:w-auto flex-1 max-w-xl">

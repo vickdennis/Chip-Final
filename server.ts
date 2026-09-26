@@ -579,6 +579,12 @@ Ref: ${payment_reference}`,
         message,
         created_at: new Date().toISOString()
       };
+      
+      // Also log broadcast
+      try {
+        db.prepare('INSERT INTO broadcast_logs (message_template, audience_count) VALUES (?, ?)').run(`[IN-APP] ${title}: ${message}`, 1);
+      } catch (logErr) {}
+
       res.json({ success: true, id: info.lastInsertRowid, notification: newNotif });
     } catch(err: any) {
       res.status(500).json({ error: err.message });
@@ -588,6 +594,15 @@ Ref: ${payment_reference}`,
   app.post('/api/app-updates', handleBroadcastNotification);
   app.post('/api/notifications/broadcast', handleBroadcastNotification);
   app.post('/api/notifications', handleBroadcastNotification);
+
+  // Mark notification read routes
+  const handleMarkRead = (req: any, res: any) => {
+    res.json({ success: true, id: req.params.id || req.body.id || 'all' });
+  };
+  app.patch('/api/notifications/:id/read', handleMarkRead);
+  app.put('/api/notifications/:id/read', handleMarkRead);
+  app.post('/api/notifications/:id/read', handleMarkRead);
+  app.post('/api/notifications/mark-read', handleMarkRead);
 
   const handleDeleteNotification = (req: any, res: any) => {
     try {

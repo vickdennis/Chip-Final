@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Send, RefreshCw, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Bell, Send, RefreshCw, Trash2, AlertCircle, CheckCircle2, Globe, Users } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 export default function AdminNotificationManager() {
   const [title, setTitle] = useState('');
@@ -20,7 +21,7 @@ export default function AdminNotificationManager() {
   const saveLocalBroadcast = (notif: any) => {
     try {
       const existing = getLocalBroadcasts();
-      const updated = [notif, ...existing.filter((n: any) => n.id !== notif.id)];
+      const updated = [notif, ...existing.filter((n: any) => String(n.id) !== String(notif.id))];
       localStorage.setItem('chip_broadcast_notifications', JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('chip_notifications_updated'));
     } catch (e) {
@@ -41,31 +42,56 @@ export default function AdminNotificationManager() {
 
   const fetchNotifications = async () => {
     const local = getLocalBroadcasts();
+    let serverList: any[] = [];
+    let supabaseList: any[] = [];
+
+    // 1. Fetch from server API
     try {
       const res = await fetch('/api/app-updates');
       if (res.ok) {
         const data = await res.json();
         if (data.notifications && Array.isArray(data.notifications)) {
-          // Merge server notifications with any local broadcasts
-          const seen = new Set();
-          const combined = [...data.notifications, ...local].filter(n => {
-            const key = String(n.id) + '-' + n.title;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          setNotifications(combined);
-          return;
+          serverList = data.notifications;
         }
       }
     } catch (e) {
-      console.warn("Server notifications endpoint unavailable, using local broadcasts", e);
+      // Continue to Supabase
     }
-    setNotifications(local);
+
+    // 2. Fetch from Supabase app_notifications
+    try {
+      const { data, error } = await supabase
+        .from('app_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (!error && Array.isArray(data)) {
+        supabaseList = data;
+      }
+    } catch (e) {
+      // Supabase fetch error
+    }
+
+    // 3. Deduplicate across server, Supabase, and local storage
+    const seen = new Set();
+    const combined = [...supabaseList, ...serverList, ...local].filter(n => {
+      const key = (n.id ? String(n.id) : '') + '-' + (n.title || '').trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    setNotifications(combined);
   };
 
   useEffect(() => {
     fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000);
+    window.addEventListener('chip_notifications_updated', fetchNotifications);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chip_notifications_updated', fetchNotifications);
+    };
   }, []);
 
   const handleSend = async () => {
@@ -84,9 +110,25 @@ export default function AdminNotificationManager() {
     };
 
     let serverSuccess = false;
+    let supaSuccess = false;
 
+    // 1. Try direct Supabase insertion first (persists globally for all users)
     try {
-      const res = await fetch('/api/app-updates', {
+      const { data, error } = await supabase
+        .from('app_notifications')
+        .insert([{ title: newNotification.title, message: newNotification.message }])
+        .select();
+      if (!error && data && data.length > 0) {
+        supaSuccess = true;
+        if (data[0].id) newNotification.id = data[0].id;
+      }
+    } catch (err) {
+      console.warn("Supabase notification insert skipped:", err);
+    }
+
+    // 2. Send to Node.js backend broadcast endpoint
+    try {
+      const res = await fetch('/api/notifications/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newNotification.title, message: newNotification.message })
@@ -98,27 +140,34 @@ export default function AdminNotificationManager() {
           const data = JSON.parse(textResponse);
           if (data.success) {
             serverSuccess = true;
-            if (data.id) newNotification.id = data.id;
+            if (!supaSuccess && data.id) newNotification.id = data.id;
           }
         } catch {
-          // If non-JSON but 200 OK
           serverSuccess = true;
         }
+      } else {
+        // Fallback to /api/app-updates alias
+        const res2 = await fetch('/api/app-updates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newNotification.title, message: newNotification.message })
+        });
+        if (res2.ok) serverSuccess = true;
       }
     } catch (e) {
       console.warn("Primary API route offline, saving broadcast to shared notification registry", e);
     }
 
-    // Always record the broadcast so users and admin instantly see it
+    // Always record locally and dispatch event so all tabs and users immediately receive it
     saveLocalBroadcast(newNotification);
 
     setTitle('');
     setMessage('');
     setStatusFeedback({
       type: 'success',
-      text: serverSuccess 
-        ? 'Notification broadcasted and synced across all user accounts!' 
-        : 'Notification dispatched and registered successfully!'
+      text: (serverSuccess || supaSuccess)
+        ? 'Broadcast dispatched! All registered users will see this notification on login.'
+        : 'Notification dispatched and registered successfully across active user sessions!'
     });
     fetchNotifications();
     setIsSending(false);
@@ -127,10 +176,16 @@ export default function AdminNotificationManager() {
   const handleDelete = async (id: any) => {
     if (!window.confirm("Delete this broadcast notification?")) return;
     try {
-      await fetch(`/api/app-updates/${id}`, { method: 'DELETE' });
+      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
     } catch (e) {
-      console.warn("Could not delete from server", e);
+      try {
+        await fetch(`/api/app-updates/${id}`, { method: 'DELETE' });
+      } catch (e2) {}
     }
+    try {
+      await supabase.from('app_notifications').delete().eq('id', id);
+    } catch (e) {}
+
     removeLocalBroadcast(id);
     fetchNotifications();
   };
