@@ -6,6 +6,7 @@ import {
   Settings, LogOut, ArrowLeft, Plus, Check, Trash2, X, Activity, Eye, MousePointerClick
 } from 'lucide-react';
 import { PaystackButton } from 'react-paystack';
+import BrandLogo from '../components/BrandLogo';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [loading, setLoading] = useState(true);
@@ -220,8 +221,8 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
     return (
       <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans flex items-center justify-center p-4">
         <div className="bg-white dark:bg-[#111318] max-w-xl w-full p-8 sm:p-10 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#D2F843]/15 text-neutral-950 dark:text-[#D2F843] flex items-center justify-center mx-auto mb-6">
-            <Building2 className="w-8 h-8" />
+          <div className="flex justify-center mb-6">
+            <BrandLogo size="lg" iconOnly />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight mb-3">Enterprise Organization Fleet</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-8 leading-relaxed">
@@ -264,9 +265,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       <header className="sticky top-0 z-40 bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 backdrop-blur-md border-b border-neutral-200/80 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center font-bold text-sm shadow-xs">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#D2F843] mr-0.5" />
-            </div>
+            <BrandLogo size="xs" iconOnly />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-neutral-950 dark:text-white tracking-tight">{enterprise.name}</span>

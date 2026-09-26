@@ -843,6 +843,9 @@ Ref: ${payment_reference}`,
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
 
+  // Static files from public folder
+  app.use(express.static(path.resolve('public')));
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
+import BrandLogo from './BrandLogo';
 import { 
   LayoutDashboard, 
   Users, 
@@ -42,21 +43,9 @@ export default function AdminLayout({
         <div className="p-6 pb-6 flex items-center justify-between border-b border-neutral-200/60 dark:border-white/5">
           <button
             onClick={() => onNavigate('landing')}
-            className="flex items-center gap-3 group focus:outline-none"
+            className="flex items-center text-left focus:outline-none cursor-pointer"
           >
-            {/* Double-dot capsule icon matching homepage */}
-            <div className="w-10 h-7 rounded-full bg-neutral-900 dark:bg-white flex items-center justify-center gap-1.5 px-2 group-hover:scale-105 transition-transform duration-200 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-white dark:bg-neutral-900"></span>
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
-            </div>
-            <div>
-              <h1 className="font-bold text-neutral-950 dark:text-white text-base tracking-tight leading-tight">
-                CHIPNG
-              </h1>
-              <p className="text-[10px] text-[#6b8500] dark:text-[#D2F843] font-mono uppercase tracking-widest font-semibold">
-                Control Hub
-              </p>
-            </div>
+            <BrandLogo size="md" subtitle="Control Hub" />
           </button>
         </div>
 
@@ -133,15 +122,9 @@ export default function AdminLayout({
           <div className="flex items-center gap-3">
             <button
               onClick={() => onNavigate('landing')}
-              className="md:hidden flex items-center gap-2.5 focus:outline-none cursor-pointer"
+              className="md:hidden flex items-center focus:outline-none cursor-pointer"
             >
-              <div className="w-8 h-6 rounded-full bg-neutral-950 dark:bg-white flex items-center justify-center gap-1 px-1 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-950"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
-              </div>
-              <span className="font-bold text-neutral-950 dark:text-white text-sm tracking-tight">
-                CHIPNG
-              </span>
+              <BrandLogo size="xs" />
             </button>
 
             <div className="hidden md:flex items-center gap-2.5">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Moon, Sun, Menu, X } from 'lucide-react';
 import { ViewState } from '../../App';
+import BrandLogo from '../BrandLogo';
 
 interface MakroNavbarProps {
   currentView: ViewState;
@@ -32,20 +33,13 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
         
-        {/* Zone 1: Single Brand Element with Makro Double-Dot Glyph */}
+        {/* Zone 1: Single Brand Element with 3D CHIPNG Logo */}
         <button
           onClick={() => onNavigate('landing')}
-          className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-lg"
+          className="flex items-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-xl transition-transform"
           aria-label="CHIPNG Home"
         >
-          {/* Double-dot capsule icon matching Makro reference */}
-          <div className="w-10 h-7 rounded-full bg-neutral-900 dark:bg-white flex items-center justify-center gap-1.5 px-2 group-hover:scale-105 transition-transform duration-200">
-            <span className="w-2 h-2 rounded-full bg-white dark:bg-neutral-900"></span>
-            <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
-          </div>
-          <span className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">
-            CHIPNG
-          </span>
+          <BrandLogo size="md" />
         </button>
 
         {/* Zone 2: Clean 4-6 nav links, 1-2 word labels, single-line */}

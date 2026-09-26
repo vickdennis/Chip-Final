@@ -13,6 +13,7 @@ import AdminNotificationManager from './AdminNotificationManager';
 import AdminSalesManager from './AdminSalesManager';
 import AdminPixelManager from './AdminPixelManager';
 import { MessageCircle, Send, Bell, Link as LinkIcon } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -445,17 +446,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
           <div className="flex items-center gap-3">
             <button
               onClick={() => onNavigate('landing')}
-              className="flex items-center gap-3 group focus:outline-none cursor-pointer"
+              className="flex items-center group focus:outline-none cursor-pointer"
               aria-label="CHIPNG Home"
             >
-              {/* Double-dot capsule icon matching homepage */}
-              <div className="w-10 h-7 rounded-full bg-neutral-900 dark:bg-white flex items-center justify-center gap-1.5 px-2 group-hover:scale-105 transition-transform duration-200 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-white dark:bg-neutral-900"></span>
-                <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
-              </div>
-              <span className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">
-                CHIPNG
-              </span>
+              <BrandLogo size="md" />
             </button>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider">
               <Shield className="w-3 h-3" /> Super Admin

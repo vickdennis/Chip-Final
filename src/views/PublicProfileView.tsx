@@ -6,6 +6,8 @@ import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS, } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
+import BrandLogo from '../components/BrandLogo';
+import chipng3dLogo from '../assets/images/chipng_3d_logo_1790417547026.jpg';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -155,17 +157,17 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           >
             <motion.div 
               animate={{ 
-                 boxShadow: ['0px 0px 0px rgba(255,255,255,0)', '0px 0px 50px rgba(255,255,255,0.08)', '0px 0px 0px rgba(255,255,255,0)']
+                 boxShadow: ['0px 0px 0px rgba(255,255,255,0)', '0px 0px 50px rgba(255,255,255,0.12)', '0px 0px 0px rgba(255,255,255,0)']
               }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-28 h-28 border border-white/10 bg-white/5 p-5 rounded-[2rem] backdrop-blur-xl flex items-center justify-center"
+              className="w-28 h-28 border border-white/15 bg-white/10 p-2.5 rounded-[2.2rem] backdrop-blur-2xl flex items-center justify-center overflow-hidden shadow-2xl"
             >
                <motion.img 
-                  animate={{ scale: [0.95, 1.05, 0.95] }}
+                  animate={{ scale: [0.96, 1.04, 0.96] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMfGw30AK_ubznqFEGAgwiCyiaRj9m4reZICGiUR5WxHaUy8SzdPiuG5buvBu5WeAA9DB0111CklZcTTlQ2ffzcoYwgviMD3gHxBZOKmlT7sVtHT15n3eEE9D6dZdIY2jZVRXWH6thF_rcsUZISiNG0A3D8d4OafozFaTHHwjQDXmtaSWZFHDoh8H0bhPXXn4PYQI7APYWU_vvzbtvxvU0iUv2zWnGvTvI73n1MlLXKIU7YIc5G1LUb6JHI0mPPjJOCIhne8BNGU" 
-                  alt="CHIP NG Logo" 
-                  className="w-full h-full object-contain filter drop-shadow-xl opacity-90"
+                  src={chipng3dLogo} 
+                  alt="CHIPNG 3D Logo" 
+                  className="w-full h-full object-cover rounded-[1.8rem] filter drop-shadow-2xl"
                />
             </motion.div>
           </motion.div>
@@ -911,7 +913,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
            <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className={`bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-white/30 transition-colors mb-2`}>
              CREATE YOURS
            </button>
-           <a href="https://chipng.com" className="font-display text-[14px] font-black tracking-widest opacity-60 hover:text-current transition-colors flex items-center gap-1.5"><span className="font-mono text-[10px] uppercase font-medium opacity-60">Powered by</span> CHIP NG</a>
+           <a href="https://chipng.com" className="opacity-80 hover:opacity-100 transition-opacity flex items-center gap-2">
+             <span className="font-mono text-[10px] uppercase font-semibold text-neutral-500 dark:text-neutral-400">Powered by</span>
+             <BrandLogo size="xs" />
+           </a>
            <div className="flex justify-center gap-6">
              <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider opacity-60 hover:text-current transition-colors">Privacy Policy</a>
              <a href="#" className="font-mono text-[11px] font-bold uppercase tracking-wider opacity-60 hover:text-current transition-colors">Terms</a>

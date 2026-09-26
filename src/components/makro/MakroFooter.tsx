@@ -1,6 +1,7 @@
 import React from 'react';
 import { ViewState } from '../../App';
 import { ArrowUp } from 'lucide-react';
+import BrandLogo from '../BrandLogo';
 
 interface MakroFooterProps {
   onNavigate: (view: ViewState) => void;
@@ -20,15 +21,12 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
           
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4 pr-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-6 rounded-full bg-neutral-900 dark:bg-white flex items-center justify-center gap-1 px-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-900"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
-              </div>
-              <span className="text-lg font-bold tracking-tight text-neutral-950 dark:text-white">
-                CHIPNG
-              </span>
-            </div>
+            <button
+              onClick={() => onNavigate('landing')}
+              className="flex items-center text-left focus:outline-none cursor-pointer"
+            >
+              <BrandLogo size="sm" />
+            </button>
             <p className="text-xs sm:text-sm text-neutral-500 max-w-sm leading-relaxed">
               The premier contactless NFC smart business card and dynamic link-in-bio platform for founders, executives, creators, and modern teams. Designed for zero-friction networking.
             </p>

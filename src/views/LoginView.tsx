@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
 import { ArrowRight, Check, Sparkles, Moon, Sun, ArrowLeft } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo';
 
 interface LoginViewProps {
   onNavigate: (view: ViewState) => void;
@@ -78,15 +79,9 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
       <header className="px-6 sm:px-8 py-6 flex items-center justify-between">
         <button
           onClick={() => onNavigate('landing')}
-          className="flex items-center gap-3 group focus:outline-none"
+          className="flex items-center group focus:outline-none cursor-pointer"
         >
-          <div className="w-9 h-6 rounded-full bg-neutral-950 dark:bg-white flex items-center justify-center gap-1 px-1.5 group-hover:scale-105 transition-transform">
-            <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-950"></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
-          </div>
-          <span className="text-lg font-bold tracking-tight text-neutral-950 dark:text-white">
-            CHIPNG
-          </span>
+          <BrandLogo size="md" />
         </button>
 
         <div className="flex items-center gap-3">
@@ -113,6 +108,9 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
           
           {/* Header & Mode Switcher */}
           <div className="text-center space-y-2 mb-8">
+            <div className="flex justify-center mb-3">
+              <BrandLogo size="lg" iconOnly />
+            </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">
               {mode === 'login' ? 'Welcome back' : 'Create your account'}
             </h1>
