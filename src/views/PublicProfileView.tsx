@@ -7,7 +7,7 @@ import { SOCIAL_PLATFORMS, } from './UserDashboard';
 import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 import BrandLogo from '../components/BrandLogo';
-import chipng3dLogo from '../assets/images/chipng_3d_logo_1790417547026.jpg';
+import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -165,9 +165,9 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                <motion.img 
                   animate={{ scale: [0.96, 1.04, 0.96] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  src={chipng3dLogo} 
+                  src={chipngExactTile} 
                   alt="CHIPNG 3D Logo" 
-                  className="w-full h-full object-cover rounded-[1.8rem] filter drop-shadow-2xl"
+                  className="w-full h-full object-contain filter drop-shadow-2xl"
                />
             </motion.div>
           </motion.div>

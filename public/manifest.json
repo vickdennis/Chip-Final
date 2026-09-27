@@ -3,14 +3,19 @@
   "name": "CHIP NG Platform",
   "icons": [
     {
-      "src": "/chipng_3d_logo.jpg",
-      "type": "image/jpeg",
+      "src": "/chipng_exact_tile.png",
+      "type": "image/png",
       "sizes": "192x192"
+    },
+    {
+      "src": "/chipng_exact_tile.png",
+      "type": "image/png",
+      "sizes": "512x512"
     },
     {
       "src": "/chipng_3d_logo.jpg",
       "type": "image/jpeg",
-      "sizes": "512x512"
+      "sizes": "1024x1024"
     }
   ],
   "start_url": ".",

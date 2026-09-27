@@ -1,13 +1,15 @@
 import React from 'react';
-import chipng3dLogo from '../assets/images/chipng_3d_logo_1790417547026.jpg';
+import chipngExactTile from '../assets/images/chipng_exact_tile.png';
+import chipngExactFull from '../assets/images/chipng_exact_3d_1790453078487.jpg';
 
 export interface BrandLogoProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   withWordmark?: boolean;
   wordmarkClass?: string;
   subtitle?: string;
   className?: string;
   iconOnly?: boolean;
+  useFullBadge?: boolean;
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
@@ -17,66 +19,70 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   subtitle,
   className = '',
   iconOnly = false,
+  useFullBadge = false,
 }) => {
-  // Dimension mappings ensuring clean, crisp raster scaling without blur
+  // Dimension mappings tuned for the exact 3D CHIPNG squircle emblem
   const sizeMap = {
     xs: {
-      box: 'w-6 h-6 rounded-lg',
-      img: 'w-6 h-6',
-      text: 'text-sm',
+      box: 'w-7 h-7 rounded-lg',
+      img: 'w-7 h-7',
+      text: 'text-sm font-bold',
       subText: 'text-[9px]',
       gap: 'gap-2',
     },
     sm: {
-      box: 'w-8 h-8 rounded-xl',
-      img: 'w-8 h-8',
+      box: 'w-9 h-9 rounded-xl',
+      img: 'w-9 h-9',
       text: 'text-base font-bold',
       subText: 'text-[10px]',
       gap: 'gap-2.5',
     },
     md: {
-      box: 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl',
-      img: 'w-9 h-9 sm:w-10 sm:h-10',
+      box: 'w-10 h-10 sm:w-11 sm:h-11 rounded-xl',
+      img: 'w-10 h-10 sm:w-11 sm:h-11',
       text: 'text-lg sm:text-xl font-bold',
       subText: 'text-[10px]',
       gap: 'gap-3',
     },
     lg: {
-      box: 'w-12 h-12 rounded-2xl',
-      img: 'w-12 h-12',
+      box: 'w-14 h-14 rounded-2xl',
+      img: 'w-14 h-14',
       text: 'text-2xl font-extrabold',
       subText: 'text-xs',
       gap: 'gap-3.5',
     },
     xl: {
-      box: 'w-16 h-16 rounded-3xl',
-      img: 'w-16 h-16',
+      box: 'w-20 h-20 rounded-3xl',
+      img: 'w-20 h-20',
       text: 'text-3xl font-extrabold',
       subText: 'text-sm',
       gap: 'gap-4',
     },
+    '2xl': {
+      box: 'w-28 h-28 rounded-[2rem]',
+      img: 'w-28 h-28',
+      text: 'text-4xl font-extrabold',
+      subText: 'text-base',
+      gap: 'gap-5',
+    },
   };
 
   const currentSize = sizeMap[size] || sizeMap.md;
+  const imageSrc = useFullBadge ? chipngExactFull : chipngExactTile;
 
   return (
     <div className={`inline-flex items-center ${currentSize.gap} group select-none ${className}`}>
-      {/* 3D CHIPNG Logo Emblem Container */}
+      {/* Exact 3D CHIPNG Logo Emblem Tile */}
       <div
-        className={`relative ${currentSize.box} shrink-0 overflow-hidden bg-neutral-900/5 dark:bg-white/5 border border-neutral-200/90 dark:border-white/15 shadow-xs group-hover:shadow-md group-hover:scale-105 transition-all duration-300 ease-out`}
-        style={{
-          boxShadow: '0 2px 10px -2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
-        }}
+        className={`relative ${currentSize.box} shrink-0 overflow-hidden flex items-center justify-center transition-all duration-300 ease-out group-hover:scale-105 group-hover:drop-shadow-md`}
       >
         <img
-          src={chipng3dLogo}
-          alt="CHIPNG 3D Logo"
-          className="w-full h-full object-cover object-center transform scale-105 group-hover:scale-110 transition-transform duration-300 will-change-transform"
+          src={imageSrc}
+          alt="CHIPNG 3D Brand Logo"
+          className="w-full h-full object-contain filter drop-shadow-sm will-change-transform"
           loading="eager"
           decoding="async"
         />
-        {/* Subtle sheen highlight border for high-end 3D finish */}
-        <div className="absolute inset-0 rounded-[inherit] pointer-events-none ring-1 ring-inset ring-black/5 dark:ring-white/10" />
       </div>
 
       {/* Brand Typography (Wordmark) */}
