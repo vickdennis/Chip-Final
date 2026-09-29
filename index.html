@@ -12,8 +12,12 @@
     <meta name="author" content="CHIP NG" />
     <meta name="robots" content="index, follow" />
 
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="googleb62d8b4d981ee167" />
+
     <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/png" href="/chipng_exact_tile.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/chipng_exact_tile.png" />
 
     <!-- Open Graph / Facebook -->
@@ -21,15 +25,18 @@
     <meta property="og:url" content="https://chipng.com/" />
     <meta property="og:title" content="CHIP NG — Smart NFC Business Cards & Link-in-Bio Platform" />
     <meta property="og:description" content="The definitive contactless NFC smart business cards and dynamic link-in-bio platform. Connect with a single tap, exchange verified contacts, and showcase your digital portfolio." />
-    <meta property="og:image" content="/chipng_3d_logo.jpg" />
+    <meta property="og:image" content="https://chipng.com/chipng_3d_logo.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:alt" content="CHIP NG 3D Emblem" />
     <meta property="og:site_name" content="CHIP NG" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://chipng.com/" />
-    <meta property="twitter:title" content="CHIP NG -- NFC Smart Business Cards & Digital Profiles" />
+    <meta property="twitter:title" content="CHIP NG — NFC Smart Business Cards & Digital Profiles" />
     <meta property="twitter:description" content="CHIP NG provides premium NFC smart business cards and the definitive link-in-bio platform for African professionals, creators, and visionaries. Establish your digital home today." />
-    <meta property="twitter:image" content="/chipng_3d_logo.jpg" />
+    <meta property="twitter:image" content="https://chipng.com/chipng_3d_logo.jpg" />
     <meta name="twitter:creator" content="@chipng_app" />
 
     <!-- Preconnect -->
@@ -39,14 +46,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="canonical" href="https://chipng.com/" />
 
-    <!-- Structured Data -->
+    <!-- Structured Data (Organization & Google Business Profile LocalBusiness) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "CHIP NG",
+        "alternateName": "CHIP Nigeria",
+        "image": "https://chipng.com/chipng_3d_logo.jpg",
+        "logo": "https://chipng.com/chipng_exact_tile.png",
+        "url": "https://chipng.com",
+        "telephone": "+2348100764154",
+        "email": "hello@chipng.com",
+        "priceRange": "₦₦",
+        "currenciesAccepted": "NGN, USD, GBP",
+        "paymentAccepted": "Cash, Credit Card, Debit Card, Paystack, Bank Transfer",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Lekki Phase 1",
+          "addressLocality": "Lagos",
+          "addressRegion": "Lagos State",
+          "postalCode": "105102",
+          "addressCountry": "NG"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 6.4474,
+          "longitude": 3.4831
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            "opens": "08:00",
+            "closes": "20:00"
+          }
+        ],
+        "sameAs": [
+          "https://tiktok.com/@chipng_app",
+          "https://instagram.com/chipng_app",
+          "https://twitter.com/chipng_app"
+        ],
+        "description": "CHIP NG provides contactless smart NFC business cards and the link-in-bio platform for professionals, corporate teams, and creators across Nigeria and Africa."
+      }
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "CHIP NG",
         "url": "https://chipng.com",
-        "logo": "https://chipng.com/icon.png",
+        "logo": "https://chipng.com/chipng_exact_tile.png",
         "sameAs": [
           "https://tiktok.com/@chipng_app"
         ],
@@ -54,7 +104,9 @@
         "contactPoint": {
           "@type": "ContactPoint",
           "telephone": "+2348100764154",
-          "contactType": "customer service"
+          "contactType": "customer service",
+          "areaServed": "NG",
+          "availableLanguage": ["en"]
         }
       }
     </script>
@@ -120,6 +172,31 @@
       }(window, document, 'ttq');
       </script>
       <!-- TikTok Pixel Code End -->
+
+      <!-- Meta / Facebook Pixel Code -->
+      <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '102938475618293');
+      fbq('track', 'PageView');
+      </script>
+      <!-- End Meta Pixel Code -->
+
+      <!-- Google Analytics (GA4) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-CHIPNGAPP0"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-CHIPNGAPP0');
+      </script>
+      <!-- End Google Analytics -->
   </head>
   <body>
     <div id="root"></div>
