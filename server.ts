@@ -509,6 +509,12 @@ async function startServer() {
         .select("slug, updated_at")
         .eq("is_published", true);
 
+      const { data: profiles } = await getSupabase()
+        .from("profiles")
+        .select("username, updated_at")
+        .not("username", "is", null)
+        .limit(200);
+
       const baseUrl = "https://chipng.com";
       const corePages = [
         { path: '', changefreq: 'daily', priority: '1.0' },
@@ -534,20 +540,29 @@ async function startServer() {
         { path: 'nfc-business-card-for-corporate-teams', changefreq: 'weekly', priority: '0.85' },
       ];
 
+      const validProfiles = (profiles || []).filter(p => p.username && !['admin', 'login', 'dashboard', 'settings', 'checkout', 'api', 'blog', 'company', 'contact', 'updates', 'shipping'].includes(p.username.toLowerCase()));
+
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${corePages.map(p => `
   <url>
-    <loc>${baseUrl}/${p.path}</loc>
+    <loc>${baseUrl}/${p.path ? p.path : ''}</loc>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`).join('')}
   ${(posts || []).map(post => `
   <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
-    <lastmod>${post.updated_at ? new Date(post.updated_at).toISOString() : new Date().toISOString()}</lastmod>
+    <lastmod>${post.updated_at ? new Date(post.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>`).join("")}
+  ${validProfiles.map(prof => `
+  <url>
+    <loc>${baseUrl}/${prof.username}</loc>
+    <lastmod>${prof.updated_at ? new Date(prof.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>`).join("")}
 </urlset>`;
 
@@ -561,7 +576,7 @@ async function startServer() {
 
   app.get("/robots.txt", (req, res) => {
     const robots = `User-agent: *
-Allow: /blog/
+Allow: /
 
 Sitemap: https://chipng.com/sitemap.xml`;
     res.header("Content-Type", "text/plain");
