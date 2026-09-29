@@ -1284,19 +1284,24 @@ Ref: ${payment_reference}`,
             template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
           } else if (urlPath.startsWith('/blog/') && urlPath.length > 6) {
             const slug = urlPath.slice(6);
-            let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url FROM local_posts WHERE slug = ?').get(slug);
+            let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url, excerpt, content FROM local_posts WHERE slug = ?').get(slug);
             if (!post) {
-              const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url').eq('slug', slug).single();
+              const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url, excerpt, content').eq('slug', slug).single();
               if (data) post = data;
             }
             if (post) {
-              const title = post.meta_title || post.title;
-              const desc = post.meta_description || '';
+              const title = post.meta_title || `${post.title} — CHIP NG`;
+              const cleanDesc = (post.meta_description || post.excerpt || post.content || '')
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/[#*_~`>\[\]]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 160) || 'Official CHIP NG Blog & Thought Leadership';
               template = template.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
               template = template.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${title}" />`);
-              template = template.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${desc}" />`);
+              template = template.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${cleanDesc}" />`);
               template = template.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${title}" />`);
-              template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${desc}" />`);
+              template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${cleanDesc}" />`);
               if (post.cover_image_url) {
                  template = template.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${post.cover_image_url}" />`);
                  template = template.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/, `<meta name="twitter:image" content="${post.cover_image_url}" />`);
@@ -1353,19 +1358,24 @@ Ref: ${payment_reference}`,
           html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
         } else if (urlPath.startsWith('/blog/') && urlPath.length > 6) {
           const slug = urlPath.slice(6);
-          let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url FROM local_posts WHERE slug = ?').get(slug);
+          let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url, excerpt, content FROM local_posts WHERE slug = ?').get(slug);
           if (!post) {
-            const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url').eq('slug', slug).single();
+            const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url, excerpt, content').eq('slug', slug).single();
             if (data) post = data;
           }
           if (post) {
-            const title = post.meta_title || post.title;
-            const desc = post.meta_description || '';
+            const title = post.meta_title || `${post.title} — CHIP NG`;
+            const cleanDesc = (post.meta_description || post.excerpt || post.content || '')
+              .replace(/<[^>]*>/g, ' ')
+              .replace(/[#*_~`>\[\]]/g, '')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .slice(0, 160) || 'Official CHIP NG Blog & Thought Leadership';
             html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
             html = html.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${title}" />`);
-            html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${desc}" />`);
+            html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${cleanDesc}" />`);
             html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${title}" />`);
-            html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${desc}" />`);
+            html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${cleanDesc}" />`);
             if (post.cover_image_url) {
                html = html.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${post.cover_image_url}" />`);
                html = html.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/, `<meta name="twitter:image" content="${post.cover_image_url}" />`);
