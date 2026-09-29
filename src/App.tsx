@@ -10,12 +10,56 @@ import BlogArticleView from './views/BlogArticleView';
 import NfcSalesView from './views/NfcSalesView';
 import PrivacyPolicyView from './views/PrivacyPolicyView';
 import TermsOfServiceView from './views/TermsOfServiceView';
+import ShippingPolicyView from './views/ShippingPolicyView';
+import RefundPolicyView from './views/RefundPolicyView';
+import CommercialLandingView from './views/CommercialLandingView';
 import { MakroCompanyView } from './views/MakroCompanyView';
 import { MakroUpdatesView } from './views/MakroUpdatesView';
 import { MakroContactView } from './views/MakroContactView';
+import { COMMERCIAL_PAGES } from './data/commercialPagesData';
 import { supabase } from './supabaseClient';
 
-export type ViewState = 'landing' | 'company' | 'updates' | 'contact' | 'login' | 'user-dashboard' | 'public-profile' | 'admin-dashboard' | 'enterprise-dashboard' | 'blog-directory' | 'blog-article' | 'nfc-sales' | 'privacy-policy' | 'terms-of-service';
+export type ViewState = 
+  | 'landing' 
+  | 'company' 
+  | 'updates' 
+  | 'contact' 
+  | 'login' 
+  | 'user-dashboard' 
+  | 'public-profile' 
+  | 'admin-dashboard' 
+  | 'enterprise-dashboard' 
+  | 'blog-directory' 
+  | 'blog-article' 
+  | 'nfc-sales' 
+  | 'privacy-policy' 
+  | 'terms-of-service'
+  | 'shipping'
+  | 'refund-policy'
+  | 'commercial-landing';
+
+const RESERVED_CORE_ROUTES = new Set([
+  '',
+  '/',
+  'admin',
+  'enterprise',
+  'login',
+  'dashboard',
+  'blog',
+  'company',
+  'about',
+  'updates',
+  'contact',
+  'buy-card',
+  'shop',
+  'privacy',
+  'privacy-policy',
+  'terms',
+  'terms-of-service',
+  'refund-policy',
+  'shipping',
+  'api'
+]);
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -35,37 +79,62 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  const [commercialSlug, setCommercialSlug] = useState<string | null>(() => {
+    const rawPath = window.location.pathname.replace(/^\/|\/$/g, "");
+    if (COMMERCIAL_PAGES[rawPath]) {
+      return rawPath;
+    }
+    return null;
+  });
+
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
+    const cleanSegment = path.replace(/^\//, '');
+
+    if (COMMERCIAL_PAGES[cleanSegment]) {
+      return 'commercial-landing';
+    }
     if (path === '/admin') return 'admin-dashboard';
     if (path === '/enterprise') return 'enterprise-dashboard';
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
     if (path === '/blog') return 'blog-directory';
-    if (path === '/company') return 'company';
+    if (path === '/company' || path === '/about') return 'company';
     if (path === '/updates') return 'updates';
     if (path === '/contact') return 'contact';
-    if (path === '/buy-card') return 'nfc-sales';
-    if (path === '/privacy-policy') return 'privacy-policy';
-    if (path === '/terms-of-service') return 'terms-of-service';
+    if (path === '/buy-card' || path === '/shop') return 'nfc-sales';
+    if (path === '/privacy-policy' || path === '/privacy') return 'privacy-policy';
+    if (path === '/terms-of-service' || path === '/terms') return 'terms-of-service';
+    if (path === '/shipping') return 'shipping';
+    if (path === '/refund-policy') return 'refund-policy';
     if (path.startsWith('/blog/')) return 'blog-article';
-    if (path !== '' && path !== '/') {
+    
+    if (path !== '' && path !== '/' && !RESERVED_CORE_ROUTES.has(cleanSegment)) {
       return 'public-profile';
     }
     return 'landing';
   });
+
   const [sessionLoading, setSessionLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const [publicUsername, setPublicUsername] = useState<string | null>(() => {
     const path = window.location.pathname.replace(/\/$/, "");
-    if (path !== '' && path !== '/' && path !== '/buy-card' && path !== '/login' && path !== '/dashboard' && path !== '/admin' && path !== '/enterprise' && path !== '/blog' && path !== '/company' && path !== '/updates' && path !== '/contact' && path !== '/privacy-policy' && path !== '/terms-of-service' && !path.startsWith('/blog/')) {
+    const cleanSegment = path.replace(/^\//, '');
+
+    if (
+      path !== '' && 
+      path !== '/' && 
+      !RESERVED_CORE_ROUTES.has(cleanSegment) && 
+      !COMMERCIAL_PAGES[cleanSegment] && 
+      !path.startsWith('/blog/')
+    ) {
       try {
-        let username = decodeURIComponent(path.slice(1)).trim();
+        let username = decodeURIComponent(cleanSegment).trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
         if (username.startsWith('@')) username = username.slice(1);
         return username;
       } catch (e) {
-        let username = path.slice(1).trim();
+        let username = cleanSegment.trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
         if (username.startsWith('@')) username = username.slice(1);
         return username;
@@ -73,6 +142,7 @@ export default function App() {
     }
     return null;
   });
+
   const [autoDownloadVCard, setAutoDownloadVCard] = useState<boolean>(() => {
     return window.location.pathname.endsWith('/vcard') || window.location.pathname.endsWith('/vcard/');
   });
@@ -122,18 +192,21 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (sessionLoading && !publicUsername) {
-    return <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] font-sans flex items-center justify-center">Loading...</div>;
+  if (sessionLoading && !publicUsername && !commercialSlug) {
+    return <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] font-sans flex items-center justify-center font-bold text-xs uppercase tracking-wider text-neutral-400">Loading CHIP NG...</div>;
   }
 
   // Set the browser URL back to root when navigating away from a public profile to a core app view.
-  const handleNavigate = (view: ViewState) => {
+  const handleNavigate = (view: ViewState, slug?: string) => {
     if (view !== 'public-profile' && publicUsername) {
       window.history.pushState({}, '', '/');
       setPublicUsername(null);
     }
     if (view !== 'blog-article' && blogSlug) {
       setBlogSlug(null);
+    }
+    if (view !== 'commercial-landing' && commercialSlug) {
+      setCommercialSlug(null);
     }
 
     if (view === 'landing') {
@@ -152,6 +225,10 @@ export default function App() {
       window.history.pushState({}, '', '/privacy-policy');
     } else if (view === 'terms-of-service') {
       window.history.pushState({}, '', '/terms-of-service');
+    } else if (view === 'shipping') {
+      window.history.pushState({}, '', '/shipping');
+    } else if (view === 'refund-policy') {
+      window.history.pushState({}, '', '/refund-policy');
     } else if (view === 'blog-directory') {
       window.history.pushState({}, '', '/blog');
     } else if (view === 'company') {
@@ -160,6 +237,9 @@ export default function App() {
       window.history.pushState({}, '', '/updates');
     } else if (view === 'contact') {
       window.history.pushState({}, '', '/contact');
+    } else if (view === 'commercial-landing' && slug) {
+      window.history.pushState({}, '', `/${slug}`);
+      setCommercialSlug(slug);
     }
 
     setCurrentView(view);
@@ -187,6 +267,17 @@ export default function App() {
       {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
       {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
+      {currentView === 'shipping' && <ShippingPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'refund-policy' && <RefundPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'commercial-landing' && commercialSlug && (
+        <CommercialLandingView 
+          slug={commercialSlug} 
+          onNavigate={handleNavigate} 
+          isDarkMode={isDarkMode} 
+          toggleDarkMode={() => setIsDarkMode(!isDarkMode)} 
+          session={session} 
+        />
+      )}
     </div>
   );
 }

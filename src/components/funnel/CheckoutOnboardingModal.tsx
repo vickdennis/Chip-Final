@@ -102,8 +102,8 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
     setPaymentSuccess({ ...reference, reference: refString });
 
     try {
-      // Save sale to SQLite database
-      await fetch('/api/sales', {
+      // Secure Server-Side Paystack Verification and Order Persistence
+      const verifyRes = await fetch(`/api/paystack/verify/${encodeURIComponent(refString)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,9 +112,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           phone: data.whatsapp || '',
           card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
           amount: totalAmountKobo,
-          payment_reference: refString,
         }),
       });
+
+      if (!verifyRes.ok) {
+        console.warn('Server verification returned non-OK status, falling back to client record');
+      }
 
       // Update funnel lead stage to converted
       await fetch('/api/funnel/lead', {
