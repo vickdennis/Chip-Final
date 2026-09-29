@@ -6,6 +6,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { ArrowRight, Clock, Rss, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { extractCleanExcerpt, calculateReadingTime } from '../utils/sanitizeHtml';
 
 interface BlogPost {
   id: string;
@@ -88,6 +89,21 @@ export default function BlogDirectoryView({
 
   const fetchPosts = async () => {
     try {
+      // 1. Try backend API first
+      try {
+        const apiRes = await fetch('/api/posts');
+        if (apiRes.ok) {
+          const apiData = await apiRes.json();
+          const published = (apiData || []).filter((p: any) => p.is_published);
+          if (published.length > 0) {
+            setPosts(published);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 2. Fetch from Supabase
       const { data, error } = await supabase
         .from('posts')
         .select('id, title, slug, excerpt, cover_image_url, published_at, keywords, content')
@@ -107,9 +123,12 @@ export default function BlogDirectoryView({
   };
 
   const filteredPosts = posts.filter((post) => {
+    const cleanExcerpt = extractCleanExcerpt(post.excerpt || post.content, 300).toLowerCase();
+    const query = searchQuery.toLowerCase();
     const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+      post.title.toLowerCase().includes(query) ||
+      cleanExcerpt.includes(query) ||
+      (post.keywords && post.keywords.some((k) => k.toLowerCase().includes(query)));
     const matchesTag =
       selectedTag === 'All' ||
       (post.keywords && post.keywords.some((k) => k.toLowerCase() === selectedTag.toLowerCase()));
@@ -241,11 +260,14 @@ export default function BlogDirectoryView({
                 onClick={() => onNavigateToArticle(featuredPost.slug)}
                 className="group cursor-pointer grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-neutral-50 dark:bg-[#12141B] rounded-3xl p-6 sm:p-8 border border-neutral-200/80 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all"
               >
-                <div className="lg:col-span-7 rounded-2xl overflow-hidden aspect-[16/9] relative">
+                <div className="lg:col-span-7 rounded-2xl overflow-hidden aspect-[16/9] relative bg-neutral-900">
                   <img
-                    src={featuredPost.cover_image_url}
+                    src={featuredPost.cover_image_url || '/chipng_3d_logo.jpg'}
                     alt={featuredPost.title}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/chipng_3d_logo.jpg';
+                    }}
                   />
                   <div className="absolute top-4 left-4 bg-neutral-950/80 backdrop-blur-md text-white text-[10px] font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                     Featured Analysis
@@ -260,7 +282,7 @@ export default function BlogDirectoryView({
                     <span>·</span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      5 min read
+                      {calculateReadingTime(featuredPost.content)}
                     </span>
                   </div>
 
@@ -269,7 +291,7 @@ export default function BlogDirectoryView({
                   </h2>
 
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed">
-                    {featuredPost.excerpt}
+                    {extractCleanExcerpt(featuredPost.excerpt || featuredPost.content, 180)}
                   </p>
 
                   <div className="pt-2 flex items-center gap-2 text-xs font-bold text-neutral-950 dark:text-white">
@@ -285,48 +307,63 @@ export default function BlogDirectoryView({
         {/* Article Grid */}
         <section className="py-16 md:py-20">
           <div className="max-w-7xl mx-auto px-6 sm:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {remainingPosts.map((post) => (
-                <article
-                  key={post.id}
-                  onClick={() => onNavigateToArticle(post.slug)}
-                  className="group cursor-pointer bg-white dark:bg-[#12141B] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between shadow-xs"
-                >
-                  <div className="space-y-4">
-                    <div className="rounded-2xl overflow-hidden aspect-[16/10] bg-neutral-100 dark:bg-neutral-800">
-                      <img
-                        src={post.cover_image_url}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
-                      />
+            {remainingPosts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {remainingPosts.map((post) => (
+                  <article
+                    key={post.id}
+                    onClick={() => onNavigateToArticle(post.slug)}
+                    className="group cursor-pointer bg-white dark:bg-[#12141B] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between shadow-xs"
+                  >
+                    <div className="space-y-4">
+                      <div className="rounded-2xl overflow-hidden aspect-[16/10] bg-neutral-100 dark:bg-neutral-800">
+                        <img
+                          src={post.cover_image_url || '/chipng_3d_logo.jpg'}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/chipng_3d_logo.jpg';
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-neutral-500 font-mono">
+                        <span className="text-[#84A900] dark:text-[#D2F843] font-semibold">
+                          {post.keywords?.[0] || 'Article'}
+                        </span>
+                        <span>·</span>
+                        <time>
+                          {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Recently'}
+                        </time>
+                      </div>
+
+                      <h3 className="text-lg font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#84A900] dark:group-hover:text-[#D2F843] transition-colors leading-snug">
+                        {post.title}
+                      </h3>
+
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed">
+                        {extractCleanExcerpt(post.excerpt || post.content, 140)}
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-neutral-500 font-mono">
-                      <span className="text-[#84A900] dark:text-[#D2F843] font-semibold">
-                        {post.keywords?.[0] || 'Article'}
-                      </span>
-                      <span>·</span>
-                      <time>
-                        {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Recently'}
-                      </time>
+                    <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-neutral-200">
+                      <span>Read post</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </div>
-
-                    <h3 className="text-lg font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#84A900] dark:group-hover:text-[#D2F843] transition-colors leading-snug">
-                      {post.title}
-                    </h3>
-
-                    <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
-                      {post.excerpt}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-neutral-200">
-                    <span>Read post</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="text-center py-16 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 mx-auto flex items-center justify-center text-neutral-400">
+                  <Search className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold">No articles found</h3>
+                <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                  No published articles matched "{searchQuery}". Try searching for terms like "Realtor", "NFC", "Lagos", or "Price".
+                </p>
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

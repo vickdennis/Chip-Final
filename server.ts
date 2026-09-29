@@ -60,6 +60,24 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS local_posts (
+    id TEXT PRIMARY KEY,
+    title TEXT,
+    slug TEXT UNIQUE,
+    content TEXT,
+    excerpt TEXT,
+    cover_image_url TEXT,
+    meta_title TEXT,
+    meta_description TEXT,
+    keywords TEXT,
+    is_published INTEGER DEFAULT 1,
+    published_at TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS seo_keywords (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     keyword_phrase TEXT NOT NULL,
@@ -481,6 +499,117 @@ async function startServer() {
       db.prepare('INSERT OR REPLACE INTO post_buybox_mapping (post_slug, product_id) VALUES (?, ?)').run(post_slug, product_id);
       res.json({ success: true });
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
+  });
+
+  // --- Blog Posts Endpoints ---
+  app.get('/api/posts', async (req, res) => {
+    try {
+      let supabasePosts: any[] = [];
+      try {
+        const { data } = await getSupabase().from('posts').select('*').order('created_at', { ascending: false });
+        if (data) supabasePosts = data;
+      } catch (e) {}
+
+      const localPosts = db.prepare('SELECT * FROM local_posts ORDER BY created_at DESC').all().map((p: any) => ({
+        ...p,
+        is_published: Boolean(p.is_published),
+        keywords: p.keywords ? JSON.parse(p.keywords) : []
+      }));
+
+      const postMap = new Map();
+      supabasePosts.forEach(p => postMap.set(p.slug, p));
+      localPosts.forEach(p => postMap.set(p.slug, { ...(postMap.get(p.slug) || {}), ...p }));
+
+      const allPosts = Array.from(postMap.values()).sort((a, b) => {
+        const dateA = new Date(a.published_at || a.created_at || 0).getTime();
+        const dateB = new Date(b.published_at || b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+
+      res.json(allPosts);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get('/api/posts/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const local = db.prepare('SELECT * FROM local_posts WHERE slug = ?').get(slug);
+      if (local) {
+        return res.json({
+          ...local,
+          is_published: Boolean(local.is_published),
+          keywords: local.keywords ? JSON.parse(local.keywords) : []
+        });
+      }
+
+      const { data } = await getSupabase().from('posts').select('*').eq('slug', slug).single();
+      if (data) return res.json(data);
+      res.status(404).json({ error: 'Post not found' });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/posts', async (req, res) => {
+    try {
+      const {
+        id, title, slug, content, excerpt, cover_image_url,
+        meta_title, meta_description, keywords, is_published, published_at
+      } = req.body;
+
+      const recordId = id || `post-${Date.now()}`;
+      const now = new Date().toISOString();
+      const kwJson = JSON.stringify(Array.isArray(keywords) ? keywords : []);
+
+      db.prepare(`
+        INSERT INTO local_posts (id, title, slug, content, excerpt, cover_image_url, meta_title, meta_description, keywords, is_published, published_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(slug) DO UPDATE SET
+          title=excluded.title,
+          content=excluded.content,
+          excerpt=excluded.excerpt,
+          cover_image_url=excluded.cover_image_url,
+          meta_title=excluded.meta_title,
+          meta_description=excluded.meta_description,
+          keywords=excluded.keywords,
+          is_published=excluded.is_published,
+          published_at=excluded.published_at,
+          updated_at=excluded.updated_at
+      `).run(
+        recordId, title, slug, content, excerpt, cover_image_url,
+        meta_title, meta_description, kwJson, is_published ? 1 : 0, published_at || now, now
+      );
+
+      try {
+        const payload = {
+          title, slug, content, excerpt, cover_image_url,
+          meta_title, meta_description, keywords: Array.isArray(keywords) ? keywords : [],
+          is_published: Boolean(is_published),
+          published_at: published_at || now,
+          updated_at: now
+        };
+        await getSupabase().from('posts').upsert([payload], { onConflict: 'slug' });
+      } catch (e) {}
+
+      res.json({ success: true, slug, id: recordId });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete('/api/posts/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      db.prepare('DELETE FROM local_posts WHERE id = ? OR slug = ?').run(id, id);
+      try {
+        await getSupabase().from('posts').delete().eq('id', id);
+      } catch (e) {}
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   app.delete('/api/products/:id', (req, res) => {
@@ -1144,7 +1273,7 @@ Ref: ${payment_reference}`,
           const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
           const supabase = createClient(supabaseUrl, supabaseKey);
 
-          const urlPath = req.path.replace(/\/$/, '') || '/';
+          const urlPath = (req.originalUrl || req.path || '').split('?')[0].replace(/\/$/, '') || '/';
 
           if (COMMERCIAL_META[urlPath]) {
             const meta = COMMERCIAL_META[urlPath];
@@ -1155,7 +1284,11 @@ Ref: ${payment_reference}`,
             template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
           } else if (urlPath.startsWith('/blog/') && urlPath.length > 6) {
             const slug = urlPath.slice(6);
-            const { data: post } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url').eq('slug', slug).single();
+            let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url FROM local_posts WHERE slug = ?').get(slug);
+            if (!post) {
+              const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url').eq('slug', slug).single();
+              if (data) post = data;
+            }
             if (post) {
               const title = post.meta_title || post.title;
               const desc = post.meta_description || '';
@@ -1220,7 +1353,11 @@ Ref: ${payment_reference}`,
           html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
         } else if (urlPath.startsWith('/blog/') && urlPath.length > 6) {
           const slug = urlPath.slice(6);
-          const { data: post } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url').eq('slug', slug).single();
+          let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url FROM local_posts WHERE slug = ?').get(slug);
+          if (!post) {
+            const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url').eq('slug', slug).single();
+            if (data) post = data;
+          }
           if (post) {
             const title = post.meta_title || post.title;
             const desc = post.meta_description || '';
