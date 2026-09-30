@@ -124,12 +124,18 @@ export default function BlogArticleView({
         const apiRes = await fetch(`/api/posts/${slug}`);
         if (apiRes.ok) {
           const apiData = await apiRes.json();
-          if (apiData && apiData.is_published) {
+          if (apiData) {
             setPost(apiData);
             if (apiData.category) setArticleCategory(apiData.category);
 
-            // Register view count
-            fetch(`/api/post-view/${slug}`, { method: 'POST' }).catch(() => {});
+            // Register view count once per user session
+            try {
+              if (apiData.is_published && typeof window !== 'undefined' && !sessionStorage.getItem(`viewed_blog_${slug}`)) {
+                sessionStorage.setItem(`viewed_blog_${slug}`, '1');
+                fetch(`/api/post-view/${slug}`, { method: 'POST' }).catch(() => {});
+              }
+            } catch (e) {}
+
             setLoading(false);
             return;
           }
@@ -322,6 +328,14 @@ export default function BlogArticleView({
       />
 
       <main className="flex-1 pb-24">
+        {/* Draft Notice if post is unpublished */}
+        {post.is_published === false && (
+          <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-700 dark:text-amber-300 px-4 py-2.5 text-center text-xs font-semibold flex items-center justify-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span>Draft Preview Mode: This article is currently unpublished and only accessible via direct preview link.</span>
+          </div>
+        )}
+
         {/* Breadcrumb Navigation */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
           <button

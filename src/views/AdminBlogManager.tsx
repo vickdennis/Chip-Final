@@ -95,6 +95,19 @@ export default function AdminBlogManager() {
   const [deleteConfirmPost, setDeleteConfirmPost] = useState<BlogPostRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // In-app Notification / Toast
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast((prev) => (prev?.message === message ? null : prev));
+    }, 4500);
+  };
+
+  // Discard & Resume Modals
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [resumeDraftPrompt, setResumeDraftPrompt] = useState<any>(null);
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -190,7 +203,7 @@ export default function AdminBlogManager() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Only image files (JPEG, PNG, WEBP) are allowed.');
+      showToast('Only image files (JPEG, PNG, WEBP) are allowed.', 'error');
       return;
     }
 
@@ -210,8 +223,9 @@ export default function AdminBlogManager() {
 
       const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
       setPostForm({ ...postForm, cover_image_url: data.publicUrl });
+      showToast('Cover image uploaded successfully.', 'success');
     } catch (error: any) {
-      alert('Error uploading cover image: ' + error.message);
+      showToast('Error uploading cover image: ' + error.message, 'error');
     } finally {
       setUploadingImage(false);
     }
@@ -220,28 +234,29 @@ export default function AdminBlogManager() {
   const handleGenerateExcerpt = () => {
     const clean = extractCleanExcerpt(postForm.content, 160);
     if (!clean) {
-      alert('Write some article content first to extract an excerpt.');
+      showToast('Write some article content first to extract an excerpt.', 'info');
       return;
     }
     setPostForm({ ...postForm, excerpt: clean });
+    showToast('Excerpt extracted from content.', 'success');
   };
 
   const savePost = async (publish: boolean) => {
     if (!postForm.title.trim()) {
-      alert('Please enter an article title.');
+      showToast('Please enter an article title.', 'error');
       return;
     }
 
     const slug = postForm.slug.trim() || generateSlug(postForm.title);
     if (!slug) {
-      alert('Please provide a URL slug.');
+      showToast('Please provide a URL slug.', 'error');
       return;
     }
 
     // Slug uniqueness validation
     const duplicate = posts.find(p => p.slug === slug && (!editingPost || p.id !== editingPost.id));
     if (duplicate) {
-      alert(`The slug "/blog/${slug}" is already in use by article "${duplicate.title}". Please choose a unique slug.`);
+      showToast(`The slug "/blog/${slug}" is already in use by "${duplicate.title}". Please choose a unique slug.`, 'error');
       return;
     }
 
@@ -267,6 +282,9 @@ export default function AdminBlogManager() {
         is_published: publish,
         published_at: publish ? (editingPost?.published_at || new Date().toISOString()) : (editingPost?.is_published ? editingPost.published_at : null),
         updated_at: new Date().toISOString(),
+        author: postForm.author.trim() || 'CHIP NG Editorial',
+        category: postForm.category || 'NFC Technology',
+        focus_keyword: postForm.focus_keyword.trim(),
       };
 
       // 1. Save via backend API
@@ -289,31 +307,13 @@ export default function AdminBlogManager() {
         }
       } catch (e) {}
 
-      // Sync category and focus keyword to backend SQLite
-      try {
-        await fetch('/api/post-categories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ post_slug: slug, category: postForm.category }),
-        });
-
-        await fetch('/api/post-meta', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            post_slug: slug,
-            focus_keyword: postForm.focus_keyword,
-          }),
-        });
-      } catch (e) {}
-
       localStorage.removeItem('chipng_blog_autosave');
-      alert(publish ? 'Article published successfully!' : 'Draft saved successfully!');
+      showToast(publish ? 'Article published successfully!' : 'Draft saved successfully!', 'success');
       setCreatingPost(false);
       setEditingPost(null);
       fetchPosts();
     } catch (err: any) {
-      alert('Error saving article: ' + err.message);
+      showToast('Error saving article: ' + err.message, 'error');
     } finally {
       setSavingPost(false);
     }
@@ -347,8 +347,9 @@ export default function AdminBlogManager() {
       } catch (e) {}
 
       fetchPosts();
+      showToast(nextStatus ? 'Article published.' : 'Article changed to draft.', 'success');
     } catch (e: any) {
-      alert('Error updating status: ' + e.message);
+      showToast('Error updating status: ' + e.message, 'error');
     }
   };
 
@@ -363,9 +364,10 @@ export default function AdminBlogManager() {
       } catch (e) {}
 
       setDeleteConfirmPost(null);
+      showToast('Article deleted successfully.', 'success');
       fetchPosts();
     } catch (e: any) {
-      alert('Error deleting post: ' + e.message);
+      showToast('Error deleting post: ' + e.message, 'error');
     } finally {
       setDeletingId(null);
     }
@@ -377,10 +379,8 @@ export default function AdminBlogManager() {
     if (autosaved) {
       try {
         const parsed = JSON.parse(autosaved);
-        if (confirm(`Resume previously autosaved draft from ${parsed.timestamp}?`)) {
-          setPostForm(parsed.form);
-          setTagsInput((parsed.form.keywords || []).join(', '));
-          setCreatingPost(true);
+        if (parsed?.form?.title) {
+          setResumeDraftPrompt(parsed);
           return;
         }
       } catch (e) {}
@@ -453,8 +453,11 @@ export default function AdminBlogManager() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200/80 dark:border-white/10 mb-6">
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => {
-                if (confirm('Discard changes and return to article list?')) {
+                if (postForm.title.trim()) {
+                  setConfirmDiscard(true);
+                } else {
                   setCreatingPost(false);
                   setEditingPost(null);
                 }
@@ -757,6 +760,63 @@ export default function AdminBlogManager() {
           onClose={() => setPreviewPostData(null)}
           post={previewPostData || postForm}
         />
+
+        {/* Confirm Discard Modal */}
+        {confirmDiscard && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white dark:bg-[#12141A] w-full max-w-sm rounded-3xl border border-neutral-200 dark:border-white/10 shadow-2xl p-6 text-neutral-900 dark:text-white space-y-4">
+              <h3 className="text-base font-bold text-center">Discard unsaved changes?</h3>
+              <p className="text-xs text-neutral-500 text-center">
+                Any modifications made to this article will be lost unless you save a draft.
+              </p>
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDiscard(false)}
+                  className="flex-1 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+                >
+                  Keep Editing
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmDiscard(false);
+                    setCreatingPost(false);
+                    setEditingPost(null);
+                  }}
+                  className="flex-1 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 cursor-pointer"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* In-app Toast Banner */}
+        {toast && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-3 duration-300">
+            <div className={`px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-xs font-semibold ${
+              toast.type === 'success'
+                ? 'bg-neutral-950 text-white border-neutral-800 dark:bg-white dark:text-neutral-950'
+                : toast.type === 'error'
+                ? 'bg-rose-600 text-white border-rose-500'
+                : 'bg-neutral-900 text-neutral-100 border-neutral-700'
+            }`}>
+              {toast.type === 'success' && <Check className="w-4 h-4 text-[#D2F843] dark:text-[#6a8700]" />}
+              {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-white" />}
+              {toast.type === 'info' && <Sparkles className="w-4 h-4 text-[#D2F843]" />}
+              <span>{toast.message}</span>
+              <button
+                type="button"
+                onClick={() => setToast(null)}
+                className="ml-2 text-neutral-400 hover:text-white dark:hover:text-neutral-900 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1080,6 +1140,76 @@ export default function AdminBlogManager() {
         onClose={() => setPreviewPostData(null)}
         post={previewPostData || {}}
       />
+
+      {/* Resume Autosaved Draft Modal */}
+      {resumeDraftPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-[#12141A] w-full max-w-sm rounded-3xl border border-neutral-200 dark:border-white/10 shadow-2xl p-6 text-neutral-900 dark:text-white space-y-4">
+            <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] flex items-center justify-center mx-auto">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold">Resume Autosaved Draft?</h3>
+              <p className="text-xs text-neutral-500">
+                Found an unsaved draft from {resumeDraftPrompt.timestamp}:
+              </p>
+              <p className="text-xs font-semibold italic text-neutral-900 dark:text-white line-clamp-1">
+                "{resumeDraftPrompt.form.title}"
+              </p>
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem('chipng_blog_autosave');
+                  setResumeDraftPrompt(null);
+                  setCreatingPost(true);
+                }}
+                className="flex-1 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+              >
+                Start Fresh
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPostForm(resumeDraftPrompt.form);
+                  setTagsInput((resumeDraftPrompt.form.keywords || []).join(', '));
+                  setResumeDraftPrompt(null);
+                  setCreatingPost(true);
+                }}
+                className="flex-1 py-2 rounded-xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 cursor-pointer"
+              >
+                Resume
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-app Toast Banner */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-3 duration-300">
+          <div className={`px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-xs font-semibold ${
+            toast.type === 'success'
+              ? 'bg-neutral-950 text-white border-neutral-800 dark:bg-white dark:text-neutral-950'
+              : toast.type === 'error'
+              ? 'bg-rose-600 text-white border-rose-500'
+              : 'bg-neutral-900 text-neutral-100 border-neutral-700'
+          }`}>
+            {toast.type === 'success' && <Check className="w-4 h-4 text-[#D2F843] dark:text-[#6a8700]" />}
+            {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-white" />}
+            {toast.type === 'info' && <Sparkles className="w-4 h-4 text-[#D2F843]" />}
+            <span>{toast.message}</span>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              className="ml-2 text-neutral-400 hover:text-white dark:hover:text-neutral-900 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

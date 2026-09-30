@@ -73,9 +73,14 @@ db.exec(`
     is_published INTEGER DEFAULT 1,
     published_at TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    author TEXT DEFAULT 'CHIP NG Editorial',
+    category TEXT DEFAULT 'NFC Technology'
   )
 `);
+
+try { db.prepare("ALTER TABLE local_posts ADD COLUMN author TEXT DEFAULT 'CHIP NG Editorial'").run(); } catch(e) {}
+try { db.prepare("ALTER TABLE local_posts ADD COLUMN category TEXT DEFAULT 'NFC Technology'").run(); } catch(e) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS seo_keywords (
@@ -510,14 +515,30 @@ async function startServer() {
         if (data) supabasePosts = data;
       } catch (e) {}
 
-      const localPosts = db.prepare('SELECT * FROM local_posts ORDER BY created_at DESC').all().map((p: any) => ({
+      const localPosts = db.prepare(`
+        SELECT 
+          lp.*,
+          COALESCE(lp.category, pc.category, 'NFC Technology') AS category,
+          COALESCE(lp.author, 'CHIP NG Editorial') AS author,
+          COALESCE(pm.views, 0) AS views,
+          COALESCE(pm.focus_keyword, '') AS focus_keyword
+        FROM local_posts lp
+        LEFT JOIN post_categories pc ON lp.slug = pc.post_slug
+        LEFT JOIN post_meta pm ON lp.slug = pm.post_slug
+        ORDER BY lp.created_at DESC
+      `).all().map((p: any) => ({
         ...p,
         is_published: Boolean(p.is_published),
         keywords: p.keywords ? JSON.parse(p.keywords) : []
       }));
 
       const postMap = new Map();
-      supabasePosts.forEach(p => postMap.set(p.slug, p));
+      supabasePosts.forEach(p => postMap.set(p.slug, {
+        author: 'CHIP NG Editorial',
+        category: 'NFC Technology',
+        views: 0,
+        ...p,
+      }));
       localPosts.forEach(p => postMap.set(p.slug, { ...(postMap.get(p.slug) || {}), ...p }));
 
       const allPosts = Array.from(postMap.values()).sort((a, b) => {
@@ -535,18 +556,53 @@ async function startServer() {
   app.get('/api/posts/:slug', async (req, res) => {
     try {
       const { slug } = req.params;
-      const local = db.prepare('SELECT * FROM local_posts WHERE slug = ?').get(slug);
+      const local = db.prepare(`
+        SELECT 
+          lp.*,
+          COALESCE(lp.category, pc.category, 'NFC Technology') AS category,
+          COALESCE(lp.author, 'CHIP NG Editorial') AS author,
+          COALESCE(pm.views, 0) AS views,
+          COALESCE(pm.focus_keyword, '') AS focus_keyword
+        FROM local_posts lp
+        LEFT JOIN post_categories pc ON lp.slug = pc.post_slug
+        LEFT JOIN post_meta pm ON lp.slug = pm.post_slug
+        WHERE lp.slug = ?
+      `).get(slug) as any;
+
       if (local) {
         return res.json({
           ...local,
           is_published: Boolean(local.is_published),
-          keywords: local.keywords ? JSON.parse(local.keywords) : []
+          keywords: local.keywords ? (typeof local.keywords === 'string' ? JSON.parse(local.keywords) : local.keywords) : []
         });
       }
 
       const { data } = await getSupabase().from('posts').select('*').eq('slug', slug).single();
-      if (data) return res.json(data);
+      if (data) {
+        const meta = db.prepare('SELECT views, focus_keyword FROM post_meta WHERE post_slug = ?').get(slug) as any;
+        const catRow = db.prepare('SELECT category FROM post_categories WHERE post_slug = ?').get(slug) as any;
+        return res.json({
+          author: 'CHIP NG Editorial',
+          category: catRow?.category || 'NFC Technology',
+          views: meta?.views || 0,
+          focus_keyword: meta?.focus_keyword || '',
+          ...data,
+        });
+      }
       res.status(404).json({ error: 'Post not found' });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get('/api/post-categories-all', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT post_slug, category FROM post_categories').all() as any[];
+      const map: Record<string, string> = {};
+      rows.forEach(r => { if (r.post_slug && r.category) map[r.post_slug] = r.category; });
+      const postRows = db.prepare("SELECT slug, category FROM local_posts WHERE category IS NOT NULL").all() as any[];
+      postRows.forEach(r => { if (r.slug && r.category && !map[r.slug]) map[r.slug] = r.category; });
+      res.json(map);
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
@@ -556,16 +612,19 @@ async function startServer() {
     try {
       const {
         id, title, slug, content, excerpt, cover_image_url,
-        meta_title, meta_description, keywords, is_published, published_at
+        meta_title, meta_description, keywords, is_published, published_at,
+        author, category, focus_keyword
       } = req.body;
 
       const recordId = id || `post-${Date.now()}`;
       const now = new Date().toISOString();
       const kwJson = JSON.stringify(Array.isArray(keywords) ? keywords : []);
+      const finalAuthor = (author && String(author).trim()) || 'CHIP NG Editorial';
+      const finalCategory = (category && String(category).trim()) || 'NFC Technology';
 
       db.prepare(`
-        INSERT INTO local_posts (id, title, slug, content, excerpt, cover_image_url, meta_title, meta_description, keywords, is_published, published_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO local_posts (id, title, slug, content, excerpt, cover_image_url, meta_title, meta_description, keywords, is_published, published_at, updated_at, author, category)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(slug) DO UPDATE SET
           title=excluded.title,
           content=excluded.content,
@@ -576,11 +635,25 @@ async function startServer() {
           keywords=excluded.keywords,
           is_published=excluded.is_published,
           published_at=excluded.published_at,
-          updated_at=excluded.updated_at
+          updated_at=excluded.updated_at,
+          author=excluded.author,
+          category=excluded.category
       `).run(
         recordId, title, slug, content, excerpt, cover_image_url,
-        meta_title, meta_description, kwJson, is_published ? 1 : 0, published_at || now, now
+        meta_title, meta_description, kwJson, is_published ? 1 : 0, published_at || now, now,
+        finalAuthor, finalCategory
       );
+
+      // Sync category and focus keyword in meta tables
+      try {
+        db.prepare('INSERT INTO post_categories (post_slug, category) VALUES (?, ?) ON CONFLICT(post_slug) DO UPDATE SET category=excluded.category').run(slug, finalCategory);
+      } catch (e) {}
+
+      if (focus_keyword) {
+        try {
+          db.prepare('INSERT INTO post_meta (post_slug, focus_keyword) VALUES (?, ?) ON CONFLICT(post_slug) DO UPDATE SET focus_keyword=excluded.focus_keyword').run(slug, focus_keyword);
+        } catch (e) {}
+      }
 
       try {
         const payload = {
@@ -602,7 +675,13 @@ async function startServer() {
   app.delete('/api/posts/:id', async (req, res) => {
     try {
       const { id } = req.params;
+      const post = db.prepare('SELECT slug FROM local_posts WHERE id = ? OR slug = ?').get(id, id) as any;
+      const slug = post?.slug || id;
+
       db.prepare('DELETE FROM local_posts WHERE id = ? OR slug = ?').run(id, id);
+      try { db.prepare('DELETE FROM post_categories WHERE post_slug = ?').run(slug); } catch (e) {}
+      try { db.prepare('DELETE FROM post_meta WHERE post_slug = ?').run(slug); } catch (e) {}
+
       try {
         await getSupabase().from('posts').delete().eq('id', id);
       } catch (e) {}

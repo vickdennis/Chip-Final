@@ -15,13 +15,29 @@ export function RelatedPosts({
   useEffect(() => {
     const fetchRelated = async () => {
       try {
-        // Fetch published posts excluding current post
-        const { data: posts } = await supabase
-          .from('posts')
-          .select('title, slug, excerpt, content, cover_image_url, keywords, published_at')
-          .eq('is_published', true)
-          .neq('slug', currentPostSlug)
-          .limit(10);
+        let posts: any[] = [];
+
+        // 1. Try local backend API first
+        try {
+          const apiRes = await fetch('/api/posts');
+          if (apiRes.ok) {
+            const apiPosts = await apiRes.json();
+            if (Array.isArray(apiPosts) && apiPosts.length > 0) {
+              posts = apiPosts.filter((p: any) => p.is_published && p.slug !== currentPostSlug);
+            }
+          }
+        } catch (e) {}
+
+        // 2. Fallback to Supabase if API returned empty
+        if (posts.length === 0) {
+          const { data } = await supabase
+            .from('posts')
+            .select('title, slug, excerpt, content, cover_image_url, keywords, published_at, category')
+            .eq('is_published', true)
+            .neq('slug', currentPostSlug)
+            .limit(10);
+          if (data) posts = data;
+        }
 
         if (!posts || posts.length === 0) return;
 
@@ -35,22 +51,24 @@ export function RelatedPosts({
         } catch (e) {}
 
         const currentCategory = categories[currentPostSlug] || '';
+        const currentKwList = Array.isArray(currentKeywords) ? currentKeywords : [];
 
         // Score posts based on keywords and category matches
         const scoredPosts = posts.map((post) => {
           let score = 0;
 
           // 1. Same keywords
-          if (post.keywords && currentKeywords) {
-            const intersection = post.keywords.filter((k: string) =>
-              currentKeywords.map((c) => c.toLowerCase()).includes(k.toLowerCase())
+          if (post.keywords && currentKwList.length > 0) {
+            const postKws = Array.isArray(post.keywords) ? post.keywords : [];
+            const intersection = postKws.filter((k: string) =>
+              currentKwList.some((c) => c && typeof c === 'string' && c.toLowerCase() === String(k).toLowerCase())
             );
             score += intersection.length * 10;
           }
 
           // 2. Same category
-          const postCat = categories[post.slug] || '';
-          if (postCat && postCat === currentCategory) {
+          const postCat = post.category || categories[post.slug] || '';
+          if (postCat && (postCat === currentCategory || currentKwList.includes(postCat))) {
             score += 5;
           }
 

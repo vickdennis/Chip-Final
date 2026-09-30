@@ -24,6 +24,9 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [htmlSource, setHtmlSource] = useState(content);
 
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkInputUrl, setLinkInputUrl] = useState('');
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -83,14 +86,26 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
 
   const handleLinkClick = () => {
     if (!editor) return;
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('Enter link URL (e.g. https://chipng.com or whatsapp link):', previousUrl || '');
-    if (url === null) return;
-    if (url.trim() === '') {
+    const previousUrl = editor.getAttributes('link').href || '';
+    setLinkInputUrl(previousUrl);
+    setIsLinkModalOpen(true);
+  };
+
+  const handleApplyLink = () => {
+    if (!editor) return;
+    const url = linkInputUrl.trim();
+    if (!url) {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      return;
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run();
+    setIsLinkModalOpen(false);
+  };
+
+  const handleRemoveLink = () => {
+    if (!editor) return;
+    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    setIsLinkModalOpen(false);
   };
 
   const handleInsertImage = (imageUrl: string, altText: string) => {
@@ -407,6 +422,82 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
         onClose={() => setIsImageModalOpen(false)}
         onInsert={handleInsertImage}
       />
+
+      {/* Link Insertion Modal */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-[#151821] border border-neutral-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 dark:border-white/5 pb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-[#84A900] dark:text-[#D2F843]" />
+                {linkInputUrl ? 'Edit Hyperlink' : 'Insert Hyperlink'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
+                Destination URL
+              </label>
+              <input
+                type="url"
+                autoFocus
+                placeholder="https://chipng.com or /#order"
+                value={linkInputUrl}
+                onChange={(e) => setLinkInputUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleApplyLink();
+                  }
+                  if (e.key === 'Escape') {
+                    setIsLinkModalOpen(false);
+                  }
+                }}
+                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#111318] border border-neutral-200 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+              />
+              <p className="text-[11px] text-neutral-400">
+                You can link to internal sections, external websites, or direct WhatsApp numbers.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-2">
+              {linkInputUrl ? (
+                <button
+                  type="button"
+                  onClick={handleRemoveLink}
+                  className="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 text-xs font-semibold cursor-pointer"
+                >
+                  Unlink
+                </button>
+              ) : <div />}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLinkModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyLink}
+                  className="px-4 py-1.5 rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 cursor-pointer"
+                >
+                  Apply Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,6 +17,8 @@ interface BlogPost {
   cover_image_url: string;
   published_at: string;
   keywords: string[];
+  category?: string;
+  author?: string;
 }
 
 // Fallback high-editorial curated articles if database returns empty
@@ -122,15 +124,33 @@ export default function BlogDirectoryView({
     }
   };
 
+  const dynamicTags = React.useMemo(() => {
+    const tagSet = new Set<string>();
+    posts.forEach((p) => {
+      if (p.category && p.category.trim()) tagSet.add(p.category.trim());
+      if (Array.isArray(p.keywords)) {
+        p.keywords.forEach((k) => {
+          if (k && k.trim()) tagSet.add(k.trim());
+        });
+      }
+    });
+    // Ensure core editorial tags are present
+    ['NFC Technology', 'Real Estate', 'Business & Sales', 'Hardware', 'Finance'].forEach(t => tagSet.add(t));
+    return ['All', ...Array.from(tagSet).slice(0, 10)];
+  }, [posts]);
+
   const filteredPosts = posts.filter((post) => {
     const cleanExcerpt = extractCleanExcerpt(post.excerpt || post.content, 300).toLowerCase();
     const query = searchQuery.toLowerCase();
     const matchesSearch =
+      !query ||
       post.title.toLowerCase().includes(query) ||
       cleanExcerpt.includes(query) ||
+      (post.category && post.category.toLowerCase().includes(query)) ||
       (post.keywords && post.keywords.some((k) => k.toLowerCase().includes(query)));
     const matchesTag =
       selectedTag === 'All' ||
+      (post.category && post.category.toLowerCase() === selectedTag.toLowerCase()) ||
       (post.keywords && post.keywords.some((k) => k.toLowerCase() === selectedTag.toLowerCase()));
     return matchesSearch && matchesTag;
   });
@@ -235,7 +255,7 @@ export default function BlogDirectoryView({
 
             {/* Tag Filters */}
             <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {['All', 'Finance', 'Hardware', 'Payments', 'Design', 'Strategy'].map((tag) => (
+              {dynamicTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
