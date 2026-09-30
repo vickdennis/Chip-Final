@@ -41,20 +41,56 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
   const fetchData = async () => {
     try {
+      setLoading(true);
+      setError(null);
       let targetUserId = null;
       let profileData = null;
 
-      if (username) {
-        // Fetch public profile by username
-        console.log("Fetching profile for username:", username);
-        const { data, error } = await supabase.from('profiles').select('*').ilike('username', username).single();
-        console.log("Fetched data:", data, "Error:", error);
-        if (error || !data) {
-          console.error("Failed to fetch public profile:", error);
+      // Determine effective username from prop or window URL path
+      let effectiveUsername = username;
+      if (!effectiveUsername && typeof window !== 'undefined') {
+        const rawPath = window.location.pathname.replace(/\/$/, '');
+        const segment = rawPath.replace(/^\/+/, '').split('/')[0];
+        if (segment && !['login', 'dashboard', 'admin', 'enterprise', 'blog', 'buy-card', 'contact', 'about', 'company', 'updates'].includes(segment)) {
+          effectiveUsername = segment;
+        }
+      }
+
+      if (effectiveUsername) {
+        let cleanUsername = decodeURIComponent(effectiveUsername).trim();
+        if (cleanUsername.endsWith('/vcard')) cleanUsername = cleanUsername.replace(/\/vcard$/, '');
+        if (cleanUsername.startsWith('@')) cleanUsername = cleanUsername.slice(1);
+
+        console.log("Fetching profile for cleanUsername:", cleanUsername);
+        
+        // 1. Try exact match
+        let { data, error } = await supabase.from('profiles').select('*').eq('username', cleanUsername).maybeSingle();
+        
+        // 2. Try case-insensitive ilike match
+        if (!data) {
+          const res = await supabase.from('profiles').select('*').ilike('username', cleanUsername).maybeSingle();
+          data = res.data;
+          error = res.error;
+        }
+
+        // 3. Try lookup across candidates in case of slight casing or spacing differences
+        if (!data) {
+          const { data: allCandidates } = await supabase.from('profiles').select('*').limit(200);
+          if (allCandidates) {
+            const found = allCandidates.find(p => 
+              p.username && p.username.toLowerCase().trim() === cleanUsername.toLowerCase().trim()
+            );
+            if (found) data = found;
+          }
+        }
+
+        if (!data) {
+          console.error("Public profile not found in Supabase:", cleanUsername);
           setError('User not found');
           setLoading(false);
           return;
         }
+
         profileData = data;
         targetUserId = data.id;
       } else {
@@ -65,58 +101,65 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           return;
         }
         targetUserId = user.id;
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        if (!data) {
+          setError('User profile not initialized');
+          setLoading(false);
+          return;
+        }
         profileData = { ...data, email: user.email };
       }
 
-      const { data: linksData } = await supabase.from('links').select('*').eq('profile_id', targetUserId).order('position');
-      const { data: socialData } = await supabase.from('social_links').select('*').eq('profile_id', targetUserId);
-      const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', targetUserId).order('created_at', { ascending: false });
+      // Set profile immediately so user header renders reliably
+      setProfile(profileData);
 
-      if (profileData) {
-        if (profileData.is_verified) {
-          const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', targetUserId).eq('purchase_type', 'verification').order('created_at', { ascending: false }).limit(1);
-          if (purchasesData && purchasesData.length > 0) {
-            const latestVerif = purchasesData[0];
-            if (latestVerif.status && latestVerif.status.startsWith('expires_')) {
-              const expiresAt = parseInt(latestVerif.status.split('_')[1], 10);
-              if (Date.now() > expiresAt) {
-                profileData.is_verified = false;
-                await supabase.from('profiles').update({ is_verified: false }).eq('id', targetUserId);
-              }
-            }
+      // Fetch links, socials, products in parallel with error isolation
+      try {
+        const [linksRes, socialsRes, prodsRes] = await Promise.allSettled([
+          supabase.from('links').select('*').eq('profile_id', targetUserId).order('position'),
+          supabase.from('social_links').select('*').eq('profile_id', targetUserId),
+          supabase.from('products').select('*').eq('profile_id', targetUserId).order('created_at', { ascending: false }),
+        ]);
+
+        if (linksRes.status === 'fulfilled' && linksRes.value.data) {
+          setLinks(linksRes.value.data);
+        }
+        if (socialsRes.status === 'fulfilled' && socialsRes.value.data) {
+          setSocialLinks(socialsRes.value.data);
+        }
+        if (prodsRes.status === 'fulfilled' && prodsRes.value.data) {
+          setProducts(prodsRes.value.data);
+        }
+      } catch (e) {
+        console.warn('Secondary profile data fetch non-fatal error:', e);
+      }
+
+      // Enterprise brand fetch (isolated)
+      if (profileData.enterprise_id) {
+        try {
+          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).maybeSingle();
+          if (ent) {
+            setProfile((prev: any) => (prev ? { ...prev, enterprise: ent } : prev));
           }
-        }
-        setProfile(profileData);
-        if (profileData.enterprise_id) {
-          const { data: ent } = await supabase.from('enterprises').select('*').eq('id', profileData.enterprise_id).single();
-          if (ent) profileData.enterprise = ent;
-        }
+        } catch (e) {}
+      }
 
-        // Track profile view
-        if (username) {
+      // View analytics tracking (fire & forget, non-blocking)
+      if (effectiveUsername) {
+        try {
           const params = new URLSearchParams(window.location.search);
           const source = params.get('source') || (params.get('tap') === '1' ? 'nfc' : 'web');
-          
           fetch('/api/analytics/view', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ profile_id: targetUserId, source })
-          }).catch(console.error);
-
-          supabase.from('profile_views').insert({
-             profile_id: targetUserId
-          }).then(({error}) => {
-             if (error) console.error("View tracking error:", error);
-          });
-        }
+          }).catch(() => {});
+        } catch (e) {}
       }
-      if (linksData) setLinks(linksData);
-      if (socialData) setSocialLinks(socialData);
-      if (productsData) setProducts(productsData);
+
     } catch (err: any) {
-      console.error(err);
-      setError(err.message);
+      console.error('fetchData error:', err);
+      setError(err.message || 'Failed to load profile');
     } finally {
       setLoading(false);
     }
