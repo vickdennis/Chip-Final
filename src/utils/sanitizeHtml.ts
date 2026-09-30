@@ -135,16 +135,66 @@ export function markdownToHtml(md: string): string {
 export function sanitizeBlogHtml(rawContent: string): string {
   if (!rawContent) return '';
 
-  // If content is pure markdown, convert to HTML first
   let content = rawContent;
+
+  // 1. If content contains escaped HTML entities (e.g. &lt;p&gt; or &lt;h2&gt;), safely decode them
+  if (/&lt;[a-z][\s\S]*&gt;/i.test(content)) {
+    content = content
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, '&');
+  }
+
+  // 2. If content is pure markdown, convert to HTML first
   if (!isHtmlContent(content)) {
     content = markdownToHtml(content);
   }
 
-  // Pre-process special media
+  // 3. Pre-process special media (e.g. Facebook Reels mistakenly in <img> tags)
   content = normalizeExternalMedia(content);
 
-  // Configure DOMPurify
+  // 4. Strip accidental metadata/prompt headers pasted into content
+  content = content.replace(/^(\s*<p>(?:Focus\s+Keywords?|Secondary\s+Keywords?|Target\s+Keywords?):[^<]*<\/p>\s*)+/gi, '');
+  content = content.replace(/^\s*<p>\s*-{2,}\s*<\/p>\s*/gi, '');
+  content = content.replace(/^\s*<p>\s*NFC Business Cards:[^<]*<\/p>\s*/gi, '');
+
+  // 5. Upgrade heading paragraphs into semantic <h2> tags
+  // Matches <p>What Is an NFC Business Card?</p>, <p><em>What is an NFC Card...</em></p>, etc.
+  content = content.replace(/<p>\s*<em>(.*?)<\/em>\s*<\/p>/gi, '<h2>$1</h2>');
+  
+  const knownHeadings = [
+    'What Is an NFC Business Card?',
+    'How NFC Business Cards Work (In Plain English)',
+    'How NFC Business Cards Work',
+    'The Part Most Buyers Get Backwards',
+    'NFC Cards vs. QR Codes: An Honest Comparison',
+    'NFC Cards vs. QR Codes',
+    'Why NFC Business Cards Are Worth It',
+    'Top NFC Business Cards in 2026',
+    'Top NFC Business Cards',
+    'The Real Question: Do You Actually Need One?',
+    'Key Takeaways',
+    'Best Digital Card for Nigerian Realtors',
+    'Why Lagos Realtors Are Switching to NFC'
+  ];
+
+  knownHeadings.forEach((heading) => {
+    const escaped = heading.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp('<p>\\s*(' + escaped + ')\\s*<\\/p>', 'gi');
+    content = content.replace(regex, '<h2>$1</h2>');
+  });
+
+  // Convert bullet lines like <p>· Item</p> into <li>Item</li>
+  content = content.replace(/<p>\s*[·•]\s*(.*?)<\/p>/gi, '<li>$1</li>');
+  // Group adjacent <li> tags into <ul>
+  content = content.replace(/(<li>.*?<\/li>(?:\s*<li>.*?<\/li>)*)/gi, '<ul>$1</ul>');
+
+  // Convert numbered step lines like <p>1. Step</p> into ordered list
+  content = content.replace(/<p>\s*(\d+)\.\s*(.*?)<\/p>/gi, '<li>$2</li>');
+
+  // 6. Configure DOMPurify Whitelist
   const config = {
     ALLOWED_TAGS: [
       'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
