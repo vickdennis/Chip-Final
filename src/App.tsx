@@ -156,22 +156,34 @@ export default function App() {
   });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    // Safety timeout: ensure sessionLoading never hangs indefinitely on slow networks or blocked requests
+    const timeoutId = setTimeout(() => {
       setSessionLoading(false);
-      // Wait to redirect if going to user-dashboard
-      setCurrentView(prev => {
-        const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard' || prev === 'enterprise-dashboard';
-        if (!session && isProtected) {
-          window.history.replaceState({}, '', '/login');
-          return 'login';
-        } else if (session && prev === 'login') {
-          window.history.replaceState({}, '', '/dashboard');
-          return 'user-dashboard';
-        }
-        return prev;
+    }, 1500);
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        clearTimeout(timeoutId);
+        setSession(session);
+        setSessionLoading(false);
+        // Wait to redirect if going to user-dashboard
+        setCurrentView(prev => {
+          const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard' || prev === 'enterprise-dashboard';
+          if (!session && isProtected) {
+            window.history.replaceState({}, '', '/login');
+            return 'login';
+          } else if (session && prev === 'login') {
+            window.history.replaceState({}, '', '/dashboard');
+            return 'user-dashboard';
+          }
+          return prev;
+        });
+      })
+      .catch((err) => {
+        console.warn('Session check encountered error or timeout, proceeding:', err);
+        clearTimeout(timeoutId);
+        setSessionLoading(false);
       });
-    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -189,10 +201,15 @@ export default function App() {
       });
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  if (sessionLoading && !publicUsername && !commercialSlug) {
+  // Only block rendering for protected views while session is being verified
+  const isProtectedView = currentView === 'user-dashboard' || currentView === 'admin-dashboard' || currentView === 'enterprise-dashboard';
+  if (sessionLoading && isProtectedView) {
     return <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] font-sans flex items-center justify-center font-bold text-xs uppercase tracking-wider text-neutral-400">Loading CHIP NG...</div>;
   }
 
