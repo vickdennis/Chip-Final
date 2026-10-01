@@ -1390,7 +1390,7 @@ Ref: ${payment_reference}`,
           } else if (urlPath !== '/' && !RESERVED_PREFIXES.some(prefix => urlPath === prefix || urlPath.startsWith(prefix + '/'))) {
             let username = urlPath.slice(1);
             if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
-            const { data: profile } = await supabase.from('profiles').select('full_name, headline, bio, cover_image_url').eq('username', username).single();
+            const { data: profile } = await supabase.from('profiles').select('full_name, headline, bio, cover_image_url').ilike('username', username).maybeSingle();
             if (profile) {
               const title = `${profile.full_name} | CHIP NG`;
               const desc = profile.headline || profile.bio || "View my digital profile on CHIP NG.";
@@ -1464,7 +1464,7 @@ Ref: ${payment_reference}`,
         } else if (urlPath !== '/' && !RESERVED_PREFIXES.some(prefix => urlPath === prefix || urlPath.startsWith(prefix + '/'))) {
           let username = urlPath.slice(1);
           if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
-          const { data: profile } = await supabase.from('profiles').select('full_name, headline, bio, cover_image_url').eq('username', username).single();
+          const { data: profile } = await supabase.from('profiles').select('full_name, headline, bio, cover_image_url').ilike('username', username).maybeSingle();
           if (profile) {
             const title = `${profile.full_name} | CHIP NG`;
             const desc = profile.headline || profile.bio || "View my digital profile on CHIP NG.";
