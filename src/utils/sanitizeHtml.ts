@@ -15,9 +15,15 @@ export function isHtmlContent(content: string): boolean {
 export function extractCleanExcerpt(content: string, maxLength: number = 160): string {
   if (!content) return '';
   
-  // First strip HTML tags
+  // First decode basic entities, then strip HTML tags
   let text = content
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
     // Strip common markdown symbols if any
     .replace(/[#*_~`>\[\]]/g, '')
     // Normalize spaces and newlines
@@ -137,15 +143,18 @@ export function sanitizeBlogHtml(rawContent: string): string {
 
   let content = rawContent;
 
-  // 1. If content contains escaped HTML entities (e.g. &lt;p&gt; or &lt;h2&gt;), safely decode them
-  if (/&lt;[a-z][\s\S]*&gt;/i.test(content)) {
+  // 1. If content contains escaped HTML entities (e.g. &lt;p&gt; or &lt;/p&gt;), safely decode them
+  let passes = 0;
+  while (/&lt;[a-z\/][\s\S]*&gt;/i.test(content) && passes < 2) {
     content = content
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
       .replace(/&amp;/g, '&');
+    passes++;
   }
+  content = content.replace(/&nbsp;/g, ' ');
 
   // 2. If content is pure markdown, convert to HTML first
   if (!isHtmlContent(content)) {
