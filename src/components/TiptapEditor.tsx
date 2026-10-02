@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import BlogImageModal from './blog/BlogImageModal';
 import SanitizedBlogContent from './blog/SanitizedBlogContent';
+import { isHtmlContent, markdownToHtml } from '../utils/sanitizeHtml';
 
 interface TiptapEditorProps {
   content: string;
@@ -26,6 +27,24 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
 
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkInputUrl, setLinkInputUrl] = useState('');
+
+  // Helper to ensure editor always receives clean HTML even if post was saved in Markdown or has escaped entities
+  const formatInitialContent = (raw: string) => {
+    if (!raw) return '<p></p>';
+    let clean = raw;
+    if (/&lt;[a-z\/][\s\S]*&gt;/i.test(clean)) {
+      clean = clean
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&');
+    }
+    if (!isHtmlContent(clean)) {
+      return markdownToHtml(clean);
+    }
+    return clean;
+  };
 
   const editor = useEditor({
     extensions: [
@@ -50,7 +69,7 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
         },
       }),
     ],
-    content: content || '<p></p>',
+    content: formatInitialContent(content),
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       setHtmlSource(html);
@@ -66,8 +85,9 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
   // Sync content when external content updates (e.g. loading a draft)
   useEffect(() => {
     if (editor && content !== editor.getHTML() && activeTab !== 'html') {
-      editor.commands.setContent(content || '<p></p>', { emitUpdate: false });
-      setHtmlSource(content);
+      const formatted = formatInitialContent(content);
+      editor.commands.setContent(formatted, { emitUpdate: false });
+      setHtmlSource(formatted);
     }
   }, [content, editor]);
 

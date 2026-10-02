@@ -203,7 +203,12 @@ export default function AdminBlogManager() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showToast('Only image files (JPEG, PNG, WEBP) are allowed.', 'error');
+      showToast('Only image files (JPEG, PNG, WEBP, GIF, SVG) are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Image size exceeds 10MB limit. Please compress first.', 'error');
       return;
     }
 
@@ -212,11 +217,17 @@ export default function AdminBlogManager() {
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const filePath = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       
-      let uploadRes = await supabase.storage.from('covers').upload(filePath, file);
-      let bucket = 'covers';
+      let bucket = 'blog';
+      let uploadRes = await supabase.storage.from(bucket).upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
       if (uploadRes.error) {
-        bucket = 'blog';
-        uploadRes = await supabase.storage.from(bucket).upload(filePath, file);
+        bucket = 'covers';
+        uploadRes = await supabase.storage.from(bucket).upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
       }
 
       if (uploadRes.error) throw uploadRes.error;
@@ -300,12 +311,29 @@ export default function AdminBlogManager() {
 
       // 2. Also attempt Supabase insert/update if authenticated
       try {
-        if (creatingPost) {
-          await supabase.from('posts').insert([payload]);
-        } else if (editingPost) {
-          await supabase.from('posts').update(payload).eq('id', editingPost.id);
+        const supabasePayload: any = {
+          title: postForm.title.trim(),
+          slug,
+          content: postForm.content,
+          excerpt: finalExcerpt,
+          cover_image_url: postForm.cover_image_url,
+          meta_title: postForm.meta_title.trim() || postForm.title.trim(),
+          meta_description: postForm.meta_description.trim() || finalExcerpt,
+          keywords: tagsArray.length > 0 ? tagsArray : (postForm.category ? [postForm.category] : null),
+          is_published: publish,
+          published_at: publish ? (editingPost?.published_at || new Date().toISOString()) : (editingPost?.is_published ? editingPost.published_at : null),
+          updated_at: new Date().toISOString(),
+        };
+
+        if (editingPost?.id) {
+          supabasePayload.id = editingPost.id;
+          await supabase.from('posts').update(supabasePayload).eq('id', editingPost.id);
+        } else {
+          await supabase.from('posts').insert([supabasePayload]);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Supabase post sync warning:', e);
+      }
 
       localStorage.removeItem('chipng_blog_autosave');
       showToast(publish ? 'Article published successfully!' : 'Draft saved successfully!', 'success');

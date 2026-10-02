@@ -40,16 +40,16 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const cleanFileName = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
-      // Try uploading to covers or blog bucket
-      let targetBucket = 'covers';
+      // Upload directly to dedicated 'blog' bucket with fallback to 'covers'
+      let targetBucket = 'blog';
       let uploadResult = await supabase.storage.from(targetBucket).upload(cleanFileName, file, {
         cacheControl: '3600',
         upsert: false
       });
 
       if (uploadResult.error) {
-        // Fallback to 'blog' bucket
-        targetBucket = 'blog';
+        // Fallback to 'covers' bucket
+        targetBucket = 'covers';
         uploadResult = await supabase.storage.from(targetBucket).upload(cleanFileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -72,8 +72,13 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
 
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim()) return;
-    onInsert(url.trim(), altText.trim() || 'CHIP NG Blog Illustration');
+    const cleanUrl = url.trim();
+    if (!cleanUrl) return;
+    if (!/^https?:\/\//i.test(cleanUrl)) {
+      setUploadError('Invalid image URL. Must start with http:// or https://');
+      return;
+    }
+    onInsert(cleanUrl, altText.trim() || 'CHIP NG Blog Illustration');
     onClose();
   };
 

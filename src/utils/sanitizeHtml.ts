@@ -203,7 +203,7 @@ export function sanitizeBlogHtml(rawContent: string): string {
   // Convert numbered step lines like <p>1. Step</p> into ordered list
   content = content.replace(/<p>\s*(\d+)\.\s*(.*?)<\/p>/gi, '<li>$2</li>');
 
-  // 6. Configure DOMPurify Whitelist
+  // 6. Configure DOMPurify Whitelist with strict security controls
   const config = {
     ALLOWED_TAGS: [
       'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -219,6 +219,15 @@ export function sanitizeBlogHtml(rawContent: string): string {
       'class', 'width', 'height', 'loading',
       'id'
     ],
+    FORBID_TAGS: [
+      'script', 'style', 'iframe', 'frame', 'object', 'embed',
+      'form', 'input', 'button', 'textarea', 'select', 'svg', 'math'
+    ],
+    FORBID_ATTR: [
+      'onerror', 'onload', 'onclick', 'onmouseover', 'onfocus',
+      'onblur', 'onchange', 'onsubmit', 'onkeydown', 'onkeyup'
+    ],
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
     ALLOW_DATA_ATTR: false,
     ADD_ATTR: ['target', 'rel'],
   };
@@ -230,13 +239,16 @@ export function sanitizeBlogHtml(rawContent: string): string {
     const purify = (DOMPurify as any).sanitize ? DOMPurify : (DOMPurify as any)(window);
     clean = purify.sanitize(content, config);
 
-    // Enhance links and images via DOMParser
+    // Enhance and verify links and images via DOMParser
     try {
       const doc = new DOMParser().parseFromString(clean, 'text/html');
       const links = doc.querySelectorAll('a');
       links.forEach((link: HTMLAnchorElement) => {
-        const href = link.getAttribute('href') || '';
-        if (href.startsWith('http://') || href.startsWith('https://')) {
+        const href = (link.getAttribute('href') || '').trim();
+        // Prevent dangerous schemes
+        if (/^(javascript|data|vbscript):/i.test(href)) {
+          link.removeAttribute('href');
+        } else if (href.startsWith('http://') || href.startsWith('https://')) {
           link.setAttribute('target', '_blank');
           link.setAttribute('rel', 'noopener noreferrer');
         }
@@ -244,6 +256,10 @@ export function sanitizeBlogHtml(rawContent: string): string {
 
       const images = doc.querySelectorAll('img');
       images.forEach((img: HTMLImageElement) => {
+        const src = (img.getAttribute('src') || '').trim();
+        if (/^(javascript|vbscript):/i.test(src)) {
+          img.removeAttribute('src');
+        }
         img.setAttribute('loading', 'lazy');
         if (!img.getAttribute('alt')) {
           img.setAttribute('alt', 'CHIP NG Article illustration');
@@ -255,11 +271,17 @@ export function sanitizeBlogHtml(rawContent: string): string {
       return clean;
     }
   } else {
-    // In Node.js / non-browser environment, sanitize by removing script and event handlers
+    // In Node.js / non-browser environment, sanitize by removing executable tags, event handlers, and dangerous schemes
     clean = clean
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/javascript\s*:/gi, '');
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>|<script\b[^>]*\/?>/gi, '')
+      .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>|<iframe\b[^>]*\/?>/gi, '')
+      .replace(/<object\b[^>]*>[\s\S]*?<\/object>|<object\b[^>]*\/?>/gi, '')
+      .replace(/<embed\b[^>]*\/?>/gi, '')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>|<style\b[^>]*\/?>/gi, '')
+      .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+      .replace(/href\s*=\s*["']?\s*(?:javascript|data|vbscript):[^"'>\s]*/gi, '')
+      .replace(/src\s*=\s*["']?\s*(?:javascript|vbscript):[^"'>\s]*/gi, '')
+      .replace(/<img\b(?![^>]*\bloading=)([^>]*?)(\/?>)/gi, '<img$1 loading="lazy"$2');
     return clean;
   }
 }
