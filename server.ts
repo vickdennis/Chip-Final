@@ -515,6 +515,45 @@ async function startServer() {
         if (data) supabasePosts = data;
       } catch (e) {}
 
+      // Dual Database Persistence: Ensure Supabase posts exist in SQLite local_posts for SSR and BuyBox consistency
+      if (supabasePosts.length > 0) {
+        const syncStmt = db.prepare(`
+          INSERT INTO local_posts (id, title, slug, content, excerpt, cover_image_url, meta_title, meta_description, keywords, is_published, published_at, updated_at, author, category)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(slug) DO UPDATE SET
+            title=COALESCE(excluded.title, local_posts.title),
+            content=COALESCE(excluded.content, local_posts.content),
+            excerpt=COALESCE(excluded.excerpt, local_posts.excerpt),
+            cover_image_url=COALESCE(excluded.cover_image_url, local_posts.cover_image_url),
+            meta_title=COALESCE(excluded.meta_title, local_posts.meta_title),
+            meta_description=COALESCE(excluded.meta_description, local_posts.meta_description),
+            is_published=excluded.is_published,
+            published_at=COALESCE(excluded.published_at, local_posts.published_at),
+            updated_at=COALESCE(excluded.updated_at, local_posts.updated_at)
+        `);
+        for (const sp of supabasePosts) {
+          try {
+            const kwJson = JSON.stringify(Array.isArray(sp.keywords) ? sp.keywords : []);
+            syncStmt.run(
+              sp.id || `post-${Date.now()}`,
+              sp.title || '',
+              sp.slug,
+              sp.content || '',
+              sp.excerpt || '',
+              sp.cover_image_url || '',
+              sp.meta_title || sp.title || '',
+              sp.meta_description || sp.excerpt || '',
+              kwJson,
+              sp.is_published ? 1 : 0,
+              sp.published_at || sp.created_at || new Date().toISOString(),
+              sp.updated_at || new Date().toISOString(),
+              'CHIP NG Editorial',
+              (Array.isArray(sp.keywords) && sp.keywords[0]) || 'NFC Technology'
+            );
+          } catch (e) {}
+        }
+      }
+
       const localPosts = db.prepare(`
         SELECT 
           lp.*,
@@ -683,7 +722,7 @@ async function startServer() {
       try { db.prepare('DELETE FROM post_meta WHERE post_slug = ?').run(slug); } catch (e) {}
 
       try {
-        await getSupabase().from('posts').delete().eq('id', id);
+        await getSupabase().from('posts').delete().or(`id.eq.${id},slug.eq.${slug}`);
       } catch (e) {}
       res.json({ success: true });
     } catch (e: any) {
@@ -1111,20 +1150,27 @@ Ref: ${payment_reference}`,
     }
   });
 
+  app.post('/api/analytics/batch-views', (req, res) => {
+    try {
+      const { profile_ids } = req.body;
+      if (!Array.isArray(profile_ids) || profile_ids.length === 0) {
+        return res.json({ totalViews: 0 });
+      }
+      const placeholders = profile_ids.map(() => '?').join(',');
+      const row = db.prepare(`SELECT COUNT(*) as c FROM profile_analytics_views WHERE profile_id IN (${placeholders})`).get(...profile_ids) as any;
+      res.json({ totalViews: row?.c || 0 });
+    } catch(e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.get('/api/analytics/user/:profileId', async (req, res) => {
     try {
       const { profileId } = req.params;
       
-      const viewsCountSqlite = db.prepare('SELECT COUNT(*) as c FROM profile_analytics_views WHERE profile_id = ?').get(profileId).c;
-      
-      let viewsCountSupabase = 0;
-      try {
-        const { count } = await getSupabase().from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profileId);
-        if (typeof count === 'number') viewsCountSupabase = count;
-      } catch(e) {}
-      
-      const totalViews = Math.max(viewsCountSqlite, viewsCountSupabase);
-      const totalClicks = db.prepare('SELECT COUNT(*) as c FROM profile_analytics_clicks WHERE profile_id = ?').get(profileId).c;
+      const viewsCountSqlite = (db.prepare('SELECT COUNT(*) as c FROM profile_analytics_views WHERE profile_id = ?').get(profileId) as any)?.c || 0;
+      const totalViews = viewsCountSqlite;
+      const totalClicks = (db.prepare('SELECT COUNT(*) as c FROM profile_analytics_clicks WHERE profile_id = ?').get(profileId) as any)?.c || 0;
       
       const sourceRows = db.prepare('SELECT source, COUNT(*) as count FROM profile_analytics_views WHERE profile_id = ? GROUP BY source').all(profileId);
       const nfcTaps = (sourceRows.find((r: any) => r.source === 'nfc') as any)?.count || 0;

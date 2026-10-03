@@ -66,9 +66,18 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
           // Fetch analytics for employees
           const empIds = emps.map(e => e.id);
           if (empIds.length > 0) {
-            const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).in('profile_id', empIds);
-            if (!viewErr && viewsData) {
-               setNetworkViews(viewsData.length || 0);
+            try {
+              const res = await fetch('/api/analytics/batch-views', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile_ids: empIds })
+              });
+              if (res.ok) {
+                const json = await res.json();
+                setNetworkViews(json.totalViews || 0);
+              }
+            } catch (e) {
+              console.warn("Enterprise views fetch error:", e);
             }
           }
         }

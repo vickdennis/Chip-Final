@@ -406,20 +406,35 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: productsData } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
       const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', user.id).order('created_at', { ascending: false });
       const { data: shopProductsData } = await supabase.from('products').select('*').is('profile_id', null).order('created_at', { ascending: false });
-      const { data: viewsData, error: viewErr } = await supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id);
+
+      // Fetch views count from server profile analytics
+      let viewsCount = 0;
+      try {
+        const analyticsRes = await fetch(`/api/analytics/user/${user.id}`);
+        if (analyticsRes.ok) {
+          const analyticsJson = await analyticsRes.json();
+          viewsCount = analyticsJson.totalViews || 0;
+        }
+      } catch (e) {
+        console.warn('Analytics view count fetch warning:', e);
+      }
 
       if (profileData) {
         let isVerified = profileData.is_verified;
         if (isVerified && purchasesData) {
-          const verifPurchases = purchasesData.filter(p => p.purchase_type === 'verification' && p.status?.startsWith('expires_'));
-          if (verifPurchases.length > 0) {
-            // Sort by newest
-            const latestVerif = verifPurchases[0];
-            const expiresAt = parseInt(latestVerif.status.split('_')[1], 10);
-            if (Date.now() > expiresAt) {
-              isVerified = false;
-              await supabase.from('profiles').update({ is_verified: false }).eq('id', user.id);
+          try {
+            const verifPurchases = purchasesData.filter(p => p.purchase_type === 'verification' && p.status?.startsWith('expires_'));
+            if (verifPurchases.length > 0) {
+              // Sort by newest
+              const latestVerif = verifPurchases[0];
+              const expiresAt = parseInt(latestVerif.status.split('_')[1], 10);
+              if (Date.now() > expiresAt) {
+                isVerified = false;
+                await supabase.from('profiles').update({ is_verified: false }).eq('id', user.id);
+              }
             }
+          } catch (e) {
+            console.warn('Verification expiration update warning:', e);
           }
         }
         
@@ -459,7 +474,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       if (socialData) setSocialLinks(socialData);
       if (productsData) setProducts(productsData);
       if (purchasesData) setSales(purchasesData);
-      if (viewsData) setProfileViews(viewsData.length);
+      setProfileViews(viewsCount);
       if (shopProductsData) setShopProducts(shopProductsData);
     } catch (error) {
       console.error("Error fetching data:", error);
