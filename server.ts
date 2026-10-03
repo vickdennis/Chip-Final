@@ -253,11 +253,19 @@ async function startServer() {
   });
 
   // SQLite Leads API
-  app.post('/api/lead', (req, res) => {
+  app.post('/api/lead', async (req, res) => {
     try {
       const { name, whatsapp, city, post_slug, source, clicked_variant } = req.body;
       const stmt = db.prepare('INSERT INTO leads (name, whatsapp, city, post_slug, source, clicked_variant) VALUES (?, ?, ?, ?, ?, ?)');
       const info = stmt.run(name, whatsapp, city, post_slug, source, clicked_variant || null);
+
+      // Dual Database Persistence: Sync lead to Supabase if table is available
+      try {
+        await getSupabase().from('leads').insert([{
+          name, whatsapp, city, post_slug, source, clicked_variant: clicked_variant || null
+        }]);
+      } catch (e) {}
+
       res.json({ success: true, id: info.lastInsertRowid });
     } catch (error: any) {
       console.error('Insert error:', error);
@@ -266,7 +274,7 @@ async function startServer() {
   });
 
   // Profile 2-Way Lead Capture & Management API
-  app.post('/api/leads/capture', (req, res) => {
+  app.post('/api/leads/capture', async (req, res) => {
     try {
       const { profile_id, name, whatsapp, email, company, message, source, city } = req.body;
       if (!name || (!whatsapp && !email)) {
@@ -287,6 +295,22 @@ async function startServer() {
         city || 'Lagos',
         'profile_capture'
       );
+
+      // Dual Database Persistence: Sync lead to Supabase if table is available
+      try {
+        await getSupabase().from('leads').insert([{
+          profile_id: profile_id || null,
+          name: name.trim(),
+          whatsapp: whatsapp ? whatsapp.trim() : '',
+          email: email ? email.trim() : '',
+          company: company ? company.trim() : '',
+          message: message ? message.trim() : '',
+          source: source || 'profile',
+          city: city || 'Lagos',
+          status: 'new'
+        }]);
+      } catch (e) {}
+
       res.json({ success: true, lead_id: info.lastInsertRowid });
     } catch (err: any) {
       console.error('Lead capture error:', err);
@@ -461,9 +485,20 @@ async function startServer() {
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
-  app.get('/api/post-product/:slug', (req, res) => {
+  app.get('/api/post-product/:slug', async (req, res) => {
     try {
-      const mapping = db.prepare('SELECT product_id FROM post_buybox_mapping WHERE post_slug=?').get(req.params.slug);
+      let mapping: any = db.prepare('SELECT product_id FROM post_buybox_mapping WHERE post_slug=?').get(req.params.slug);
+      if (!mapping) {
+        try {
+          const { data } = await getSupabase().from('post_buybox_mapping').select('product_id').eq('post_slug', req.params.slug).single();
+          if (data) {
+            mapping = data;
+            try {
+              db.prepare('INSERT OR REPLACE INTO post_buybox_mapping (post_slug, product_id) VALUES (?, ?)').run(req.params.slug, data.product_id);
+            } catch (e) {}
+          }
+        } catch (e) {}
+      }
       res.json({ product_id: mapping ? mapping.product_id : null });
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
@@ -498,10 +533,16 @@ async function startServer() {
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
-  app.post('/api/post-product', (req, res) => {
+  app.post('/api/post-product', async (req, res) => {
     try {
       const { post_slug, product_id } = req.body;
       db.prepare('INSERT OR REPLACE INTO post_buybox_mapping (post_slug, product_id) VALUES (?, ?)').run(post_slug, product_id);
+
+      // Dual Database Persistence: Sync BuyBox mapping to Supabase
+      try {
+        await getSupabase().from('post_buybox_mapping').upsert([{ post_slug, product_id }], { onConflict: 'post_slug' });
+      } catch (e) {}
+
       res.json({ success: true });
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });

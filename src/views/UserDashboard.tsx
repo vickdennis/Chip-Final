@@ -7,7 +7,7 @@ import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut } from 'lucide-react';
+import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, BookMarked, User } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -747,8 +747,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   return (
     <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true} topRightContent={NotificationBell()}>
-      <div className="pb-24">
-      <div className="max-w-[1200px] mx-auto pb-16">
+      <div className="pb-32">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-2 pb-24">
         
         {/* Live System Broadcast Banner for all unread announcements */}
         {latestUnreadBroadcast && (
@@ -774,104 +774,49 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           </div>
         )}
 
-        {completionRate < 100 && (
-          <div className="w-full bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
-            <div className="flex flex-col gap-2.5 w-full md:w-auto flex-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
-                <h3 className="font-bold text-neutral-950 dark:text-white text-lg tracking-tight">Onboarding & Profile Setup</h3>
-              </div>
-              <div className="w-full bg-neutral-100 dark:bg-[#161922] h-2.5 rounded-full overflow-hidden border border-neutral-200/50 dark:border-white/5">
-                <div className="h-full bg-[#D2F843] transition-all duration-500 rounded-full" style={{ width: `${completionRate}%` }}></div>
-              </div>
-              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
-                <span className="font-bold text-neutral-900 dark:text-white">{completionRate}% completed.</span> Finish setting up your contactless NFC digital profile.
-              </p>
-            </div>
-            <button 
-              onClick={() => {
-                if (setupGuideActive) {
-                  setSetupGuideActive(false);
-                } else {
-                  const firstIncomplete = setupSteps.find(s => !s.completed) || setupSteps[0];
-                  setSetupStep(firstIncomplete.id);
-                  setActiveTab(firstIncomplete.tab as any);
-                  setSetupGuideActive(true);
-                }
-              }}
-              className="shrink-0 px-6 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 rounded-full font-semibold text-xs sm:text-sm hover:opacity-90 transition-all shadow-sm cursor-pointer"
-            >
-              {setupGuideActive ? "Close Guide" : "Continue Setup"}
-            </button>
-          </div>
-        )}
-
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span> Personal Console
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-              Profile & NFC Hub
-            </h2>
-            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 mt-1">
-              Manage your contactless card routing, bio links, socials, and live credentials.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 w-full md:w-auto">
-            {(profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com') && (
-              <button 
-                onClick={() => onNavigate('admin-dashboard')}
-                className="flex-1 md:flex-none px-4 py-2.5 bg-white dark:bg-[#111318] text-neutral-800 dark:text-neutral-200 font-semibold text-xs sm:text-sm hover:bg-neutral-100 dark:hover:bg-[#161922] transition-all rounded-full flex items-center justify-center gap-2 border border-neutral-200/80 dark:border-white/10 shadow-xs cursor-pointer"
-              >
-                <Shield className="w-4 h-4 text-[#D2F843]" /> Super Admin
-              </button>
-            )}
-            <button 
-              onClick={handleSave} 
-              disabled={saving}
-              className="flex-1 md:flex-none px-5 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-semibold text-xs sm:text-sm hover:opacity-90 transition-all rounded-full flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm cursor-pointer"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button 
-              onClick={() => onNavigate('public-profile')}
-              className="flex-1 md:flex-none px-5 py-2.5 border border-neutral-200/80 dark:border-white/10 text-neutral-800 dark:text-neutral-200 bg-white dark:bg-[#111318] shadow-xs font-semibold text-xs sm:text-sm hover:bg-neutral-100 dark:hover:bg-[#161922] transition-all rounded-full flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Eye className="w-4 h-4" /> Preview Bio
-            </button>
-          </div>
+        {/* Header - Profile & NFC Hub (Exact match to IMG_2957.jpeg) */}
+        <div className="mb-6 pt-1">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+            Profile & NFC Hub
+          </h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
+            Manage your contactless card routing, bio links, socials, and live credentials.
+          </p>
         </div>
 
-        {/* Modern Nav Bar - Pill Strip */}
-        <div className="mb-8 overflow-x-auto scrollbar-hide py-1">
-          <div className="inline-flex p-1.5 rounded-2xl bg-neutral-200/60 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 gap-1.5">
-            {[
-              { id: 'profile', label: 'Profile', icon: UserCircle },
-              { id: 'social', label: 'Socials', icon: Share },
-              { id: 'nfc', label: 'Order NFC Card', icon: SmartphoneNfc },
-              { id: 'ebooks', label: 'Playbooks & Ebooks', icon: Calendar },
-              { id: 'analytics', label: 'Analytics', icon: Activity },
-              { id: 'settings', label: 'Settings', icon: Settings },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`shrink-0 px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-                    isActive
-                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D2F843] dark:text-neutral-950' : ''}`} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+        {/* Desktop Top Tabs Navigation */}
+        <div className="mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden hidden md:block" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div className="inline-flex bg-neutral-100 dark:bg-white/5 p-1.5 rounded-[16px] gap-1 border border-neutral-200/80 dark:border-white/10">
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'profile' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              <User className="w-4 h-4" /> My Profile
+            </button>
+            <button 
+              onClick={() => setActiveTab('social')}
+              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'social' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              <Share className="w-4 h-4" /> Manage Socials
+            </button>
+            <button 
+              onClick={() => setActiveTab('nfc')}
+              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'nfc' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              <SmartphoneNfc className="w-4 h-4" /> NFC Cards
+            </button>
+            <button 
+              onClick={() => setActiveTab('ebooks')}
+              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'ebooks' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              <BookMarked className="w-4 h-4" /> Playbooks
+            </button>
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'settings' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              <Settings className="w-4 h-4" /> Account Settings
+            </button>
           </div>
         </div>
 
@@ -1016,98 +961,144 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             </div>
           </div>
         ) : profile && activeTab === 'profile' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          <div className="flex flex-col gap-6">
             
-            {/* Left Column */}
-            <div className="xl:col-span-8 flex flex-col gap-8">
+            {/* Customize Your Public Profile Card - Exactly matches IMG_2957.jpeg */}
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-8 flex flex-col gap-6">
               
-              {/* Identity */}
-              <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
-                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
-                  <div>
-                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Profile Identity</h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Customize your public card header and personal details</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
-                    <UserCircle className="w-5 h-5" />
+              {/* Header Row: Title & Circular Lime Edit Button */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white tracking-tight">
+                  Customize Your Public Profile
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fileInput = document.getElementById('cover-image-upload');
+                    if (fileInput) fileInput.click();
+                  }}
+                  className="w-10 h-10 rounded-full bg-[#EBFD80] hover:bg-[#dff964] text-neutral-950 flex items-center justify-center transition-all cursor-pointer shadow-xs shrink-0"
+                  title="Change Cover / Edit Profile"
+                >
+                  <Pencil className="w-4 h-4 stroke-[2.2]" />
+                </button>
+              </div>
+
+              {/* Two Action Buttons: Preview Bio & Save Changes */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('public-profile')}
+                  className="w-full py-3.5 px-4 bg-white dark:bg-[#151821] text-neutral-900 dark:text-white font-semibold text-sm rounded-full border border-neutral-300 dark:border-white/20 hover:bg-neutral-50 dark:hover:bg-[#1c202d] transition-all text-center shadow-xs cursor-pointer"
+                >
+                  Preview Bio
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="w-full py-3.5 px-4 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-semibold text-sm rounded-full hover:opacity-90 transition-all text-center shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+
+              {/* COVER IMAGE */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2.5">
+                  COVER IMAGE
+                </label>
+                <div className="relative group w-full h-56 sm:h-72 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-neutral-200/80 dark:border-white/10 bg-neutral-100 dark:bg-[#151821]">
+                  <img 
+                    src={coverUrl} 
+                    alt="Cover" 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-neutral-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
+                    <label className="cursor-pointer bg-white text-neutral-900 px-4 py-2.5 rounded-full font-bold text-xs hover:bg-neutral-100 transition-all flex items-center gap-2 shadow-lg">
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploading ? 'Uploading...' : 'Change Cover'}
+                      <input
+                        id="cover-image-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                        disabled={uploading}
+                      />
+                    </label>
+                    <button 
+                      type="button"
+                      onClick={() => setCoverUrl("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY")}
+                      className="bg-red-500/90 hover:bg-red-500 text-white px-4 py-2.5 rounded-full font-bold text-xs transition-all flex items-center gap-2 shadow-lg cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" /> Reset
+                    </button>
                   </div>
                 </div>
-                <div className="p-6 sm:p-8 flex flex-col gap-8">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">Cover Image</label>
-                    <div className="relative group h-60 w-full border border-neutral-200/80 dark:border-white/10 rounded-2xl overflow-hidden bg-neutral-100 dark:bg-[#151821]">
-                      <img 
-                        src={coverUrl} 
-                        alt="Cover" 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-neutral-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
-                        <label className="cursor-pointer bg-white text-neutral-900 px-4 py-2.5 rounded-full font-bold text-xs hover:bg-neutral-100 transition-all flex items-center gap-2 shadow-lg">
-                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                          {uploading ? 'Uploading...' : 'Change Cover'}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageSelect}
-                            disabled={uploading}
-                          />
-                        </label>
-                        <button 
-                          onClick={() => setCoverUrl("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY")}
-                          className="bg-red-500/90 hover:bg-red-500 text-white px-4 py-2.5 rounded-full font-bold text-xs transition-all flex items-center gap-2 shadow-lg"
-                        >
-                          <Trash2 className="w-4 h-4" /> Reset
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+              </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Full Name</label>
-                      <input 
-                        type="text" 
-                        value={profile.full_name || ''}
-                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Username</label>
-                      <div className="relative flex items-center">
-                        <span className="absolute left-4 text-xs font-semibold text-neutral-400 select-none">chipng.com/</span>
-                        <input 
-                          type="text" 
-                          value={profile.username || ''} 
-                          onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
-                          className="w-full pl-28 pr-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Job Title / Headline</label>
-                      <input 
-                        type="text" 
-                        value={profile.headline || ''}
-                        onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
-                        placeholder="e.g. Creative Director & Product Designer"
-                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Bio / About Me</label>
-                      <textarea 
-                        rows={3}
-                        value={profile.bio || ''}
-                        onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                        placeholder="Tell visitors what you do and what you're passionate about..."
-                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white resize-none"
-                      />
-                    </div>
-                  </div>
+              {/* FULL NAME */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                  FULL NAME
+                </label>
+                <input 
+                  type="text" 
+                  value={profile.full_name || ''}
+                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                  placeholder="e.g. Victor Okoye"
+                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-semibold text-neutral-900 dark:text-white"
+                />
+              </div>
 
-                  <div className="pt-6 border-t border-neutral-100 dark:border-white/5 grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* USERNAME */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                  USERNAME
+                </label>
+                <div className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center focus-within:ring-2 focus-within:ring-[#D2F843]/50 focus-within:border-[#D2F843] transition-all">
+                  <span className="text-sm font-medium text-neutral-400 dark:text-neutral-500 select-none mr-2">
+                    chipng.com/
+                  </span>
+                  <input 
+                    type="text" 
+                    value={profile.username || ''} 
+                    onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
+                    placeholder="username"
+                    className="bg-transparent border-0 p-0 text-sm font-semibold text-neutral-900 dark:text-white focus:outline-none w-full"
+                  />
+                </div>
+              </div>
+
+              {/* JOB TITLE / HEADLINE */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                  JOB TITLE / HEADLINE
+                </label>
+                <input 
+                  type="text" 
+                  value={profile.headline || ''}
+                  onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
+                  placeholder="e.g. Founder And Group Managing Director"
+                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-semibold text-neutral-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                  BIO / ABOUT ME
+                </label>
+                <textarea 
+                  rows={3}
+                  value={profile.bio || ''}
+                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                  placeholder="Tell visitors what you do and what you're passionate about..."
+                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white resize-none"
+                />
+              </div>
+
+              <div className="pt-6 border-t border-neutral-100 dark:border-white/5 grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Contact Email</label>
                       <input 
@@ -1259,7 +1250,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       </div>
                     </div>
                   </div>
-                </div>
               </section>
 
             {/* Links */}
@@ -1320,9 +1310,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </div>
             </section>
 
-          </div>
-          {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-8">
             {/* Profile Views */}
             <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
               <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
@@ -1443,9 +1430,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
               </div>
             </section>
-
-            {/* End of right column */}
-          </div>
           </div>
         ) : profile && activeTab === 'social' ? (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -2262,61 +2246,69 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         </div>
       )}
       
-        {/* Mobile Custom Nav Bar matching homepage design */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-0">
-          <div className="relative bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-md h-[70px] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] border-t border-neutral-200/80 dark:border-white/10 flex items-center px-2">
-            
-            <motion.div 
-              className="absolute top-0 left-2 h-full flex justify-center pointer-events-none z-10"
-              style={{ width: `calc((100% - 16px) / 5)` }}
-              initial={false}
-              animate={{ 
-                x: `${['nfc', 'social', 'profile', 'ebooks', 'settings'].indexOf(activeTab as string) * 100}%` 
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-               <div className="absolute -top-3 w-10 h-10 bg-[#D2F843] rounded-full flex items-center justify-center shadow-lg" />
-            </motion.div>
-
+        {/* Fixed Bottom Navigation Bar - Exactly matching IMG_2957.jpeg */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-xl border-t border-neutral-200/80 dark:border-white/10 px-2 py-1.5 shadow-[0_-4px_25px_rgba(0,0,0,0.06)]">
+          <div className="max-w-md sm:max-w-xl mx-auto flex items-center justify-between">
             {[
-              { id: 'nfc', label: 'NFC Card', icon: SmartphoneNfc },
-              { id: 'social', label: 'Socials', icon: Share },
-              { id: 'profile', label: 'Bio Card', icon: UserCircle },
-              { id: 'ebooks', label: 'Shop', icon: Wallet },
-              { id: 'settings', label: 'Settings', icon: Settings },
+              { 
+                id: 'profile', 
+                label: 'My Profile', 
+                icon: User 
+              },
+              { 
+                id: 'social', 
+                label: 'Manage Socials', 
+                icon: () => (
+                  <svg className="w-5 h-5 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="2.5" />
+                    <circle cx="12" cy="4.5" r="2" />
+                    <circle cx="12" cy="19.5" r="2" />
+                    <circle cx="4.5" cy="12" r="2" />
+                    <circle cx="19.5" cy="12" r="2" />
+                    <path d="M12 6.5v3M12 14.5v3M6.5 12h3M14.5 12h3" />
+                  </svg>
+                )
+              },
+              { 
+                id: 'nfc', 
+                label: 'NFC Cards', 
+                icon: SmartphoneNfc 
+              },
+              { 
+                id: 'ebooks', 
+                label: 'Playbooks', 
+                icon: BookMarked 
+              },
+              { 
+                id: 'settings', 
+                label: 'Account Settings', 
+                icon: Settings 
+              },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
               return (
-                <button 
+                <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className="relative flex-1 h-full flex flex-col items-center justify-center z-20 outline-none"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  className="flex flex-col items-center justify-center flex-1 py-0.5 px-0.5 cursor-pointer outline-none transition-all group"
                 >
-                   <motion.div
-                     animate={{ 
-                       y: isActive ? -14 : 0,
-                       scale: isActive ? 1.15 : 1
-                     }}
-                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                     className={`flex items-center justify-center ${isActive ? 'text-neutral-950 font-bold' : 'text-neutral-400 dark:text-neutral-500'}`}
-                   >
-                     <Icon className="w-5 h-5" />
-                   </motion.div>
-                   
-                   <motion.span 
-                     animate={{ 
-                       opacity: isActive ? 0 : 1,
-                       y: isActive ? 10 : 2
-                     }}
-                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                     className="font-semibold text-[10px] text-neutral-500 dark:text-neutral-400"
-                   >
-                     {tab.label}
-                   </motion.span>
+                  {/* Top Active Lime Line Indicator */}
+                  <div className={`w-10 sm:w-12 h-1 rounded-full mb-1 transition-all ${
+                    isActive ? 'bg-[#D2F843]' : 'bg-transparent'
+                  }`} />
+                  <div className={`transition-colors ${
+                    isActive ? 'text-neutral-950 dark:text-white' : 'text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-800 dark:group-hover:text-neutral-200'
+                  }`}>
+                    <Icon className="w-5 h-5 mx-auto" />
+                  </div>
+                  <span className={`text-[10px] sm:text-[11px] mt-1 whitespace-nowrap transition-colors ${
+                    isActive ? 'font-bold text-neutral-950 dark:text-white' : 'font-medium text-neutral-500 dark:text-neutral-400'
+                  }`}>
+                    {tab.label}
+                  </span>
                 </button>
-              )
+              );
             })}
           </div>
         </nav>
