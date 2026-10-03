@@ -746,7 +746,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
 
   return (
-    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true} topRightContent={NotificationBell()}>
+    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true} topRightContent={NotificationBell()} isAdmin={profile?.is_admin}>
       <div className="pb-32">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-2 pb-24">
         
@@ -774,14 +774,33 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           </div>
         )}
 
-        {/* Header - Profile & NFC Hub (Exact match to IMG_2957.jpeg) */}
-        <div className="mb-6 pt-1">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-            Profile & NFC Hub
-          </h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
-            Manage your contactless card routing, bio links, socials, and live credentials.
-          </p>
+        {/* Header - Profile & NFC Hub with Super Admin Access for Admins alone */}
+        <div className="mb-6 pt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+                Profile & NFC Hub
+              </h1>
+              {profile?.is_admin && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/40 text-[10px] font-bold uppercase tracking-wider">
+                  <Shield className="w-3 h-3" /> Admin
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
+              Manage your contactless card routing, bio links, socials, and live credentials.
+            </p>
+          </div>
+          {profile?.is_admin && (
+            <button
+              onClick={() => onNavigate('admin-dashboard')}
+              className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 border border-[#D2F843]/40 shadow-xs transition-all cursor-pointer shrink-0"
+              title="Open Super Admin Dashboard"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Super Admin</span>
+            </button>
+          )}
         </div>
 
         {/* Desktop Top Tabs Navigation */}
@@ -817,6 +836,15 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             >
               <Settings className="w-4 h-4" /> Account Settings
             </button>
+            {profile?.is_admin && (
+              <button 
+                onClick={() => onNavigate('admin-dashboard')}
+                className="shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 hover:bg-[#D2F843]/30"
+                title="Super Admin Dashboard"
+              >
+                <Shield className="w-4 h-4" /> Super Admin
+              </button>
+            )}
           </div>
         </div>
 
@@ -984,23 +1012,35 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </button>
               </div>
 
-              {/* Two Action Buttons: Preview Bio & Save Changes */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('public-profile')}
-                  className="w-full py-3.5 px-4 bg-white dark:bg-[#151821] text-neutral-900 dark:text-white font-semibold text-sm rounded-full border border-neutral-300 dark:border-white/20 hover:bg-neutral-50 dark:hover:bg-[#1c202d] transition-all text-center shadow-xs cursor-pointer"
-                >
-                  Preview Bio
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="w-full py-3.5 px-4 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-semibold text-sm rounded-full hover:opacity-90 transition-all text-center shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
+              {/* Action Buttons: Preview Bio & Save Changes */}
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('public-profile')}
+                    className="w-full py-3.5 px-4 bg-white dark:bg-[#151821] text-neutral-900 dark:text-white font-semibold text-sm rounded-full border border-neutral-300 dark:border-white/20 hover:bg-neutral-50 dark:hover:bg-[#1c202d] transition-all text-center shadow-xs cursor-pointer"
+                  >
+                    Preview Bio
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="w-full py-3.5 px-4 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-semibold text-sm rounded-full hover:opacity-90 transition-all text-center shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+                {profile?.is_admin && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('admin-dashboard')}
+                    className="w-full py-3 px-4 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs border border-[#D2F843]/50"
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Open Super Admin Control Center</span>
+                  </button>
+                )}
               </div>
 
               {/* COVER IMAGE */}

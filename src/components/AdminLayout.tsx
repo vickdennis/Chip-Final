@@ -9,7 +9,8 @@ import {
   Moon,
   Sun,
   ExternalLink,
-  Home
+  Home,
+  Shield
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -20,6 +21,7 @@ interface AdminLayoutProps {
   activePath: 'dashboard' | 'bio' | 'enterprise';
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  isAdmin?: boolean;
 }
 
 export default function AdminLayout({
@@ -30,6 +32,7 @@ export default function AdminLayout({
   toggleDarkMode,
   hideMobileNav,
   topRightContent,
+  isAdmin,
 }: AdminLayoutProps) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -84,6 +87,19 @@ export default function AdminLayout({
                 <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] dark:bg-neutral-950"></span>
               )}
             </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => onNavigate('admin-dashboard')}
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl transition-all font-bold text-xs cursor-pointer bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 hover:bg-[#D2F843]/25"
+              >
+                <div className="flex items-center gap-3">
+                  <Shield className="w-4 h-4 text-[#6c8600] dark:text-[#D2F843]" />
+                  <span>Super Admin</span>
+                </div>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
+              </button>
+            )}
 
             <button
               onClick={() => onNavigate('landing')}
