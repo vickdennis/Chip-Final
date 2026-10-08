@@ -1,0 +1,172 @@
+import React from 'react';
+import { ViewState } from '../App';
+import { supabase } from '../supabaseClient';
+import BrandLogo from './BrandLogo';
+import { 
+  LayoutDashboard, 
+  Users, 
+  LogOut,
+  Moon,
+  Sun,
+  ExternalLink,
+  Home,
+  Shield
+} from 'lucide-react';
+
+interface AdminLayoutProps {
+  topRightContent?: React.ReactNode;
+  hideMobileNav?: boolean;
+  children: React.ReactNode;
+  onNavigate: (view: ViewState) => void;
+  activePath: 'dashboard' | 'bio' | 'enterprise';
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
+  isAdmin?: boolean;
+}
+
+export default function AdminLayout({
+  children,
+  onNavigate,
+  activePath,
+  isDarkMode,
+  toggleDarkMode,
+  hideMobileNav,
+  topRightContent,
+  isAdmin,
+}: AdminLayoutProps) {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    onNavigate('landing');
+  };
+
+  return (
+    <div className="flex h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans transition-colors">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-[260px] border-r border-neutral-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0E1017]/90 backdrop-blur-xl z-20">
+        <div className="p-6 pb-6 flex items-center justify-between border-b border-neutral-200/60 dark:border-white/5">
+          <button
+            onClick={() => onNavigate('landing')}
+            className="flex items-center text-left focus:outline-none cursor-pointer"
+          >
+            <BrandLogo size="md" subtitle="Control Hub" />
+          </button>
+        </div>
+
+        <div className="px-4 py-4">
+          <nav className="flex flex-col gap-1.5">
+            <button
+              onClick={() => onNavigate('user-dashboard')}
+              className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all font-semibold text-xs cursor-pointer ${
+                activePath === 'dashboard'
+                  ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-950 dark:hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Personal Console</span>
+              </div>
+              {activePath === 'dashboard' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] dark:bg-neutral-950"></span>
+              )}
+            </button>
+
+            <button
+              onClick={() => onNavigate('enterprise-dashboard')}
+              className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all font-semibold text-xs cursor-pointer ${
+                activePath === 'enterprise'
+                  ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-950 dark:hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4" />
+                <span>Enterprise Fleet</span>
+              </div>
+              {activePath === 'enterprise' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] dark:bg-neutral-950"></span>
+              )}
+            </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => onNavigate('admin-dashboard')}
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl transition-all font-bold text-xs cursor-pointer bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 hover:bg-[#D2F843]/25"
+              >
+                <div className="flex items-center gap-3">
+                  <Shield className="w-4 h-4 text-[#6c8600] dark:text-[#D2F843]" />
+                  <span>Super Admin</span>
+                </div>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
+              </button>
+            )}
+
+            <button
+              onClick={() => onNavigate('landing')}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-950 dark:hover:text-white transition-all font-semibold text-xs cursor-pointer"
+            >
+              <Home className="w-4 h-4" />
+              <span>Main Website</span>
+            </button>
+          </nav>
+        </div>
+
+        <div className="mt-auto p-4 border-t border-neutral-200/80 dark:border-white/10 flex flex-col gap-1.5 bg-neutral-50/50 dark:bg-white/[0.02]">
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-950 dark:hover:text-white transition-all font-semibold text-xs cursor-pointer"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-neutral-700" />}
+            <span>{isDarkMode ? 'Light Surface' : 'Dark Surface'}</span>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all font-semibold text-xs cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Terminate Session</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        {/* Top Header - Visible on both Mobile & Desktop */}
+        <header className="h-16 shrink-0 bg-white/90 dark:bg-[#0A0B0E]/90 backdrop-blur-xl border-b border-neutral-200/80 dark:border-white/10 flex items-center justify-between px-4 sm:px-6 md:px-8 z-30 sticky top-0">
+          {/* Left: Brand Logo (Matches exact CHIPNG top header) */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('landing')}
+              className="flex items-center focus:outline-none cursor-pointer"
+            >
+              <BrandLogo size="xs" />
+            </button>
+          </div>
+
+          {/* Right: Notification Bell, Theme Switcher, Logout */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {topRightContent}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              title={isDarkMode ? 'Switch to Light' : 'Switch to Dark'}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-full text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              title="Sign out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* Scrollable Children */}
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </div>
+  );
+}

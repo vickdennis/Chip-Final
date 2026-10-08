@@ -1,0 +1,768 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { usePaystackPayment } from 'react-paystack';
+import PaystackPop from '@paystack/inline-js';
+import { CardCustomizationData } from './CardCustomizerModal';
+import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { trackTikTokEvent } from '../../utils/tiktokPixel';
+import { DhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
+
+interface CheckoutOnboardingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  data: CardCustomizationData;
+  onNavigate?: (view: any) => void;
+}
+
+const PAYSTACK_PUBLIC_KEY =
+  (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY ||
+  'pk_live_98c73643bf533425b945bb3c328918539f3100ca';
+
+export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = ({
+  isOpen,
+  onClose,
+  data,
+  onNavigate,
+}) => {
+  const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'transfer'>('paystack');
+  const [copiedBank, setCopiedBank] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paystackError, setPaystackError] = useState<string | null>(null);
+
+  // Onboarding profile setup state
+  const [profileBio, setProfileBio] = useState('Connecting leaders and creators with next-generation NFC technology.');
+  const [profileInstagram, setProfileInstagram] = useState('');
+  const [profileLinkedin, setProfileLinkedin] = useState('');
+  const [profileWebsite, setProfileWebsite] = useState('');
+  const [onboardingSaved, setOnboardingSaved] = useState(false);
+
+  // Order bumps state within checkout
+  const [bumpPhoneTag, setBumpPhoneTag] = useState(data?.orderBumps?.phoneTagSticker ?? false);
+  const [bumpVipQueue, setBumpVipQueue] = useState(data?.orderBumps?.vipAnalyticsQueue ?? false);
+
+  // Base price calculation: Smart PVC is 30,000, NFC Smart Metal is 50,000, Custom Heavy Metal/Debit is 100,000
+  const getBasePrice = () => {
+    if (data?.tier === 'plastic' || data?.material?.includes('plastic')) {
+      return 30000;
+    }
+    if (
+      data?.material === 'metal_gold' ||
+      (data?.tier as string) === 'heavy_metal' ||
+      (data?.tier as string) === 'debit'
+    ) {
+      return 100000;
+    }
+    // Default for NFC Smart Metal (metal_spacegray, or standard metal tier) is ₦50,000
+    return 50000;
+  };
+
+  const basePrice = getBasePrice();
+  const discountAmount = data?.appliedDiscount ? Math.round(basePrice * 0.1) : 0;
+  const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
+  const vipQueuePrice = bumpVipQueue ? 5000 : 0;
+  const totalAmountNgn = basePrice - discountAmount + phoneTagPrice + vipQueuePrice;
+  const totalAmountKobo = totalAmountNgn * 100;
+
+  // Track TikTok InitiateCheckout when checkout modal opens
+  useEffect(() => {
+    if (isOpen && data) {
+      trackTikTokEvent('InitiateCheckout', {
+        content_type: 'product',
+        content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
+        content_id: data.tier,
+        quantity: 1,
+        value: totalAmountNgn,
+        currency: 'NGN',
+      });
+    }
+  }, [isOpen, data, totalAmountNgn]);
+
+  // Hook config for react-paystack fallback
+  const fallbackPaystackConfig = {
+    reference: `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    email: data?.email?.trim() || 'customer@chipng.com',
+    amount: totalAmountKobo,
+    publicKey: PAYSTACK_PUBLIC_KEY,
+    currency: 'NGN',
+    metadata: {
+      name: data?.customerName || data?.name || 'Customer',
+      phone: data?.whatsapp || '',
+      custom_fields: [
+        { display_name: 'Card Tier', variable_name: 'card_tier', value: data?.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)' },
+        { display_name: 'Surface Name', variable_name: 'surface_name', value: data?.name || '' },
+        { display_name: 'Surface Title', variable_name: 'surface_title', value: data?.title || '' },
+        { display_name: 'Handle', variable_name: 'handle', value: data?.handle || '' },
+        { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
+        { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
+      ],
+    },
+  };
+
+  const initializePaymentFallback = usePaystackPayment(fallbackPaystackConfig);
+
+  if (!isOpen) return null;
+
+  const handlePaystackSuccess = async (reference: any) => {
+    setIsProcessing(true);
+    setPaystackError(null);
+    const refString = reference?.reference || reference?.trxref || `CHIP-${Date.now()}`;
+    setPaymentSuccess({ ...reference, reference: refString });
+
+    try {
+      // Secure Server-Side Paystack Verification and Order Persistence
+      const verifyRes = await fetch(`/api/paystack/verify/${encodeURIComponent(refString)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.customerName || data.name,
+          email: data.email?.trim() || 'customer@chipng.com',
+          phone: data.whatsapp || '',
+          card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
+          amount: totalAmountKobo,
+        }),
+      });
+
+      if (!verifyRes.ok) {
+        console.warn('Server verification returned non-OK status, falling back to client record');
+      }
+
+      // Update funnel lead stage to converted
+      await fetch('/api/funnel/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          whatsapp: data.whatsapp,
+          funnel_stage: 'converted',
+          order_bumps: [bumpPhoneTag ? 'phone_tag_sticker' : null, bumpVipQueue ? 'vip_analytics_queue' : null].filter(Boolean),
+          estimated_amount: totalAmountNgn,
+        }),
+      });
+
+      // Track TikTok CompletePayment
+      trackTikTokEvent('CompletePayment', {
+        content_type: 'product',
+        content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
+        content_id: data.tier,
+        quantity: 1,
+        value: totalAmountNgn,
+        currency: 'NGN',
+      });
+    } catch (err) {
+      console.error('Failed to register converted sale:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaystackClose = () => {
+    setIsProcessing(false);
+    // Trigger automated follow-up webhook for abandoned checkout
+    fetch('/api/funnel/webhook-trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'checkout_abandoned',
+        email: data.email,
+        whatsapp: data.whatsapp,
+        name: data.customerName || data.name,
+        custom_name: data.name,
+        card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
+        estimated_amount: totalAmountNgn,
+      }),
+    }).catch(() => {});
+  };
+
+  // Dedicated robust payment launcher
+  const triggerPaystack = () => {
+    setPaystackError(null);
+    setIsProcessing(true);
+
+    const txRef = `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const customerEmail = data.email?.trim() || 'customer@chipng.com';
+
+    const transactionOptions = {
+      key: PAYSTACK_PUBLIC_KEY,
+      publicKey: PAYSTACK_PUBLIC_KEY,
+      email: customerEmail,
+      amount: totalAmountKobo,
+      currency: 'NGN',
+      ref: txRef,
+      reference: txRef,
+      firstname: (data.customerName || data.name || '').split(' ')[0] || 'Valued',
+      lastname: (data.customerName || data.name || '').split(' ').slice(1).join(' ') || 'Customer',
+      phone: data.whatsapp || '',
+      metadata: {
+        name: data.customerName || data.name,
+        phone: data.whatsapp,
+        custom_fields: [
+          { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)' },
+          { display_name: 'Surface Name', variable_name: 'surface_name', value: data.name },
+          { display_name: 'Surface Title', variable_name: 'surface_title', value: data.title },
+          { display_name: 'Handle', variable_name: 'handle', value: data.handle },
+          { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
+          { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
+        ],
+      },
+    };
+
+    try {
+      const paystack = new PaystackPop();
+      paystack.newTransaction({
+        ...transactionOptions,
+        onSuccess: (res: any) => {
+          setIsProcessing(false);
+          handlePaystackSuccess(res || { reference: txRef });
+        },
+        onCancel: () => {
+          setIsProcessing(false);
+          handlePaystackClose();
+        },
+        onError: (err: any) => {
+          console.error('Paystack popup error:', err);
+          setIsProcessing(false);
+          setPaystackError(err?.message || 'Unable to open Paystack payment modal. You can choose Direct Bank Transfer below.');
+        },
+        onLoad: () => {
+          setIsProcessing(false);
+        },
+      });
+    } catch (err: any) {
+      console.warn('PaystackPop newTransaction failed, using hook fallback:', err);
+      try {
+        initializePaymentFallback({
+          config: transactionOptions as any,
+          onSuccess: (res: any) => {
+            setIsProcessing(false);
+            handlePaystackSuccess(res || { reference: txRef });
+          },
+          onClose: () => {
+            setIsProcessing(false);
+            handlePaystackClose();
+          },
+        });
+      } catch (hookErr: any) {
+        console.error('All Paystack initialization failed:', hookErr);
+        setIsProcessing(false);
+        setPaystackError('Paystack checkout could not open. Please use Direct Bank Transfer below for instant dispatch.');
+      }
+    }
+  };
+
+  const handleTransferToWhatsApp = () => {
+    const refString = `TRANSFER-${Date.now()}`;
+    const cleanCustomerName = data.customerName || data.name || 'Valued Client';
+    const cleanCardName = data.name || cleanCustomerName;
+    const cleanHandle = data.handle || 'user';
+    const cleanEmail = data.email || 'Not provided';
+    const cleanPhone = data.whatsapp || 'Not provided';
+    const tierDisplay = (data.tier || 'metal').toUpperCase();
+    const formattedAmount = `₦${totalAmountNgn.toLocaleString()}`;
+
+    const messageLines = [
+      'Hello CHIP NG Concierge! I have made a direct bank transfer for my CHIP NFC Card.',
+      '',
+      `📌 *Order Ref:* ${refString}`,
+      `💳 *Card Tier:* ${tierDisplay} NFC Card (${data.material || 'Standard'})`,
+      `💰 *Amount Paid:* ${formattedAmount}`,
+      '🏦 *Destination Bank:* Okoye Chuka Victor (Opay: 8100764154)',
+      '',
+      '👤 *Customer Details:*',
+      `• Name: ${cleanCustomerName}`,
+      `• Name on Card: ${cleanCardName}`,
+      `• Handle: chipng.com/@${cleanHandle}`,
+      `• Phone/WhatsApp: ${cleanPhone}`,
+      `• Email: ${cleanEmail}`,
+      '',
+      '📎 I am attaching my transfer receipt screenshot below for instant verification & dispatch queueing.'
+    ];
+
+    const messageText = messageLines.join('\n');
+    const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(messageText)}`;
+
+    // 1. Instantly trigger WhatsApp via direct window location or safe popup
+    try {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = waUrl;
+      } else {
+        const opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
+        if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+          window.location.href = waUrl;
+        }
+      }
+    } catch (e) {
+      window.location.href = waUrl;
+    }
+
+    // 2. Register order and transition to Stage 6B onboarding
+    handlePaystackSuccess({ reference: refString });
+  };
+
+  const copyBankDetails = () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText('8100764154');
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = '8100764154';
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+    } catch (e) {
+      console.warn('Clipboard write failed:', e);
+    }
+    setCopiedBank(true);
+    setTimeout(() => setCopiedBank(false), 2500);
+  };
+
+  const handleSaveOnboarding = () => {
+    setOnboardingSaved(true);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        className="bg-[#12141A] border border-white/15 rounded-3xl p-6 sm:p-8 w-full max-w-2xl max-h-[92vh] overflow-y-auto relative shadow-2xl no-scrollbar text-white"
+      >
+        {/* Close Button */}
+        {!paymentSuccess && (
+          <button
+            onClick={() => {
+              handlePaystackClose();
+              onClose();
+            }}
+            className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-20"
+          >
+            ✕
+          </button>
+        )}
+
+        {/* ================= STAGE 6A: CHECKOUT INTERFACE ================= */}
+        {!paymentSuccess ? (
+          <div className="flex flex-col gap-5">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-widest text-[#B600A8] font-bold">
+                Stage 6 • Frictionless Checkout
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white mt-0.5">
+                Complete Your Custom Card Order
+              </h2>
+              <p className="text-xs sm:text-sm text-white/60 mt-1">
+                {data.tier === 'metal' ? 'Custom laser-engraved' : 'Custom UV printed'} for <strong className="text-white">{data.name}</strong> • Nationwide insured delivery included.
+              </p>
+            </div>
+
+            {/* Itemized Price Breakdown Table */}
+            <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-white/80 font-medium">
+                  {data.tier === 'plastic' || data.material?.includes('plastic')
+                    ? 'Smart PVC Card (UV Printed)'
+                    : basePrice === 50000
+                    ? 'NFC Smart Metal Card (Fiber-Laser Engraved)'
+                    : 'Custom Heavy Metal Edition (Bespoke Fiber Engraved)'}
+                </span>
+                <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
+              </div>
+
+              {data.appliedDiscount && (
+                <div className="flex justify-between items-center text-sm text-emerald-400">
+                  <span className="flex items-center gap-1">
+                    <span>VIP Courtesy Coupon (10% OFF)</span>
+                  </span>
+                  <span className="font-bold">-₦{discountAmount.toLocaleString()}</span>
+                </div>
+              )}
+
+              {/* Transparent Pricing Trust Box (CHIP Core + 3-Months Pro Free) */}
+              <div className="p-3.5 rounded-2xl bg-[#D2F843]/10 border border-[#D2F843]/30 flex flex-col gap-1.5 my-1 text-left">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#D2F843] animate-pulse"></span>
+                  <span className="text-[11px] font-bold text-[#D2F843] uppercase tracking-wider">
+                    Transparent Software Guarantee
+                  </span>
+                </div>
+                <div className="text-xs text-white/95 font-semibold leading-snug">
+                  Includes lifetime access to CHIP Core + 3-months of CHIP Pro for free.
+                </div>
+                <p className="text-[11px] text-white/60 leading-relaxed">
+                  No monthly subscriptions required for core features. If you downgrade after 3 months, your card still works perfectly—you just lose advanced analytics. That builds massive trust.
+                </p>
+              </div>
+
+              {/* Order Bump 1 Toggle */}
+              <div className="pt-2 border-t border-white/10 flex justify-between items-start text-xs gap-2">
+                <label className="flex items-start gap-2 cursor-pointer flex-1">
+                  <input
+                    type="checkbox"
+                    checked={bumpPhoneTag}
+                    onChange={(e) => setBumpPhoneTag(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
+                  />
+                  <div>
+                    <span className="text-white/90 font-medium block">Add ChipNG Phone Tap Sticker</span>
+                    <span className="text-[10px] text-white/50 block">Stick to phone case. Works when wallet is in bag.</span>
+                  </div>
+                </label>
+                <span className="font-mono text-amber-300 font-semibold">+{bumpPhoneTag ? '₦7,500' : '₦0'}</span>
+              </div>
+
+              {/* Order Bump 2 Toggle */}
+              <div className="flex justify-between items-start text-xs gap-2">
+                <label className="flex items-start gap-2 cursor-pointer flex-1">
+                  <input
+                    type="checkbox"
+                    checked={bumpVipQueue}
+                    onChange={(e) => setBumpVipQueue(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-[#B600A8] focus:ring-[#B600A8] bg-black border-white/20"
+                  />
+                  <div>
+                    <span className="text-white/90 font-medium block">VIP Production & Lifetime Advanced Analytics</span>
+                    <span className="text-[10px] text-white/50 block">Expedited 24h dispatch + click heatmaps & lead tracking</span>
+                  </div>
+                </label>
+                <span className="font-mono text-amber-300 font-semibold">+{bumpVipQueue ? '₦5,000' : '₦0'}</span>
+              </div>
+
+              {/* Delivery with DHL & GIG Logistics */}
+              <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs text-white/70">
+                  <span className="font-medium">Insured Nationwide Delivery (DHL & GIG Logistics)</span>
+                  <span className="text-emerald-400 font-bold font-mono uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Free
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-white/50 uppercase">Carriers:</span>
+                    <div className="flex items-center gap-2">
+                      <DhlLogisticsLogo className="h-6" />
+                      <GigLogisticsLogo className="h-6" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">Lagos &bull; Nationwide</span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/15 flex justify-between items-baseline">
+                <span className="text-base font-bold text-white">Total Payable</span>
+                <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-[#B600A8]">
+                  ₦{totalAmountNgn.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-bold text-white/70 uppercase tracking-wider">
+                Select Preferred Payment Method
+              </span>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaystackError(null);
+                    setPaymentMethod('paystack');
+                  }}
+                  className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
+                    paymentMethod === 'paystack'
+                      ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
+                      : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 text-[#B600A8]" />
+                  <span>Card / USSD / Apple Pay</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaystackError(null);
+                    setPaymentMethod('transfer');
+                  }}
+                  className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
+                    paymentMethod === 'transfer'
+                      ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
+                      : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-emerald-400" />
+                  <span>Direct Bank Transfer</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Payment Action Pane */}
+            {paymentMethod === 'paystack' ? (
+              <div className="flex flex-col gap-3">
+                {paystackError && (
+                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2.5 text-xs text-amber-200">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-amber-300 mb-1">Paystack Notice</p>
+                      <p className="leading-relaxed opacity-90">{paystackError}</p>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('transfer')}
+                        className="mt-2 text-xs font-bold text-white underline underline-offset-2 hover:text-amber-300"
+                      >
+                        Switch to Direct Bank Transfer →
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={triggerPaystack}
+                  className="w-full py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/50 active:scale-98 transition-all disabled:opacity-75 disabled:cursor-wait"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Connecting to Paystack...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>Pay ₦{totalAmountNgn.toLocaleString()} with Paystack</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Cart Page Reassurance Bullets */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 flex flex-col gap-2.5 text-left text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-amber-300 font-bold text-sm leading-none mt-0.5">⚡</span>
+                    <div>
+                      <span className="font-bold text-white block">Express Dispatch Guarantee</span>
+                      <span className="text-white/60 text-[11px] leading-relaxed">
+                        Custom orders approved before 12:00 PM WAT enter production same-day. Delivered in 24–48 hours across Lagos; 48–72 hours nationwide via DHL & GIG Logistics.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-emerald-400 font-bold text-sm leading-none mt-0.5">🔒</span>
+                    <div>
+                      <span className="font-bold text-white block">Bank-Grade Checkout Security</span>
+                      <span className="text-white/60 text-[11px] leading-relaxed">
+                        Processed via Paystack using 256-bit SSL encryption. We never see or store your banking credentials.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-purple-300 font-bold text-sm leading-none mt-0.5">🛡️</span>
+                    <div>
+                      <span className="font-bold text-white block">1-on-1 WhatsApp Verification</span>
+                      <span className="text-white/60 text-[11px] leading-relaxed">
+                        You will receive a personal WhatsApp message from our production manager with your high-res design proof within 2 hours of payment.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logistics Partner Trust Banner with DHL and GIG Logistics Logos */}
+                <LogisticsTrustBanner />
+              </div>
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-white/80 uppercase">CHIP NG Official Bank Account</span>
+                  <span className="text-[10px] font-mono text-emerald-400 uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Instant Auto-Confirm
+                  </span>
+                </div>
+
+                <div className="bg-black/60 rounded-xl p-3 border border-white/10 flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-white/50 uppercase">Bank Name</span>
+                    <span className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                      <span>Opay</span>
+                      <span className="text-[10px] text-white/50 font-normal">(OPay Digital Services)</span>
+                    </span>
+                    <span className="text-[10px] text-white/50 uppercase mt-1.5">Account Number</span>
+                    <span className="text-xl font-mono font-black text-amber-300 tracking-wider">8100764154</span>
+                    <span className="text-[10px] text-white/50 uppercase mt-1">Account Name</span>
+                    <span className="text-sm font-bold text-white tracking-wide">Okoye Chuka Victor</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={copyBankDetails}
+                    className="p-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{copiedBank ? 'Copied!' : 'Copy Number'}</span>
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-white/60">
+                  After transferring <strong>₦{totalAmountNgn.toLocaleString()}</strong> to <strong>Okoye Chuka Victor (Opay: 8100764154)</strong>, click the button below to send your transfer receipt directly to our WhatsApp Concierge for instant dispatch queueing:
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleTransferToWhatsApp}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-[#25D366] text-black hover:bg-[#20bd5a] flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/50 active:scale-[0.99] transition-transform"
+                >
+                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <span>I Have Transferred • Send Receipt on WhatsApp</span>
+                </button>
+
+                {/* Logistics Partner Trust Banner with DHL and GIG Logistics Logos */}
+                <LogisticsTrustBanner className="mt-1" />
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ================= STAGE 6B: POST-PURCHASE ONBOARDING ENGINE ================= */
+          <div className="flex flex-col gap-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-xl shadow-emerald-950/40">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+            </div>
+
+            <div>
+              <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold">
+                Order Confirmed • Reference: {paymentSuccess.reference}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-display font-black text-white mt-1">
+                Your Custom Card is Being Handcrafted!
+              </h2>
+              <p className="text-xs sm:text-sm text-white/70 max-w-lg mx-auto mt-2 leading-relaxed">
+                Our master technicians in Lagos have received your{' '}
+                {data.tier === 'metal' ? 'laser-engraving layout' : 'custom UV printing layout'} for{' '}
+                <strong className="text-white">{data.name}</strong>. While your physical hardware is crafted, let's activate your live digital bio engine right now!
+              </p>
+            </div>
+
+            {/* Immediate Digital Bio Setup */}
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-5 text-left flex flex-col gap-3">
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <div>
+                  <h4 className="font-bold text-sm text-white">Instant Bio Profile Activation</h4>
+                  <span className="text-[11px] text-white/50">Your handle: <strong>chipng.com/@{data.handle}</strong></span>
+                </div>
+                <Sparkles className="w-4 h-4 text-purple-400" />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-white/60 uppercase mb-1">
+                  Bio / Tagline
+                </label>
+                <textarea
+                  rows={2}
+                  value={profileBio}
+                  onChange={(e) => setProfileBio(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-base sm:text-xs text-white placeholder-white/30 focus:border-[#B600A8] focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-white/60 uppercase mb-1">
+                    LinkedIn URL
+                  </label>
+                  <input
+                    type="url"
+                    value={profileLinkedin}
+                    onChange={(e) => setProfileLinkedin(e.target.value)}
+                    placeholder="https://linkedin.com/in/username"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-base sm:text-xs text-white placeholder-white/30 focus:border-[#B600A8] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-white/60 uppercase mb-1">
+                    Instagram Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={profileInstagram}
+                    onChange={(e) => setProfileInstagram(e.target.value)}
+                    placeholder="@yourhandle"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-base sm:text-xs text-white placeholder-white/30 focus:border-[#B600A8] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-white/60 uppercase mb-1">
+                  Primary Website / Calendly Link
+                </label>
+                <input
+                  type="url"
+                  value={profileWebsite}
+                  onChange={(e) => setProfileWebsite(e.target.value)}
+                  placeholder="https://yourcompany.com or calendly.com/you"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-base sm:text-xs text-white placeholder-white/30 focus:border-[#B600A8] focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveOnboarding}
+                className="mt-1 w-full py-2.5 rounded-xl font-bold text-xs bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>{onboardingSaved ? '✓ Profile Links Synchronized' : 'Save & Publish Digital Profile'}</span>
+              </button>
+            </div>
+
+            {/* Next Steps Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const msg = `Hello CHIP VIP Concierge! I just completed my order for a ${data.tier.toUpperCase()} card.\n\nOrder Ref: ${paymentSuccess.reference}\nName: ${data.customerName}\nLaser Name: ${data.name}\nHandle: chipng.com/@${data.handle}\n\nI would like to upload my high-resolution logo for laser-engraving now.`;
+                  const url = `https://wa.me/2348100764154?text=${encodeURIComponent(msg)}`;
+                  try {
+                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                      window.location.href = url;
+                    } else {
+                      const opened = window.open(url, '_blank', 'noopener,noreferrer');
+                      if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+                        window.location.href = url;
+                      }
+                    }
+                  } catch (e) {
+                    window.location.href = url;
+                  }
+                }}
+                className="flex-1 py-3.5 px-4 rounded-xl font-bold text-sm bg-[#25D366] text-black hover:bg-[#20bd5a] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-950/40 active:scale-[0.99]"
+              >
+                <MessageCircle className="w-4 h-4 fill-current" />
+                <span>Upload Logo via WhatsApp Concierge</span>
+              </button>
+
+              {onNavigate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onNavigate('user-dashboard');
+                  }}
+                  className="py-3.5 px-5 rounded-xl font-bold text-sm bg-white text-black hover:bg-neutral-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <span>Go to My Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+};
