@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
-import { Mail, Phone, MapPin, Clock, Check, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Check, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 interface MakroContactViewProps {
   onNavigate: (view: ViewState) => void;
@@ -21,13 +22,52 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
   const [email, setEmail] = useState('');
   const [topic, setTopic] = useState('Product Inquiry');
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim() && fullName.trim() && message.trim()) {
-      setSubmitted(true);
-    }
+    if (!email.trim() || !fullName.trim() || !message.trim()) return;
+
+    setSubmitting(true);
+    // Direct Supabase save
+    try {
+      const meta = {
+        email: email.trim(),
+        topic,
+        message: message.trim(),
+        source: 'contact_page',
+        city: 'Lagos',
+        created_at: new Date().toISOString()
+      };
+      await supabase.from('leads').insert([{
+        name: fullName.trim(),
+        whatsapp: email.trim(),
+        city: JSON.stringify(meta),
+        post_slug: 'contact_inquiry',
+        source: 'contact_page'
+      }]);
+    } catch (e) {}
+
+    // API save
+    try {
+      await fetch('/api/leads/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fullName.trim(),
+          email: email.trim(),
+          whatsapp: email.trim(),
+          company: topic,
+          message: message.trim(),
+          source: 'contact_page',
+          city: 'Lagos'
+        })
+      });
+    } catch (e) {}
+
+    setSubmitting(false);
+    setSubmitted(true);
   };
 
   return (

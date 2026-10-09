@@ -467,7 +467,7 @@ ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS faq_json TEXT;
 ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS product_json TEXT;
 ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0;
 
--- Leads Table for WhatsApp Capture
+-- Leads Table for WhatsApp Capture and 2-Way Contact Exchange
 CREATE TABLE IF NOT EXISTS public.leads (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -477,8 +477,40 @@ CREATE TABLE IF NOT EXISTS public.leads (
   source TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Safely add 2-Way Contact Exchange columns to public.leads
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS profile_id TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS company TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS message TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new';
+
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Anyone can insert leads" ON public.leads;
 CREATE POLICY "Anyone can insert leads" ON public.leads FOR INSERT WITH CHECK (true);
+
 DROP POLICY IF EXISTS "Admins can view leads" ON public.leads;
 CREATE POLICY "Admins can view leads" ON public.leads FOR SELECT USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+
+-- Allow cardholders to view leads captured for their own profile
+DROP POLICY IF EXISTS "Cardholders can view own profile leads" ON public.leads;
+CREATE POLICY "Cardholders can view own profile leads" ON public.leads FOR SELECT USING (
+  profile_id = auth.uid()::text
+  OR post_slug = 'profile_' || auth.uid()::text
+  OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+);
+
+DROP POLICY IF EXISTS "Cardholders can update own profile leads" ON public.leads;
+CREATE POLICY "Cardholders can update own profile leads" ON public.leads FOR UPDATE USING (
+  profile_id = auth.uid()::text
+  OR post_slug = 'profile_' || auth.uid()::text
+  OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+);
+
+DROP POLICY IF EXISTS "Cardholders can delete own profile leads" ON public.leads;
+CREATE POLICY "Cardholders can delete own profile leads" ON public.leads FOR DELETE USING (
+  profile_id = auth.uid()::text
+  OR post_slug = 'profile_' || auth.uid()::text
+  OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+);
+

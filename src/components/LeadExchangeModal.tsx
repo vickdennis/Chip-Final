@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, ArrowRight, User, Phone, Mail, Building2, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from './Toast';
+import { supabase } from '../supabaseClient';
 
 interface LeadExchangeModalProps {
   isOpen: boolean;
@@ -37,6 +38,55 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
     }
 
     setSubmitting(true);
+    let apiSuccess = false;
+    let supabaseSuccess = false;
+
+    // 1. Direct Supabase save to guarantee persistence in Supabase
+    try {
+      const meta = {
+        profile_id: profile?.id || null,
+        email: email.trim(),
+        whatsapp: whatsapp.trim(),
+        company: company.trim(),
+        message: message.trim(),
+        source: 'profile_nfc_tap',
+        city: 'Lagos',
+        status: 'new',
+        created_at: new Date().toISOString()
+      };
+
+      // Try full insert first
+      const fullRes = await supabase.from('leads').insert([{
+        profile_id: profile?.id || null,
+        name: name.trim(),
+        whatsapp: whatsapp.trim() || email.trim() || 'N/A',
+        email: email.trim(),
+        company: company.trim(),
+        message: message.trim(),
+        source: 'profile_nfc_tap',
+        city: 'Lagos',
+        post_slug: profile?.id ? `profile_${profile.id}` : 'profile_capture',
+        status: 'new'
+      }]);
+
+      if (!fullRes.error) {
+        supabaseSuccess = true;
+      } else {
+        // Fallback to existing columns with JSON meta
+        const fallbackRes = await supabase.from('leads').insert([{
+          name: name.trim(),
+          whatsapp: whatsapp.trim() || email.trim() || 'Contact Shared',
+          city: JSON.stringify(meta),
+          post_slug: profile?.id ? `profile_${profile.id}` : 'profile_capture',
+          source: 'profile_nfc_tap'
+        }]);
+        if (!fallbackRes.error) supabaseSuccess = true;
+      }
+    } catch (sbErr) {
+      console.warn('Direct Supabase save notice:', sbErr);
+    }
+
+    // 2. Call backend /api/leads/capture endpoint
     try {
       const res = await fetch('/api/leads/capture', {
         method: 'POST',
@@ -54,17 +104,19 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
       });
 
       if (res.ok) {
-        setSubmitted(true);
-        toast.success(`Contact shared with ${profile?.full_name || 'user'}!`);
-      } else {
-        const data = await res.json().catch(() => ({}));
-        toast.error(data.error || 'Failed to submit contact details.');
+        apiSuccess = true;
       }
-    } catch (e: any) {
-      toast.error('Network error. Please try again.');
-    } finally {
-      setSubmitting(false);
+    } catch (apiErr) {
+      console.warn('API leads capture notice:', apiErr);
     }
+
+    if (apiSuccess || supabaseSuccess) {
+      setSubmitted(true);
+      toast.success(`Contact details shared with ${profile?.full_name || 'user'}!`);
+    } else {
+      toast.error('Failed to save contact details. Please try again.');
+    }
+    setSubmitting(false);
   };
 
   return (

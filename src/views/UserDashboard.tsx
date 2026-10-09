@@ -7,7 +7,7 @@ import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck } from 'lucide-react';
+import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -107,6 +107,37 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
   const [setupGuideActive, setSetupGuideActive] = useState(false);
   const [setupStep, setSetupStep] = useState(1);
+  const [savingContactDetails, setSavingContactDetails] = useState(false);
+  const [contactSavedFeedback, setContactSavedFeedback] = useState(false);
+
+  const handleSaveContactDetails = async () => {
+    setSavingContactDetails(true);
+    setContactSavedFeedback(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert('Please log in to save contact details.');
+        return;
+      }
+
+      const { error } = await supabase.from('profiles').update({
+        contact_email: profile?.contact_email || null,
+        phone_number: profile?.phone_number || null,
+        address: profile?.address || null
+      }).eq('id', user.id);
+
+      if (error) throw error;
+
+      setContactSavedFeedback(true);
+      setTimeout(() => setContactSavedFeedback(false), 4000);
+      alert('✓ Contact details saved to Supabase successfully!');
+    } catch (error: any) {
+      console.error('Error saving contact details to Supabase:', error);
+      alert('Failed to save contact details: ' + (error.message || 'Please check your connection'));
+    } finally {
+      setSavingContactDetails(false);
+    }
+  };
 
   const hasBasicInfo = !!(profile?.full_name && profile?.headline && profile?.bio);
   const hasContactInfo = !!(profile?.contact_email || profile?.phone_number);
@@ -1272,6 +1303,36 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         placeholder="Victoria Island, Lagos, Nigeria"
                         className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
+                    </div>
+
+                    {/* Dedicated Contact Details Save Bar */}
+                    <div className="md:col-span-2 pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-neutral-100/70 dark:bg-white/[0.03] p-4 rounded-2xl border border-neutral-200/60 dark:border-white/5">
+                      <div className="text-xs text-neutral-600 dark:text-neutral-400">
+                        <span className="font-semibold text-neutral-900 dark:text-white">Direct Contact Routing:</span> Saved directly to your Supabase profile and 1-tap vCard exports.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveContactDetails}
+                        disabled={savingContactDetails}
+                        className="w-full sm:w-auto px-5 py-2.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {savingContactDetails ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Saving to Supabase...</span>
+                          </>
+                        ) : contactSavedFeedback ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-neutral-950 stroke-[3]" />
+                            <span>Saved in Supabase!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Save Contact Details</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                   

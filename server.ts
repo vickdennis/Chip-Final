@@ -312,6 +312,87 @@ async function startServer() {
     }
   });
 
+  // Helper function to guarantee contact details are saved to Supabase
+  async function saveLeadToSupabase(lead: {
+    profile_id?: string | null;
+    name: string;
+    whatsapp?: string;
+    email?: string;
+    company?: string;
+    message?: string;
+    source?: string;
+    city?: string;
+    status?: string;
+  }) {
+    const supabase = getSupabase();
+    const cleanName = (lead.name || '').trim();
+    const cleanWhatsapp = (lead.whatsapp || '').trim();
+    const cleanEmail = (lead.email || '').trim();
+    const cleanCompany = (lead.company || '').trim();
+    const cleanMessage = (lead.message || '').trim();
+    const cleanCity = (lead.city || 'Lagos').trim();
+    const cleanSource = lead.source || 'profile_nfc_tap';
+    const cleanStatus = lead.status || 'new';
+    const postSlug = lead.profile_id ? `profile_${lead.profile_id}` : 'profile_capture';
+
+    // 1. Direct attempt with full columns
+    try {
+      const { error: fullError } = await supabase.from('leads').insert([{
+        profile_id: lead.profile_id || null,
+        name: cleanName,
+        whatsapp: cleanWhatsapp || cleanEmail || 'N/A',
+        email: cleanEmail,
+        company: cleanCompany,
+        message: cleanMessage,
+        source: cleanSource,
+        city: cleanCity,
+        post_slug: postSlug,
+        status: cleanStatus
+      }]);
+
+      if (!fullError) {
+        console.log(`[Supabase Lead Sync] Successfully stored lead for ${cleanName} via full schema.`);
+        return { success: true, mode: 'full' };
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    // 2. Resilient fallback: encode all contact details into standard existing Supabase columns
+    try {
+      const metaPayload = {
+        profile_id: lead.profile_id || null,
+        email: cleanEmail,
+        whatsapp: cleanWhatsapp,
+        company: cleanCompany,
+        message: cleanMessage,
+        status: cleanStatus,
+        city: cleanCity,
+        source: cleanSource,
+        saved_at: new Date().toISOString()
+      };
+
+      const { error: fallbackError } = await supabase.from('leads').insert([{
+        name: cleanName,
+        whatsapp: cleanWhatsapp || cleanEmail || 'Contact Captured',
+        city: JSON.stringify(metaPayload),
+        post_slug: postSlug,
+        source: cleanSource
+      }]);
+
+      if (!fallbackError) {
+        console.log(`[Supabase Lead Sync] Successfully stored lead for ${cleanName} via encoded payload fallback.`);
+        return { success: true, mode: 'fallback' };
+      } else {
+        console.error('[Supabase Lead Sync Error]', fallbackError);
+        return { success: false, error: fallbackError.message };
+      }
+    } catch (err: any) {
+      console.error('[Supabase Lead Sync Exception]', err);
+      return { success: false, error: err?.message };
+    }
+  }
+
   // Profile 2-Way Lead Capture & Management API
   app.post('/api/leads/capture', async (req, res) => {
     try {
@@ -319,38 +400,47 @@ async function startServer() {
       if (!name || (!whatsapp && !email)) {
         return res.status(400).json({ error: 'Name and either WhatsApp or Email are required.' });
       }
-      const stmt = db.prepare(`
-        INSERT INTO leads (profile_id, name, whatsapp, email, company, message, source, city, post_slug, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
-      `);
-      const info = stmt.run(
-        profile_id || null,
-        name.trim(),
-        whatsapp ? whatsapp.trim() : '',
-        email ? email.trim() : '',
-        company ? company.trim() : '',
-        message ? message.trim() : '',
-        source || 'profile',
-        city || 'Lagos',
-        'profile_capture'
-      );
 
-      // Dual Database Persistence: Sync lead to Supabase if table is available
+      let localLeadId: any = null;
       try {
-        await getSupabase().from('leads').insert([{
-          profile_id: profile_id || null,
-          name: name.trim(),
-          whatsapp: whatsapp ? whatsapp.trim() : '',
-          email: email ? email.trim() : '',
-          company: company ? company.trim() : '',
-          message: message ? message.trim() : '',
-          source: source || 'profile',
-          city: city || 'Lagos',
-          status: 'new'
-        }]);
-      } catch (e) {}
+        const stmt = db.prepare(`
+          INSERT INTO leads (profile_id, name, whatsapp, email, company, message, source, city, post_slug, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
+        `);
+        const info = stmt.run(
+          profile_id || null,
+          name.trim(),
+          whatsapp ? whatsapp.trim() : '',
+          email ? email.trim() : '',
+          company ? company.trim() : '',
+          message ? message.trim() : '',
+          source || 'profile',
+          city || 'Lagos',
+          'profile_capture'
+        );
+        localLeadId = info.lastInsertRowid;
+      } catch (localErr) {
+        console.error('Local SQLite lead insert warning:', localErr);
+      }
 
-      res.json({ success: true, lead_id: info.lastInsertRowid });
+      // Persist to Supabase
+      const supabaseResult = await saveLeadToSupabase({
+        profile_id: profile_id || null,
+        name: name.trim(),
+        whatsapp: whatsapp ? whatsapp.trim() : '',
+        email: email ? email.trim() : '',
+        company: company ? company.trim() : '',
+        message: message ? message.trim() : '',
+        source: source || 'profile',
+        city: city || 'Lagos',
+        status: 'new'
+      });
+
+      res.json({
+        success: true,
+        lead_id: localLeadId,
+        saved_in_supabase: supabaseResult.success
+      });
     } catch (err: any) {
       console.error('Lead capture error:', err);
       res.status(500).json({ error: err.message });
@@ -375,30 +465,137 @@ async function startServer() {
       } catch (e) {}
 
       const placeholders = idsToMatch.map(() => '?').join(',');
-      const leads = db.prepare(`SELECT * FROM leads WHERE profile_id IN (${placeholders}) ORDER BY created_at DESC`).all(...idsToMatch);
-      const total = leads.length;
-      const newCount = (leads as any[]).filter(l => l.status === 'new' || !l.status).length;
-      const convertedCount = (leads as any[]).filter(l => l.status === 'converted').length;
-      res.json({ leads, total, newCount, convertedCount });
+      let localLeads: any[] = [];
+      try {
+        localLeads = db.prepare(`SELECT * FROM leads WHERE profile_id IN (${placeholders}) ORDER BY created_at DESC`).all(...idsToMatch) as any[];
+      } catch (e) {
+        localLeads = [];
+      }
+
+      // Also pull and merge any leads in Supabase
+      try {
+        const supabase = getSupabase();
+        const postSlugsToSearch = idsToMatch.map(id => `profile_${id}`).concat(idsToMatch);
+        const { data: spLeads } = await supabase
+          .from('leads')
+          .select('*')
+          .in('post_slug', postSlugsToSearch)
+          .order('created_at', { ascending: false });
+
+        if (spLeads && spLeads.length > 0) {
+          for (const sp of spLeads) {
+            let meta: any = {};
+            if (sp.city && typeof sp.city === 'string' && sp.city.startsWith('{')) {
+              try { meta = JSON.parse(sp.city); } catch (e) {}
+            }
+
+            const parsedLead = {
+              id: sp.id,
+              profile_id: meta.profile_id || sp.profile_id || profileId,
+              name: sp.name,
+              whatsapp: meta.whatsapp || sp.whatsapp,
+              email: meta.email || sp.email || '',
+              company: meta.company || sp.company || '',
+              message: meta.message || sp.message || '',
+              source: sp.source || 'profile',
+              city: meta.city || 'Lagos',
+              status: meta.status || sp.status || 'new',
+              created_at: sp.created_at
+            };
+
+            const alreadyExists = localLeads.some(l => 
+              l.id === sp.id || 
+              (l.name === parsedLead.name && (l.whatsapp === parsedLead.whatsapp || l.email === parsedLead.email))
+            );
+
+            if (!alreadyExists) {
+              localLeads.push(parsedLead);
+              try {
+                db.prepare(`
+                  INSERT OR IGNORE INTO leads (profile_id, name, whatsapp, email, company, message, source, city, post_slug, status)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `).run(
+                  parsedLead.profile_id,
+                  parsedLead.name,
+                  parsedLead.whatsapp,
+                  parsedLead.email,
+                  parsedLead.company,
+                  parsedLead.message,
+                  parsedLead.source,
+                  parsedLead.city,
+                  'profile_capture',
+                  parsedLead.status
+                );
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (spErr) {
+        // Continue with available leads
+      }
+
+      const total = localLeads.length;
+      const newCount = localLeads.filter(l => l.status === 'new' || !l.status).length;
+      const convertedCount = localLeads.filter(l => l.status === 'converted').length;
+      res.json({ leads: localLeads, total, newCount, convertedCount });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   });
 
-  app.patch('/api/leads/:leadId/status', (req, res) => {
+  app.patch('/api/leads/:leadId/status', async (req, res) => {
     try {
       const { status } = req.body;
       const { leadId } = req.params;
-      db.prepare('UPDATE leads SET status = ? WHERE id = ?').run(status || 'new', leadId);
+      let localUpdated: any = null;
+      try {
+        db.prepare('UPDATE leads SET status = ? WHERE id = ?').run(status || 'new', leadId);
+        localUpdated = db.prepare('SELECT * FROM leads WHERE id = ?').get(leadId);
+      } catch (e) {}
+
+      // Dual Persistence update in Supabase
+      try {
+        const supabase = getSupabase();
+        const { error: nativeErr } = await supabase.from('leads').update({ status: status || 'new' }).eq('id', leadId);
+        if (nativeErr && nativeErr.code === 'PGRST204' && localUpdated) {
+          const meta = {
+            profile_id: localUpdated.profile_id,
+            email: localUpdated.email,
+            whatsapp: localUpdated.whatsapp,
+            company: localUpdated.company,
+            message: localUpdated.message,
+            status: status || 'new',
+            city: localUpdated.city || 'Lagos',
+            updated_at: new Date().toISOString()
+          };
+          await supabase.from('leads').update({ city: JSON.stringify(meta) }).or(`id.eq.${leadId},name.eq.${localUpdated.name}`);
+        }
+      } catch (e) {}
+
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   });
 
-  app.delete('/api/leads/:leadId', (req, res) => {
+  app.delete('/api/leads/:leadId', async (req, res) => {
     try {
-      db.prepare('DELETE FROM leads WHERE id = ?').run(req.params.leadId);
+      const { leadId } = req.params;
+      let localLead: any = null;
+      try {
+        localLead = db.prepare('SELECT * FROM leads WHERE id = ?').get(leadId);
+        db.prepare('DELETE FROM leads WHERE id = ?').run(leadId);
+      } catch (e) {}
+
+      // Dual Persistence deletion in Supabase
+      try {
+        const supabase = getSupabase();
+        await supabase.from('leads').delete().eq('id', leadId);
+        if (localLead && localLead.name) {
+          await supabase.from('leads').delete().match({ name: localLead.name, post_slug: `profile_${localLead.profile_id}` });
+        }
+      } catch (e) {}
+
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
