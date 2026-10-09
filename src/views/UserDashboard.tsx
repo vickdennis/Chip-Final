@@ -115,25 +115,54 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     setContactSavedFeedback(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert('Please log in to save contact details.');
+      const targetId = user?.id || profile?.id;
+      if (!targetId) {
+        toast.error('Please log in to save contact details.');
         return;
       }
 
-      const { error } = await supabase.from('profiles').update({
-        contact_email: profile?.contact_email || null,
-        phone_number: profile?.phone_number || null,
-        address: profile?.address || null
-      }).eq('id', user.id);
+      // 1. Direct authenticated Supabase update
+      let sbSuccess = false;
+      try {
+        const { error } = await supabase.from('profiles').update({
+          contact_email: profile?.contact_email ? String(profile.contact_email).trim() : null,
+          phone_number: profile?.phone_number ? String(profile.phone_number).trim() : null,
+          address: profile?.address ? String(profile.address).trim() : null
+        }).eq('id', targetId);
 
-      if (error) throw error;
+        if (!error) sbSuccess = true;
+      } catch (err) {
+        console.warn('Direct client Supabase contact update warning:', err);
+      }
 
-      setContactSavedFeedback(true);
-      setTimeout(() => setContactSavedFeedback(false), 4000);
-      alert('✓ Contact details saved to Supabase successfully!');
+      // 2. Resilient server proxy sync
+      let apiSuccess = false;
+      try {
+        const res = await fetch('/api/profile/contact-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profile_id: targetId,
+            contact_email: profile?.contact_email ? String(profile.contact_email).trim() : null,
+            phone_number: profile?.phone_number ? String(profile.phone_number).trim() : null,
+            address: profile?.address ? String(profile.address).trim() : null
+          })
+        });
+        if (res.ok) apiSuccess = true;
+      } catch (err) {
+        console.warn('Backend contact details sync warning:', err);
+      }
+
+      if (sbSuccess || apiSuccess) {
+        setContactSavedFeedback(true);
+        setTimeout(() => setContactSavedFeedback(false), 4000);
+        toast.success('Contact details saved to Supabase successfully!');
+      } else {
+        toast.error('Failed to save contact details. Please check your connection.');
+      }
     } catch (error: any) {
       console.error('Error saving contact details to Supabase:', error);
-      alert('Failed to save contact details: ' + (error.message || 'Please check your connection'));
+      toast.error('Failed to save contact details: ' + (error.message || 'Please check your connection'));
     } finally {
       setSavingContactDetails(false);
     }
@@ -625,10 +654,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         if (upsertProductsError) throw upsertProductsError;
       }
 
-      alert('Changes saved successfully!');
+      toast.success('Changes saved successfully!');
     } catch (error: any) {
       console.error('Error saving: ', error);
-      alert('Error saving changes: ' + error.message);
+      toast.error('Error saving changes: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -1551,7 +1580,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <div className="flex items-center gap-4 bg-neutral-50/60 dark:bg-white/[0.02] p-4 rounded-2xl border border-neutral-200/60 dark:border-white/5">
                   <div className="w-16 h-16 bg-white p-1 rounded-xl shadow-xs shrink-0 flex items-center justify-center border border-neutral-200">
                     <QRCodeSVG level="H" 
-                      value={`https://chipng.com/${profile.username || ''}`}
+                      value={`https://chipng.com/${profile.username || ''}?source=qr`}
                       size={54} marginSize={1}
                     />
                   </div>

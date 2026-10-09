@@ -25,7 +25,8 @@ import { toast } from './Toast';
 import { supabase } from '../supabaseClient';
 
 export interface UserLead {
-  id: number;
+  id: number | string;
+  profile_id?: string;
   name: string;
   whatsapp?: string;
   email?: string;

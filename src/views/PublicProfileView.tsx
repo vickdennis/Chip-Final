@@ -151,7 +151,17 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
       if (effectiveUsername) {
         try {
           const params = new URLSearchParams(window.location.search);
-          const source = params.get('source') || (params.get('tap') === '1' ? 'nfc' : 'web');
+          const rawSource = (params.get('source') || params.get('src') || '').toLowerCase();
+          let source = 'web';
+
+          if (rawSource === 'nfc' || params.get('tap') === '1' || params.get('nfc') === '1' || params.get('t') === 'nfc') {
+            source = 'nfc';
+          } else if (rawSource === 'qr' || params.get('qr') === '1' || params.get('scan') === '1' || params.get('s') === 'qr') {
+            source = 'qr';
+          } else if (rawSource) {
+            source = rawSource;
+          }
+
           fetch('/api/analytics/view', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -504,7 +514,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                    {qrMode !== 'none' ? (
     <div className="w-full h-full bg-white flex items-center justify-center p-2">
       <QRCodeSVG level="H" 
-        value={qrMode === 'bio' ? `https://chipng.com/${profile.username || ''}` : `https://chipng.com/${profile.username || ''}/vcard`}
+        value={qrMode === 'bio' ? `https://chipng.com/${profile.username || ''}?source=qr` : `https://chipng.com/${profile.username || ''}/vcard`}
         size={100} marginSize={1}
         imageSettings={{
           src: profile?.cover_image_url || coverUrl,

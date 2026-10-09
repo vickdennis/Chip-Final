@@ -67,7 +67,17 @@ export default function DashboardAnalytics({
   const ctr = data?.ctr ?? (totalViews > 0 ? parseFloat(((totalClicks / totalViews) * 100).toFixed(1)) : 0);
   const nfcTaps = data?.nfcTaps ?? 0;
   const qrScans = data?.qrScans ?? 0;
-  const webViews = data?.webViews ?? Math.max(0, totalViews - (nfcTaps + qrScans));
+  
+  // Real dynamic web views calculation: preserves explicit web count while guaranteeing totalViews partition
+  const webViews = Math.max(data?.webViews || 0, Math.max(0, totalViews - (nfcTaps + qrScans)));
+
+  // Proportional channel percentages ensuring exact 100% distribution across channels
+  const nfcPct = totalViews > 0 ? Math.round((nfcTaps / totalViews) * 100) : 0;
+  const qrPct = totalViews > 0 ? Math.round((qrScans / totalViews) * 100) : 0;
+  const webPct = totalViews > 0 
+    ? (nfcPct + qrPct >= 100 ? 0 : Math.max(0, 100 - (nfcPct + qrPct))) 
+    : 0;
+
   const topLinks = data?.topLinks || [];
   const recentActivity = data?.recentActivity || [];
 
@@ -169,10 +179,10 @@ export default function DashboardAnalytics({
                   <span className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
                     <Smartphone className="w-3.5 h-3.5 text-purple-500" /> Physical NFC Card Tap
                   </span>
-                  <span className="text-neutral-950 dark:text-white">{nfcTaps} ({totalViews > 0 ? Math.round((nfcTaps/totalViews)*100) : 0}%)</span>
+                  <span className="text-neutral-950 dark:text-white font-mono">{nfcTaps} ({nfcPct}%)</span>
                 </div>
                 <div className="w-full h-2 bg-neutral-200 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${totalViews > 0 ? Math.round((nfcTaps/totalViews)*100) : 0}%` }} />
+                  <div className="h-full bg-purple-500 rounded-full transition-all duration-500" style={{ width: `${nfcPct}%` }} />
                 </div>
               </div>
 
@@ -181,10 +191,10 @@ export default function DashboardAnalytics({
                   <span className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
                     <QrCode className="w-3.5 h-3.5 text-blue-500" /> QR Code Scans
                   </span>
-                  <span className="text-neutral-950 dark:text-white">{qrScans} ({totalViews > 0 ? Math.round((qrScans/totalViews)*100) : 0}%)</span>
+                  <span className="text-neutral-950 dark:text-white font-mono">{qrScans} ({qrPct}%)</span>
                 </div>
                 <div className="w-full h-2 bg-neutral-200 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${totalViews > 0 ? Math.round((qrScans/totalViews)*100) : 0}%` }} />
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${qrPct}%` }} />
                 </div>
               </div>
 
@@ -193,10 +203,10 @@ export default function DashboardAnalytics({
                   <span className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
                     <Globe className="w-3.5 h-3.5 text-[#6c8600] dark:text-[#D2F843]" /> Direct Web / Bio Link
                   </span>
-                  <span className="text-neutral-950 dark:text-white">{webViews} ({totalViews > 0 ? Math.round((webViews/totalViews)*100) : 0}%)</span>
+                  <span className="text-neutral-950 dark:text-white font-mono">{webViews} ({webPct}%)</span>
                 </div>
                 <div className="w-full h-2 bg-neutral-200 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#D2F843] rounded-full" style={{ width: `${totalViews > 0 ? Math.round((webViews/totalViews)*100) : 0}%` }} />
+                  <div className="h-full bg-[#D2F843] rounded-full transition-all duration-500" style={{ width: `${webPct}%` }} />
                 </div>
               </div>
             </div>

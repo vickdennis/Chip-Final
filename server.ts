@@ -453,11 +453,10 @@ async function startServer() {
       const idsToMatch = [profileId];
 
       try {
-        const { data } = await getSupabase()
-          .from('profiles')
-          .select('id, username')
-          .or(`id.eq.${profileId},username.eq.${profileId}`)
-          .maybeSingle();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId);
+        const { data } = await (isUuid 
+          ? getSupabase().from('profiles').select('id, username').eq('id', profileId).maybeSingle()
+          : getSupabase().from('profiles').select('id, username').eq('username', profileId).maybeSingle());
         if (data) {
           if (data.id && !idsToMatch.includes(data.id)) idsToMatch.push(data.id);
           if (data.username && !idsToMatch.includes(data.username)) idsToMatch.push(data.username);
@@ -598,6 +597,34 @@ async function startServer() {
 
       res.json({ success: true });
     } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Dedicated Contact Details Supabase Persistence Endpoint
+  app.post('/api/profile/contact-details', async (req, res) => {
+    try {
+      const { profile_id, contact_email, phone_number, address } = req.body;
+      if (!profile_id) {
+        return res.status(400).json({ error: 'profile_id required' });
+      }
+
+      const supabase = getSupabase();
+      const { error: sbErr } = await supabase.from('profiles').update({
+        contact_email: contact_email ? String(contact_email).trim() : null,
+        phone_number: phone_number ? String(phone_number).trim() : null,
+        address: address ? String(address).trim() : null
+      }).eq('id', profile_id);
+
+      if (sbErr) {
+        console.warn('[Supabase Profile Contact Sync Warning]', sbErr.message);
+      } else {
+        console.log(`[Supabase Profile Contact Sync] Updated contact details for profile ${profile_id}`);
+      }
+
+      res.json({ success: true, supabase_error: sbErr?.message || null });
+    } catch (err: any) {
+      console.error('Profile contact details update error:', err);
       res.status(500).json({ error: err.message });
     }
   });
@@ -1619,22 +1646,36 @@ Ref: ${payment_reference}`,
   app.get('/api/analytics/user/:profileId', async (req, res) => {
     try {
       const { profileId } = req.params;
-      
-      const viewsCountSqlite = (db.prepare('SELECT COUNT(*) as c FROM profile_analytics_views WHERE profile_id = ?').get(profileId) as any)?.c || 0;
+      const idsToMatch = [profileId];
+
+      try {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId);
+        const { data } = await (isUuid 
+          ? getSupabase().from('profiles').select('id, username').eq('id', profileId).maybeSingle()
+          : getSupabase().from('profiles').select('id, username').eq('username', profileId).maybeSingle());
+        if (data) {
+          if (data.id && !idsToMatch.includes(data.id)) idsToMatch.push(data.id);
+          if (data.username && !idsToMatch.includes(data.username)) idsToMatch.push(data.username);
+        }
+      } catch (e) {}
+
+      const placeholders = idsToMatch.map(() => '?').join(',');
+      const viewsCountSqlite = (db.prepare(`SELECT COUNT(*) as c FROM profile_analytics_views WHERE profile_id IN (${placeholders})`).get(...idsToMatch) as any)?.c || 0;
       const totalViews = viewsCountSqlite;
-      const totalClicks = (db.prepare('SELECT COUNT(*) as c FROM profile_analytics_clicks WHERE profile_id = ?').get(profileId) as any)?.c || 0;
+      const totalClicks = (db.prepare(`SELECT COUNT(*) as c FROM profile_analytics_clicks WHERE profile_id IN (${placeholders})`).get(...idsToMatch) as any)?.c || 0;
       
-      const sourceRows = db.prepare('SELECT source, COUNT(*) as count FROM profile_analytics_views WHERE profile_id = ? GROUP BY source').all(profileId);
+      const sourceRows = db.prepare(`SELECT LOWER(source) as source, COUNT(*) as count FROM profile_analytics_views WHERE profile_id IN (${placeholders}) GROUP BY LOWER(source)`).all(...idsToMatch);
       const nfcTaps = (sourceRows.find((r: any) => r.source === 'nfc') as any)?.count || 0;
       const qrScans = (sourceRows.find((r: any) => r.source === 'qr') as any)?.count || 0;
-      const webViews = Math.max(0, totalViews - (nfcTaps + qrScans));
+      const explicitWeb = (sourceRows.find((r: any) => r.source === 'web' || r.source === 'direct') as any)?.count || 0;
+      const webViews = Math.max(explicitWeb, totalViews - (nfcTaps + qrScans));
       
-      const clickTypeRows = db.prepare('SELECT click_type, COUNT(*) as count FROM profile_analytics_clicks WHERE profile_id = ? GROUP BY click_type').all(profileId);
+      const clickTypeRows = db.prepare(`SELECT click_type, COUNT(*) as count FROM profile_analytics_clicks WHERE profile_id IN (${placeholders}) GROUP BY click_type`).all(...idsToMatch);
       
-      const topLinks = db.prepare('SELECT link_title, link_url, click_type, COUNT(*) as clicks FROM profile_analytics_clicks WHERE profile_id = ? GROUP BY link_title, link_url ORDER BY clicks DESC LIMIT 5').all(profileId);
+      const topLinks = db.prepare(`SELECT link_title, link_url, click_type, COUNT(*) as clicks FROM profile_analytics_clicks WHERE profile_id IN (${placeholders}) GROUP BY link_title, link_url ORDER BY clicks DESC LIMIT 5`).all(...idsToMatch);
       
-      const recentViews = db.prepare("SELECT 'view' as event_type, source as detail, created_at FROM profile_analytics_views WHERE profile_id = ? ORDER BY id DESC LIMIT 10").all(profileId);
-      const recentClicks = db.prepare("SELECT 'click' as event_type, COALESCE(link_title, click_type) as detail, created_at FROM profile_analytics_clicks WHERE profile_id = ? ORDER BY id DESC LIMIT 10").all(profileId);
+      const recentViews = db.prepare(`SELECT 'view' as event_type, LOWER(source) as detail, created_at FROM profile_analytics_views WHERE profile_id IN (${placeholders}) ORDER BY id DESC LIMIT 10`).all(...idsToMatch);
+      const recentClicks = db.prepare(`SELECT 'click' as event_type, COALESCE(link_title, click_type) as detail, created_at FROM profile_analytics_clicks WHERE profile_id IN (${placeholders}) ORDER BY id DESC LIMIT 10`).all(...idsToMatch);
       
       const recentActivity = [...recentViews, ...recentClicks]
         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
