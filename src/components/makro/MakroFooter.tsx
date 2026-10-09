@@ -2,6 +2,7 @@ import React from 'react';
 import { ViewState } from '../../App';
 import { ArrowUp } from 'lucide-react';
 import BrandLogo from '../BrandLogo';
+import { SocialMediaIconBadge } from '../social/SocialMediaIconBadge';
 
 interface MakroFooterProps {
   onNavigate: (view: ViewState) => void;
@@ -36,6 +37,15 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
               <span className="text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300">
                 NFC Cloud active · Sub-10ms response
               </span>
+            </div>
+
+            {/* Official CHIP NG Verified Socials */}
+            <div className="pt-3 flex items-center gap-2.5">
+              <SocialMediaIconBadge platform="TikTok" style="color-circle" size="xs" href="https://tiktok.com/@chipng_app" title="TikTok @chipng_app" />
+              <SocialMediaIconBadge platform="Instagram" style="color-circle" size="xs" href="https://instagram.com/chipng_app" title="Instagram @chipng_app" />
+              <SocialMediaIconBadge platform="X (Twitter)" style="color-circle" size="xs" href="https://twitter.com/chipng_app" title="X @chipng_app" />
+              <SocialMediaIconBadge platform="LinkedIn" style="color-circle" size="xs" href="https://linkedin.com/company/chipng" title="LinkedIn CHIP NG" />
+              <SocialMediaIconBadge platform="WhatsApp" style="color-circle" size="xs" href="https://wa.me/2348100764154" title="WhatsApp Concierge" />
             </div>
           </div>
 

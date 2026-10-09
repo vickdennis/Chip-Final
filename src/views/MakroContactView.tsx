@@ -4,6 +4,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { Mail, Phone, MapPin, Clock, Check, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge';
 
 interface MakroContactViewProps {
   onNavigate: (view: ViewState) => void;
@@ -150,6 +151,18 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
                     <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
                       Monday – Friday, 08:00 – 19:00 GMT+1
                     </div>
+                  </div>
+                </div>
+
+                {/* Verified Social Media Channels */}
+                <div className="p-4 rounded-2xl bg-white dark:bg-[#12141B] border border-neutral-200/80 dark:border-neutral-800">
+                  <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Official Channels</div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <SocialMediaIconBadge platform="WhatsApp" style="color-circle" size="sm" href="https://wa.me/2348100764154" title="WhatsApp Concierge" />
+                    <SocialMediaIconBadge platform="Instagram" style="color-circle" size="sm" href="https://instagram.com/chipng_app" title="Instagram @chipng_app" />
+                    <SocialMediaIconBadge platform="X (Twitter)" style="color-circle" size="sm" href="https://twitter.com/chipng_app" title="X @chipng_app" />
+                    <SocialMediaIconBadge platform="LinkedIn" style="color-circle" size="sm" href="https://linkedin.com/company/chipng" title="LinkedIn CHIP NG" />
+                    <SocialMediaIconBadge platform="TikTok" style="color-circle" size="sm" href="https://tiktok.com/@chipng_app" title="TikTok @chipng_app" />
                   </div>
                 </div>
               </div>

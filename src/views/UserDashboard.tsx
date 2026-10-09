@@ -14,45 +14,9 @@ import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/s
 import DashboardAnalytics from '../components/DashboardAnalytics';
 import { ProfileLeadsManager } from '../components/ProfileLeadsManager';
 import { toast } from '../components/Toast';
+import { SocialMediaIconBadge, SOCIAL_PLATFORMS_CONFIG } from '../components/social/SocialMediaIconBadge';
 
-export const SOCIAL_PLATFORMS = [
-  { name: 'Website', icon: Globe, color: '#000000' },
-  { name: 'Email', icon: Mail, color: '#EA4335' },
-  { name: 'X (Twitter)', icon: FaXTwitter, color: '#000000' },
-  { name: 'GitHub', icon: FaGithub, color: '#181717' },
-  { name: 'LinkedIn', icon: FaLinkedin, color: '#0A66C2' },
-  { name: 'Instagram', icon: FaInstagram, color: '#E4405F' },
-  { name: 'Facebook', icon: FaFacebook, color: '#1877F2' },
-  { name: 'YouTube', icon: FaYoutube, color: '#FF0000' },
-  { name: 'Twitch', icon: FaTwitch, color: '#9146FF' },
-  { name: 'TikTok', icon: FaTiktok, color: '#000000' },
-  { name: 'Snapchat', icon: FaSnapchat, color: '#FFFC00' }, 
-  { name: 'Pinterest', icon: FaPinterest, color: '#E60023' },
-  { name: 'Reddit', icon: FaReddit, color: '#FF4500' },
-  { name: 'Discord', icon: FaDiscord, color: '#5865F2' },
-  { name: 'Slack', icon: FaSlack, color: '#4A154B' },
-  { name: 'Telegram', icon: FaTelegram, color: '#26A5E4' },
-  { name: 'WhatsApp', icon: FaWhatsapp, color: '#25D366' },
-  { name: 'WeChat', icon: FaWeixin, color: '#07C160' },
-  { name: 'Line', icon: FaLine, color: '#00C300' },
-  { name: 'Medium', icon: FaMedium, color: '#000000' },
-  { name: 'Substack', icon: SiSubstack, color: '#FF6719' },
-  { name: 'Dribbble', icon: FaDribbble, color: '#EA4C89' },
-  { name: 'Behance', icon: FaBehance, color: '#1769FF' },
-  { name: 'Figma', icon: FaFigma, color: '#F24E1E' },
-  { name: 'Dev.to', icon: FaDev, color: '#0A0A0A' },
-  { name: 'ProductHunt', icon: FaProductHunt, color: '#DA552F' },
-  { name: 'StackOverflow', icon: FaStackOverflow, color: '#F58025' },
-  { name: 'GitLab', icon: FaGitlab, color: '#FC6D26' },
-  { name: 'Bitbucket', icon: FaBitbucket, color: '#0052CC' },
-  { name: 'Spotify', icon: FaSpotify, color: '#1DB954' },
-  { name: 'AppleMusic', icon: SiApplemusic, color: '#FA243C' },
-  { name: 'SoundCloud', icon: FaSoundcloud, color: '#FF3300' },
-  { name: 'Patreon', icon: FaPatreon, color: '#FF424D' },
-  { name: 'BuyMeACoffee', icon: SiBuymeacoffee, color: '#FFDD00' },
-  { name: 'Venmo', icon: SiVenmo, color: '#008CFF' },
-  { name: 'PayPal', icon: FaPaypal, color: '#00457C' }
-];
+export const SOCIAL_PLATFORMS = SOCIAL_PLATFORMS_CONFIG;
 
 
 export const PROFILE_LAYOUTS = [
@@ -1722,34 +1686,17 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
                 <div className="flex flex-col gap-3">
                   {socialLinks.map((item, i) => {
-                    const platformDef = SOCIAL_PLATFORMS.find(p => p.name === item.platform) || SOCIAL_PLATFORMS[0];
-                    const Icon = platformDef.icon;
-                    const color = platformDef.color;
                     const style = profile.social_links_style || 'color-circle';
                     
                     return (
                     <div key={i} className="flex gap-3 items-center flex-wrap sm:flex-nowrap p-3 rounded-2xl bg-neutral-50/50 dark:bg-white/[0.02] border border-neutral-200/70 dark:border-white/5">
                       <div className="shrink-0 flex items-center justify-center p-1">
-                        {style === 'color-circle' && (
-                          <div className="w-9 h-9 flex items-center justify-center rounded-full shadow-xs" style={{ backgroundColor: color, color: '#ffffff' }}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                        )}
-                        {style === 'white-circle' && (
-                          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-white/10 shadow-xs" style={{ color: color }}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                        )}
-                        {style === 'white-icon' && (
-                          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                        )}
-                        {style === 'original' && (
-                          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800" style={{ color: color }}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                        )}
+                        <SocialMediaIconBadge
+                          platform={item.platform}
+                          style={style}
+                          size="sm"
+                          showHoverEffect={false}
+                        />
                       </div>
                       <select 
                         value={item.platform}

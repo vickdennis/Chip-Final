@@ -3,7 +3,8 @@ import { motion } from 'motion/react';
 import { ViewState } from '../App';
 import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart, UserCheck } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { SOCIAL_PLATFORMS, } from './UserDashboard';
+import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { SocialMediaIconBadge, SocialIconStyle } from '../components/social/SocialMediaIconBadge';
 import { PaystackButton } from 'react-paystack';
 import { QRCodeSVG } from 'qrcode.react';
 import BrandLogo from '../components/BrandLogo';
@@ -358,75 +359,23 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   };
 
   const renderSocialLinks = () => {
-    const style = profile?.social_links_style || 'color-circle';
+    const style = (profile?.social_links_style as SocialIconStyle) || 'color-circle';
 
     return (
       <div className="flex flex-wrap justify-center gap-3 mt-4 px-6 z-10 relative">
-        {socialLinks.map((link, i) => {
-          const platformDef = SOCIAL_PLATFORMS.find(p => p.name === link.platform);
-          const Icon = platformDef?.icon || Globe;
-          const color = platformDef?.color || '#333333';
-          
-          let iconContent;
-          if (style === 'color-circle') {
-            iconContent = (
-              <div 
-                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md"
-                style={{ backgroundColor: profile?.enterprise?.brand_color || color, color: '#ffffff' }}
-              >
-                <Icon className="w-6 h-6" />
-              </div>
-            );
-          } else if (style === 'white-circle') {
-             iconContent = (
-              <div 
-                className={`w-12 h-12 flex items-center justify-center rounded-full ${cardBgClass} hover:-translate-y-1 transition-transform shadow-md`}
-                style={{ color: profile?.enterprise?.brand_color || color }}
-              >
-                <Icon className="w-6 h-6" />
-              </div>
-            );
-          } else if (style === 'white-icon') {
-             iconContent = (
-              <div 
-                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform text-current opacity-90 hover:opacity-100"
-              >
-                <Icon className="w-8 h-8" />
-              </div>
-            );
-          } else if (style === 'original') {
-             iconContent = (
-              <div 
-                className={`w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md bg-black/5 dark:bg-white/5 backdrop-blur-sm border border-black/10 dark:border-white/10 hover:${cardBgClass}`}
-                style={{ color: color }}
-              >
-                <Icon className="w-6 h-6" />
-              </div>
-            );
-          } else {
-            // Default
-            iconContent = (
-              <div 
-                className="w-12 h-12 flex items-center justify-center rounded-full hover:-translate-y-1 transition-transform shadow-md"
-                style={{ backgroundColor: color, color: '#ffffff' }}
-              >
-                <Icon className="w-6 h-6" />
-              </div>
-            );
-          }
-
-          return (
-            <a 
-              key={i} 
-              href={link.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              onClick={() => recordClick(link.platform || 'Social Link', link.url, 'social', link.id)}
-            >
-              {iconContent}
-            </a>
-          );
-        })}
+        {socialLinks.map((link, i) => (
+          <SocialMediaIconBadge
+            key={i}
+            platform={link.platform}
+            style={style}
+            size="md"
+            href={link.url}
+            brandColorOverride={profile?.enterprise?.brand_color}
+            onClick={() => recordClick(link.platform || 'Social Link', link.url, 'social', link.id)}
+            title={link.platform}
+            showHoverEffect={true}
+          />
+        ))}
       </div>
     );
   };
