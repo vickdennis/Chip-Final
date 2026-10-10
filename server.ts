@@ -7,8 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import Database from 'better-sqlite3';
 import nodemailer from 'nodemailer';
-import { applyBuyCardSeo } from './src/utils/buyCardSeo';
-import { applySsrForBots, isCrawler } from './src/utils/ssrEngine';
+import { applyUniversalSsr } from './src/utils/universalSsrEngine';
 
 // Initialize SQLite database
 const db = new Database('leads.sqlite', { verbose: console.log });
@@ -1907,75 +1906,16 @@ Ref: ${payment_reference}`,
           const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthyjd.supabase.co';
           const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
           const supabase = createClient(supabaseUrl, supabaseKey);
-
           const urlPath = (req.originalUrl || req.path || '').split('?')[0].replace(/\/$/, '') || '/';
 
-          if (urlPath === '/buy-card' || urlPath === '/shop') {
-            template = applyBuyCardSeo(template);
-          } else if (urlPath === '/' || urlPath === '/pricing' || urlPath === '/faq') {
-            if (COMMERCIAL_META[urlPath]) {
-              const meta = COMMERCIAL_META[urlPath];
-              template = template.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
-              template = template.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${meta.title}" />`);
-              template = template.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${meta.desc}" />`);
-              template = template.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${meta.title}" />`);
-              template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
-            }
-            template = applySsrForBots(template, urlPath, req.headers['user-agent'] as string);
-          } else if (COMMERCIAL_META[urlPath]) {
-            const meta = COMMERCIAL_META[urlPath];
-            template = template.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
-            template = template.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${meta.title}" />`);
-            template = template.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${meta.desc}" />`);
-            template = template.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${meta.title}" />`);
-            template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
-          } else if (urlPath.startsWith('/blog/') && urlPath.length > 6) {
-            const slug = urlPath.slice(6);
-            let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url, excerpt, content FROM local_posts WHERE slug = ?').get(slug);
-            if (!post) {
-              const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url, excerpt, content').eq('slug', slug).single();
-              if (data) post = data;
-            }
-            if (post) {
-              const title = post.meta_title || `${post.title} — CHIP NG`;
-              const cleanDesc = (post.meta_description || post.excerpt || post.content || '')
-                .replace(/<[^>]*>/g, ' ')
-                .replace(/[#*_~`>\[\]]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim()
-                .slice(0, 160) || 'Official CHIP NG Blog & Thought Leadership';
-              template = template.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-              template = template.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${title}" />`);
-              template = template.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${cleanDesc}" />`);
-              template = template.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${title}" />`);
-              template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${cleanDesc}" />`);
-              if (post.cover_image_url) {
-                 template = template.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${post.cover_image_url}" />`);
-                 template = template.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/, `<meta name="twitter:image" content="${post.cover_image_url}" />`);
-                 template = template.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/, `<meta property="twitter:image" content="${post.cover_image_url}" />`);
-              }
-            }
-          } else if (urlPath !== '/' && !RESERVED_PREFIXES.some(prefix => urlPath === prefix || urlPath.startsWith(prefix + '/'))) {
-            let username = urlPath.slice(1);
-            if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
-            const { data: profile } = await supabase.from('profiles').select('full_name, headline, bio, cover_image_url').ilike('username', username).maybeSingle();
-            if (profile) {
-              const title = `${profile.full_name} | CHIP NG`;
-              const desc = profile.headline || profile.bio || "View my digital profile on CHIP NG.";
-              template = template.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-              template = template.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${title}" />`);
-              template = template.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${desc}" />`);
-              template = template.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${title}" />`);
-              template = template.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${desc}" />`);
-              if (profile.cover_image_url) {
-                 template = template.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${profile.cover_image_url}" />`);
-                 template = template.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/, `<meta name="twitter:image" content="${profile.cover_image_url}" />`);
-                 template = template.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/, `<meta property="twitter:image" content="${profile.cover_image_url}" />`);
-              }
-            }
-          }
+          template = await applyUniversalSsr(template, {
+            urlPath,
+            userAgent: req.headers['user-agent'] as string,
+            supabase,
+            db
+          });
         } catch (e) {
-          console.error("SEO Injection error", e);
+          console.error("Universal SSR error in dev:", e);
         }
 
         res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
@@ -1996,72 +1936,14 @@ Ref: ${payment_reference}`,
         const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        if (urlPath === '/buy-card' || urlPath === '/shop') {
-          html = applyBuyCardSeo(html);
-        } else if (urlPath === '/' || urlPath === '/pricing' || urlPath === '/faq') {
-          if (COMMERCIAL_META[urlPath]) {
-            const meta = COMMERCIAL_META[urlPath];
-            html = html.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
-            html = html.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${meta.title}" />`);
-            html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${meta.desc}" />`);
-            html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${meta.title}" />`);
-            html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
-          }
-          html = applySsrForBots(html, urlPath, req.headers['user-agent'] as string);
-        } else if (COMMERCIAL_META[urlPath]) {
-          const meta = COMMERCIAL_META[urlPath];
-          html = html.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
-          html = html.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${meta.title}" />`);
-          html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${meta.desc}" />`);
-          html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${meta.title}" />`);
-          html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${meta.desc}" />`);
-        } else if (urlPath.startsWith('/blog/') && urlPath.length > 6) {
-          const slug = urlPath.slice(6);
-          let post: any = db.prepare('SELECT title, meta_title, meta_description, cover_image_url, excerpt, content FROM local_posts WHERE slug = ?').get(slug);
-          if (!post) {
-            const { data } = await supabase.from('posts').select('title, meta_title, meta_description, cover_image_url, excerpt, content').eq('slug', slug).single();
-            if (data) post = data;
-          }
-          if (post) {
-            const title = post.meta_title || `${post.title} — CHIP NG`;
-            const cleanDesc = (post.meta_description || post.excerpt || post.content || '')
-              .replace(/<[^>]*>/g, ' ')
-              .replace(/[#*_~`>\[\]]/g, '')
-              .replace(/\s+/g, ' ')
-              .trim()
-              .slice(0, 160) || 'Official CHIP NG Blog & Thought Leadership';
-            html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-            html = html.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${title}" />`);
-            html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${cleanDesc}" />`);
-            html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${title}" />`);
-            html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${cleanDesc}" />`);
-            if (post.cover_image_url) {
-               html = html.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${post.cover_image_url}" />`);
-               html = html.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/, `<meta name="twitter:image" content="${post.cover_image_url}" />`);
-               html = html.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/, `<meta property="twitter:image" content="${post.cover_image_url}" />`);
-            }
-          }
-        } else if (urlPath !== '/' && !RESERVED_PREFIXES.some(prefix => urlPath === prefix || urlPath.startsWith(prefix + '/'))) {
-          let username = urlPath.slice(1);
-          if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
-          const { data: profile } = await supabase.from('profiles').select('full_name, headline, bio, cover_image_url').ilike('username', username).maybeSingle();
-          if (profile) {
-            const title = `${profile.full_name} | CHIP NG`;
-            const desc = profile.headline || profile.bio || "View my digital profile on CHIP NG.";
-            html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-            html = html.replace(/<meta name="title" content=".*?"\s*\/?>/, `<meta name="title" content="${title}" />`);
-            html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${desc}" />`);
-            html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${title}" />`);
-            html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${desc}" />`);
-            if (profile.cover_image_url) {
-               html = html.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${profile.cover_image_url}" />`);
-               html = html.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/, `<meta name="twitter:image" content="${profile.cover_image_url}" />`);
-               html = html.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/, `<meta property="twitter:image" content="${profile.cover_image_url}" />`);
-            }
-          }
-        }
+        html = await applyUniversalSsr(html, {
+          urlPath,
+          userAgent: req.headers['user-agent'] as string,
+          supabase,
+          db
+        });
       } catch (e) {
-        console.error("SEO Injection error", e);
+        console.error("Universal SSR error in production:", e);
       }
       res.send(html);
     });
