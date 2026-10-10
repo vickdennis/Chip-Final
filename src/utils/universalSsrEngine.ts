@@ -134,9 +134,9 @@ export async function renderUserProfileSsr(
     const fullName = escapeHtml(profile.full_name || `@${profile.username}`);
     const headline = escapeHtml(profile.headline || 'Verified Contactless Digital Profile');
     const bio = escapeHtml(profile.bio || '');
-    const avatarUrl = profile.cover_image_url || 'https://chipng.com/chipng_exact_tile.png';
-    const profileUrl = `https://chipng.com/@${profile.username}`;
-    const vCardUrl = `https://chipng.com/${profile.username}/vcard`;
+    const avatarUrl = profile.cover_image_url || 'https://www.chipng.com/chipng_exact_tile.png';
+    const profileUrl = `https://www.chipng.com/@${profile.username}`;
+    const vCardUrl = `https://www.chipng.com/${profile.username}/vcard`;
 
     const title = `${profile.full_name || profile.username} (@${profile.username}) | Contactless Digital Card & Bio | CHIP NG`;
     const description = cleanText(
@@ -157,9 +157,9 @@ export async function renderUserProfileSsr(
           description: description,
           isPartOf: {
             '@type': 'WebSite',
-            '@id': 'https://chipng.com/#website',
+            '@id': 'https://www.chipng.com/#website',
             name: 'CHIP NG',
-            url: 'https://chipng.com'
+            url: 'https://www.chipng.com'
           },
           mainEntity: {
             '@type': 'Person',
@@ -272,7 +272,7 @@ export async function renderUserProfileSsr(
 
       <!-- Powered By Footer -->
       <footer style="margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 11px; color: rgba(255, 255, 255, 0.4); font-family: monospace;">
-        POWERED BY <a href="https://chipng.com" style="color: #D2F843; text-decoration: none; font-weight: 700;">CHIP NG</a> CONTACTLESS NFC HARDWARE
+        POWERED BY <a href="https://www.chipng.com" style="color: #D2F843; text-decoration: none; font-weight: 700;">CHIP NG</a> CONTACTLESS NFC HARDWARE
       </footer>
 
     </main>
@@ -331,8 +331,8 @@ export async function renderBlogArticleSsr(
 
     const title = post.meta_title || `${post.title} — CHIP NG`;
     const description = cleanText(post.meta_description || post.excerpt || post.content || 'Read the official insight on CHIP NG.');
-    const articleUrl = `https://chipng.com/blog/${post.slug}`;
-    const coverImage = post.cover_image_url || 'https://chipng.com/chipng_3d_logo.jpg';
+    const articleUrl = `https://www.chipng.com/blog/${post.slug}`;
+    const coverImage = post.cover_image_url || 'https://www.chipng.com/chipng_3d_logo.jpg';
     const publishedAt = post.created_at || new Date().toISOString();
 
     const schema = {
@@ -351,7 +351,7 @@ export async function renderBlogArticleSsr(
       author: {
         '@type': 'Organization',
         name: 'CHIP NG Editorial Team',
-        url: 'https://chipng.com'
+        url: 'https://www.chipng.com'
       },
       publisher: {
         '@type': 'Organization',
@@ -456,7 +456,7 @@ export async function renderBlogDirectorySsr(
 
   const title = 'CHIP NG Blog — Insights on Contactless Networking, NFC Tech & Executive Growth';
   const description = 'Official thought leadership, hardware guides, and executive networking strategies for founders, realtors, and leaders in Nigeria and Africa.';
-  const canonical = 'https://chipng.com/blog';
+  const canonical = 'https://www.chipng.com/blog';
 
   const schema = {
     '@context': 'https://schema.org',
@@ -467,14 +467,14 @@ export async function renderBlogDirectorySsr(
     publisher: {
       '@type': 'Organization',
       name: 'CHIP NG',
-      url: 'https://chipng.com'
+      url: 'https://www.chipng.com'
     },
     blogPost: posts.map((p) => ({
       '@type': 'BlogPosting',
       headline: p.title,
       description: cleanText(p.excerpt, 150),
-      url: `https://chipng.com/blog/${p.slug}`,
-      image: p.cover_image_url || 'https://chipng.com/chipng_3d_logo.jpg',
+      url: `https://www.chipng.com/blog/${p.slug}`,
+      image: p.cover_image_url || 'https://www.chipng.com/chipng_3d_logo.jpg',
       datePublished: p.created_at || new Date().toISOString()
     }))
   };
@@ -535,6 +535,73 @@ export async function renderBlogDirectorySsr(
 }
 
 /**
+ * Helper to inject synchronized, single-canonical SEO metadata and pre-rendered HTML.
+ * Ensures zero duplicate canonical tags and consistent OpenGraph / Twitter / Schema markup.
+ */
+export function injectSeoMetadata(
+  html: string,
+  meta: {
+    title: string;
+    description: string;
+    canonical: string;
+    ogType?: string;
+    image?: string;
+    schemaJsonLd?: string;
+    preRenderedHtml?: string;
+  }
+): string {
+  let output = html;
+
+  // 1. Title
+  output = output.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`);
+  output = output.replace(/<meta name="title" content=".*?"\s*\/?>/i, `<meta name="title" content="${escapeHtml(meta.title)}" />`);
+  output = output.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${escapeHtml(meta.title)}" />`);
+  output = output.replace(/<meta name="twitter:title" content=".*?"\s*\/?>/i, `<meta name="twitter:title" content="${escapeHtml(meta.title)}" />`);
+  output = output.replace(/<meta property="twitter:title" content=".*?"\s*\/?>/i, `<meta property="twitter:title" content="${escapeHtml(meta.title)}" />`);
+
+  // 2. Description
+  output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="${escapeHtml(meta.description)}" />`);
+  output = output.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${escapeHtml(meta.description)}" />`);
+  output = output.replace(/<meta name="twitter:description" content=".*?"\s*\/?>/i, `<meta name="twitter:description" content="${escapeHtml(meta.description)}" />`);
+  output = output.replace(/<meta property="twitter:description" content=".*?"\s*\/?>/i, `<meta property="twitter:description" content="${escapeHtml(meta.description)}" />`);
+
+  // 3. Absolute Single Canonical Enforcement (Strip ANY existing canonical tag first)
+  output = output.replace(/<link\s+rel=["']canonical["'][^>]*\/?>/gi, '');
+  output = output.replace('</head>', `  <link rel="canonical" href="${meta.canonical}" />\n</head>`);
+
+  // 4. URL
+  output = output.replace(/<meta property="og:url" content=".*?"\s*\/?>/i, `<meta property="og:url" content="${meta.canonical}" />`);
+  output = output.replace(/<meta property="twitter:url" content=".*?"\s*\/?>/i, `<meta property="twitter:url" content="${meta.canonical}" />`);
+  if (meta.ogType) {
+    output = output.replace(/<meta property="og:type" content=".*?"\s*\/?>/i, `<meta property="og:type" content="${meta.ogType}" />`);
+  }
+
+  // 5. Image
+  if (meta.image) {
+    output = output.replace(/<meta property="og:image" content=".*?"\s*\/?>/i, `<meta property="og:image" content="${meta.image}" />`);
+    output = output.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${meta.image}" />`);
+    output = output.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/i, `<meta property="twitter:image" content="${meta.image}" />`);
+  }
+
+  // 6. Robots Tag
+  if (!output.includes('name="robots"')) {
+    output = output.replace('</head>', `  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n</head>`);
+  }
+
+  // 7. Schema.org JSON-LD
+  if (meta.schemaJsonLd) {
+    output = output.replace('</head>', `  <script type="application/ld+json">\n${meta.schemaJsonLd}\n  </script>\n</head>`);
+  }
+
+  // 8. Injected HTML
+  if (meta.preRenderedHtml) {
+    output = output.replace(/<div id="root"><\/div>/i, meta.preRenderedHtml);
+  }
+
+  return output;
+}
+
+/**
  * Master Universal SSR Transformer.
  * Injects rich <head> metadata, OpenGraph, Twitter Cards, Schema.org JSON-LD,
  * and semantic pre-rendered HTML into the initial HTML document.
@@ -550,54 +617,55 @@ export async function applyUniversalSsr(
 
   // 1. Hardware Shop & Sales Pages
   if (normalizedPath === '/buy-card' || normalizedPath === '/shop' || normalizedPath === '/nfc-sales') {
-    return applyBuyCardSeo(output);
+    return injectSeoMetadata(output, {
+      title: BUY_CARD_META.title,
+      description: BUY_CARD_META.description,
+      canonical: BUY_CARD_META.canonical,
+      ogType: 'product',
+      image: BUY_CARD_META.image,
+      schemaJsonLd: BUY_CARD_SCHEMA_JSON_LD,
+      preRenderedHtml: BUY_CARD_PRE_RENDER_HTML
+    });
   }
 
   // 2. Homepage
   if (normalizedPath === '/') {
-    output = output.replace(/<title>.*?<\/title>/i, `<title>CHIP NG — Contactless Smart NFC Business Cards & Link-in-Bio Platform Nigeria</title>`);
-    output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="The premier contactless NFC smart business cards & dynamic link-in-bio platform in Nigeria. 1-tap contact sharing, zero app needed, NTAG216 chip, sub-10ms response. 24h Lagos delivery." />`);
-    
-    if (!output.includes('https://chipng.com/#software')) {
-      output = output.replace(
-        '</head>',
-        `  <script type="application/ld+json">\n${HOME_SCHEMA_JSON_LD}\n  </script>\n</head>`
-      );
-    }
-    output = output.replace(/<div id="root"><\/div>/i, HOME_PRE_RENDER_HTML);
-    return output;
+    return injectSeoMetadata(output, {
+      title: 'CHIP NG — Contactless Smart NFC Business Cards & Link-in-Bio Platform Nigeria',
+      description: 'The premier contactless NFC smart business cards & dynamic link-in-bio platform in Nigeria. 1-tap contact sharing, zero app needed, NTAG216 chip, sub-10ms response. 24h Lagos delivery.',
+      canonical: 'https://www.chipng.com/',
+      schemaJsonLd: HOME_SCHEMA_JSON_LD,
+      preRenderedHtml: HOME_PRE_RENDER_HTML
+    });
   }
 
   // 3. Pricing Page
   if (normalizedPath === '/pricing') {
-    output = output.replace(/<title>.*?<\/title>/i, `<title>NFC Business Card Price in Nigeria — 2026 Transparent Pricing | CHIP NG</title>`);
-    output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="Official 2026 prices for CHIP NG contactless smart cards: Smart PVC (₦30,000 / ₦35,000), Smart Metal (₦50,000), and Metal Debit Card + Custom Design (₦80,000–₦100,000). Zero monthly subscription fees." />`);
-    output = output.replace('</head>', `  <script type="application/ld+json">\n${PRICING_SCHEMA_JSON_LD}\n  </script>\n</head>`);
-    output = output.replace(/<div id="root"><\/div>/i, PRICING_PRE_RENDER_HTML);
-    return output;
+    return injectSeoMetadata(output, {
+      title: 'NFC Business Card Price in Nigeria — 2026 Transparent Pricing | CHIP NG',
+      description: 'Official 2026 prices for CHIP NG contactless smart cards: Smart PVC (₦30,000 / ₦35,000), Smart Metal (₦50,000), and Metal Debit Card + Custom Design (₦80,000–₦100,000). Zero monthly subscription fees.',
+      canonical: 'https://www.chipng.com/pricing',
+      schemaJsonLd: PRICING_SCHEMA_JSON_LD,
+      preRenderedHtml: PRICING_PRE_RENDER_HTML
+    });
   }
 
   // 4. FAQ Page
   if (normalizedPath === '/faq') {
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Frequently Asked Questions & Hardware Guide | CHIP NG Nigeria</title>`);
-    output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="Everything you need to know about CHIP NG contactless smart business cards. How NFC works, compatibility, delivery times, and vCard address book saving in Nigeria." />`);
-    output = output.replace('</head>', `  <script type="application/ld+json">\n${FAQ_SCHEMA_JSON_LD}\n  </script>\n</head>`);
-    output = output.replace(/<div id="root"><\/div>/i, FAQ_PRE_RENDER_HTML);
-    return output;
+    return injectSeoMetadata(output, {
+      title: 'Frequently Asked Questions & Hardware Guide | CHIP NG Nigeria',
+      description: 'Everything you need to know about CHIP NG contactless smart business cards. How NFC works, compatibility, delivery times, and vCard address book saving in Nigeria.',
+      canonical: 'https://www.chipng.com/faq',
+      schemaJsonLd: FAQ_SCHEMA_JSON_LD,
+      preRenderedHtml: FAQ_PRE_RENDER_HTML
+    });
   }
 
   // 5. Commercial Geo/Niche Landing Pages
   const commercialSlug = normalizedPath.replace(/^\//, '');
   if (COMMERCIAL_PAGES[commercialSlug]) {
     const page = COMMERCIAL_PAGES[commercialSlug];
-    const canonical = `https://chipng.com/${page.slug}`;
-
-    output = output.replace(/<title>.*?<\/title>/i, `<title>${page.metaTitle}</title>`);
-    output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="${page.metaDescription}" />`);
-    output = output.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${page.metaTitle}" />`);
-    output = output.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${page.metaDescription}" />`);
-    output = output.replace(/<meta name="twitter:title" content=".*?"\s*\/?>/i, `<meta name="twitter:title" content="${page.metaTitle}" />`);
-    output = output.replace(/<meta name="twitter:description" content=".*?"\s*\/?>/i, `<meta name="twitter:description" content="${page.metaDescription}" />`);
+    const canonical = `https://www.chipng.com/${page.slug}`;
 
     const commercialSchema = JSON.stringify({
       '@context': 'https://schema.org',
@@ -625,8 +693,6 @@ export async function applyUniversalSsr(
         }
       ]
     });
-
-    output = output.replace('</head>', `  <link rel="canonical" href="${canonical}" />\n  <script type="application/ld+json">\n${commercialSchema}\n  </script>\n</head>`);
 
     const commercialPreRender = `
 <div id="root">
@@ -673,21 +739,25 @@ export async function applyUniversalSsr(
 </div>
     `;
 
-    output = output.replace(/<div id="root"><\/div>/i, commercialPreRender);
-    return output;
+    return injectSeoMetadata(output, {
+      title: page.metaTitle,
+      description: page.metaDescription,
+      canonical,
+      schemaJsonLd: commercialSchema,
+      preRenderedHtml: commercialPreRender
+    });
   }
 
   // 6. Blog Directory Page (/blog)
   if (normalizedPath === '/blog') {
     const blogDir = await renderBlogDirectorySsr(supabase, db);
-    output = output.replace(/<title>.*?<\/title>/i, `<title>${blogDir.title}</title>`);
-    output = output.replace(/<meta name="title" content=".*?"\s*\/?>/i, `<meta name="title" content="${blogDir.title}" />`);
-    output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="${blogDir.description}" />`);
-    output = output.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${blogDir.title}" />`);
-    output = output.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${blogDir.description}" />`);
-    output = output.replace('</head>', `  <link rel="canonical" href="${blogDir.canonical}" />\n  <script type="application/ld+json">\n${blogDir.schemaJsonLd}\n  </script>\n</head>`);
-    output = output.replace(/<div id="root"><\/div>/i, blogDir.preRenderedHtml);
-    return output;
+    return injectSeoMetadata(output, {
+      title: blogDir.title,
+      description: blogDir.description,
+      canonical: blogDir.canonical,
+      schemaJsonLd: blogDir.schemaJsonLd,
+      preRenderedHtml: blogDir.preRenderedHtml
+    });
   }
 
   // 7. Blog Article Pages (/blog/:slug)
@@ -695,32 +765,19 @@ export async function applyUniversalSsr(
     const slug = normalizedPath.slice(6);
     const ssrResult = await renderBlogArticleSsr(slug, supabase, db);
     if (ssrResult) {
-      output = output.replace(/<title>.*?<\/title>/i, `<title>${ssrResult.title}</title>`);
-      output = output.replace(/<meta name="title" content=".*?"\s*\/?>/i, `<meta name="title" content="${ssrResult.title}" />`);
-      output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="${ssrResult.description}" />`);
-      output = output.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${ssrResult.title}" />`);
-      output = output.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${ssrResult.description}" />`);
-      output = output.replace(/<meta property="og:image" content=".*?"\s*\/?>/i, `<meta property="og:image" content="${ssrResult.image}" />`);
-      output = output.replace(/<meta name="twitter:title" content=".*?"\s*\/?>/i, `<meta name="twitter:title" content="${ssrResult.title}" />`);
-      output = output.replace(/<meta name="twitter:description" content=".*?"\s*\/?>/i, `<meta name="twitter:description" content="${ssrResult.description}" />`);
-      output = output.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${ssrResult.image}" />`);
-      output = output.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/i, `<meta property="twitter:image" content="${ssrResult.image}" />`);
-
-      const headInjections = `
-        <link rel="canonical" href="${ssrResult.canonical}" />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content="${ssrResult.canonical}" />
-        <script type="application/ld+json">
-${ssrResult.schemaJsonLd}
-        </script>
-      `;
-      output = output.replace('</head>', `${headInjections}\n</head>`);
-      output = output.replace(/<div id="root"><\/div>/i, ssrResult.preRenderedHtml);
-      return output;
+      return injectSeoMetadata(output, {
+        title: ssrResult.title,
+        description: ssrResult.description,
+        canonical: ssrResult.canonical,
+        ogType: 'article',
+        image: ssrResult.image,
+        schemaJsonLd: ssrResult.schemaJsonLd,
+        preRenderedHtml: ssrResult.preRenderedHtml
+      });
     }
   }
 
-  // 7. Dynamic User Profiles (/@username & /username)
+  // 8. Dynamic User Profiles (/@username & /username)
   const RESERVED_ROUTES = [
     '/admin', '/enterprise', '/login', '/dashboard', '/api', '/blog',
     '/company', '/about', '/updates', '/contact', '/buy-card', '/shop',
@@ -738,33 +795,19 @@ ${ssrResult.schemaJsonLd}
 
     const profileSsr = await renderUserProfileSsr(rawUsername, supabase);
     if (profileSsr) {
-      output = output.replace(/<title>.*?<\/title>/i, `<title>${profileSsr.title}</title>`);
-      output = output.replace(/<meta name="title" content=".*?"\s*\/?>/i, `<meta name="title" content="${profileSsr.title}" />`);
-      output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="${profileSsr.description}" />`);
-      output = output.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${profileSsr.title}" />`);
-      output = output.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${profileSsr.description}" />`);
-      output = output.replace(/<meta property="og:image" content=".*?"\s*\/?>/i, `<meta property="og:image" content="${profileSsr.image}" />`);
-      output = output.replace(/<meta name="twitter:title" content=".*?"\s*\/?>/i, `<meta name="twitter:title" content="${profileSsr.title}" />`);
-      output = output.replace(/<meta name="twitter:description" content=".*?"\s*\/?>/i, `<meta name="twitter:description" content="${profileSsr.description}" />`);
-      output = output.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${profileSsr.image}" />`);
-      output = output.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/i, `<meta property="twitter:image" content="${profileSsr.image}" />`);
-
-      const headInjections = `
-        <link rel="canonical" href="${profileSsr.canonical}" />
-        <meta property="og:type" content="profile" />
-        <meta property="og:url" content="${profileSsr.canonical}" />
-        <meta property="profile:username" content="${escapeHtml(rawUsername)}" />
-        <script type="application/ld+json">
-${profileSsr.schemaJsonLd}
-        </script>
-      `;
-      output = output.replace('</head>', `${headInjections}\n</head>`);
-      output = output.replace(/<div id="root"><\/div>/i, profileSsr.preRenderedHtml);
-      return output;
+      return injectSeoMetadata(output, {
+        title: profileSsr.title,
+        description: profileSsr.description,
+        canonical: profileSsr.canonical,
+        ogType: 'profile',
+        image: profileSsr.image,
+        schemaJsonLd: profileSsr.schemaJsonLd,
+        preRenderedHtml: profileSsr.preRenderedHtml
+      });
     }
   }
 
-  // 8. Institutional & Policy Pages Fallback
+  // 9. Institutional & Policy Pages
   if (normalizedPath === '/company' || normalizedPath === '/about') {
     const companyHtml = `
 <div id="root">
@@ -776,9 +819,21 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>About CHIP NG — Contactless NFC Hardware & Digital Identity</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, companyHtml);
-    return output;
+    const companySchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      '@id': 'https://www.chipng.com/company#about',
+      name: 'About CHIP NG',
+      url: 'https://www.chipng.com/company',
+      description: 'Nigeria’s premier contactless smart business card and dynamic digital identity platform.'
+    });
+    return injectSeoMetadata(output, {
+      title: 'About CHIP NG — Contactless NFC Hardware & Digital Identity',
+      description: 'CHIP NG is Nigeria’s premier contactless smart business card and dynamic digital identity platform. Headquartered in Lagos, engineering precision NTAG216 NFC hardware.',
+      canonical: 'https://www.chipng.com/company',
+      schemaJsonLd: companySchema,
+      preRenderedHtml: companyHtml
+    });
   }
 
   if (normalizedPath === '/contact') {
@@ -798,9 +853,20 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Contact CHIP NG — Direct Inquiries & Lagos Support</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, contactHtml);
-    return output;
+    const contactSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ContactPage',
+      '@id': 'https://www.chipng.com/contact#contact',
+      name: 'Contact CHIP NG Support & Sales',
+      url: 'https://www.chipng.com/contact'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Contact CHIP NG — Direct Inquiries & Lagos Support',
+      description: 'Contact CHIP NG for enterprise NFC cards, custom laser engraving, and Lagos 24h express delivery. Direct phone, WhatsApp, and office address in Lekki Phase 1.',
+      canonical: 'https://www.chipng.com/contact',
+      schemaJsonLd: contactSchema,
+      preRenderedHtml: contactHtml
+    });
   }
 
   if (normalizedPath === '/shipping') {
@@ -822,9 +888,20 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Shipping & Express Delivery Policy | CHIP NG Nigeria</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, shippingHtml);
-    return output;
+    const shippingSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/shipping#policy',
+      name: 'Shipping & Nationwide Delivery Policy | CHIP NG',
+      url: 'https://www.chipng.com/shipping'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Shipping & Express Delivery Policy | CHIP NG Nigeria',
+      description: 'Fast, reliable delivery of your custom laser-engraved NFC smart cards across Lagos (24-48h) and all 36 Nigerian states via DHL Express & GIG Logistics.',
+      canonical: 'https://www.chipng.com/shipping',
+      schemaJsonLd: shippingSchema,
+      preRenderedHtml: shippingHtml
+    });
   }
 
   if (normalizedPath === '/refund-policy') {
@@ -844,9 +921,20 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Refund Policy & Hardware Warranty | CHIP NG Nigeria</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, refundHtml);
-    return output;
+    const refundSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/refund-policy#policy',
+      name: 'Refund Policy & Hardware Warranty | CHIP NG',
+      url: 'https://www.chipng.com/refund-policy'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Refund Policy & Hardware Warranty | CHIP NG Nigeria',
+      description: 'CHIP NG 30-Day Defect Replacement Guarantee. Genuine NTAG216 microchips tested before dispatch. Free laser engraving and replacement if card fails.',
+      canonical: 'https://www.chipng.com/refund-policy',
+      schemaJsonLd: refundSchema,
+      preRenderedHtml: refundHtml
+    });
   }
 
   if (normalizedPath === '/privacy-policy' || normalizedPath === '/privacy') {
@@ -863,9 +951,20 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Privacy Policy | CHIP NG Nigeria</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, privacyHtml);
-    return output;
+    const privacySchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/privacy-policy#policy',
+      name: 'Privacy Policy | CHIP NG',
+      url: 'https://www.chipng.com/privacy-policy'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Privacy Policy | CHIP NG Nigeria',
+      description: 'CHIP NG Privacy Policy. Fully compliant with Nigeria Data Protection Act (NDPA). How we safeguard and handle your contactless profile data.',
+      canonical: 'https://www.chipng.com/privacy-policy',
+      schemaJsonLd: privacySchema,
+      preRenderedHtml: privacyHtml
+    });
   }
 
   if (normalizedPath === '/terms-of-service' || normalizedPath === '/terms') {
@@ -882,9 +981,20 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Terms of Service | CHIP NG Nigeria</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, termsHtml);
-    return output;
+    const termsSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/terms-of-service#policy',
+      name: 'Terms of Service | CHIP NG',
+      url: 'https://www.chipng.com/terms-of-service'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Terms of Service | CHIP NG Nigeria',
+      description: 'Terms of Service governing your purchase of CHIP NG contactless NFC hardware and hosted digital identity engine in Nigeria.',
+      canonical: 'https://www.chipng.com/terms-of-service',
+      schemaJsonLd: termsSchema,
+      preRenderedHtml: termsHtml
+    });
   }
 
   if (normalizedPath === '/updates') {
@@ -898,9 +1008,20 @@ ${profileSsr.schemaJsonLd}
   </div>
 </div>
     `;
-    output = output.replace(/<title>.*?<\/title>/i, `<title>Updates & Changelog | CHIP NG Nigeria</title>`);
-    output = output.replace(/<div id="root"><\/div>/i, updatesHtml);
-    return output;
+    const updatesSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/updates#changelog',
+      name: 'CHIP NG Platform Updates & Changelog',
+      url: 'https://www.chipng.com/updates'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Updates & Changelog | CHIP NG Nigeria',
+      description: 'Platform updates, firmware improvements, and new dynamic profile features for CHIP NG contactless smart card owners in Nigeria.',
+      canonical: 'https://www.chipng.com/updates',
+      schemaJsonLd: updatesSchema,
+      preRenderedHtml: updatesHtml
+    });
   }
 
   return output;

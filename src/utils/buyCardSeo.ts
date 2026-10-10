@@ -6,8 +6,8 @@
 export const BUY_CARD_META = {
   title: 'Buy Contactless NFC Smart Business Cards in Nigeria | CHIP NG',
   description: 'Order official CHIP NG contactless NFC smart business cards. Sub-10ms response, zero app needed. NFC Smart Black/White PVC (₦30,000 / ₦35,000), NFC Smart Metal Card (₦50,000), Metal Debit Card + Custom Design (₦80,000–₦100,000). 24h Lagos & nationwide delivery.',
-  canonical: 'https://chipng.com/buy-card',
-  image: 'https://chipng.com/chipng_3d_logo.jpg'
+  canonical: 'https://www.chipng.com/buy-card',
+  image: 'https://www.chipng.com/chipng_3d_logo.jpg'
 };
 
 export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
@@ -15,11 +15,11 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
   "@graph": [
     {
       "@type": "Product",
-      "@id": "https://chipng.com/buy-card#product",
+      "@id": "https://www.chipng.com/buy-card#product",
       "name": "CHIP NG Contactless Smart NFC Business Card",
       "image": [
-        "https://chipng.com/chipng_3d_logo.jpg",
-        "https://chipng.com/chipng_exact_tile.png"
+        "https://www.chipng.com/chipng_3d_logo.jpg",
+        "https://www.chipng.com/chipng_exact_tile.png"
       ],
       "description": "Nigeria's premier contactless smart business card and dynamic profile platform. Built with embedded NTAG216 chip, sub-10ms response, and zero app needed. Available in NFC Smart Black/White PVC Card (₦30,000 / ₦35,000), NFC Smart Metal Card (₦50,000), and Metal Debit Card + Custom Design (₦80,000 - ₦100,000).",
       "brand": {
@@ -45,7 +45,7 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
             "priceValidUntil": "2027-12-31",
             "itemCondition": "https://schema.org/NewCondition",
             "availability": "https://schema.org/InStock",
-            "url": "https://chipng.com/buy-card",
+            "url": "https://www.chipng.com/buy-card",
             "seller": {
               "@type": "Organization",
               "name": "CHIP NG Technologies Ltd"
@@ -60,7 +60,7 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
             "priceValidUntil": "2027-12-31",
             "itemCondition": "https://schema.org/NewCondition",
             "availability": "https://schema.org/InStock",
-            "url": "https://chipng.com/buy-card",
+            "url": "https://www.chipng.com/buy-card",
             "seller": {
               "@type": "Organization",
               "name": "CHIP NG Technologies Ltd"
@@ -75,7 +75,7 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
             "priceValidUntil": "2027-12-31",
             "itemCondition": "https://schema.org/NewCondition",
             "availability": "https://schema.org/InStock",
-            "url": "https://chipng.com/buy-card",
+            "url": "https://www.chipng.com/buy-card",
             "seller": {
               "@type": "Organization",
               "name": "CHIP NG Technologies Ltd"

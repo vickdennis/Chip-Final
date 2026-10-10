@@ -1,530 +1,589 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
   <url>
-    <loc>https://chipng.com/</loc>
+    <loc>https://www.chipng.com/</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://chipng.com/buy-card</loc>
+    <loc>https://www.chipng.com/buy-card</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/shop</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/pricing</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://chipng.com/company</loc>
+    <loc>https://www.chipng.com/faq</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/company</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/updates</loc>
+    <loc>https://www.chipng.com/updates</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/contact</loc>
+    <loc>https://www.chipng.com/contact</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/blog</loc>
+    <loc>https://www.chipng.com/blog</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://chipng.com/shipping</loc>
+    <loc>https://www.chipng.com/shipping</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://chipng.com/refund-policy</loc>
+    <loc>https://www.chipng.com/refund-policy</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://chipng.com/privacy-policy</loc>
+    <loc>https://www.chipng.com/privacy-policy</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://chipng.com/terms-of-service</loc>
+    <loc>https://www.chipng.com/terms-of-service</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nfc-business-card-nigeria</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://chipng.com/nfc-business-card-lagos</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://chipng.com/nfc-business-card-lekki</loc>
+    <loc>https://www.chipng.com/nfc-business-card-nigeria</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nfc-business-card-ajah</loc>
+    <loc>https://www.chipng.com/nfc-business-card-lagos</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nfc-metal-business-card</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://chipng.com/digital-business-card-nigeria</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://chipng.com/nfc-business-card-price-nigeria</loc>
+    <loc>https://www.chipng.com/nfc-business-card-lekki</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nfc-business-card-for-real-estate</loc>
+    <loc>https://www.chipng.com/nfc-business-card-ajah</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nfc-business-card-for-sales-teams</loc>
+    <loc>https://www.chipng.com/nfc-metal-business-card</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nfc-business-card-for-corporate-teams</loc>
+    <loc>https://www.chipng.com/digital-business-card-nigeria</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
-  
   <url>
-    <loc>https://chipng.com/blog/nfc-card-price-in-lagos-best-digital-card-for-nigerian-realtors</loc>
+    <loc>https://www.chipng.com/nfc-business-card-price-nigeria</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/nfc-business-card-for-real-estate</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/nfc-business-card-for-sales-teams</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/nfc-business-card-for-corporate-teams</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/blog/nfc-card-price-in-lagos-best-digital-card-for-nigerian-realtors</loc>
     <lastmod>2026-07-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://chipng.com/blog/how-much-do-nfc-business-cards-cost-in-2026-nigeria-global-price-guide</loc>
-    <lastmod>2026-08-29</lastmod>
+    <loc>https://www.chipng.com/blog/nfc-card-price-lagos-realtors-2026</loc>
+    <lastmod>2026-09-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://chipng.com/blog/nfc-card-price-lagos-realtors-2026</loc>
-    <lastmod>2026-07-06</lastmod>
+    <loc>https://www.chipng.com/blog/nfc-business-card-guide</loc>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://chipng.com/blog/nfc-business-card-price-lagos-for-realtors-2026-choose-your-card-close-faster</loc>
-    <lastmod>2026-07-07</lastmod>
+    <loc>https://www.chipng.com/blog/predictive-ai-cash-runway-forecasting</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://chipng.com/blog/the-future-of-car-sales-why-nfc-business-cards-are-a-game-changer-for-dealerships</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://www.chipng.com/blog/hardware-engineering-sub-10ms-nfc</loc>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
   <url>
-    <loc>https://chipng.com/alexemmanuel976</loc>
+    <loc>https://www.chipng.com/blog/how-much-do-nfc-business-cards-cost-in-2026-nigeria-global-price-guide</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/blog/nfc-business-card-price-lagos-for-realtors-2026-choose-your-card-close-faster</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/blog/the-future-of-car-sales-why-nfc-business-cards-are-a-game-changer-for-dealerships</loc>
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/@alexemmanuel976</loc>
     <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/osabajo.olatunbosun</loc>
+    <loc>https://www.chipng.com/@osabajo.olatunbosun</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/j.alamu</loc>
+    <loc>https://www.chipng.com/@j.alamu</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/u.michael-okafor</loc>
+    <loc>https://www.chipng.com/@u.michael-okafor</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/bcreative_media</loc>
+    <loc>https://www.chipng.com/@bcreative_media</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/i.gabriel</loc>
+    <loc>https://www.chipng.com/@i.gabriel</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/domingosmartim08</loc>
+    <loc>https://www.chipng.com/@domingosmartim08</loc>
     <lastmod>2026-07-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/stickman</loc>
+    <loc>https://www.chipng.com/@stickman</loc>
     <lastmod>2026-09-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/a.soyemi</loc>
+    <loc>https://www.chipng.com/@a.soyemi</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/blazzydmusical</loc>
+    <loc>https://www.chipng.com/@blazzydmusical</loc>
     <lastmod>2026-07-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/n.ude</loc>
+    <loc>https://www.chipng.com/@n.ude</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/y.shittu</loc>
+    <loc>https://www.chipng.com/@y.shittu</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nwekeogonna48</loc>
+    <loc>https://www.chipng.com/@nwekeogonna48</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/s.sanusi</loc>
+    <loc>https://www.chipng.com/@s.sanusi</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/s.ade</loc>
+    <loc>https://www.chipng.com/@s.ade</loc>
     <lastmod>2026-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/d.ale</loc>
+    <loc>https://www.chipng.com/@d.ale</loc>
     <lastmod>2026-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/hemmysax</loc>
+    <loc>https://www.chipng.com/@hemmysax</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/yinka.isioye</loc>
+    <loc>https://www.chipng.com/@yinka.isioye</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/opemipo.opanaike</loc>
+    <loc>https://www.chipng.com/@opemipo.opanaike</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Bevent</loc>
+    <loc>https://www.chipng.com/@Bevent</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/jesseking</loc>
+    <loc>https://www.chipng.com/@jesseking</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/davosky</loc>
+    <loc>https://www.chipng.com/@davosky</loc>
     <lastmod>2026-08-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/stephenanane358</loc>
+    <loc>https://www.chipng.com/@stephenanane358</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/ravvadigital</loc>
+    <loc>https://www.chipng.com/@ravvadigital</loc>
     <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/despro_clean</loc>
+    <loc>https://www.chipng.com/@despro_clean</loc>
     <lastmod>2026-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/bossspyfortnite</loc>
+    <loc>https://www.chipng.com/@bossspyfortnite</loc>
     <lastmod>2026-08-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/victoria.ogom</loc>
+    <loc>https://www.chipng.com/@victoria.ogom</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/anthony.ogor</loc>
+    <loc>https://www.chipng.com/@anthony.ogor</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/priscilla.akeem</loc>
+    <loc>https://www.chipng.com/@priscilla.akeem</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/chetachi.chibueze</loc>
+    <loc>https://www.chipng.com/@chetachi.chibueze</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/adenike.ajayi</loc>
+    <loc>https://www.chipng.com/@adenike.ajayi</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/mary.akin-adesokan</loc>
+    <loc>https://www.chipng.com/@mary.akin-adesokan</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/teni.stuffman</loc>
+    <loc>https://www.chipng.com/@teni.stuffman</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/tomiwa.awofiranye</loc>
+    <loc>https://www.chipng.com/@tomiwa.awofiranye</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/yetunde.okpanachi</loc>
+    <loc>https://www.chipng.com/@yetunde.okpanachi</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/geraldine.kelechi-okiyi</loc>
+    <loc>https://www.chipng.com/@geraldine.kelechi-okiyi</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/joy.aghasili</loc>
+    <loc>https://www.chipng.com/@joy.aghasili</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/omotayo.kashibu</loc>
+    <loc>https://www.chipng.com/@omotayo.kashibu</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/joy.nkem-onuh</loc>
+    <loc>https://www.chipng.com/@joy.nkem-onuh</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/rafiu.olalere</loc>
+    <loc>https://www.chipng.com/@rafiu.olalere</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Stephenanane358@gmail.com</loc>
+    <loc>https://www.chipng.com/@Stephenanane358@gmail.com</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Chioma.nwafor</loc>
+    <loc>https://www.chipng.com/@Chioma.nwafor</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/samuel.alabi</loc>
+    <loc>https://www.chipng.com/@samuel.alabi</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/uchechi.edobor</loc>
+    <loc>https://www.chipng.com/@uchechi.edobor</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/piced98878</loc>
+    <loc>https://www.chipng.com/@piced98878</loc>
     <lastmod>2026-08-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/vickthorden</loc>
+    <loc>https://www.chipng.com/@vickthorden</loc>
     <lastmod>2026-09-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/test_admin_creation4</loc>
+    <loc>https://www.chipng.com/@test_admin_creation4</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/nightmagik30</loc>
+    <loc>https://www.chipng.com/@chipng</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/@nightmagik30</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/olushola.makanjuola</loc>
+    <loc>https://www.chipng.com/@olushola.makanjuola</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/kehinde.oyenuga</loc>
+    <loc>https://www.chipng.com/@kehinde.oyenuga</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/ololade.afoloyan</loc>
+    <loc>https://www.chipng.com/@ololade.afoloyan</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/krixglobal</loc>
+    <loc>https://www.chipng.com/@krixglobal</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/contactbrandview</loc>
+    <loc>https://www.chipng.com/@contactbrandview</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/test_admin_creation2</loc>
+    <loc>https://www.chipng.com/@test_admin_creation2</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/amarachi.nnaji</loc>
+    <loc>https://www.chipng.com/@amarachi.nnaji</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/oolowu</loc>
+    <loc>https://www.chipng.com/@oolowu</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/chipng</loc>
-    <lastmod>2026-09-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://chipng.com/tonyzola370</loc>
+    <loc>https://www.chipng.com/@tonyzola370</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/ejiro.onokpasah</loc>
+    <loc>https://www.chipng.com/@ejiro.onokpasah</loc>
     <lastmod>2026-09-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Beventsolutions2</loc>
+    <loc>https://www.chipng.com/@Beventsolutions2</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Beventsolutions3</loc>
+    <loc>https://www.chipng.com/@Beventsolutions3</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Beventsolutions4</loc>
+    <loc>https://www.chipng.com/@Beventsolutions4</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Beventsolutions5</loc>
+    <loc>https://www.chipng.com/@Beventsolutions5</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/Beventsolutions6</loc>
+    <loc>https://www.chipng.com/@Beventsolutions6</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/propertyloop</loc>
+    <loc>https://www.chipng.com/@propertyloop</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chipng.com/dreemz</loc>
+    <loc>https://www.chipng.com/@chummleo</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/@dreemz</loc>
     <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

@@ -1222,7 +1222,7 @@ async function startServer() {
         .not("username", "is", null)
         .limit(200);
 
-      const baseUrl = "https://chipng.com";
+      const baseUrl = "https://www.chipng.com";
       const corePages = [
         { path: '', changefreq: 'daily', priority: '1.0' },
         { path: 'buy-card', changefreq: 'weekly', priority: '0.95' },
@@ -1269,7 +1269,7 @@ async function startServer() {
   </url>`).join("")}
   ${validProfiles.map(prof => `
   <url>
-    <loc>${baseUrl}/${prof.username}</loc>
+    <loc>${baseUrl}/@${prof.username}</loc>
     <lastmod>${prof.updated_at ? new Date(prof.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1294,6 +1294,8 @@ Disallow: /settings/
 Disallow: /login
 
 # Answer Engine Optimization (AEO) Bots
+User-agent: Googlebot
+User-agent: Bingbot
 User-agent: GPTBot
 User-agent: ChatGPT-User
 User-agent: PerplexityBot
@@ -1302,8 +1304,8 @@ User-agent: Applebot
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://chipng.com/sitemap.xml
-Host: https://chipng.com`;
+Sitemap: https://www.chipng.com/sitemap.xml
+Host: https://www.chipng.com`;
     res.header("Content-Type", "text/plain");
     res.send(robots);
   });

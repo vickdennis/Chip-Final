@@ -45,12 +45,12 @@ export const HOME_SCHEMA_JSON_LD = JSON.stringify({
   '@graph': [
     {
       '@type': 'LocalBusiness',
-      '@id': 'https://chipng.com/#localbusiness',
+      '@id': 'https://www.chipng.com/#localbusiness',
       name: 'CHIP NG',
       alternateName: 'CHIP Nigeria',
-      image: 'https://chipng.com/chipng_3d_logo.jpg',
-      logo: 'https://chipng.com/chipng_exact_tile.png',
-      url: 'https://chipng.com',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      logo: 'https://www.chipng.com/chipng_exact_tile.png',
+      url: 'https://www.chipng.com',
       telephone: '+2348100764154',
       email: 'hello@chipng.com',
       priceRange: '₦₦',
@@ -70,7 +70,7 @@ export const HOME_SCHEMA_JSON_LD = JSON.stringify({
     },
     {
       '@type': 'SoftwareApplication',
-      '@id': 'https://chipng.com/#software',
+      '@id': 'https://www.chipng.com/#software',
       name: 'CHIP NG Digital Identity Platform',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'iOS, Android, Web',
@@ -82,7 +82,7 @@ export const HOME_SCHEMA_JSON_LD = JSON.stringify({
     },
     {
       '@type': 'FAQPage',
-      '@id': 'https://chipng.com/#faq',
+      '@id': 'https://www.chipng.com/#faq',
       mainEntity: [
         {
           '@type': 'Question',
@@ -110,7 +110,7 @@ export const PRICING_SCHEMA_JSON_LD = JSON.stringify({
   '@graph': [
     {
       '@type': 'Product',
-      '@id': 'https://chipng.com/pricing#product-pricing',
+      '@id': 'https://www.chipng.com/pricing#product-pricing',
       name: 'CHIP NG Smart Business Card Range',
       description: 'Official 2026 pricing for CHIP NG contactless smart cards in Nigeria.',
       brand: { '@type': 'Brand', name: 'CHIP NG' },
@@ -127,7 +127,7 @@ export const PRICING_SCHEMA_JSON_LD = JSON.stringify({
             price: '30000',
             priceCurrency: 'NGN',
             availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=pvc'
+            url: 'https://www.chipng.com/buy-card?tier=pvc'
           },
           {
             '@type': 'Offer',
@@ -135,7 +135,7 @@ export const PRICING_SCHEMA_JSON_LD = JSON.stringify({
             price: '50000',
             priceCurrency: 'NGN',
             availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=metal'
+            url: 'https://www.chipng.com/buy-card?tier=metal'
           },
           {
             '@type': 'Offer',
@@ -143,7 +143,7 @@ export const PRICING_SCHEMA_JSON_LD = JSON.stringify({
             price: '80000',
             priceCurrency: 'NGN',
             availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=heavy_metal'
+            url: 'https://www.chipng.com/buy-card?tier=heavy_metal'
           }
         ]
       }

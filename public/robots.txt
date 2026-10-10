@@ -1,4 +1,21 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /settings/
+Disallow: /login
 
-Sitemap: https://chipng.com/sitemap.xml
+# Answer Engine Optimization (AEO) Bots
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: Applebot
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://www.chipng.com/sitemap.xml
+Host: https://www.chipng.com
