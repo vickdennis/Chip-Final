@@ -543,31 +543,49 @@ async function startServer() {
 
   app.patch('/api/leads/:leadId/status', async (req, res) => {
     try {
-      const { status } = req.body;
+      const { status, name, whatsapp, email, profile_id } = req.body;
       const { leadId } = req.params;
+      const cleanStatus = status || 'new';
+
       let localUpdated: any = null;
       try {
-        db.prepare('UPDATE leads SET status = ? WHERE id = ?').run(status || 'new', leadId);
+        // Try updating by id, or by matching contact name/phone
+        db.prepare(`
+          UPDATE leads 
+          SET status = ? 
+          WHERE id = ? 
+             OR (name = ? AND name IS NOT NULL AND name != '') 
+             OR (whatsapp = ? AND whatsapp IS NOT NULL AND whatsapp != '')
+        `).run(cleanStatus, leadId, name || '', whatsapp || '');
         localUpdated = db.prepare('SELECT * FROM leads WHERE id = ?').get(leadId);
       } catch (e) {}
 
       // Dual Persistence update in Supabase
       try {
         const supabase = getSupabase();
-        const { error: nativeErr } = await supabase.from('leads').update({ status: status || 'new' }).eq('id', leadId);
-        if (nativeErr && nativeErr.code === 'PGRST204' && localUpdated) {
-          const meta = {
-            profile_id: localUpdated.profile_id,
-            email: localUpdated.email,
-            whatsapp: localUpdated.whatsapp,
-            company: localUpdated.company,
-            message: localUpdated.message,
-            status: status || 'new',
-            city: localUpdated.city || 'Lagos',
-            updated_at: new Date().toISOString()
+        
+        // Fetch current lead record from Supabase
+        const { data: spLead } = await supabase.from('leads').select('city').eq('id', leadId).maybeSingle();
+        let meta: any = {};
+        if (spLead?.city && typeof spLead.city === 'string' && spLead.city.startsWith('{')) {
+          try { meta = JSON.parse(spLead.city); } catch (e) {}
+        } else {
+          meta = {
+            profile_id: profile_id || localUpdated?.profile_id,
+            email: email || localUpdated?.email,
+            whatsapp: whatsapp || localUpdated?.whatsapp,
+            name: name || localUpdated?.name
           };
-          await supabase.from('leads').update({ city: JSON.stringify(meta) }).or(`id.eq.${leadId},name.eq.${localUpdated.name}`);
         }
+        meta.status = cleanStatus;
+        meta.updated_at = new Date().toISOString();
+
+        await supabase.from('leads').update({ city: JSON.stringify(meta) }).eq('id', leadId);
+
+        // Also try updating native column if it exists in DB
+        try {
+          await supabase.from('leads').update({ status: cleanStatus }).eq('id', leadId);
+        } catch (e) {}
       } catch (e) {}
 
       res.json({ success: true });

@@ -11,6 +11,7 @@ import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 import { LeadExchangeModal } from '../components/LeadExchangeModal';
 import { toast } from '../components/Toast';
+import { recordProfileView, recordProfileClick as trackTelemetryClick } from '../utils/telemetryClient';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -148,8 +149,8 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         } catch (e) {}
       }
 
-      // View analytics tracking (fire & forget, non-blocking)
-      if (effectiveUsername) {
+      // View analytics tracking (fire & forget, non-blocking, locally and remotely synced)
+      if (effectiveUsername && targetUserId) {
         try {
           const params = new URLSearchParams(window.location.search);
           const rawSource = (params.get('source') || params.get('src') || '').toLowerCase();
@@ -163,11 +164,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             source = rawSource;
           }
 
-          fetch('/api/analytics/view', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ profile_id: targetUserId, source })
-          }).catch(() => {});
+          recordProfileView(targetUserId, effectiveUsername, source);
         } catch (e) {}
       }
 
@@ -279,17 +276,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     const targetId = profile?.id;
     if (!targetId) return;
     try {
-      fetch('/api/analytics/click', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile_id: targetId,
-          link_id: linkId,
-          link_url: linkUrl,
-          link_title: linkTitle,
-          click_type: clickType
-        })
-      }).catch(() => {});
+      trackTelemetryClick(targetId, linkTitle, linkUrl, clickType, linkId, profile?.username);
     } catch(e) {}
   };
 

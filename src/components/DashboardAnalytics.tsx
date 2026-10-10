@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { TrendingUp, Users, MousePointerClick, ShieldCheck, Zap, Smartphone, QrCode, Globe, ArrowUpRight, Clock, RefreshCw } from "lucide-react";
 import { supabase } from '../supabaseClient';
+import { getProfileTelemetry, subscribeToTelemetry, TelemetryData } from '../utils/telemetryClient';
 
-interface AnalyticsData {
-  totalViews: number;
-  totalClicks: number;
-  ctr: number;
-  nfcTaps: number;
-  qrScans: number;
-  webViews: number;
-  clicksByType: Array<{ click_type: string; count: number }>;
-  topLinks: Array<{ link_title: string; link_url: string; click_type: string; clicks: number }>;
-  recentActivity: Array<{ event_type: string; detail: string; created_at: string }>;
-}
+type AnalyticsData = TelemetryData;
 
 export default function DashboardAnalytics({ 
   profile, 
@@ -31,18 +22,8 @@ export default function DashboardAnalytics({
     if (!profile?.id) return;
     if (showPulse) setIsRefreshing(true);
     try {
-      const res = await fetch(`/api/analytics/user/${profile.id}`);
-      if (res.ok) {
-        const json = await res.json();
-        // If supabase has higher count for views, sync it
-        const finalViews = Math.max(json.totalViews || 0, profileViews || 0);
-        const finalCtr = finalViews > 0 ? parseFloat(((json.totalClicks / finalViews) * 100).toFixed(1)) : 0;
-        setData({
-          ...json,
-          totalViews: finalViews,
-          ctr: finalCtr
-        });
-      }
+      const telemetry = await getProfileTelemetry(profile.id, profile.username, profileViews);
+      setData(telemetry);
     } catch (e) {
       console.error("Failed to fetch analytics:", e);
     } finally {
@@ -53,12 +34,22 @@ export default function DashboardAnalytics({
 
   useEffect(() => {
     fetchRealtimeAnalytics();
-    // Poll every 5 seconds for authentic live real-time sync
+    
+    // Subscribe to immediate real-time cross-tab & in-app telemetry events
+    const unsubscribe = subscribeToTelemetry(profile?.id, () => {
+      fetchRealtimeAnalytics();
+    });
+
+    // Also poll every 4 seconds for remote changes
     const interval = setInterval(() => {
       fetchRealtimeAnalytics();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [profile?.id, profileViews]);
+    }, 4000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
+  }, [profile?.id, profile?.username, profileViews]);
 
   const isProActive = !!(profile?.is_pro || profile?.is_admin || profile?.email === 'vickthor.dennis@gmail.com');
 

@@ -53,6 +53,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/sitemap.xml"
     },

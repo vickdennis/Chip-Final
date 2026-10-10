@@ -41,9 +41,9 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
 
             {/* Official CHIP NG Verified Socials */}
             <div className="pt-3 flex items-center gap-2.5">
-              <SocialMediaIconBadge platform="TikTok" style="color-circle" size="xs" href="https://tiktok.com/@chipng_app" title="TikTok @chipng_app" />
-              <SocialMediaIconBadge platform="Instagram" style="color-circle" size="xs" href="https://instagram.com/chipng_app" title="Instagram @chipng_app" />
-              <SocialMediaIconBadge platform="X (Twitter)" style="color-circle" size="xs" href="https://twitter.com/chipng_app" title="X @chipng_app" />
+              <SocialMediaIconBadge platform="TikTok" style="color-circle" size="xs" href="https://www.tiktok.com/@chipng_nfc" title="TikTok @chipng_nfc" />
+              <SocialMediaIconBadge platform="Instagram" style="color-circle" size="xs" href="https://www.instagram.com/chipng_nfc" title="Instagram @chipng_nfc" />
+              <SocialMediaIconBadge platform="X (Twitter)" style="color-circle" size="xs" href="https://x.com/chipng_nfc" title="X @chipng_nfc" />
               <SocialMediaIconBadge platform="LinkedIn" style="color-circle" size="xs" href="https://linkedin.com/company/chipng" title="LinkedIn CHIP NG" />
               <SocialMediaIconBadge platform="WhatsApp" style="color-circle" size="xs" href="https://wa.me/2348100764154" title="WhatsApp Concierge" />
             </div>

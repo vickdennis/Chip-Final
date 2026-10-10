@@ -59,6 +59,32 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           newCount: data.newCount || 0,
           convertedCount: data.convertedCount || 0
         });
+        return;
+      }
+    } catch (e) {}
+
+    // Supabase & localStorage fallback
+    try {
+      const slugs = [`profile_${profile.id}`, profile.id];
+      if (profile.username) slugs.push(`profile_${profile.username}`, profile.username);
+      const { data: spLeads } = await supabase
+        .from('leads')
+        .select('id, city')
+        .in('post_slug', slugs);
+
+      if (spLeads) {
+        let converted = 0;
+        let unread = 0;
+        for (const l of spLeads) {
+          const cached = localStorage.getItem(`chipng_lead_status_${l.id}`) || localStorage.getItem(`chipng_lead_status_${profile.id}_${l.id}`);
+          let status = cached;
+          if (!status && l.city && typeof l.city === 'string' && l.city.startsWith('{')) {
+            try { status = JSON.parse(l.city).status; } catch (e) {}
+          }
+          if (status === 'converted') converted++;
+          else unread++;
+        }
+        setLeadsStats({ total: spLeads.length, newCount: unread, convertedCount: converted });
       }
     } catch (e) {}
   };
@@ -454,13 +480,19 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const { data: purchasesData } = await supabase.from('purchases').select('*').eq('seller_id', user.id).order('created_at', { ascending: false });
       const { data: shopProductsData } = await supabase.from('products').select('*').is('profile_id', null).order('created_at', { ascending: false });
 
-      // Fetch views count from server profile analytics
+      // Fetch views count from server profile analytics & local telemetry cache
       let viewsCount = 0;
+      try {
+        const localTelem = localStorage.getItem(`chipng_telemetry_${user.id}`);
+        if (localTelem) {
+          viewsCount = JSON.parse(localTelem).totalViews || 0;
+        }
+      } catch (e) {}
       try {
         const analyticsRes = await fetch(`/api/analytics/user/${user.id}`);
         if (analyticsRes.ok) {
           const analyticsJson = await analyticsRes.json();
-          viewsCount = analyticsJson.totalViews || 0;
+          viewsCount = Math.max(viewsCount, analyticsJson.totalViews || 0);
         }
       } catch (e) {
         console.warn('Analytics view count fetch warning:', e);

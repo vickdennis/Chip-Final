@@ -203,7 +203,7 @@ export default function BlogArticleView({
   const handleShareX = () => {
     if (!post) return;
     const text = encodeURIComponent(post.title);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(currentUrl)}&via=chipng_app`, '_blank', 'noopener,noreferrer');
+    window.open(`https://x.com/intent/tweet?text=${text}&url=${encodeURIComponent(currentUrl)}&via=chipng_nfc`, '_blank', 'noopener,noreferrer');
   };
 
   const handleShareLinkedIn = () => {
@@ -312,7 +312,7 @@ export default function BlogArticleView({
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDesc} />
         <meta name="twitter:image" content={ogImage} />
-        <meta name="twitter:creator" content="@chipng_app" />
+        <meta name="twitter:creator" content="@chipng_nfc" />
 
         {/* Structured Data */}
         <script type="application/ld+json">

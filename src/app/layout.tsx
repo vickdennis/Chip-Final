@@ -59,11 +59,11 @@ export const metadata: Metadata = {
     title: 'CHIP NG — NFC Smart Business Cards & Digital Profiles',
     description:
       'CHIP NG provides premium NFC smart business cards and the definitive link-in-bio platform for Nigerian founders, executives, and creators.',
-    creator: '@chipng_app',
-    images: ['https://chipng.com/chipng_3d_logo.jpg']
+    creator: '@chipng_nfc',
+    images: ['https://www.chipng.com/chipng_3d_logo.jpg']
   },
   alternates: {
-    canonical: 'https://chipng.com'
+    canonical: 'https://www.chipng.com'
   },
   other: {
     'geo.region': 'NG-LA',
@@ -79,9 +79,9 @@ const organizationSchema = {
   '@type': 'Organization',
   name: 'CHIP NG',
   legalName: 'CHIP NG Technologies Ltd',
-  url: 'https://chipng.com',
-  logo: 'https://chipng.com/chipng_exact_tile.png',
-  image: 'https://chipng.com/chipng_3d_logo.jpg',
+  url: 'https://www.chipng.com',
+  logo: 'https://www.chipng.com/chipng_exact_tile.png',
+  image: 'https://www.chipng.com/chipng_3d_logo.jpg',
   description:
     'Nigeria premier contactless smart NFC business cards and dynamic link-in-bio platform for executives, founders, and creators.',
   foundingDate: '2023',
@@ -97,9 +97,9 @@ const organizationSchema = {
     availableLanguage: ['en']
   },
   sameAs: [
-    'https://tiktok.com/@chipng_app',
-    'https://instagram.com/chipng_app',
-    'https://twitter.com/chipng_app'
+    'https://www.tiktok.com/@chipng_nfc',
+    'https://www.instagram.com/chipng_nfc',
+    'https://x.com/chipng_nfc'
   ]
 };
 
@@ -108,9 +108,9 @@ const localBusinessSchema = {
   '@type': 'LocalBusiness',
   name: 'CHIP NG',
   alternateName: 'CHIP Nigeria Smart Cards',
-  image: 'https://chipng.com/chipng_3d_logo.jpg',
-  logo: 'https://chipng.com/chipng_exact_tile.png',
-  url: 'https://chipng.com',
+  image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+  logo: 'https://www.chipng.com/chipng_exact_tile.png',
+  url: 'https://www.chipng.com',
   telephone: '+2348100764154',
   email: 'hello@chipng.com',
   priceRange: '₦₦',

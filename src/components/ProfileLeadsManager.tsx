@@ -153,6 +153,24 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
       }
     }
 
+    // Helper functions for persistent status caching
+    const getStoredLeadStatus = (leadId: string | number): string | null => {
+      try {
+        return localStorage.getItem(`chipng_lead_status_${leadId}`) || (profile?.id ? localStorage.getItem(`chipng_lead_status_${profile.id}_${leadId}`) : null);
+      } catch (e) {
+        return null;
+      }
+    };
+
+    // Apply persistent status overrides so state never reverts back to 'new'
+    syncedLeads = syncedLeads.map(l => {
+      const cached = getStoredLeadStatus(l.id);
+      if (cached === 'converted' || cached === 'new') {
+        return { ...l, status: cached as any };
+      }
+      return l;
+    });
+
     setLeads(syncedLeads);
     if (onLeadsChange) {
       const total = syncedLeads.length;
@@ -172,33 +190,76 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
     fetchLeads();
   }, [profile?.id]);
 
+  const setStoredLeadStatus = (leadId: string | number, status: string) => {
+    try {
+      localStorage.setItem(`chipng_lead_status_${leadId}`, status);
+      if (profile?.id) {
+        localStorage.setItem(`chipng_lead_status_${profile.id}_${leadId}`, status);
+      }
+    } catch (e) {}
+  };
+
   const handleUpdateStatus = async (leadId: number | string, currentStatus: string) => {
     const nextStatus = currentStatus === 'converted' ? 'new' : 'converted';
+    const targetLead = leads.find(l => l.id === leadId);
+
+    // 1. Immediately persist status override locally
+    setStoredLeadStatus(leadId, nextStatus);
+
+    // 2. Immediately update UI state optimistically
+    setLeads(prev => {
+      const updated = prev.map(l => l.id === leadId ? { ...l, status: nextStatus as any } : l);
+      if (onLeadsChange) {
+        const newCount = updated.filter(l => l.status === 'new' || !l.status).length;
+        const convertedCount = updated.filter(l => l.status === 'converted').length;
+        onLeadsChange({ total: updated.length, newCount, convertedCount });
+      }
+      return updated;
+    });
+
+    toast.success(nextStatus === 'converted' ? 'Marked as Converted!' : 'Marked as New Contact');
+
+    // 3. Persist to Supabase with schema-safe city JSON metadata & native column fallback
+    try {
+      const { data: currentSpLead } = await supabase.from('leads').select('city').eq('id', leadId).maybeSingle();
+      let meta: any = {};
+      if (currentSpLead?.city && typeof currentSpLead.city === 'string' && currentSpLead.city.startsWith('{')) {
+        try { meta = JSON.parse(currentSpLead.city); } catch (e) {}
+      } else if (targetLead) {
+        meta = {
+          profile_id: targetLead.profile_id,
+          email: targetLead.email,
+          whatsapp: targetLead.whatsapp,
+          company: targetLead.company,
+          message: targetLead.message
+        };
+      }
+      meta.status = nextStatus;
+      meta.updated_at = new Date().toISOString();
+
+      await supabase.from('leads').update({ city: JSON.stringify(meta) }).eq('id', leadId);
+
+      try {
+        await supabase.from('leads').update({ status: nextStatus }).eq('id', leadId);
+      } catch (e) {}
+    } catch (spErr) {
+      console.warn('Supabase status sync notice:', spErr);
+    }
+
+    // 4. Persist to Backend API
     try {
       await fetch(`/api/leads/${leadId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus })
+        body: JSON.stringify({ 
+          status: nextStatus,
+          name: targetLead?.name,
+          whatsapp: targetLead?.whatsapp,
+          email: targetLead?.email,
+          profile_id: profile?.id
+        })
       }).catch(() => {});
-
-      // Direct Supabase update
-      try {
-        await supabase.from('leads').update({ status: nextStatus }).eq('id', leadId);
-      } catch (e) {}
-
-      setLeads(prev => {
-        const updated = prev.map(l => l.id === leadId ? { ...l, status: nextStatus as any } : l);
-        if (onLeadsChange) {
-          const newCount = updated.filter(l => l.status === 'new' || !l.status).length;
-          const convertedCount = updated.filter(l => l.status === 'converted').length;
-          onLeadsChange({ total: updated.length, newCount, convertedCount });
-        }
-        return updated;
-      });
-      toast.success(nextStatus === 'converted' ? 'Marked as Converted!' : 'Marked as New Contact');
-    } catch (e: any) {
-      toast.error('Failed to update contact status');
-    }
+    } catch (e) {}
   };
 
   const handleDeleteLead = async (leadId: number | string) => {
