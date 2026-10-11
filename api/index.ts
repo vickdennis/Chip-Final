@@ -1,5 +1,8 @@
 import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
+import { applyUniversalSsr } from '../src/utils/universalSsrEngine';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthyjd.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
@@ -22,6 +25,63 @@ app.use((req, res, next) => {
   next();
 });
 
+// Base HTML loader for Vercel Serverless SSR
+let cachedBaseHtml: string | null = null;
+function getBaseHtml(): string {
+  if (cachedBaseHtml) return cachedBaseHtml;
+  try {
+    const distHtml = path.join(process.cwd(), 'dist', 'index.html');
+    if (fs.existsSync(distHtml)) {
+      cachedBaseHtml = fs.readFileSync(distHtml, 'utf-8');
+      return cachedBaseHtml;
+    }
+  } catch (e) {}
+  try {
+    const rootHtml = path.join(process.cwd(), 'index.html');
+    if (fs.existsSync(rootHtml)) {
+      cachedBaseHtml = fs.readFileSync(rootHtml, 'utf-8');
+      return cachedBaseHtml;
+    }
+  } catch (e) {}
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CHIP NG</title></head><body><div id="root"></div></body></html>';
+}
+
+// Serverless SSR Handler for User Profiles & Social Crawlers on Vercel
+async function handleServerlessSsr(urlPath: string, req: Request, res: Response) {
+  try {
+    const supabase = getSupabase();
+    let html = getBaseHtml();
+
+    html = await applyUniversalSsr(html, {
+      urlPath,
+      userAgent: req.headers['user-agent'] as string,
+      supabase,
+      db: null
+    });
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400');
+    res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    return res.send(html);
+  } catch (err: any) {
+    console.error('Serverless SSR Error:', err);
+    return res.send(getBaseHtml());
+  }
+}
+
+// SSR rewrite interception middleware for Vercel
+app.use(async (req, res, next) => {
+  if (req.query.ssrPath || req.query.profile) {
+    const rawTarget = (req.query.ssrPath || req.query.profile || '') as string;
+    let targetPath = String(rawTarget).trim();
+    if (!targetPath.startsWith('/') && !targetPath.startsWith('@')) {
+      targetPath = `/${targetPath}`;
+    }
+    return handleServerlessSsr(targetPath, req, res);
+  }
+  next();
+});
+
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -31,7 +91,12 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards work
 app.get('/api/cover/:username', async (req: Request, res: Response) => {
   try {
-    const rawUsername = req.params.username.replace(/^@/, '').toLowerCase().trim();
+    let rawUsername = req.params.username || '';
+    try {
+      rawUsername = decodeURIComponent(rawUsername);
+    } catch (e) {}
+    rawUsername = rawUsername.replace(/^@/, '').toLowerCase().trim();
+
     const supabase = getSupabase();
     const { data: profile } = await supabase
       .from('profiles')
@@ -39,27 +104,62 @@ app.get('/api/cover/:username', async (req: Request, res: Response) => {
       .ilike('username', rawUsername)
       .maybeSingle();
 
-    const imageUrl = profile?.cover_image_url;
+    let imageUrl = profile?.cover_image_url;
 
-    if (imageUrl && imageUrl.startsWith('http')) {
-      const imgRes = await fetch(imageUrl);
-      if (imgRes.ok) {
-        const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-        const buffer = Buffer.from(await imgRes.arrayBuffer());
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
-        res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
-        return res.send(buffer);
+    if (imageUrl && typeof imageUrl === 'string') {
+      imageUrl = imageUrl.trim();
+      let fetchUrl = imageUrl;
+      if (!fetchUrl.startsWith('http')) {
+        if (fetchUrl.startsWith('/')) {
+          fetchUrl = `https://oxrzkdzcagvmgfuthyjd.supabase.co${fetchUrl}`;
+        } else {
+          fetchUrl = `https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/${fetchUrl}`;
+        }
+      }
+
+      try {
+        const imgRes = await fetch(fetchUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; CHIPNG-Bot/1.0; +https://www.chipng.com)'
+          }
+        });
+        if (imgRes.ok) {
+          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+          const buffer = Buffer.from(await imgRes.arrayBuffer());
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Content-Length', buffer.length.toString());
+          res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+          res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          return res.send(buffer);
+        }
+      } catch (fetchErr) {
+        console.warn(`Error fetching cover image for ${rawUsername}:`, fetchErr);
       }
     }
 
-    // High quality brand fallback
+    // High quality local brand fallback (zero network latency)
+    try {
+      const localLogoPath = path.join(process.cwd(), 'public', 'chipng_3d_logo.jpg');
+      if (fs.existsSync(localLogoPath)) {
+        const buffer = fs.readFileSync(localLogoPath);
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Content-Length', buffer.length.toString());
+        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+        res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(buffer);
+      }
+    } catch (e) {}
+
     const fallbackRes = await fetch('https://www.chipng.com/chipng_3d_logo.jpg');
     if (fallbackRes.ok) {
       const buffer = Buffer.from(await fallbackRes.arrayBuffer());
       res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Content-Length', buffer.length.toString());
       res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
       res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.send(buffer);
     }
 
@@ -78,8 +178,10 @@ app.get('/api/cover', async (req: Request, res: Response) => {
         const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
         const buffer = Buffer.from(await imgRes.arrayBuffer());
         res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Length', buffer.length.toString());
         res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
         res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+        res.setHeader('Access-Control-Allow-Origin', '*');
         return res.send(buffer);
       }
     }
@@ -87,6 +189,21 @@ app.get('/api/cover', async (req: Request, res: Response) => {
   } catch (e) {
     res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
   }
+});
+
+// Dynamic Profile SSR Endpoint (Matches /@username, /p/username, etc.)
+app.get('/api/profile-ssr', async (req: Request, res: Response) => {
+  const username = (req.query.username || req.query.u || '') as string;
+  let cleanUser = String(username).trim();
+  if (cleanUser.startsWith('@')) cleanUser = cleanUser.slice(1);
+  const path = cleanUser ? `/@${cleanUser}` : '/';
+  await handleServerlessSsr(path, req, res);
+});
+
+// General Bot SSR Endpoint (Rewritten from crawlers)
+app.get('/api/ssr', async (req: Request, res: Response) => {
+  const reqPath = (req.query.path || req.query.p || '/') as string;
+  await handleServerlessSsr(String(reqPath).startsWith('/') ? String(reqPath) : `/${reqPath}`, req, res);
 });
 
 // --- Analytics Endpoints ---

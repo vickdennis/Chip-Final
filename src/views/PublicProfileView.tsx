@@ -383,9 +383,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     : 'View verified contactless smart card profile, vCard, social links, and portfolio on CHIP NG.';
   const rawCover = profile?.cover_image_url;
   const ogImageUrl = rawCover 
-    ? (rawCover.includes('supabase.co') 
-        ? `https://www.chipng.com/api/cover/${encodeURIComponent(profile.username)}`
-        : rawCover)
+    ? `https://www.chipng.com/api/cover/${encodeURIComponent(profile.username)}`
     : 'https://www.chipng.com/chipng_3d_logo.jpg';
   const canonicalUrl = profile?.username 
     ? `https://www.chipng.com/@${profile.username}` 
@@ -400,6 +398,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         
         {/* Open Graph / Facebook / WhatsApp / LinkedIn / iMessage */}
         <meta property="og:type" content="profile" />
+        <meta property="og:site_name" content="CHIP NG" />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:title" content={ogTitle} />
         <meta property="og:description" content={ogDesc} />
@@ -409,15 +408,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={`${profile?.full_name || profile?.username || 'User'} Cover Image`} />
-        {rawCover && rawCover !== ogImageUrl && (
-          <>
-            <meta property="og:image" content={rawCover} />
-            <meta property="og:image:secure_url" content={rawCover} />
-          </>
-        )}
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@chipng_nfc" />
+        <meta name="twitter:creator" content="@chipng_nfc" />
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDesc} />
         <meta name="twitter:image" content={ogImageUrl} />

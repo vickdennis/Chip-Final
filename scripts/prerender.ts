@@ -231,6 +231,10 @@ async function main() {
       // Render with '@'
       const atPath = `/@${prof.username}`;
       writePrerenderedFile(atPath, rendered);
+
+      // Render with 'p/'
+      const pPath = `/p/${prof.username}`;
+      writePrerenderedFile(pPath, rendered);
     } catch (err) {
       console.error(`Error prerendering profile ${prof.username}:`, err);
     }

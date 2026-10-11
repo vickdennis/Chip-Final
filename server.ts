@@ -1230,34 +1230,74 @@ async function startServer() {
   // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards display reliably
   app.get('/api/cover/:username', async (req, res) => {
     try {
-      const rawUsername = req.params.username.replace(/^@/, '').toLowerCase().trim();
+      let rawUsername = req.params.username || '';
+      try {
+        rawUsername = decodeURIComponent(rawUsername);
+      } catch (e) {}
+      rawUsername = rawUsername.replace(/^@/, '').toLowerCase().trim();
+
       const { data: profile } = await getSupabase()
         .from('profiles')
         .select('cover_image_url, full_name, username')
         .ilike('username', rawUsername)
         .maybeSingle();
 
-      const imageUrl = profile?.cover_image_url;
+      let imageUrl = profile?.cover_image_url;
 
-      if (imageUrl && imageUrl.startsWith('http')) {
-        const imgRes = await fetch(imageUrl);
-        if (imgRes.ok) {
-          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-          const buffer = Buffer.from(await imgRes.arrayBuffer());
-          res.setHeader('Content-Type', contentType);
-          res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
-          res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
-          return res.send(buffer);
+      if (imageUrl && typeof imageUrl === 'string') {
+        imageUrl = imageUrl.trim();
+        let fetchUrl = imageUrl;
+        if (!fetchUrl.startsWith('http')) {
+          if (fetchUrl.startsWith('/')) {
+            fetchUrl = `https://oxrzkdzcagvmgfuthyjd.supabase.co${fetchUrl}`;
+          } else {
+            fetchUrl = `https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/${fetchUrl}`;
+          }
+        }
+
+        try {
+          const imgRes = await fetch(fetchUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; CHIPNG-Bot/1.0; +https://www.chipng.com)'
+            }
+          });
+          if (imgRes.ok) {
+            const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+            const buffer = Buffer.from(await imgRes.arrayBuffer());
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Length', buffer.length.toString());
+            res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+            res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            return res.send(buffer);
+          }
+        } catch (fetchErr) {
+          console.warn(`Error fetching cover image for ${rawUsername}:`, fetchErr);
         }
       }
 
-      // High quality brand fallback
+      // High quality local brand fallback (zero network latency)
+      try {
+        const localLogoPath = path.join(process.cwd(), 'public', 'chipng_3d_logo.jpg');
+        if (fs.existsSync(localLogoPath)) {
+          const buffer = fs.readFileSync(localLogoPath);
+          res.setHeader('Content-Type', 'image/jpeg');
+          res.setHeader('Content-Length', buffer.length.toString());
+          res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+          res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          return res.send(buffer);
+        }
+      } catch (e) {}
+
       const fallbackRes = await fetch('https://www.chipng.com/chipng_3d_logo.jpg');
       if (fallbackRes.ok) {
         const buffer = Buffer.from(await fallbackRes.arrayBuffer());
         res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Content-Length', buffer.length.toString());
         res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
         res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+        res.setHeader('Access-Control-Allow-Origin', '*');
         return res.send(buffer);
       }
 

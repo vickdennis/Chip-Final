@@ -1595,12 +1595,21 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   </button>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://www.chipng.com/@${profile.username}`);
-                      toast.success("Profile URL copied to clipboard!");
+                      const shareUrl = `https://www.chipng.com/@${profile.username}`;
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `${profile.full_name || profile.username}'s Contactless Profile | CHIP NG`,
+                          text: `Connect with ${profile.full_name || profile.username} on CHIP NG:`,
+                          url: shareUrl
+                        }).catch(() => {});
+                      } else {
+                        navigator.clipboard.writeText(shareUrl);
+                        toast.success("Profile URL copied to clipboard!");
+                      }
                     }}
-                    className="w-full px-4 py-3 border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 text-neutral-900 dark:text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
+                    className="w-full px-4 py-3 border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 text-neutral-900 dark:text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    <Share className="w-4 h-4" /> Copy Profile URL
+                    <Share className="w-4 h-4" /> Share / Copy Profile URL
                   </button>
                   <a 
                     href={`/@${profile.username || ''}`}

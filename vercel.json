@@ -65,6 +65,29 @@
       "destination": "/robots.txt"
     },
     {
+      "source": "/@:username",
+      "destination": "/api?profile=@:username"
+    },
+    {
+      "source": "/p/:username",
+      "destination": "/api?profile=:username"
+    },
+    {
+      "source": "/u/:username",
+      "destination": "/api?profile=:username"
+    },
+    {
+      "source": "/((?!api/|assets/|favicon|.*\\..*).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawler|spider|whatsapp|twitter|facebook|facebot|linkedin|slack|discord|telegram|applebot|skype|preview|flipboard|tumblr|bitly|vkshare).*"
+        }
+      ],
+      "destination": "/api?ssrPath=$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

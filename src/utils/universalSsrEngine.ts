@@ -136,11 +136,9 @@ export async function renderUserProfileSsr(
     const headline = escapeHtml(profile.headline || 'Verified Contactless Digital Profile');
     const bio = escapeHtml(profile.bio || '');
     const rawCoverUrl = profile.cover_image_url;
-    // Proxied cover image guaranteeing bypass of Supabase x-robots-tag: none header for WhatsApp / Twitter / Facebook / iMessage
+    // Proxied cover image guaranteeing bypass of Supabase x-robots-tag: none header for WhatsApp / Twitter / Facebook / iMessage / LinkedIn
     const coverImageUrl = rawCoverUrl
-      ? (rawCoverUrl.includes('supabase.co')
-          ? `https://www.chipng.com/api/cover/${encodeURIComponent(profile.username)}`
-          : rawCoverUrl)
+      ? `https://www.chipng.com/api/cover/${encodeURIComponent(profile.username)}`
       : 'https://www.chipng.com/chipng_3d_logo.jpg';
 
     const avatarUrl = rawCoverUrl || 'https://www.chipng.com/chipng_exact_tile.png';
@@ -150,8 +148,8 @@ export async function renderUserProfileSsr(
     const title = `${profile.full_name || profile.username} (@${profile.username}) | Contactless Digital Card & Bio | CHIP NG`;
     const description = cleanText(
       profile.headline 
-        ? `${profile.headline}. ${profile.bio || ''} Connect with ${profile.full_name} with one tap on CHIP NG.`
-        : `View ${profile.full_name}'s verified contactless smart card profile, vCard, social links, and portfolio on CHIP NG.`
+        ? `${profile.headline}. ${profile.bio || ''} Connect with ${profile.full_name || profile.username} with one tap on CHIP NG.`
+        : `View ${profile.full_name || profile.username}'s verified contactless smart card profile, vCard, social links, and portfolio on CHIP NG.`
     );
 
     // Schema.org ProfilePage + Person
@@ -294,7 +292,6 @@ export async function renderUserProfileSsr(
       description,
       canonical: profileUrl,
       image: coverImageUrl,
-      secondaryImage: rawCoverUrl && rawCoverUrl !== coverImageUrl ? rawCoverUrl : undefined,
       schemaJsonLd: JSON.stringify(schema),
       preRenderedHtml
     };
@@ -602,17 +599,16 @@ export function injectSeoMetadata(
 
     const altText = escapeHtml(meta.title || 'CHIP NG Cover Image');
     const imageBlock = [
+      `  <meta property="og:site_name" content="CHIP NG" />`,
       `  <meta property="og:image" content="${meta.image}" />`,
       `  <meta property="og:image:secure_url" content="${meta.image}" />`,
       `  <meta property="og:image:type" content="image/jpeg" />`,
       `  <meta property="og:image:width" content="1200" />`,
       `  <meta property="og:image:height" content="630" />`,
       `  <meta property="og:image:alt" content="${altText}" />`,
-      ...(meta.secondaryImage ? [
-        `  <meta property="og:image" content="${meta.secondaryImage}" />`,
-        `  <meta property="og:image:secure_url" content="${meta.secondaryImage}" />`
-      ] : []),
       `  <meta name="twitter:card" content="summary_large_image" />`,
+      `  <meta name="twitter:site" content="@chipng_nfc" />`,
+      `  <meta name="twitter:creator" content="@chipng_nfc" />`,
       `  <meta name="twitter:image" content="${meta.image}" />`,
       `  <meta name="twitter:image:alt" content="${altText}" />`,
       `  <meta property="twitter:card" content="summary_large_image" />`,
@@ -827,23 +823,30 @@ export async function applyUniversalSsr(
   const isReserved = RESERVED_ROUTES.some(r => normalizedPath === r || normalizedPath.startsWith(r + '/'));
 
   if (!isReserved && normalizedPath !== '/') {
-    // Extract username (supports /@username, /username, /@username/vcard, /username/vcard)
+    // Extract username (supports /@username, /username, /@username/vcard, /username/vcard, /p/username, /u/username)
     let rawUsername = normalizedPath.replace(/^\//, '');
+    try {
+      rawUsername = decodeURIComponent(rawUsername);
+    } catch (e) {}
+    if (rawUsername.startsWith('p/')) rawUsername = rawUsername.slice(2);
+    if (rawUsername.startsWith('u/')) rawUsername = rawUsername.slice(2);
     if (rawUsername.startsWith('@')) rawUsername = rawUsername.slice(1);
     if (rawUsername.endsWith('/vcard')) rawUsername = rawUsername.replace(/\/vcard$/, '');
+    rawUsername = rawUsername.trim().toLowerCase();
 
-    const profileSsr = await renderUserProfileSsr(rawUsername, supabase);
-    if (profileSsr) {
-      return injectSeoMetadata(output, {
-        title: profileSsr.title,
-        description: profileSsr.description,
-        canonical: profileSsr.canonical,
-        ogType: 'profile',
-        image: profileSsr.image,
-        secondaryImage: profileSsr.secondaryImage,
-        schemaJsonLd: profileSsr.schemaJsonLd,
-        preRenderedHtml: profileSsr.preRenderedHtml
-      });
+    if (rawUsername) {
+      const profileSsr = await renderUserProfileSsr(rawUsername, supabase);
+      if (profileSsr) {
+        return injectSeoMetadata(output, {
+          title: profileSsr.title,
+          description: profileSsr.description,
+          canonical: profileSsr.canonical,
+          ogType: 'profile',
+          image: profileSsr.image,
+          schemaJsonLd: profileSsr.schemaJsonLd,
+          preRenderedHtml: profileSsr.preRenderedHtml
+        });
+      }
     }
   }
 
