@@ -8,6 +8,7 @@ import { MakroShop } from '../components/makro/MakroShop';
 import { MakroInteractiveShowcase } from '../components/makro/MakroInteractiveShowcase';
 import { MakroProofStats } from '../components/makro/MakroProofStats';
 import { MakroTestimonials } from '../components/makro/MakroTestimonials';
+import { MakroMobileAppSection } from '../components/makro/MakroMobileAppSection';
 import { MakroFAQ } from '../components/makro/MakroFAQ';
 import { MakroCTA } from '../components/makro/MakroCTA';
 import { MakroFooter } from '../components/makro/MakroFooter';
@@ -77,6 +78,11 @@ export default function LandingView({
 
         {/* Founder & Solopreneur Testimonials Bento */}
         <MakroTestimonials />
+
+        {/* Official Mobile App Companion Section */}
+        <MakroMobileAppSection
+          onNavigate={onNavigate}
+        />
 
         {/* FAQ Accordion */}
         <MakroFAQ />

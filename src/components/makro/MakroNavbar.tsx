@@ -23,6 +23,7 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
   const navItems: { label: string; view: ViewState }[] = [
     { label: 'Home', view: 'landing' },
     { label: 'Shop Cards', view: 'nfc-sales' },
+    { label: 'Mobile App', view: 'mobile-app' },
     { label: 'Company', view: 'company' as ViewState },
     { label: 'Blog', view: 'blog-directory' },
     { label: 'Updates', view: 'updates' as ViewState },

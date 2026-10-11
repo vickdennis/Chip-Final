@@ -66,6 +66,12 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
+                <button onClick={() => onNavigate('mobile-app' as ViewState)} className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5 text-neutral-900 dark:text-[#D2F843] font-semibold">
+                  <span>Official Mobile App</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#D2F843]/20 text-neutral-900 dark:text-[#D2F843]">iOS & Android</span>
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavigate('landing')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
                   Dynamic Link-in-Bio
                 </button>

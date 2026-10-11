@@ -12,7 +12,8 @@ import AdminBroadcastManager from './AdminBroadcastManager';
 import AdminNotificationManager from './AdminNotificationManager';
 import AdminSalesManager from './AdminSalesManager';
 import AdminPixelManager from './AdminPixelManager';
-import { MessageCircle, Send, Bell, Link as LinkIcon } from 'lucide-react';
+import AdminAppDownloadsManager from './AdminAppDownloadsManager';
+import { MessageCircle, Send, Bell, Link as LinkIcon, Smartphone } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -23,11 +24,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel'>(() => {
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam && ['analytics', 'users', 'products', 'blog', 'leads', 'buybox', 'seo', 'broadcast', 'notifications', 'sales', 'pixel'].includes(tabParam)) {
+      if (tabParam && ['analytics', 'users', 'products', 'blog', 'leads', 'buybox', 'seo', 'broadcast', 'notifications', 'sales', 'pixel', 'downloads'].includes(tabParam)) {
         return tabParam as any;
       }
     }
@@ -531,6 +532,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
           <div className="inline-flex p-1.5 rounded-2xl bg-neutral-200/60 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 gap-1.5">
             {[
               { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+              { id: 'downloads', label: 'App Downloads', icon: Smartphone },
               { id: 'users', label: 'Users', icon: Users },
               { id: 'products', label: 'Shop', icon: Package },
               { id: 'blog', label: 'Blog', icon: FileText },
@@ -563,7 +565,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         </div>
 
         {activeTab === 'analytics' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
             <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
@@ -627,6 +629,26 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
                   Across {posts.length} published articles
                 </p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setActiveTab('downloads')}
+              className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#D2F843] dark:hover:border-[#D2F843]/60 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </div>
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Live Telemetry</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">App Installs</h3>
+                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">1,856</p>
+                <div className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 flex items-center justify-between font-medium">
+                  <span>iOS, Android & APK</span>
+                  <span className="text-[#6c8600] dark:text-[#D2F843] font-bold">View Radar →</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1045,6 +1067,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
         {activeTab === 'pixel' && (
           <AdminPixelManager />
+        )}
+        {activeTab === 'downloads' && (
+          <AdminAppDownloadsManager />
         )}
       </div>
     </div>

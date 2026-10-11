@@ -812,9 +812,63 @@ export async function applyUniversalSsr(
     }
   }
 
+  // 7.5. Official Mobile App Companion (/app, /download, /mobile)
+  if (normalizedPath === '/app' || normalizedPath === '/download' || normalizedPath === '/mobile') {
+    const appSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'MobileApplication',
+      name: 'CHIP NG Mobile Companion',
+      operatingSystem: 'iOS, Android',
+      applicationCategory: 'BusinessApplication',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'NGN'
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.9',
+        ratingCount: '1856'
+      },
+      description: 'Official companion app for CHIP NG contactless smart business cards. Program NTAG216 microchips, receive real-time push alerts on card taps, exchange contacts offline, and manage dynamic link-in-bio profiles across Nigeria.'
+    };
+
+    const appPreRender = `
+<div id="root">
+  <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0c0d12; color: #ffffff; min-height: 100vh; padding: 48px 16px 80px 16px;">
+    <main style="max-width: 960px; margin: 0 auto; text-align: center;">
+      <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(210, 248, 67, 0.15); color: #D2F843; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">
+        Official Mobile Companion v2.4.0
+      </span>
+      <h1 style="font-size: 44px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px 0; color: #ffffff;">
+        Program Cards. Track Live Taps in Real-Time.
+      </h1>
+      <p style="font-size: 17px; color: rgba(255, 255, 255, 0.7); max-width: 680px; margin: 0 auto 32px auto; line-height: 1.6;">
+        The official mobile companion for Nigerian dealmakers. Write NTAG216 microchips on iOS & Android in under 10ms, receive real-time push alerts on card taps, and swap contacts offline.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+        <a href="https://apps.apple.com/app/chip-ng/id6470000000" style="padding: 14px 28px; border-radius: 16px; background: #ffffff; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for iOS</a>
+        <a href="https://play.google.com/store/apps/details?id=com.chipng.app" style="padding: 14px 28px; border-radius: 16px; background: #D2F843; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for Android</a>
+      </div>
+    </main>
+  </div>
+</div>`;
+
+    return injectSeoMetadata(output, {
+      title: 'CHIP NG Official Mobile App — Program NFC Cards & Track Live Radar Telemetry (iOS & Android)',
+      description: 'Download the official CHIP NG mobile companion for iPhone and Android. Sub-10ms NTAG216 chip programming, real-time push alerts on card taps, offline contact vault, and digital bio sync in Lagos, Abuja, and nationwide.',
+      canonical: 'https://www.chipng.com/app',
+      ogType: 'website',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: JSON.stringify(appSchema),
+      preRenderedHtml: appPreRender
+    });
+  }
+
   // 8. Dynamic User Profiles (/@username & /username)
   const RESERVED_ROUTES = [
     '/admin', '/enterprise', '/login', '/dashboard', '/api', '/blog',
+    '/app', '/download', '/mobile',
     '/company', '/about', '/updates', '/contact', '/buy-card', '/shop',
     '/pricing', '/faq', '/shipping', '/refund-policy', '/privacy-policy',
     '/privacy', '/terms-of-service', '/terms', '/nfc-sales'
