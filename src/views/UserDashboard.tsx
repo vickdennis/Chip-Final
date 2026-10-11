@@ -810,7 +810,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           phonesStr = arr.filter(Boolean).map(p => `\nTEL;TYPE=CELL:${p}`).join('');
         }
       }
-      return `BEGIN:VCARD\nVERSION:3.0\nN:${profile.full_name}\nFN:${profile.full_name}\nTITLE:${profile.headline}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://chipng.com/${profile.username}${photoStr}\nEND:VCARD`;
+      return `BEGIN:VCARD\nVERSION:3.0\nN:${profile.full_name}\nFN:${profile.full_name}\nTITLE:${profile.headline}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://www.chipng.com/@${profile.username}${photoStr}\nEND:VCARD`;
     })();
     
     const blob = new Blob([vcard], { type: "text/vcard" });
@@ -1595,19 +1595,19 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   </button>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
-                      alert("Link copied to clipboard!");
+                      navigator.clipboard.writeText(`https://www.chipng.com/@${profile.username}`);
+                      toast.success("Profile URL copied to clipboard!");
                     }}
                     className="w-full px-4 py-3 border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 text-neutral-900 dark:text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
                   >
                     <Share className="w-4 h-4" /> Copy Profile URL
                   </button>
                   <a 
-                    href={`/${profile.username || ''}`}
+                    href={`/@${profile.username || ''}`}
                     target="_blank"
                     className="text-[#0066cc] dark:text-[#58a6ff] text-xs font-semibold text-center hover:underline bg-neutral-100/60 dark:bg-white/5 py-2.5 rounded-xl truncate px-3"
                   >
-                    https://chipng.com/{profile.username || 'username'}
+                    https://www.chipng.com/@{profile.username || 'username'}
                   </a>
                 </div>
               </div>

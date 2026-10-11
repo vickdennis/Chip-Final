@@ -12,6 +12,7 @@ import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 import { LeadExchangeModal } from '../components/LeadExchangeModal';
 import { toast } from '../components/Toast';
 import { recordProfileView, recordProfileClick as trackTelemetryClick } from '../utils/telemetryClient';
+import { Helmet } from 'react-helmet-async';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -324,7 +325,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           phonesStr = arr.filter(Boolean).map(p => `\nTEL;TYPE=CELL:${p}`).join('');
         }
       }
-      return `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.full_name || ''}\nTITLE:${profile.headline || ''}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://chipng.com/${profile.username}${photoStr}\nEND:VCARD`;
+      return `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.full_name || ''}\nTITLE:${profile.headline || ''}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://www.chipng.com/@${profile.username}${photoStr}\nEND:VCARD`;
     })();
     
     const blob = new Blob([vcard], { type: "text/vcard" });
@@ -372,19 +373,67 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
   
 
-  ;
-
   const profileFont = getFontFamily();
 
+  const ogTitle = profile?.full_name 
+    ? `${profile.full_name} (@${profile.username}) | Contactless Digital Card & Bio | CHIP NG`
+    : 'CHIP NG — Contactless Smart Business Card Profile';
+  const ogDesc = profile?.headline 
+    ? `${profile.headline}. Connect with ${profile.full_name || profile.username} with one tap on CHIP NG.`
+    : 'View verified contactless smart card profile, vCard, social links, and portfolio on CHIP NG.';
+  const rawCover = profile?.cover_image_url;
+  const ogImageUrl = rawCover 
+    ? (rawCover.includes('supabase.co') 
+        ? `https://www.chipng.com/api/cover/${encodeURIComponent(profile.username)}`
+        : rawCover)
+    : 'https://www.chipng.com/chipng_3d_logo.jpg';
+  const canonicalUrl = profile?.username 
+    ? `https://www.chipng.com/@${profile.username}` 
+    : (typeof window !== 'undefined' ? window.location.href : 'https://www.chipng.com');
+
   return (
-    <div 
-      className="dark min-h-screen w-full flex items-center justify-center bg-[#09090b] text-current p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
-      style={{ 
-        fontFamily: profileFont,
-        ['--font-sans' as any]: profileFont,
-        ['--font-display' as any]: profileFont
-      }}
-    >
+    <>
+      <Helmet>
+        <title>{ogTitle}</title>
+        <meta name="description" content={ogDesc} />
+        <link rel="canonical" href={canonicalUrl} />
+        
+        {/* Open Graph / Facebook / WhatsApp / LinkedIn / iMessage */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDesc} />
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:secure_url" content={ogImageUrl} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={`${profile?.full_name || profile?.username || 'User'} Cover Image`} />
+        {rawCover && rawCover !== ogImageUrl && (
+          <>
+            <meta property="og:image" content={rawCover} />
+            <meta property="og:image:secure_url" content={rawCover} />
+          </>
+        )}
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDesc} />
+        <meta name="twitter:image" content={ogImageUrl} />
+        <meta name="twitter:image:alt" content={`${profile?.full_name || profile?.username || 'User'} Cover Image`} />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:image" content={ogImageUrl} />
+      </Helmet>
+
+      <div 
+        className="dark min-h-screen w-full flex items-center justify-center bg-[#09090b] text-current p-0 sm:p-6 md:p-8 relative overflow-x-hidden" 
+        style={{ 
+          fontFamily: profileFont,
+          ['--font-sans' as any]: profileFont,
+          ['--font-display' as any]: profileFont
+        }}
+      >
       {/* Ambient glass blur backdrop on desktop screens matching current theme background */}
       <div className="absolute inset-0 pointer-events-none filter blur-[140px] opacity-25 hidden sm:block">
         <div className={`w-full h-full ${''}`} style={bgStyle}></div>
@@ -477,11 +526,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                      <div className={`w-6 h-6 rounded-2xl ${cardBgClass} text-current flex items-center justify-center font-bold text-[10px] shrink-0`}>
                        NG
                      </div>
-                     <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}</span>
+                     <span className="text-current text-[13px] truncate font-medium">chipng.com/@{profile.username}</span>
                   </div>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
+                      navigator.clipboard.writeText(`https://www.chipng.com/@${profile.username}`);
                       setIsCopied(true);
                       setTimeout(() => setIsCopied(false), 2000);
                     }}
@@ -500,7 +549,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   </div>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://chipng.com/${profile.username}/vcard`);
+                      navigator.clipboard.writeText(`https://www.chipng.com/${profile.username}/vcard`);
                       setIsVcardCopied(true);
                       setTimeout(() => setIsVcardCopied(false), 2000);
                     }}
@@ -531,12 +580,13 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                     onClick={() => {
                       if (navigator.share) {
                         navigator.share({
-                          title: `${profile.full_name}'s Profile`,
-                          url: `https://chipng.com/${profile.username}`
+                          title: `${profile.full_name}'s Contactless Profile & Card | CHIP NG`,
+                          text: `Connect with ${profile.full_name} on CHIP NG`,
+                          url: `https://www.chipng.com/@${profile.username}`
                         });
                       } else {
-                        navigator.clipboard.writeText(`https://chipng.com/${profile.username}`);
-                        toast.success("Link copied to clipboard!");
+                        navigator.clipboard.writeText(`https://www.chipng.com/@${profile.username}`);
+                        toast.success("Profile link copied to clipboard!");
                       }
                     }}
                     className="w-full py-4 rounded-2xl text-current font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
@@ -951,5 +1001,6 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
       </div>
     </div>
+    </>
   );
 }

@@ -1226,6 +1226,67 @@ async function startServer() {
     }
   });
 
+  // --- Dynamic Cover Photo Proxy for Open Graph & Social Sharing ---
+  // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards display reliably
+  app.get('/api/cover/:username', async (req, res) => {
+    try {
+      const rawUsername = req.params.username.replace(/^@/, '').toLowerCase().trim();
+      const { data: profile } = await getSupabase()
+        .from('profiles')
+        .select('cover_image_url, full_name, username')
+        .ilike('username', rawUsername)
+        .maybeSingle();
+
+      const imageUrl = profile?.cover_image_url;
+
+      if (imageUrl && imageUrl.startsWith('http')) {
+        const imgRes = await fetch(imageUrl);
+        if (imgRes.ok) {
+          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+          const buffer = Buffer.from(await imgRes.arrayBuffer());
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+          res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+          return res.send(buffer);
+        }
+      }
+
+      // High quality brand fallback
+      const fallbackRes = await fetch('https://www.chipng.com/chipng_3d_logo.jpg');
+      if (fallbackRes.ok) {
+        const buffer = Buffer.from(await fallbackRes.arrayBuffer());
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+        res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+        return res.send(buffer);
+      }
+
+      res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
+    } catch (err) {
+      res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
+    }
+  });
+
+  app.get('/api/cover', async (req, res) => {
+    try {
+      const rawUrl = (req.query.url || req.query.u) as string;
+      if (rawUrl && typeof rawUrl === 'string' && rawUrl.startsWith('http')) {
+        const imgRes = await fetch(rawUrl);
+        if (imgRes.ok) {
+          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+          const buffer = Buffer.from(await imgRes.arrayBuffer());
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+          res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
+          return res.send(buffer);
+        }
+      }
+      res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
+    } catch (e) {
+      res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
+    }
+  });
+
   // SEO Automation Routes
   app.get("/sitemap.xml", async (req, res) => {
     try {

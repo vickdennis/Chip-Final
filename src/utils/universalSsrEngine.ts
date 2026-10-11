@@ -105,6 +105,7 @@ export async function renderUserProfileSsr(
   description: string;
   canonical: string;
   image: string;
+  secondaryImage?: string;
   schemaJsonLd: string;
   preRenderedHtml: string;
 } | null> {
@@ -134,7 +135,15 @@ export async function renderUserProfileSsr(
     const fullName = escapeHtml(profile.full_name || `@${profile.username}`);
     const headline = escapeHtml(profile.headline || 'Verified Contactless Digital Profile');
     const bio = escapeHtml(profile.bio || '');
-    const avatarUrl = profile.cover_image_url || 'https://www.chipng.com/chipng_exact_tile.png';
+    const rawCoverUrl = profile.cover_image_url;
+    // Proxied cover image guaranteeing bypass of Supabase x-robots-tag: none header for WhatsApp / Twitter / Facebook / iMessage
+    const coverImageUrl = rawCoverUrl
+      ? (rawCoverUrl.includes('supabase.co')
+          ? `https://www.chipng.com/api/cover/${encodeURIComponent(profile.username)}`
+          : rawCoverUrl)
+      : 'https://www.chipng.com/chipng_3d_logo.jpg';
+
+    const avatarUrl = rawCoverUrl || 'https://www.chipng.com/chipng_exact_tile.png';
     const profileUrl = `https://www.chipng.com/@${profile.username}`;
     const vCardUrl = `https://www.chipng.com/${profile.username}/vcard`;
 
@@ -284,7 +293,8 @@ export async function renderUserProfileSsr(
       title,
       description,
       canonical: profileUrl,
-      image: avatarUrl,
+      image: coverImageUrl,
+      secondaryImage: rawCoverUrl && rawCoverUrl !== coverImageUrl ? rawCoverUrl : undefined,
       schemaJsonLd: JSON.stringify(schema),
       preRenderedHtml
     };
@@ -546,6 +556,7 @@ export function injectSeoMetadata(
     canonical: string;
     ogType?: string;
     image?: string;
+    secondaryImage?: string;
     schemaJsonLd?: string;
     preRenderedHtml?: string;
   }
@@ -576,11 +587,39 @@ export function injectSeoMetadata(
     output = output.replace(/<meta property="og:type" content=".*?"\s*\/?>/i, `<meta property="og:type" content="${meta.ogType}" />`);
   }
 
-  // 5. Image
+  // 5. Image (Full OpenGraph & Twitter Card compliance for WhatsApp, Facebook, Twitter/X, LinkedIn, iMessage)
   if (meta.image) {
-    output = output.replace(/<meta property="og:image" content=".*?"\s*\/?>/i, `<meta property="og:image" content="${meta.image}" />`);
-    output = output.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${meta.image}" />`);
-    output = output.replace(/<meta property="twitter:image" content=".*?"\s*\/?>/i, `<meta property="twitter:image" content="${meta.image}" />`);
+    // Strip existing image and card tags to avoid conflicts or stale previews
+    output = output.replace(/<meta\s+property=["']og:image["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+property=["']og:image:secure_url["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+property=["']og:image:type["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+property=["']og:image:width["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+property=["']og:image:height["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+property=["']og:image:alt["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+(name|property)=["']twitter:image["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+(name|property)=["']twitter:image:alt["'][^>]*\/?>/gi, '');
+    output = output.replace(/<meta\s+(name|property)=["']twitter:card["'][^>]*\/?>/gi, '');
+
+    const altText = escapeHtml(meta.title || 'CHIP NG Cover Image');
+    const imageBlock = [
+      `  <meta property="og:image" content="${meta.image}" />`,
+      `  <meta property="og:image:secure_url" content="${meta.image}" />`,
+      `  <meta property="og:image:type" content="image/jpeg" />`,
+      `  <meta property="og:image:width" content="1200" />`,
+      `  <meta property="og:image:height" content="630" />`,
+      `  <meta property="og:image:alt" content="${altText}" />`,
+      ...(meta.secondaryImage ? [
+        `  <meta property="og:image" content="${meta.secondaryImage}" />`,
+        `  <meta property="og:image:secure_url" content="${meta.secondaryImage}" />`
+      ] : []),
+      `  <meta name="twitter:card" content="summary_large_image" />`,
+      `  <meta name="twitter:image" content="${meta.image}" />`,
+      `  <meta name="twitter:image:alt" content="${altText}" />`,
+      `  <meta property="twitter:card" content="summary_large_image" />`,
+      `  <meta property="twitter:image" content="${meta.image}" />`
+    ].join('\n');
+
+    output = output.replace('</head>', `${imageBlock}\n</head>`);
   }
 
   // 6. Robots Tag
@@ -801,6 +840,7 @@ export async function applyUniversalSsr(
         canonical: profileSsr.canonical,
         ogType: 'profile',
         image: profileSsr.image,
+        secondaryImage: profileSsr.secondaryImage,
         schemaJsonLd: profileSsr.schemaJsonLd,
         preRenderedHtml: profileSsr.preRenderedHtml
       });
