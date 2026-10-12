@@ -2267,8 +2267,24 @@ Ref: ${payment_reference}`,
     '/company', '/about', '/updates', '/contact', '/buy-card', '/shop',
     '/pricing', '/faq',
     '/shipping', '/refund-policy', '/privacy-policy', '/privacy',
-    '/terms-of-service', '/terms'
+    '/terms-of-service', '/terms', '/review', '/reviews', '/drop-review'
   ];
+
+  // Direct review redirect to official Google Review page
+  app.get(['/review', '/reviews', '/drop-review'], (req, res) => {
+    res.redirect(302, 'https://g.page/r/CZGM0zQdEiY7EAE/review');
+  });
+
+  // Direct APK download routes
+  app.get(['/download/apk', '/apk', '/CHIP_NG_v2.4.0.apk', '/chipng.apk'], (req, res, next) => {
+    const apkFile = path.resolve('public', 'CHIP_NG_v2.4.0.apk');
+    if (fs.existsSync(apkFile)) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename="CHIP_NG_v2.4.0_Official.apk"');
+      return res.sendFile(apkFile);
+    }
+    next();
+  });
 
   // Static files from public folder
   app.use(express.static(path.resolve('public')));

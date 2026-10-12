@@ -60,16 +60,16 @@ export default function MobileAppView({
         setDownloadingPlatform(null);
       }, 600);
     } else if (platform === 'apk') {
-      toast.success('Starting high-speed direct APK download (18.4 MB)...');
+      toast.success('Starting official CHIP NG Android APK download (2.9 MB)...');
       setTimeout(() => {
         const link = document.createElement('a');
-        link.href = '/chipng_exact_tile.png'; // safe mock asset
+        link.href = '/CHIP_NG_v2.4.0.apk';
         link.download = 'CHIP_NG_v2.4.0_Official.apk';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         setDownloadingPlatform(null);
-      }, 800);
+      }, 500);
     } else {
       toast.success('Added to home screen installation queue!');
       setDownloadingPlatform(null);
@@ -219,14 +219,15 @@ export default function MobileAppView({
                   </button>
 
                   {/* Direct APK Download */}
-                  <button
-                    onClick={() => handleDownloadClick('apk')}
-                    disabled={downloadingPlatform === 'apk'}
+                  <a
+                    href="/CHIP_NG_v2.4.0.apk"
+                    download="CHIP_NG_v2.4.0_Official.apk"
+                    onClick={() => recordAppDownload('apk', { source: 'mobile_app_page', version: '2.4.0' })}
                     className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-neutral-200/80 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/15 text-neutral-900 dark:text-white border border-neutral-300/80 dark:border-white/15 font-bold text-xs sm:text-sm transition-all cursor-pointer group active:scale-95"
                   >
                     <Download className="w-4 h-4 text-[#D2F843] group-hover:translate-y-0.5 transition-transform" />
-                    <span>Direct APK (18.4 MB)</span>
-                  </button>
+                    <span>Download APK (2.9 MB)</span>
+                  </a>
                 </div>
 
                 {/* Compatibility Micro-Bar */}
@@ -243,76 +244,69 @@ export default function MobileAppView({
                 </div>
               </div>
 
-              {/* Right Column: Interactive Phone Mockup & Desktop QR Code */}
-              <div className="w-full lg:w-[480px] flex flex-col items-center">
-                {/* Visual Glass Phone Container */}
-                <div className="w-full max-w-[340px] sm:max-w-[380px] bg-neutral-900 text-white rounded-[40px] p-4 sm:p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] border-4 border-neutral-800 relative">
-                  {/* Speaker & Dynamic Island */}
-                  <div className="w-28 h-4 bg-neutral-950 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-neutral-800 mr-2"></div>
-                    <div className="w-2 h-2 rounded-full bg-blue-900/40"></div>
+              {/* Right Column: Official Android APK Distribution & Spec Card */}
+              <div className="w-full lg:w-[460px] flex flex-col items-center">
+                {/* Official Hardware & Package Card */}
+                <div className="w-full max-w-[400px] bg-neutral-900 text-white rounded-[36px] p-6 shadow-2xl border border-neutral-800 relative">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#D2F843] text-neutral-950 flex items-center justify-center font-black text-xs">
+                        NG
+                      </div>
+                      <div>
+                        <div className="font-extrabold text-sm tracking-tight">CHIP NG Android Suite</div>
+                        <div className="text-[10px] text-neutral-400 font-mono">com.chipng.app • v2.4.0</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 font-bold">
+                      VERIFIED APK
+                    </span>
                   </div>
 
-                  {/* App Screen Interface */}
-                  <div className="bg-neutral-950 rounded-[28px] p-4 border border-white/5 flex flex-col gap-4">
-                    {/* App Header */}
-                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-[#D2F843] text-neutral-950 flex items-center justify-center font-black text-xs">
-                          NG
-                        </div>
-                        <span className="font-bold text-sm tracking-tight">CHIP OS Mobile</span>
-                      </div>
-                      <span className="text-[10px] font-mono text-[#D2F843] px-2 py-0.5 rounded-full bg-[#D2F843]/10 border border-[#D2F843]/30">
-                        NFC ACTIVE
-                      </span>
+                  <div className="py-5 space-y-3.5">
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+                      <span className="text-neutral-400">Package Type</span>
+                      <span className="font-bold text-white font-mono">Standalone Signed APK</span>
                     </div>
 
-                    {/* Active Radar Status Card */}
-                    <div className="p-3.5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#D2F843]/20 text-[#D2F843] flex items-center justify-center shrink-0">
-                        <Radio className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div className="flex-1 text-left min-w-0">
-                        <div className="text-[11px] font-bold text-white truncate">Lagos Hardware Radar</div>
-                        <div className="text-[10px] text-neutral-400">Sub-10ms background scanner ready</div>
-                      </div>
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+                      <span className="text-neutral-400">File Size</span>
+                      <span className="font-bold text-[#D2F843] font-mono">2.9 MB (Fast Download)</span>
                     </div>
 
-                    {/* Quick Metric Badges */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-left">
-                        <div className="text-[10px] text-neutral-400 font-medium">Physical Taps</div>
-                        <div className="text-lg font-black text-white mt-0.5">1,248</div>
-                      </div>
-                      <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-left">
-                        <div className="text-[10px] text-neutral-400 font-medium">Offline Safe</div>
-                        <div className="text-lg font-black text-[#D2F843] mt-0.5">384 vCards</div>
-                      </div>
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+                      <span className="text-neutral-400">Target Architecture</span>
+                      <span className="font-bold text-white font-mono">Universal ARM64 / x86</span>
                     </div>
 
-                    {/* Action Button inside mockup */}
-                    <button 
-                      onClick={() => handleDownloadClick('apk')}
-                      className="w-full py-3 rounded-xl bg-[#D2F843] text-neutral-950 font-black text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:bg-[#c3e83b] transition-all"
-                    >
-                      <Zap className="w-3.5 h-3.5 fill-current" /> Tap To Program Hardware
-                    </button>
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+                      <span className="text-neutral-400">NFC Engine</span>
+                      <span className="font-bold text-emerald-400 font-mono">NTAG216 (Sub-10ms)</span>
+                    </div>
                   </div>
+
+                  <a
+                    href="/CHIP_NG_v2.4.0.apk"
+                    download="CHIP_NG_v2.4.0_Official.apk"
+                    onClick={() => recordAppDownload('apk', { source: 'mobile_app_spec_card', version: '2.4.0' })}
+                    className="w-full py-3.5 rounded-2xl bg-[#D2F843] text-neutral-950 font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer hover:bg-[#c3e83b] transition-all"
+                  >
+                    <Download className="w-4 h-4 fill-current" /> Download Official APK Now
+                  </a>
                 </div>
 
                 {/* Desktop QR Scan Pill */}
                 <div className="mt-6 p-4 rounded-2xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex items-center gap-4 max-w-sm">
                   <div className="p-1.5 bg-white rounded-xl shrink-0 border border-neutral-200">
                     <QRCodeSVG 
-                      value="https://www.chipng.com/app" 
+                      value="https://www.chipng.com/CHIP_NG_v2.4.0.apk" 
                       size={54} 
                       level="M" 
                     />
                   </div>
                   <div className="text-left">
                     <div className="text-xs font-bold text-neutral-950 dark:text-white">Scan with Camera</div>
-                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400">Scan to install directly on your iPhone or Android</div>
+                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400">Scan QR to download the Android APK directly to phone</div>
                   </div>
                 </div>
               </div>

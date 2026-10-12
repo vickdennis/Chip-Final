@@ -17,17 +17,13 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
 
   const handleDownloadApp = async () => {
     await recordAppDownload('android', { source: 'homepage_hero_button', version: '2.4.0' });
-    toast.success('Starting high-speed Android APK download (18.4 MB)...');
+    toast.success('Starting official CHIP NG Android APK download (2.9 MB)...');
     const link = document.createElement('a');
     link.href = '/CHIP_NG_v2.4.0.apk';
-    link.download = 'CHIP_NG_v2.4.0.apk';
+    link.download = 'CHIP_NG_v2.4.0_Official.apk';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    if (onDownloadApp) {
-      setTimeout(onDownloadApp, 800);
-    }
   };
 
   // Dynamic Tap & Link-in-Bio analytics data depending on selected timeframe (all values in ₦)

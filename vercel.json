@@ -1,6 +1,23 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/review",
+      "destination": "https://g.page/r/CZGM0zQdEiY7EAE/review",
+      "permanent": false
+    },
+    {
+      "source": "/reviews",
+      "destination": "https://g.page/r/CZGM0zQdEiY7EAE/review",
+      "permanent": false
+    },
+    {
+      "source": "/drop-review",
+      "destination": "https://g.page/r/CZGM0zQdEiY7EAE/review",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

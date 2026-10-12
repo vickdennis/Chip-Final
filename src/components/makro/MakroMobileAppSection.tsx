@@ -28,7 +28,7 @@ export const MakroMobileAppSection: React.FC<MakroMobileAppSectionProps> = ({ on
         setDownloading(null);
       }, 500);
     } else {
-      toast.success('Starting direct APK download (18.4 MB)...');
+      toast.success('Starting official CHIP NG Android APK download (2.9 MB)...');
       setTimeout(() => {
         const link = document.createElement('a');
         link.href = '/CHIP_NG_v2.4.0.apk';
@@ -37,7 +37,7 @@ export const MakroMobileAppSection: React.FC<MakroMobileAppSectionProps> = ({ on
         link.click();
         document.body.removeChild(link);
         setDownloading(null);
-      }, 700);
+      }, 500);
     }
   };
 

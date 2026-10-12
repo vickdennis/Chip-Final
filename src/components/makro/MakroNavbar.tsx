@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Moon, Sun, Menu, X, Smartphone } from 'lucide-react';
+import { ArrowRight, Moon, Sun, Menu, X, Smartphone, Star } from 'lucide-react';
 import { ViewState } from '../../App';
 import BrandLogo from '../BrandLogo';
 
@@ -20,7 +20,7 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems: { label: string; view: ViewState }[] = [
+  const navItems: { label: string; view?: ViewState; href?: string }[] = [
     { label: 'Home', view: 'landing' },
     { label: 'Shop Cards', view: 'nfc-sales' },
     { label: 'Mobile App', view: 'mobile-app' },
@@ -66,15 +66,28 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
 
         {/* Zone 3: 1-2 Primary Actions */}
         <div className="flex items-center gap-3">
+          {/* Drop A Review Button */}
+          <a
+            href="https://g.page/r/CZGM0zQdEiY7EAE/review"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shadow-2xs"
+            title="Drop a Google Review for CHIP NG"
+          >
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+            <span>Drop A Review</span>
+          </a>
+
           {/* Direct Download Android App Navbar Badge */}
-          <button
-            onClick={() => onNavigate('android-app' as ViewState)}
+          <a
+            href="/CHIP_NG_v2.4.0.apk"
+            download="CHIP_NG_v2.4.0_Official.apk"
             className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs transition-all cursor-pointer shadow-2xs"
-            title="Download Android App"
+            title="Download Official CHIP NG Android APK (2.9 MB)"
           >
             <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Android App</span>
-          </button>
+            <span>Download APK</span>
+          </a>
 
           {/* Theme Toggle */}
           <button
@@ -141,6 +154,15 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
           </nav>
 
           <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800 flex flex-col gap-3">
+            <a
+              href="https://g.page/r/CZGM0zQdEiY7EAE/review"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300 font-bold text-sm"
+            >
+              <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
+              Drop A Review
+            </a>
             <button
               onClick={() => {
                 onNavigate('login');

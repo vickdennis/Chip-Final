@@ -87,6 +87,11 @@ app.get(['/', '/api', '/health', '/api/health'], (req: Request, res: Response) =
   res.json({ status: 'ok', service: 'CHIP NG API', timestamp: new Date().toISOString() });
 });
 
+// Direct Review Redirect Route
+app.get(['/review', '/reviews', '/drop-review', '/api/review'], (req: Request, res: Response) => {
+  res.redirect(302, 'https://g.page/r/CZGM0zQdEiY7EAE/review');
+});
+
 // --- Dynamic Cover Photo Proxy for Open Graph & Social Sharing ---
 // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards work
 app.get(['/cover/:username', '/api/cover/:username'], async (req: Request, res: Response) => {

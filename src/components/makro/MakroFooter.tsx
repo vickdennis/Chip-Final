@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewState } from '../../App';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Star } from 'lucide-react';
 import BrandLogo from '../BrandLogo';
 import { SocialMediaIconBadge } from '../social/SocialMediaIconBadge';
 
@@ -133,6 +133,17 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                 <button onClick={() => onNavigate('contact' as ViewState)} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
                   Support & Contact
                 </button>
+              </li>
+              <li>
+                <a
+                  href="https://g.page/r/CZGM0zQdEiY7EAE/review"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold"
+                >
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  <span>Drop A Review</span>
+                </a>
               </li>
               <li>
                 <button onClick={() => onNavigate('privacy-policy')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">

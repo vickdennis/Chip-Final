@@ -53,7 +53,7 @@ export default function LandingView({
             const el = document.getElementById('shop');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
-          onDownloadApp={() => onNavigate('android-app')}
+          onDownloadApp={() => onNavigate('mobile-app')}
         />
 
         {/* Marquee Ticker */}

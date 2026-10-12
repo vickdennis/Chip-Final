@@ -1,4 +1,5 @@
 import React from 'react';
+import { Star, ExternalLink } from 'lucide-react';
 
 export const MakroTestimonials: React.FC = () => {
   const testimonials = [
@@ -36,16 +37,29 @@ export const MakroTestimonials: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         
         {/* Header */}
-        <div className="max-w-2xl mb-14 sm:mb-16">
-          <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
-            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-              Trusted by Leaders
-            </span>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14 sm:mb-16">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
+              <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+              <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                Trusted by Leaders
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+              Loved by founders and creators who network to win.
+            </h2>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-            Loved by founders and creators who network to win.
-          </h2>
+
+          <a
+            href="https://g.page/r/CZGM0zQdEiY7EAE/review"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-800 dark:text-amber-300 font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs whitespace-nowrap active:scale-95"
+          >
+            <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
+            <span>Drop A Review on Google</span>
+            <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+          </a>
         </div>
 
         {/* Testimonials Bento Cards */}

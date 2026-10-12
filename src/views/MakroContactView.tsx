@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
-import { Mail, Phone, MapPin, Clock, Check, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Check, ArrowRight, Sparkles, Loader2, Star, ExternalLink } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge';
 
@@ -194,6 +194,28 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
                       Monday – Friday, 08:00 – 19:00 GMT+1
                     </div>
                   </div>
+                </div>
+
+                {/* Drop A Review Card */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                      <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
+                      <span>Review CHIP NG on Google</span>
+                    </div>
+                    <div className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5">
+                      Share your experience with our NFC cards and link-in-bio platform.
+                    </div>
+                  </div>
+                  <a
+                    href="https://g.page/r/CZGM0zQdEiY7EAE/review"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <span>Drop Review</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
 
                 {/* Verified Social Media Channels */}
