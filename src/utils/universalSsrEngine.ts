@@ -292,6 +292,7 @@ export async function renderUserProfileSsr(
       description,
       canonical: profileUrl,
       image: coverImageUrl,
+      secondaryImage: rawCoverUrl && rawCoverUrl.startsWith('http') ? rawCoverUrl : undefined,
       schemaJsonLd: JSON.stringify(schema),
       preRenderedHtml
     };
@@ -606,6 +607,10 @@ export function injectSeoMetadata(
       `  <meta property="og:image:width" content="1200" />`,
       `  <meta property="og:image:height" content="630" />`,
       `  <meta property="og:image:alt" content="${altText}" />`,
+      ...(meta.secondaryImage && meta.secondaryImage !== meta.image ? [
+        `  <meta property="og:image" content="${meta.secondaryImage}" />`,
+        `  <meta property="og:image:secure_url" content="${meta.secondaryImage}" />`
+      ] : []),
       `  <meta name="twitter:card" content="summary_large_image" />`,
       `  <meta name="twitter:site" content="@chipng_nfc" />`,
       `  <meta name="twitter:creator" content="@chipng_nfc" />`,
@@ -897,6 +902,7 @@ export async function applyUniversalSsr(
           canonical: profileSsr.canonical,
           ogType: 'profile',
           image: profileSsr.image,
+          secondaryImage: profileSsr.secondaryImage,
           schemaJsonLd: profileSsr.schemaJsonLd,
           preRenderedHtml: profileSsr.preRenderedHtml
         });

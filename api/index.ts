@@ -82,14 +82,14 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Health check
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Root & Health check
+app.get(['/', '/api', '/health', '/api/health'], (req: Request, res: Response) => {
+  res.json({ status: 'ok', service: 'CHIP NG API', timestamp: new Date().toISOString() });
 });
 
 // --- Dynamic Cover Photo Proxy for Open Graph & Social Sharing ---
 // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards work
-app.get('/api/cover/:username', async (req: Request, res: Response) => {
+app.get(['/cover/:username', '/api/cover/:username'], async (req: Request, res: Response) => {
   try {
     let rawUsername = req.params.username || '';
     try {
@@ -138,20 +138,6 @@ app.get('/api/cover/:username', async (req: Request, res: Response) => {
       }
     }
 
-    // High quality local brand fallback (zero network latency)
-    try {
-      const localLogoPath = path.join(process.cwd(), 'public', 'chipng_3d_logo.jpg');
-      if (fs.existsSync(localLogoPath)) {
-        const buffer = fs.readFileSync(localLogoPath);
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('Content-Length', buffer.length.toString());
-        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
-        res.setHeader('X-Robots-Tag', 'all, index, follow, max-image-preview:large');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        return res.send(buffer);
-      }
-    } catch (e) {}
-
     const fallbackRes = await fetch('https://www.chipng.com/chipng_3d_logo.jpg');
     if (fallbackRes.ok) {
       const buffer = Buffer.from(await fallbackRes.arrayBuffer());
@@ -169,7 +155,7 @@ app.get('/api/cover/:username', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/cover', async (req: Request, res: Response) => {
+app.get(['/cover', '/api/cover'], async (req: Request, res: Response) => {
   try {
     const rawUrl = (req.query.url || req.query.u) as string;
     if (rawUrl && typeof rawUrl === 'string' && rawUrl.startsWith('http')) {
@@ -590,4 +576,13 @@ app.post('/api/lead', async (req: Request, res: Response) => {
   }
 });
 
-export default app;
+// 404 Catch-All
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Endpoint not found', path: req.url });
+});
+
+// Universal Vercel Serverless Function Export
+export default function handler(req: any, res: any) {
+  return app(req, res);
+}
+

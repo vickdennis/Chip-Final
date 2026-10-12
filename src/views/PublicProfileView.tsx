@@ -512,9 +512,32 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 </div>
                 
                 <h2 className="text-2xl font-bold text-current mb-2 text-center">This is your<br/>ChipNG bio link!</h2>
-                <p className="opacity-60 text-center text-[13px] mb-8 max-w-[280px]">
-                  You can copy and paste it into all your social media accounts to help increase your exposure and showcase your profile.
+                <p className="opacity-60 text-center text-[13px] mb-6 max-w-[280px]">
+                  Share your contactless profile with your custom cover image across WhatsApp, Twitter/X, and LinkedIn.
                 </p>
+
+                {/* Live Social Card Preview with User Cover Image */}
+                <div className="w-full mb-5 rounded-2xl overflow-hidden border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-[#151821] text-left shadow-sm">
+                  <div className="relative w-full h-36 bg-neutral-900 overflow-hidden">
+                    <img 
+                      src={profile?.cover_image_url || 'https://www.chipng.com/chipng_3d_logo.jpg'} 
+                      alt="Cover Preview" 
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-wider">
+                      Shared Link Preview
+                    </div>
+                  </div>
+                  <div className="p-3.5 space-y-1">
+                    <div className="text-[10px] font-mono uppercase text-neutral-400">chipng.com/@{profile.username}</div>
+                    <div className="font-bold text-xs truncate text-neutral-900 dark:text-white">
+                      {profile.full_name || `@${profile.username}`} | CHIP NG Contactless Profile
+                    </div>
+                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-1">
+                      {profile.headline || 'Contactless Smart Business Card & Dynamic Link-in-Bio Nigeria'}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
@@ -529,7 +552,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsCopied(true);
                       setTimeout(() => setIsCopied(false), 2000);
                     }}
-                    className={`px-4 py-2 ${cardBgClass} hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm`}
+                    className={`px-4 py-2 ${cardBgClass} hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm cursor-pointer`}
                   >
                     {isCopied ? 'Copied!' : 'Copy'}
                   </button>
@@ -548,24 +571,52 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                       setIsVcardCopied(true);
                       setTimeout(() => setIsVcardCopied(false), 2000);
                     }}
-                    className={`px-4 py-2 ${cardBgClass} hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm`}
+                    className={`px-4 py-2 ${cardBgClass} hover:bg-[#3a3a3a] text-current rounded-xl text-[13px] font-bold transition-colors shadow-sm cursor-pointer`}
                   >
                     {isVcardCopied ? 'Copied!' : 'Copy'}
                   </button>
+                </div>
+
+                {/* Instant 1-Click Social Sharing */}
+                <div className="grid grid-cols-3 gap-2 w-full mb-4">
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Connect with ${profile.full_name || profile.username} on CHIP NG: https://www.chipng.com/@${profile.username}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <span>WhatsApp</span>
+                  </a>
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Connect with ${profile.full_name || profile.username} on @chipng_nfc:`)}&url=${encodeURIComponent(`https://www.chipng.com/@${profile.username}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 px-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <span>X / Twitter</span>
+                  </a>
+                  <a
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.chipng.com/@${profile.username}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <span>LinkedIn</span>
+                  </a>
                 </div>
 
                 <div className="flex flex-col gap-3 w-full">
                   <div className="flex gap-3">
                     <button 
                       onClick={() => setQrMode(qrMode === 'bio' ? 'none' : 'bio')}
-                      className={`flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${cardBgClass} hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1`}
+                      className={`flex-1 py-3.5 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${cardBgClass} hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer`}
                     >
                       <QrCode className="w-5 h-5" /> {qrMode === 'bio' ? 'Hide' : 'Bio QR'}
                     </button>
                     
                     <button 
                       onClick={() => setQrMode(qrMode === 'vcard' ? 'none' : 'vcard')}
-                      className={`flex-1 py-4 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${cardBgClass} hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1`}
+                      className={`flex-1 py-3.5 rounded-2xl text-current font-bold text-[13px] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${cardBgClass} hover:bg-[#3a3a3a] shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer`}
                     >
                       <QrCode className="w-5 h-5" /> {qrMode === 'vcard' ? 'Hide' : 'Contact QR'}
                     </button>
@@ -573,25 +624,26 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                   
                   <button 
                     onClick={() => {
+                      const shareUrl = `https://www.chipng.com/@${profile.username}`;
                       if (navigator.share) {
                         navigator.share({
                           title: `${profile.full_name}'s Contactless Profile & Card | CHIP NG`,
-                          text: `Connect with ${profile.full_name} on CHIP NG`,
-                          url: `https://www.chipng.com/@${profile.username}`
-                        });
+                          text: `Connect with ${profile.full_name} on CHIP NG:`,
+                          url: shareUrl
+                        }).catch(() => {});
                       } else {
-                        navigator.clipboard.writeText(`https://www.chipng.com/@${profile.username}`);
+                        navigator.clipboard.writeText(shareUrl);
                         toast.success("Profile link copied to clipboard!");
                       }
                     }}
-                    className="w-full py-4 rounded-2xl text-current font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl text-white font-bold text-[14px] transition-transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#4776e6] to-[#8e54e9] shadow-[0_0_20px_rgba(71,118,230,0.3)] flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Share className="w-4 h-4" /> SHARE BIO LINK
                   </button>
 
                   <button 
                     onClick={() => setIsBioModalOpen(false)}
-                    className="w-full py-3 opacity-60 font-bold text-[14px] hover:text-current transition-colors"
+                    className="w-full py-3 opacity-60 font-bold text-[14px] hover:text-current transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>

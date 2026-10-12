@@ -53,6 +53,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/cover/:username",
+      "destination": "/api/cover/:username"
+    },
+    {
+      "source": "/api/cover",
+      "destination": "/api/cover"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api"
     },

@@ -1587,12 +1587,57 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
 
                 <div className="flex flex-col gap-2 w-full">
+                  {/* Cover Photo Shared Link Preview */}
+                  {profile.cover_image_url && (
+                    <div className="rounded-xl overflow-hidden border border-neutral-200/80 dark:border-white/10 bg-neutral-100 dark:bg-black/30">
+                      <div className="relative h-24 w-full">
+                        <img 
+                          src={profile.cover_image_url} 
+                          alt="Cover Photo Preview" 
+                          className="w-full h-full object-cover" 
+                        />
+                        <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[9px] font-bold tracking-wider uppercase backdrop-blur-xs">
+                          Active Cover on Shared Links
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <button 
                     onClick={handleDownloadVCard}
-                    className="w-full px-4 py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                    className="w-full px-4 py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
                   >
                     <Download className="w-4 h-4" /> Download vCard Contact File
                   </button>
+
+                  {/* 1-Click Social Sharing for WhatsApp, Twitter, LinkedIn */}
+                  <div className="grid grid-cols-3 gap-2 w-full">
+                    <a
+                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Connect with ${profile.full_name || profile.username} on CHIP NG: https://www.chipng.com/@${profile.username}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-2 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold text-[11px] flex items-center justify-center gap-1 transition-all"
+                    >
+                      <span>WhatsApp</span>
+                    </a>
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Connect with ${profile.full_name || profile.username} on @chipng_nfc:`)}&url=${encodeURIComponent(`https://www.chipng.com/@${profile.username}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-2 rounded-xl bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200/80 text-neutral-800 dark:text-neutral-200 border border-neutral-200/50 dark:border-white/5 font-bold text-[11px] flex items-center justify-center gap-1 transition-all"
+                    >
+                      <span>X / Twitter</span>
+                    </a>
+                    <a
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.chipng.com/@${profile.username}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-2 rounded-xl bg-blue-600/10 hover:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-500/20 font-bold text-[11px] flex items-center justify-center gap-1 transition-all"
+                    >
+                      <span>LinkedIn</span>
+                    </a>
+                  </div>
+
                   <button 
                     onClick={() => {
                       const shareUrl = `https://www.chipng.com/@${profile.username}`;
