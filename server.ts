@@ -1405,14 +1405,89 @@ async function startServer() {
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
-  app.get('/api/leads', (req, res) => {
+  app.get('/api/leads', async (req, res) => {
     try {
-      const stmt = db.prepare('SELECT * FROM leads ORDER BY created_at DESC');
-      const leads = stmt.all();
-      res.json(leads);
+      let mergedLeads: any[] = [];
+      const seen = new Set<string>();
+
+      // 1. Fetch from Supabase
+      try {
+        const supabase = getSupabase();
+        const { data: spLeads } = await supabase
+          .from('leads')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(200);
+
+        if (spLeads && spLeads.length > 0) {
+          spLeads.forEach(l => {
+            const key = l.id || `${l.name}_${l.created_at}`;
+            seen.add(key);
+            mergedLeads.push(l);
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase leads fetch warning:', err);
+      }
+
+      // 2. Fetch from SQLite
+      try {
+        const stmt = db.prepare('SELECT * FROM leads ORDER BY created_at DESC LIMIT 200');
+        const sqliteLeads = stmt.all();
+        if (sqliteLeads) {
+          sqliteLeads.forEach(l => {
+            const key = l.id || `${l.name}_${l.created_at}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              mergedLeads.push(l);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('SQLite leads fetch warning:', err);
+      }
+
+      // 3. Format and parse meta from city column if needed
+      const normalized = mergedLeads.map(l => {
+        let meta: any = {};
+        if (l.city && typeof l.city === 'string' && l.city.startsWith('{')) {
+          try { meta = JSON.parse(l.city); } catch (e) {}
+        }
+        return {
+          ...l,
+          email: l.email || meta.email || (l.whatsapp && l.whatsapp.includes('@') ? l.whatsapp : ''),
+          company: l.company || meta.topic || '',
+          message: l.message || meta.message || '',
+          status: l.status || meta.status || 'new',
+          source: l.source || meta.source || 'profile',
+          city: meta.city || (typeof l.city === 'string' && !l.city.startsWith('{') ? l.city : 'Lagos')
+        };
+      });
+
+      res.json(normalized);
     } catch (error: any) {
       console.error('Select error:', error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/leads/update-status', async (req, res) => {
+    try {
+      const { lead_id, status } = req.body;
+      if (!lead_id || !status) return res.status(400).json({ error: 'lead_id and status required' });
+
+      try {
+        const supabase = getSupabase();
+        await supabase.from('leads').update({ status }).eq('id', lead_id);
+      } catch (e) {}
+
+      try {
+        db.prepare('UPDATE leads SET status = ? WHERE id = ?').run(status, lead_id);
+      } catch (e) {}
+
+      res.json({ success: true, status });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   });
 

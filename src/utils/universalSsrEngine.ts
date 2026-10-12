@@ -812,8 +812,8 @@ export async function applyUniversalSsr(
     }
   }
 
-  // 7.5. Official Mobile App Companion (/app, /download, /mobile)
-  if (normalizedPath === '/app' || normalizedPath === '/download' || normalizedPath === '/mobile') {
+  // 7.5. Official Mobile App Companion (/app, /download, /mobile, /android)
+  if (normalizedPath === '/app' || normalizedPath === '/download' || normalizedPath === '/mobile' || normalizedPath === '/android') {
     const appSchema = {
       '@context': 'https://schema.org',
       '@type': 'MobileApplication',
@@ -868,7 +868,7 @@ export async function applyUniversalSsr(
   // 8. Dynamic User Profiles (/@username & /username)
   const RESERVED_ROUTES = [
     '/admin', '/enterprise', '/login', '/dashboard', '/api', '/blog',
-    '/app', '/download', '/mobile',
+    '/app', '/download', '/mobile', '/android',
     '/company', '/about', '/updates', '/contact', '/buy-card', '/shop',
     '/pricing', '/faq', '/shipping', '/refund-policy', '/privacy-policy',
     '/privacy', '/terms-of-service', '/terms', '/nfc-sales'

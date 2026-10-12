@@ -31,7 +31,7 @@ export const MakroMobileAppSection: React.FC<MakroMobileAppSectionProps> = ({ on
       toast.success('Starting direct APK download (18.4 MB)...');
       setTimeout(() => {
         const link = document.createElement('a');
-        link.href = '/chipng_exact_tile.png';
+        link.href = '/CHIP_NG_v2.4.0.apk';
         link.download = 'CHIP_NG_v2.4.0_Official.apk';
         document.body.appendChild(link);
         link.click();

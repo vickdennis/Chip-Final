@@ -14,6 +14,7 @@ import ShippingPolicyView from './views/ShippingPolicyView';
 import RefundPolicyView from './views/RefundPolicyView';
 import CommercialLandingView from './views/CommercialLandingView';
 import MobileAppView from './views/MobileAppView';
+import AndroidAppView from './views/AndroidAppView';
 import { MakroCompanyView } from './views/MakroCompanyView';
 import { MakroUpdatesView } from './views/MakroUpdatesView';
 import { MakroContactView } from './views/MakroContactView';
@@ -27,6 +28,7 @@ export type ViewState =
   | 'updates' 
   | 'contact' 
   | 'mobile-app'
+  | 'android-app'
   | 'login' 
   | 'user-dashboard' 
   | 'public-profile' 
@@ -53,6 +55,7 @@ const RESERVED_CORE_ROUTES = new Set([
   'download',
   'get-app',
   'mobile',
+  'android',
   'company',
   'about',
   'updates',
@@ -105,6 +108,7 @@ export default function App() {
     if (path === '/enterprise') return 'enterprise-dashboard';
     if (path === '/login') return 'login';
     if (path === '/dashboard') return 'user-dashboard';
+    if (path === '/android') return 'android-app';
     if (path === '/app' || path === '/download' || path === '/mobile' || path === '/get-app') return 'mobile-app';
     if (path === '/blog') return 'blog-directory';
     if (path === '/company' || path === '/about') return 'company';
@@ -256,6 +260,8 @@ export default function App() {
       window.history.pushState({}, '', '/refund-policy');
     } else if (view === 'mobile-app') {
       window.history.pushState({}, '', '/app');
+    } else if (view === 'android-app') {
+      window.history.pushState({}, '', '/android');
     } else if (view === 'blog-directory') {
       window.history.pushState({}, '', '/blog');
     } else if (view === 'company') {
@@ -285,6 +291,7 @@ export default function App() {
       {currentView === 'updates' && <MakroUpdatesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'contact' && <MakroContactView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'mobile-app' && <MobileAppView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
+      {currentView === 'android-app' && <AndroidAppView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />}

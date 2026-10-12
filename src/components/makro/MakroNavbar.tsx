@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Moon, Sun, Menu, X } from 'lucide-react';
+import { ArrowRight, Moon, Sun, Menu, X, Smartphone } from 'lucide-react';
 import { ViewState } from '../../App';
 import BrandLogo from '../BrandLogo';
 
@@ -66,6 +66,16 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
 
         {/* Zone 3: 1-2 Primary Actions */}
         <div className="flex items-center gap-3">
+          {/* Direct Download Android App Navbar Badge */}
+          <button
+            onClick={() => onNavigate('android-app' as ViewState)}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs transition-all cursor-pointer shadow-2xs"
+            title="Download Android App"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Android App</span>
+          </button>
+
           {/* Theme Toggle */}
           <button
             onClick={toggleDarkMode}

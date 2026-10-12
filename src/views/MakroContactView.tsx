@@ -31,26 +31,32 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
     if (!email.trim() || !fullName.trim() || !message.trim()) return;
 
     setSubmitting(true);
-    // Direct Supabase save
+    const meta = {
+      email: email.trim(),
+      topic,
+      message: message.trim(),
+      source: 'direct_inquiry',
+      type: 'support_feedback',
+      city: 'Lagos',
+      created_at: new Date().toISOString()
+    };
+
+    // 1. Direct Supabase save
     try {
-      const meta = {
-        email: email.trim(),
-        topic,
-        message: message.trim(),
-        source: 'contact_page',
-        city: 'Lagos',
-        created_at: new Date().toISOString()
-      };
       await supabase.from('leads').insert([{
         name: fullName.trim(),
+        email: email.trim(),
         whatsapp: email.trim(),
+        company: topic,
+        message: message.trim(),
         city: JSON.stringify(meta),
         post_slug: 'contact_inquiry',
-        source: 'contact_page'
+        source: 'direct_inquiry',
+        status: 'new'
       }]);
     } catch (e) {}
 
-    // API save
+    // 2. Local & Server API save
     try {
       await fetch('/api/leads/capture', {
         method: 'POST',
@@ -61,10 +67,46 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
           whatsapp: email.trim(),
           company: topic,
           message: message.trim(),
-          source: 'contact_page',
-          city: 'Lagos'
+          source: 'direct_inquiry',
+          city: 'Lagos',
+          status: 'new'
         })
       });
+    } catch (e) {}
+
+    // 2.5. Local storage cache for zero-latency Super Admin reflection
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = JSON.parse(localStorage.getItem('chipng_inquiries_cache') || '[]');
+        stored.unshift({
+          id: 'inq_' + Date.now(),
+          name: fullName.trim(),
+          email: email.trim(),
+          whatsapp: email.trim(),
+          company: topic,
+          message: message.trim(),
+          city: 'Lagos',
+          source: 'direct_inquiry',
+          post_slug: 'contact_inquiry',
+          status: 'new',
+          created_at: new Date().toISOString()
+        });
+        localStorage.setItem('chipng_inquiries_cache', JSON.stringify(stored.slice(0, 50)));
+      }
+    } catch (e) {}
+
+    // 3. Broadcast real-time event to Super Admin Dashboard
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('chipng_inquiries_channel');
+        bc.postMessage({ type: 'NEW_DIRECT_INQUIRY', name: fullName.trim(), email: email.trim(), topic });
+        setTimeout(() => bc.close(), 100);
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chipng_new_inquiry', { 
+          detail: { name: fullName.trim(), email: email.trim(), topic, message: message.trim() } 
+        }));
+      }
     } catch (e) {}
 
     setSubmitting(false);

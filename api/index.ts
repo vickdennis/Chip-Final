@@ -423,6 +423,55 @@ app.post('/api/leads/capture', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/leads', async (req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { data: spLeads, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) {
+      console.error('Supabase leads select error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    const normalized = (spLeads || []).map(l => {
+      let meta: any = {};
+      if (l.city && typeof l.city === 'string' && l.city.startsWith('{')) {
+        try { meta = JSON.parse(l.city); } catch (e) {}
+      }
+      return {
+        ...l,
+        email: l.email || meta.email || (l.whatsapp && l.whatsapp.includes('@') ? l.whatsapp : ''),
+        company: l.company || meta.topic || '',
+        message: l.message || meta.message || '',
+        status: l.status || meta.status || 'new',
+        source: l.source || meta.source || 'profile',
+        city: meta.city || (typeof l.city === 'string' && !l.city.startsWith('{') ? l.city : 'Lagos')
+      };
+    });
+
+    res.json(normalized);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/leads/update-status', async (req: Request, res: Response) => {
+  try {
+    const { lead_id, status } = req.body;
+    if (!lead_id || !status) return res.status(400).json({ error: 'lead_id and status required' });
+
+    const supabase = getSupabase();
+    await supabase.from('leads').update({ status }).eq('id', lead_id);
+    res.json({ success: true, status });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/leads/profile/:profileId', async (req: Request, res: Response) => {
   try {
     const { profileId } = req.params;

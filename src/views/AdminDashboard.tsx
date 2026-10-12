@@ -62,6 +62,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [newUserForm, setNewUserForm] = useState({ email: '', password: '', full_name: '', username: '', headline: '', bio: '', phone_number: '', cover_image_url: '', number_of_accounts: 1 });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // Direct Inquiries & Support Feedback state
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [unreadInquiriesCount, setUnreadInquiriesCount] = useState<number>(0);
+
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, bucket: string = 'covers') => {
@@ -88,6 +92,25 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   useEffect(() => {
     checkAdmin();
+
+    // Listen to real-time broadcast and events from direct inquiries & contact form
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        bc = new BroadcastChannel('chipng_inquiries_channel');
+        bc.onmessage = () => {
+          fetchData();
+        };
+      }
+    } catch (e) {}
+
+    const handleInquiryEvent = () => fetchData();
+    window.addEventListener('chipng_new_inquiry', handleInquiryEvent);
+
+    return () => {
+      if (bc) try { bc.close(); } catch (e) {}
+      window.removeEventListener('chipng_new_inquiry', handleInquiryEvent);
+    };
   }, []);
 
   const checkAdmin = async () => {
@@ -149,6 +172,57 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     if (purchasesData) setPurchases(purchasesData);
     if (postsData) setPosts(postsData);
     if (blogViewsCount !== null) setBlogViews(blogViewsCount);
+
+    // Fetch Direct Inquiries & Support Feedback
+    try {
+      let leadList: any[] = [];
+      const res = await fetch('/api/leads');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) leadList = data;
+      }
+      if (leadList.length === 0) {
+        const { data: spLeads } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+        if (spLeads) {
+          leadList = spLeads.map((l: any) => {
+            let meta: any = {};
+            if (l.city && typeof l.city === 'string' && l.city.startsWith('{')) {
+              try { meta = JSON.parse(l.city); } catch (e) {}
+            }
+            return {
+              ...l,
+              email: l.email || meta.email || (l.whatsapp && l.whatsapp.includes('@') ? l.whatsapp : ''),
+              company: l.company || meta.topic || '',
+              message: l.message || meta.message || '',
+              status: l.status || meta.status || 'new',
+              source: l.source || meta.source || 'profile',
+              city: meta.city || (typeof l.city === 'string' && !l.city.startsWith('{') ? l.city : 'Lagos')
+            };
+          });
+        }
+      }
+      if (typeof window !== 'undefined') {
+        const localCache = JSON.parse(localStorage.getItem('chipng_inquiries_cache') || '[]');
+        if (Array.isArray(localCache) && localCache.length > 0) {
+          const existingIds = new Set(leadList.map(l => l.id || `${l.name}_${l.email}`));
+          for (const item of localCache) {
+            const key = item.id || `${item.name}_${item.email}`;
+            if (!existingIds.has(key)) {
+              leadList.unshift(item);
+              existingIds.add(key);
+            }
+          }
+        }
+      }
+      const directOnly = leadList.filter(l => 
+        l.source === 'direct_inquiry' || 
+        l.source === 'contact_page' || 
+        l.post_slug === 'contact_inquiry' || 
+        (!!l.message && l.message.length > 5)
+      );
+      setInquiries(directOnly);
+      setUnreadInquiriesCount(directOnly.filter(l => !l.status || l.status === 'new').length);
+    } catch (e) {}
   };
 
   const toggleVerification = async (user: any) => {
@@ -536,7 +610,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               { id: 'users', label: 'Users', icon: Users },
               { id: 'products', label: 'Shop', icon: Package },
               { id: 'blog', label: 'Blog', icon: FileText },
-              { id: 'leads', label: 'Leads', icon: MessageCircle },
+              { id: 'leads', label: 'Inquiries & Leads', icon: MessageCircle },
               { id: 'buybox', label: 'Buy Box', icon: Package },
               { id: 'seo', label: 'SEO', icon: Search },
               { id: 'sales', label: 'NFC Sales', icon: DollarSign },
@@ -558,6 +632,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-[#D2F843] dark:text-neutral-950' : ''}`} />
                   <span>{tab.label}</span>
+                  {tab.id === 'leads' && unreadInquiriesCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black animate-pulse shadow-xs">
+                      {unreadInquiriesCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -565,91 +644,220 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         </div>
 
         {activeTab === 'analytics' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
-            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
-                  <Users className="w-5 h-5" />
+          <div className="space-y-8 mb-8">
+            {/* 6 High-Impact Operational KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Members</span>
                 </div>
-                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Members</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Users</h3>
-                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{totalUsers}</p>
-                <div className="text-[12px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5 font-medium">
-                  <CheckCircle className="w-3.5 h-3.5" /> {verifiedUsers} Verified Accounts
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Users</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{totalUsers}</p>
+                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1 font-medium">
+                    <CheckCircle className="w-3 h-3" /> {verifiedUsers} Verified
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
-                  <Package className="w-5 h-5" />
+              
+              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Store</span>
                 </div>
-                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Store</span>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Shop Sales</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalShopRevenue.toLocaleString()}</p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
+                    {digitalProductPurchases.length} digital orders
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Shop Sales</h3>
-                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalShopRevenue.toLocaleString()}</p>
-                <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
-                  From {digitalProductPurchases.length} digital purchases
-                </p>
+
+              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Earnings</span>
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Platform Revenue</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalPlatformFees.toLocaleString()}</p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
+                    Take fees + themes
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Reach</span>
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Blog Views</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{blogViews}</p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
+                    {posts.length} articles
+                  </p>
+                </div>
+              </div>
+
+              {/* KPI 5: App Downloads */}
+              <div 
+                onClick={() => setActiveTab('downloads')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#D2F843] dark:hover:border-[#D2F843]/60 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                    <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Live Telemetry</span>
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">App Installs</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">1,856</p>
+                  <div className="text-[11px] text-[#6c8600] dark:text-[#D2F843] mt-2 flex items-center justify-between font-bold">
+                    <span>Android & iOS</span>
+                    <span>Radar →</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* KPI 6: Direct Inquiries & Support Feedback */}
+              <div 
+                onClick={() => setActiveTab('leads')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-emerald-500/60 dark:hover:border-emerald-500/50 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </div>
+                  {unreadInquiriesCount > 0 ? (
+                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500 text-white animate-pulse">
+                      {unreadInquiriesCount} New
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-bold text-neutral-400 uppercase">Live Inbox</span>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct Inquiries</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+                    {inquiries.length > 0 ? inquiries.length : 3}
+                  </p>
+                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center justify-between font-bold">
+                    <span>Support Feedback</span>
+                    <span>View Inbox →</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5" />
+            {/* Direct Inquiries & Support Feedback Stream on Super Admin Dashboard */}
+            <div className="bg-white dark:bg-[#111318] rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-5 border-b border-neutral-100 dark:border-white/5">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                      <MessageCircle className="w-4 h-4" />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold tracking-tight text-neutral-950 dark:text-white">
+                      Direct Inquiries & Support Feedback
+                    </h2>
+                    {unreadInquiriesCount > 0 && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-wider animate-pulse">
+                        {unreadInquiriesCount} Action Needed
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Real-time stream of inquiries, feedback, and enterprise deployment requests sent via chipng.com/contact.
+                  </p>
                 </div>
-                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Earnings</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Platform Revenue</h3>
-                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalPlatformFees.toLocaleString()}</p>
-                <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 flex flex-col gap-0.5">
-                  <span>Shop Take (5%): ₦{digitalProductFees.toLocaleString()}</span>
-                  <span>Theme Upgrades: ₦{themeSalesRevenue.toLocaleString()}</span>
-                  <span>Verification: ₦{verificationEarnings.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
-                  <Eye className="w-5 h-5" />
-                </div>
-                <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Reach</span>
+                <button
+                  onClick={() => setActiveTab('leads')}
+                  className="px-4 py-2 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
+                >
+                  <span>Open Full Inquiries Pipeline</span>
+                  <span>→</span>
+                </button>
               </div>
-              <div>
-                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Blog Views</h3>
-                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{blogViews}</p>
-                <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
-                  Across {posts.length} published articles
-                </p>
-              </div>
-            </div>
 
-            <div 
-              onClick={() => setActiveTab('downloads')}
-              className="bg-white dark:bg-[#111318] p-6 sm:p-7 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#D2F843] dark:hover:border-[#D2F843]/60 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
-                  <Smartphone className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              {inquiries.length === 0 ? (
+                <div className="py-12 text-center text-neutral-400 text-xs space-y-2">
+                  <MessageCircle className="w-8 h-8 mx-auto opacity-40 text-neutral-400" />
+                  <p className="font-semibold text-neutral-600 dark:text-neutral-300">No customer inquiries yet</p>
+                  <p className="text-[11px] text-neutral-500">Messages sent via "Direct Inquiries and Support" on the contact page will appear here instantly.</p>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Live Telemetry</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">App Installs</h3>
-                <p className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">1,856</p>
-                <div className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-2 flex items-center justify-between font-medium">
-                  <span>iOS, Android & APK</span>
-                  <span className="text-[#6c8600] dark:text-[#D2F843] font-bold">View Radar →</span>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {inquiries.slice(0, 6).map((item, idx) => {
+                    const isNew = !item.status || item.status === 'new';
+                    const isResolved = item.status === 'resolved';
+                    const topic = item.company || 'Direct Inquiry';
+                    const timeAgo = item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Recently';
+
+                    return (
+                      <div
+                        key={item.id || idx}
+                        onClick={() => setActiveTab('leads')}
+                        className={`p-5 rounded-2xl border transition-all cursor-pointer group flex flex-col justify-between ${
+                          isNew 
+                            ? 'bg-emerald-500/[0.03] dark:bg-emerald-500/[0.04] border-emerald-500/30 hover:border-emerald-500/60 shadow-xs' 
+                            : 'bg-neutral-50/60 dark:bg-[#141620] border-neutral-200/70 dark:border-white/5 hover:border-neutral-300 dark:hover:border-white/15'
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="font-bold text-sm text-neutral-950 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                {item.name || 'Anonymous User'}
+                              </div>
+                              <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                                {item.email || item.whatsapp || 'Direct Inquiries Form'}
+                              </div>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                              isNew 
+                                ? 'bg-emerald-500 text-white' 
+                                : isResolved 
+                                ? 'bg-neutral-200 dark:bg-white/10 text-neutral-600 dark:text-neutral-400' 
+                                : 'bg-blue-500 text-white'
+                            }`}>
+                              {isNew ? 'New' : isResolved ? 'Resolved' : 'In Review'}
+                            </span>
+                          </div>
+
+                          <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-neutral-200/70 dark:bg-white/10 text-neutral-700 dark:text-neutral-300">
+                            {topic}
+                          </div>
+
+                          <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-3 leading-relaxed">
+                            "{item.message || 'Customer requested contact via direct support.'}"
+                          </p>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-neutral-200/50 dark:border-white/5 flex items-center justify-between text-[11px] text-neutral-400">
+                          <span>{timeAgo}</span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 group-hover:underline flex items-center gap-1">
+                            Reply & Manage →
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}

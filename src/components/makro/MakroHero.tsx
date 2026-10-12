@@ -2,16 +2,33 @@ import React, { useState } from 'react';
 import { ArrowRight, Share2, Plus, ChevronDown, Sparkles, Smartphone, CheckCircle2, Zap, Download } from 'lucide-react';
 import heroPortrait from '../../assets/images/makro_hero_portrait_1790206462182.jpg';
 import { toast } from '../Toast';
+import { recordAppDownload } from '../../utils/telemetryClient';
 
 interface MakroHeroProps {
   onGetStarted: () => void;
   onExploreCards?: () => void;
+  onDownloadApp?: () => void;
 }
 
-export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCards }) => {
+export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCards, onDownloadApp }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<'30' | '90' | '180'>('30');
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
+
+  const handleDownloadApp = async () => {
+    await recordAppDownload('android', { source: 'homepage_hero_button', version: '2.4.0' });
+    toast.success('Starting high-speed Android APK download (18.4 MB)...');
+    const link = document.createElement('a');
+    link.href = '/CHIP_NG_v2.4.0.apk';
+    link.download = 'CHIP_NG_v2.4.0.apk';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (onDownloadApp) {
+      setTimeout(onDownloadApp, 800);
+    }
+  };
 
   // Dynamic Tap & Link-in-Bio analytics data depending on selected timeframe (all values in ₦)
   const pulseData = {
@@ -123,6 +140,17 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
                 className="px-5 py-3 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               >
                 Browse NFC Cards
+              </button>
+
+              {/* Dedicated Download App Button on Homepage */}
+              <button
+                onClick={handleDownloadApp}
+                className="group flex items-center gap-2.5 px-5 py-3 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 transition-all font-bold text-xs sm:text-sm cursor-pointer active:scale-95 shadow-xs"
+                title="Download Official CHIP NG Android App"
+              >
+                <Smartphone className="w-4 h-4 text-emerald-500 animate-pulse" />
+                <span>Download App</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-extrabold uppercase">APK</span>
               </button>
 
               {/* Solopreneur Social Proof */}
