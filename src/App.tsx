@@ -7,6 +7,7 @@ import AdminDashboard from './views/AdminDashboard';
 import EnterpriseDashboard from './views/EnterpriseDashboard';
 import BlogDirectoryView from './views/BlogDirectoryView';
 import BlogArticleView from './views/BlogArticleView';
+import NfcSalesView from './views/NfcSalesView';
 import PrivacyPolicyView from './views/PrivacyPolicyView';
 import TermsOfServiceView from './views/TermsOfServiceView';
 import ShippingPolicyView from './views/ShippingPolicyView';
@@ -31,6 +32,7 @@ export type ViewState =
   | 'enterprise-dashboard' 
   | 'blog-directory' 
   | 'blog-article' 
+  | 'nfc-sales'
   | 'privacy-policy' 
   | 'terms-of-service'
   | 'shipping'
@@ -114,7 +116,8 @@ export default function App() {
     if (path === '/company' || path === '/about') return 'company';
     if (path === '/updates') return 'updates';
     if (path === '/contact') return 'contact';
-    if (path === '/buy-card' || path === '/shop') {
+    if (path === '/buy-card') return 'nfc-sales';
+    if (path === '/shop') {
       setTimeout(() => {
         const el = document.getElementById('shop');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -254,14 +257,8 @@ export default function App() {
       window.history.pushState({}, '', '/admin');
     } else if (view === 'enterprise-dashboard') {
       window.history.pushState({}, '', '/enterprise');
-    } else if ((view as string) === 'nfc-sales') {
-      window.history.pushState({}, '', '/');
-      setCurrentView('landing');
-      setTimeout(() => {
-        const el = document.getElementById('shop');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-      return;
+    } else if (view === 'nfc-sales') {
+      window.history.pushState({}, '', '/buy-card');
     } else if (view === 'privacy-policy') {
       window.history.pushState({}, '', '/privacy-policy');
     } else if (view === 'terms-of-service') {
@@ -308,6 +305,7 @@ export default function App() {
       {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
       {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}

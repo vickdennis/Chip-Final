@@ -82,6 +82,15 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
+                <button 
+                  onClick={() => onNavigate('nfc-sales')} 
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <span>Standalone Sales Funnel</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#D2F843]/20 text-[#6B8500] dark:text-[#D2F843] font-bold">/buy-card</span>
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavigate('landing')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
                   Dynamic Link-in-Bio
                 </button>

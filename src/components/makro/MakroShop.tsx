@@ -14,9 +14,7 @@ import {
   Layers,
   ChevronRight
 } from 'lucide-react';
-import { CardCustomizerModal, CardCustomizationData } from '../funnel/CardCustomizerModal';
-import { CheckoutOnboardingModal } from '../funnel/CheckoutOnboardingModal';
-import { CardMaterial } from '../funnel/Card3DRotator';
+import { MakroProductCheckoutModal } from './MakroProductCheckoutModal';
 
 export interface ShopProduct {
   id: string;
@@ -77,36 +75,13 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'metal' | 'pvc'>('all');
   const [selectedMediaIndex, setSelectedMediaIndex] = useState<{ [productId: string]: number }>({});
 
-  // Direct In-Shop Customizer and Checkout Modal States
+  // Modern Homepage Product Checkout Modal State
   const [selectedProductForOrder, setSelectedProductForOrder] = useState<ShopProduct | null>(null);
-  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [customizationData, setCustomizationData] = useState<CardCustomizationData | null>(null);
 
   const handleStartOrder = (product: ShopProduct) => {
     setSelectedProductForOrder(product);
-    setIsCustomizerOpen(true);
-  };
-
-  const handleProceedToCheckout = (data: CardCustomizationData) => {
-    setCustomizationData(data);
-    setIsCustomizerOpen(false);
     setIsCheckoutOpen(true);
-  };
-
-  const getProductTier = (name: string): 'plastic' | 'metal' | 'debit' => {
-    const lower = name.toLowerCase();
-    if (lower.includes('debit')) return 'debit';
-    if (lower.includes('pvc') || lower.includes('plastic')) return 'plastic';
-    return 'metal';
-  };
-
-  const getProductMaterial = (name: string): CardMaterial => {
-    const lower = name.toLowerCase();
-    if (lower.includes('white')) return 'plastic_white';
-    if (lower.includes('pvc') || lower.includes('black')) return 'plastic_black';
-    if (lower.includes('debit') || lower.includes('gold')) return 'metal_gold';
-    return 'metal_spacegray';
   };
 
   useEffect(() => {
@@ -490,23 +465,15 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
 
       </div>
 
-      {/* Embedded Live Customization Modal */}
-      {isCustomizerOpen && selectedProductForOrder && (
-        <CardCustomizerModal
-          isOpen={isCustomizerOpen}
-          onClose={() => setIsCustomizerOpen(false)}
-          initialTier={getProductTier(selectedProductForOrder.name)}
-          initialMaterial={getProductMaterial(selectedProductForOrder.name)}
-          onProceedToCheckout={handleProceedToCheckout}
-        />
-      )}
-
-      {/* Embedded Live Checkout Modal with Paystack */}
-      {isCheckoutOpen && customizationData && (
-        <CheckoutOnboardingModal
+      {/* Beautiful Modern Homepage Product Checkout Screen */}
+      {isCheckoutOpen && selectedProductForOrder && (
+        <MakroProductCheckoutModal
           isOpen={isCheckoutOpen}
-          onClose={() => setIsCheckoutOpen(false)}
-          data={customizationData}
+          onClose={() => {
+            setIsCheckoutOpen(false);
+            setSelectedProductForOrder(null);
+          }}
+          product={selectedProductForOrder}
           onNavigate={onNavigate}
         />
       )}
