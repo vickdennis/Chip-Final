@@ -110,7 +110,12 @@ export default function CommercialLandingView({
 
                 <div className="pt-3 flex flex-wrap items-center gap-4 sm:gap-5">
                   <button
-                    onClick={() => onNavigate('nfc-sales')}
+                    onClick={() => {
+                      onNavigate('landing');
+                      setTimeout(() => {
+                        document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }}
                     className="group flex items-center gap-3 pl-2 pr-6 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
                   >
                     <div className="w-9 h-9 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform shadow-xs">
@@ -340,7 +345,12 @@ export default function CommercialLandingView({
             </p>
             <div className="pt-4 flex flex-wrap justify-center items-center gap-4">
               <button
-                onClick={() => onNavigate('nfc-sales')}
+                onClick={() => {
+                  onNavigate('landing');
+                  setTimeout(() => {
+                    document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
                 className="px-8 py-3.5 rounded-full bg-[#D2F843] text-neutral-950 font-extrabold text-sm hover:opacity-90 active:scale-95 transition-all shadow-xl cursor-pointer"
               >
                 Order Your Card Now

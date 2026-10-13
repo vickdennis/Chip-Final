@@ -511,7 +511,12 @@ export default function BlogArticleView({
               </p>
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button
-                  onClick={() => onNavigate('nfc-sales')}
+                  onClick={() => {
+                    onNavigate('landing');
+                    setTimeout(() => {
+                      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
                   className="px-6 py-3 rounded-full bg-[#D2F843] text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer shadow-sm"
                 >
                   <span>Order Your Smart NFC Card</span>

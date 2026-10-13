@@ -14,6 +14,9 @@ import {
   Layers,
   ChevronRight
 } from 'lucide-react';
+import { CardCustomizerModal, CardCustomizationData } from '../funnel/CardCustomizerModal';
+import { CheckoutOnboardingModal } from '../funnel/CheckoutOnboardingModal';
+import { CardMaterial } from '../funnel/Card3DRotator';
 
 export interface ShopProduct {
   id: string;
@@ -73,6 +76,38 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'metal' | 'pvc'>('all');
   const [selectedMediaIndex, setSelectedMediaIndex] = useState<{ [productId: string]: number }>({});
+
+  // Direct In-Shop Customizer and Checkout Modal States
+  const [selectedProductForOrder, setSelectedProductForOrder] = useState<ShopProduct | null>(null);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [customizationData, setCustomizationData] = useState<CardCustomizationData | null>(null);
+
+  const handleStartOrder = (product: ShopProduct) => {
+    setSelectedProductForOrder(product);
+    setIsCustomizerOpen(true);
+  };
+
+  const handleProceedToCheckout = (data: CardCustomizationData) => {
+    setCustomizationData(data);
+    setIsCustomizerOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  const getProductTier = (name: string): 'plastic' | 'metal' | 'debit' => {
+    const lower = name.toLowerCase();
+    if (lower.includes('debit')) return 'debit';
+    if (lower.includes('pvc') || lower.includes('plastic')) return 'plastic';
+    return 'metal';
+  };
+
+  const getProductMaterial = (name: string): CardMaterial => {
+    const lower = name.toLowerCase();
+    if (lower.includes('white')) return 'plastic_white';
+    if (lower.includes('pvc') || lower.includes('black')) return 'plastic_black';
+    if (lower.includes('debit') || lower.includes('gold')) return 'metal_gold';
+    return 'metal_spacegray';
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -301,7 +336,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                     </div>
 
                     <button
-                      onClick={() => onNavigate('nfc-sales')}
+                      onClick={() => handleStartOrder(product)}
                       className="group/btn flex items-center gap-2 pl-4 pr-3 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
                     >
                       <span>Order Card</span>
@@ -454,6 +489,27 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
         </div>
 
       </div>
+
+      {/* Embedded Live Customization Modal */}
+      {isCustomizerOpen && selectedProductForOrder && (
+        <CardCustomizerModal
+          isOpen={isCustomizerOpen}
+          onClose={() => setIsCustomizerOpen(false)}
+          initialTier={getProductTier(selectedProductForOrder.name)}
+          initialMaterial={getProductMaterial(selectedProductForOrder.name)}
+          onProceedToCheckout={handleProceedToCheckout}
+        />
+      )}
+
+      {/* Embedded Live Checkout Modal with Paystack */}
+      {isCheckoutOpen && customizationData && (
+        <CheckoutOnboardingModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          data={customizationData}
+          onNavigate={onNavigate}
+        />
+      )}
     </section>
   );
 };

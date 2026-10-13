@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Moon, Sun, Menu, X, Smartphone, Star } from 'lucide-react';
+import { ArrowRight, Moon, Sun, Menu, X, Star } from 'lucide-react';
 import { ViewState } from '../../App';
 import BrandLogo from '../BrandLogo';
 
@@ -20,15 +20,33 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems: { label: string; view?: ViewState; href?: string }[] = [
+  const navItems: { label: string; view?: ViewState }[] = [
     { label: 'Home', view: 'landing' },
-    { label: 'Shop Cards', view: 'nfc-sales' },
-    { label: 'Mobile App', view: 'mobile-app' },
+    { label: 'Shop Cards', view: 'landing' },
     { label: 'Company', view: 'company' as ViewState },
     { label: 'Blog', view: 'blog-directory' },
     { label: 'Updates', view: 'updates' as ViewState },
     { label: 'Contact', view: 'contact' as ViewState },
   ];
+
+  const handleNavClick = (item: { label: string; view?: ViewState }) => {
+    if (item.label === 'Shop Cards') {
+      if (currentView === 'landing') {
+        const el = document.getElementById('shop');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        onNavigate('landing');
+        setTimeout(() => {
+          const el = document.getElementById('shop');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
+      return;
+    }
+    if (item.view) {
+      onNavigate(item.view);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 transition-colors duration-200">
@@ -46,11 +64,11 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
         {/* Zone 2: Clean 4-6 nav links, 1-2 word labels, single-line */}
         <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium text-neutral-600 dark:text-neutral-300">
           {navItems.map((item) => {
-            const isActive = currentView === item.view;
+            const isActive = item.label !== 'Shop Cards' && currentView === item.view;
             return (
               <button
                 key={item.label}
-                onClick={() => onNavigate(item.view)}
+                onClick={() => handleNavClick(item)}
                 className={`relative py-1 transition-colors hover:text-neutral-950 dark:hover:text-white cursor-pointer ${
                   isActive ? 'text-neutral-950 dark:text-white font-semibold' : ''
                 }`}
@@ -71,22 +89,11 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
             href="https://g.page/r/CZGM0zQdEiY7EAE/review"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shadow-2xs"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shadow-2xs"
             title="Drop a Google Review for CHIP NG"
           >
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
             <span>Drop A Review</span>
-          </a>
-
-          {/* Direct Download Android App Navbar Badge */}
-          <a
-            href="/CHIP_NG_v2.4.0.apk"
-            download="CHIP_NG_v2.4.0_Official.apk"
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs transition-all cursor-pointer shadow-2xs"
-            title="Download Official CHIP NG Android APK (2.9 MB)"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Download APK</span>
           </a>
 
           {/* Theme Toggle */}
@@ -139,11 +146,11 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
               <button
                 key={item.label}
                 onClick={() => {
-                  onNavigate(item.view);
+                  handleNavClick(item);
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left text-base font-medium py-2 px-3 rounded-lg ${
-                  currentView === item.view
+                  item.label !== 'Shop Cards' && currentView === item.view
                     ? 'bg-neutral-200/60 dark:bg-neutral-800 text-neutral-950 dark:text-white font-semibold'
                     : 'text-neutral-600 dark:text-neutral-300'
                 }`}

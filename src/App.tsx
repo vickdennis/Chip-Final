@@ -7,13 +7,11 @@ import AdminDashboard from './views/AdminDashboard';
 import EnterpriseDashboard from './views/EnterpriseDashboard';
 import BlogDirectoryView from './views/BlogDirectoryView';
 import BlogArticleView from './views/BlogArticleView';
-import NfcSalesView from './views/NfcSalesView';
 import PrivacyPolicyView from './views/PrivacyPolicyView';
 import TermsOfServiceView from './views/TermsOfServiceView';
 import ShippingPolicyView from './views/ShippingPolicyView';
 import RefundPolicyView from './views/RefundPolicyView';
 import CommercialLandingView from './views/CommercialLandingView';
-import MobileAppView from './views/MobileAppView';
 import { MakroCompanyView } from './views/MakroCompanyView';
 import { MakroUpdatesView } from './views/MakroUpdatesView';
 import { MakroContactView } from './views/MakroContactView';
@@ -26,7 +24,6 @@ export type ViewState =
   | 'company' 
   | 'updates' 
   | 'contact' 
-  | 'mobile-app'
   | 'login' 
   | 'user-dashboard' 
   | 'public-profile' 
@@ -34,7 +31,6 @@ export type ViewState =
   | 'enterprise-dashboard' 
   | 'blog-directory' 
   | 'blog-article' 
-  | 'nfc-sales' 
   | 'privacy-policy' 
   | 'terms-of-service'
   | 'shipping'
@@ -113,12 +109,18 @@ export default function App() {
       window.location.href = 'https://g.page/r/CZGM0zQdEiY7EAE/review';
       return 'landing';
     }
-    if (path === '/app' || path === '/download' || path === '/mobile' || path === '/get-app' || path === '/android') return 'mobile-app';
+    if (path === '/app' || path === '/download' || path === '/mobile' || path === '/get-app' || path === '/android') return 'landing';
     if (path === '/blog') return 'blog-directory';
     if (path === '/company' || path === '/about') return 'company';
     if (path === '/updates') return 'updates';
     if (path === '/contact') return 'contact';
-    if (path === '/buy-card' || path === '/shop') return 'nfc-sales';
+    if (path === '/buy-card' || path === '/shop') {
+      setTimeout(() => {
+        const el = document.getElementById('shop');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return 'landing';
+    }
     if (path === '/privacy-policy' || path === '/privacy') return 'privacy-policy';
     if (path === '/terms-of-service' || path === '/terms') return 'terms-of-service';
     if (path === '/shipping') return 'shipping';
@@ -252,8 +254,14 @@ export default function App() {
       window.history.pushState({}, '', '/admin');
     } else if (view === 'enterprise-dashboard') {
       window.history.pushState({}, '', '/enterprise');
-    } else if (view === 'nfc-sales') {
-      window.history.pushState({}, '', '/buy-card');
+    } else if ((view as string) === 'nfc-sales') {
+      window.history.pushState({}, '', '/');
+      setCurrentView('landing');
+      setTimeout(() => {
+        const el = document.getElementById('shop');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      return;
     } else if (view === 'privacy-policy') {
       window.history.pushState({}, '', '/privacy-policy');
     } else if (view === 'terms-of-service') {
@@ -262,8 +270,10 @@ export default function App() {
       window.history.pushState({}, '', '/shipping');
     } else if (view === 'refund-policy') {
       window.history.pushState({}, '', '/refund-policy');
-    } else if (view === 'mobile-app') {
-      window.history.pushState({}, '', '/app');
+    } else if ((view as string) === 'mobile-app') {
+      window.history.pushState({}, '', '/');
+      setCurrentView('landing');
+      return;
     } else if (view === 'blog-directory') {
       window.history.pushState({}, '', '/blog');
     } else if (view === 'company') {
@@ -292,14 +302,12 @@ export default function App() {
       {currentView === 'company' && <MakroCompanyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'updates' && <MakroUpdatesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'contact' && <MakroContactView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
-      {currentView === 'mobile-app' && <MobileAppView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'login' && <LoginView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'user-dashboard' && <UserDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'public-profile' && <PublicProfileView onNavigate={handleNavigate} username={publicUsername} autoDownloadVCard={autoDownloadVCard} />}
       {currentView === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'enterprise-dashboard' && <EnterpriseDashboard onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'blog-directory' && <BlogDirectoryView onNavigate={handleNavigate} onNavigateToArticle={handleNavigateToArticle} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
-      {currentView === 'nfc-sales' && <NfcSalesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'blog-article' && <BlogArticleView onNavigate={handleNavigate} slug={blogSlug!} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'privacy-policy' && <PrivacyPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
       {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}

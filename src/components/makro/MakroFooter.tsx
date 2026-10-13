@@ -56,19 +56,29 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <button onClick={() => onNavigate('nfc-sales')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
+                <button 
+                  onClick={() => {
+                    onNavigate('landing');
+                    setTimeout(() => {
+                      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }} 
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors"
+                >
                   Smart NFC Metal Cards
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('nfc-sales')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
+                <button 
+                  onClick={() => {
+                    onNavigate('landing');
+                    setTimeout(() => {
+                      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }} 
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors"
+                >
                   Matte PVC Smart Cards
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate('mobile-app' as ViewState)} className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5 text-neutral-900 dark:text-[#D2F843] font-semibold">
-                  <span>Official Mobile App</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#D2F843]/20 text-neutral-900 dark:text-[#D2F843]">iOS & Android</span>
                 </button>
               </li>
               <li>

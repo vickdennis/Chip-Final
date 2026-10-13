@@ -10,13 +10,10 @@
  */
 
 import { COMMERCIAL_PAGES } from '../data/commercialPagesData';
-import { BUY_CARD_PRE_RENDER_HTML, BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo';
+import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo';
 import { 
-  HOME_PRE_RENDER_HTML, 
   HOME_SCHEMA_JSON_LD, 
-  PRICING_PRE_RENDER_HTML, 
   PRICING_SCHEMA_JSON_LD, 
-  FAQ_PRE_RENDER_HTML, 
   FAQ_SCHEMA_JSON_LD 
 } from './ssrEngine';
 
@@ -633,11 +630,7 @@ export function injectSeoMetadata(
     output = output.replace('</head>', `  <script type="application/ld+json">\n${meta.schemaJsonLd}\n  </script>\n</head>`);
   }
 
-  // 8. Injected HTML
-  if (meta.preRenderedHtml) {
-    output = output.replace(/<div id="root"><\/div>/i, meta.preRenderedHtml);
-  }
-
+  // 8. Clean root element strictly preserved for React Makro UI
   return output;
 }
 
@@ -663,8 +656,7 @@ export async function applyUniversalSsr(
       canonical: BUY_CARD_META.canonical,
       ogType: 'product',
       image: BUY_CARD_META.image,
-      schemaJsonLd: BUY_CARD_SCHEMA_JSON_LD,
-      preRenderedHtml: BUY_CARD_PRE_RENDER_HTML
+      schemaJsonLd: BUY_CARD_SCHEMA_JSON_LD
     });
   }
 
@@ -674,8 +666,7 @@ export async function applyUniversalSsr(
       title: 'CHIP NG — Contactless Smart NFC Business Cards & Link-in-Bio Platform Nigeria',
       description: 'The premier contactless NFC smart business cards & dynamic link-in-bio platform in Nigeria. 1-tap contact sharing, zero app needed, NTAG216 chip, sub-10ms response. 24h Lagos delivery.',
       canonical: 'https://www.chipng.com/',
-      schemaJsonLd: HOME_SCHEMA_JSON_LD,
-      preRenderedHtml: HOME_PRE_RENDER_HTML
+      schemaJsonLd: HOME_SCHEMA_JSON_LD
     });
   }
 
@@ -685,8 +676,7 @@ export async function applyUniversalSsr(
       title: 'NFC Business Card Price in Nigeria — 2026 Transparent Pricing | CHIP NG',
       description: 'Official 2026 prices for CHIP NG contactless smart cards: Smart PVC (₦30,000 / ₦35,000), Smart Metal (₦50,000), and Metal Debit Card + Custom Design (₦80,000–₦100,000). Zero monthly subscription fees.',
       canonical: 'https://www.chipng.com/pricing',
-      schemaJsonLd: PRICING_SCHEMA_JSON_LD,
-      preRenderedHtml: PRICING_PRE_RENDER_HTML
+      schemaJsonLd: PRICING_SCHEMA_JSON_LD
     });
   }
 
@@ -696,8 +686,7 @@ export async function applyUniversalSsr(
       title: 'Frequently Asked Questions & Hardware Guide | CHIP NG Nigeria',
       description: 'Everything you need to know about CHIP NG contactless smart business cards. How NFC works, compatibility, delivery times, and vCard address book saving in Nigeria.',
       canonical: 'https://www.chipng.com/faq',
-      schemaJsonLd: FAQ_SCHEMA_JSON_LD,
-      preRenderedHtml: FAQ_PRE_RENDER_HTML
+      schemaJsonLd: FAQ_SCHEMA_JSON_LD
     });
   }
 
@@ -734,57 +723,11 @@ export async function applyUniversalSsr(
       ]
     });
 
-    const commercialPreRender = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #18181b; background: #ffffff; min-height: 100vh; padding: 48px 16px 80px 16px;">
-    <main style="max-width: 960px; margin: 0 auto; line-height: 1.6;">
-      <header style="text-align: center; margin-bottom: 48px;">
-        <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: #eef2ff; color: #4f46e5; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
-          ${escapeHtml(page.heroBadge)}
-        </span>
-        <h1 style="font-size: 42px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 16px 0; color: #09090b;">
-          ${escapeHtml(page.headline)}
-        </h1>
-        <p style="font-size: 18px; color: #52525b; max-width: 720px; margin: 0 auto;">
-          ${escapeHtml(page.subheadline)}
-        </p>
-      </header>
-
-      <section style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; margin-bottom: 40px;">
-        <h2 style="font-size: 22px; font-weight: 800; margin: 0 0 12px 0;">Executive Overview</h2>
-        <p style="font-size: 15px; color: #334155; line-height: 1.7; margin: 0;">${escapeHtml(page.overview)}</p>
-      </section>
-
-      <section style="margin-bottom: 48px;">
-        <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 20px;">Why Nigerian Dealmakers Choose CHIP NG</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
-          ${page.keyBenefits.map(b => `
-            <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; background: #ffffff;">
-              <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 8px 0; color: #0f172a;">${escapeHtml(b.title)}</h3>
-              <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.6;">${escapeHtml(b.description)}</p>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-
-      <section style="background: #09090b; color: #ffffff; padding: 40px; border-radius: 24px; text-align: center;">
-        <h2 style="font-size: 28px; font-weight: 900; margin: 0 0 12px 0;">Order Your Card in Nigeria</h2>
-        <p style="font-size: 15px; color: #a1a1aa; margin: 0 0 24px 0;">PVC Smart Card (₦30,000 / ₦35,000) • Metal Smart Card (₦50,000) • Metal Debit Card (₦80,000–₦100,000)</p>
-        <a href="/buy-card" style="display: inline-block; padding: 14px 32px; background: #D2F843; color: #09090b; font-weight: 800; font-size: 14px; border-radius: 999px; text-decoration: none;">
-          Order Online Now — 24h Express Delivery
-        </a>
-      </section>
-    </main>
-  </div>
-</div>
-    `;
-
     return injectSeoMetadata(output, {
       title: page.metaTitle,
       description: page.metaDescription,
       canonical,
-      schemaJsonLd: commercialSchema,
-      preRenderedHtml: commercialPreRender
+      schemaJsonLd: commercialSchema
     });
   }
 
