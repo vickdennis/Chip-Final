@@ -45,7 +45,7 @@ export const COMMERCIAL_PAGES: Record<string, CommercialPageInfo> = {
     faqs: [
       { question: 'Does the other person need an app to scan my CHIP card?', answer: 'No! The recipient does not need any app. When you tap the card against their phone, their native web browser automatically launches your CHIP NG profile.' },
       { question: 'How long does delivery take across Nigeria?', answer: 'Orders within Lagos dispatch in 24–48 hours. Orders to Abuja, Port Harcourt, and other states arrive within 2–4 business days via DHL Express and GIG Logistics.' },
-      { question: 'Can I link my Nigerian bank account or payment details?', answer: 'Yes! Your digital bio link supports bank account transfer details, Paystack checkout links, and payment links alongside your WhatsApp and social channels.' }
+      { question: 'Can I link my Nigerian bank account or payment details?', answer: 'Yes! Your digital bio link supports bank account transfer details, Flutterwave checkout links, and payment links alongside your WhatsApp and social channels.' }
     ]
   },
 

@@ -75,7 +75,7 @@ export default function RefundPolicyView({
                 Digital Services & Themes
               </h2>
               <p>
-                All digital bio profiles on CHIP NG include a free lifetime tier. Digital theme and pro feature upgrades are processed securely via Paystack. If you experience technical difficulties with any digital add-on, our engineering team will resolve it or process a refund within 5 business days.
+                All digital bio profiles on CHIP NG include a free lifetime tier. Digital theme and pro feature upgrades are processed securely via Flutterwave. If you experience technical difficulties with any digital add-on, our engineering team will resolve it or process a refund within 5 business days.
               </p>
             </section>
           </div>

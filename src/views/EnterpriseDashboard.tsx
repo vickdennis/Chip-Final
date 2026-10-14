@@ -5,7 +5,7 @@ import {
   Building2, Users, CreditCard, Palette, BarChart, 
   Settings, LogOut, ArrowLeft, Plus, Check, Trash2, X, Activity, Eye, MousePointerClick
 } from 'lucide-react';
-import { PaystackButton } from 'react-paystack';
+import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import BrandLogo from '../components/BrandLogo';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -252,15 +252,31 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
             >
               Back to Personal
             </button>
-            <PaystackButton
-              reference={`ENT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
-              email={profile?.contact_email || profile?.email || 'admin@example.com'}
-              amount={99000 * 100}
-              publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-              text="Subscribe (₦99,000/mo)"
-              onSuccess={handleCreateEnterpriseSuccess}
+            <button
+              type="button"
+              onClick={async () => {
+                const txRef = `ENT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+                try {
+                  await openFlutterwavePayment({
+                    txRef,
+                    amount: 99000,
+                    currency: 'NGN',
+                    customer: {
+                      email: profile?.contact_email || profile?.email || 'admin@example.com',
+                      name: profile?.name || 'Enterprise Admin',
+                    },
+                    title: 'CHIP NG — Enterprise Fleet Plan',
+                    description: 'Enterprise Organization Fleet Subscription (₦99,000/mo)',
+                    onSuccess: handleCreateEnterpriseSuccess,
+                  });
+                } catch (err: any) {
+                  alert(err?.message || 'Failed to open Flutterwave gateway');
+                }
+              }}
               className="flex-1 py-3.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
-            />
+            >
+              Subscribe (₦99,000/mo)
+            </button>
           </div>
         </div>
       </div>
@@ -540,25 +556,41 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                  </div>
 
                  <div className="pt-2">
-                   <PaystackButton
-                     reference={`SEAT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
-                     email={profile?.contact_email || profile?.email || 'user@example.com'}
-                     amount={25000 * 100}
-                     publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                     text="Purchase Additional Seats (₦25,000 / 10 seats)"
-                     onSuccess={async () => {
-                        const { error } = await supabase.from('enterprises').update({
-                           total_seats: enterprise.total_seats + 10
-                        }).eq('id', enterprise.id);
-                        if (!error) {
-                           alert('Seats added successfully!');
-                           fetchEnterpriseData();
-                        } else {
-                           alert('Failed to add seats. Contact support.');
-                        }
+                   <button
+                     type="button"
+                     onClick={async () => {
+                       const txRef = `SEAT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+                       try {
+                         await openFlutterwavePayment({
+                           txRef,
+                           amount: 25000,
+                           currency: 'NGN',
+                           customer: {
+                             email: profile?.contact_email || profile?.email || 'user@example.com',
+                             name: profile?.name || 'Enterprise Admin',
+                           },
+                           title: 'CHIP NG — 10 Additional Seats',
+                           description: 'Add 10 employee seats to enterprise organization',
+                           onSuccess: async () => {
+                              const { error } = await supabase.from('enterprises').update({
+                                 total_seats: enterprise.total_seats + 10
+                              }).eq('id', enterprise.id);
+                              if (!error) {
+                                 alert('Seats added successfully!');
+                                 fetchEnterpriseData();
+                              } else {
+                                 alert('Failed to add seats. Contact support.');
+                              }
+                           },
+                         });
+                       } catch (err: any) {
+                         alert(err?.message || 'Failed to open Flutterwave gateway');
+                       }
                      }}
                      className="w-full py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer"
-                   />
+                   >
+                     Purchase Additional Seats (₦25,000 / 10 seats)
+                   </button>
                  </div>
               </div>
             </div>

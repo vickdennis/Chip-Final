@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { usePaystackPayment } from 'react-paystack';
-import PaystackPop from '@paystack/inline-js';
 import { CardCustomizationData } from './CardCustomizerModal';
 import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import { DhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
+import { FLUTTERWAVE_PUBLIC_KEY, openFlutterwavePayment } from '../../utils/flutterwaveClient';
 
 interface CheckoutOnboardingModalProps {
   isOpen: boolean;
@@ -14,21 +13,17 @@ interface CheckoutOnboardingModalProps {
   onNavigate?: (view: any) => void;
 }
 
-const PAYSTACK_PUBLIC_KEY =
-  (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY ||
-  'pk_live_98c73643bf533425b945bb3c328918539f3100ca';
-
 export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = ({
   isOpen,
   onClose,
   data,
   onNavigate,
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'transfer'>('paystack');
+  const [paymentMethod, setPaymentMethod] = useState<'flutterwave' | 'transfer'>('flutterwave');
   const [copiedBank, setCopiedBank] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paystackError, setPaystackError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Onboarding profile setup state
   const [profileBio, setProfileBio] = useState('Connecting leaders and creators with next-generation NFC technology.');
@@ -62,56 +57,17 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
   const vipQueuePrice = bumpVipQueue ? 5000 : 0;
   const totalAmountNgn = basePrice - discountAmount + phoneTagPrice + vipQueuePrice;
-  const totalAmountKobo = totalAmountNgn * 100;
-
-  // Track TikTok InitiateCheckout when checkout modal opens
-  useEffect(() => {
-    if (isOpen && data) {
-      trackTikTokEvent('InitiateCheckout', {
-        content_type: 'product',
-        content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
-        content_id: data.tier,
-        quantity: 1,
-        value: totalAmountNgn,
-        currency: 'NGN',
-      });
-    }
-  }, [isOpen, data, totalAmountNgn]);
-
-  // Hook config for react-paystack fallback
-  const fallbackPaystackConfig = {
-    reference: `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    email: data?.email?.trim() || 'customer@chipng.com',
-    amount: totalAmountKobo,
-    publicKey: PAYSTACK_PUBLIC_KEY,
-    currency: 'NGN',
-    metadata: {
-      name: data?.customerName || data?.name || 'Customer',
-      phone: data?.whatsapp || '',
-      custom_fields: [
-        { display_name: 'Card Tier', variable_name: 'card_tier', value: data?.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)' },
-        { display_name: 'Surface Name', variable_name: 'surface_name', value: data?.name || '' },
-        { display_name: 'Surface Title', variable_name: 'surface_title', value: data?.title || '' },
-        { display_name: 'Handle', variable_name: 'handle', value: data?.handle || '' },
-        { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
-        { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
-      ],
-    },
-  };
-
-  const initializePaymentFallback = usePaystackPayment(fallbackPaystackConfig);
-
   if (!isOpen) return null;
 
-  const handlePaystackSuccess = async (reference: any) => {
+  const handleFlutterwaveSuccess = async (reference: any) => {
     setIsProcessing(true);
-    setPaystackError(null);
-    const refString = reference?.reference || reference?.trxref || `CHIP-${Date.now()}`;
+    setPaymentError(null);
+    const refString = reference?.tx_ref || reference?.transaction_id || reference?.reference || reference?.trxref || `CHIP-${Date.now()}`;
     setPaymentSuccess({ ...reference, reference: refString });
 
     try {
-      // Secure Server-Side Paystack Verification and Order Persistence
-      const verifyRes = await fetch(`/api/paystack/verify/${encodeURIComponent(refString)}`, {
+      // Secure Server-Side Flutterwave Verification and Order Persistence
+      const verifyRes = await fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(refString)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -119,7 +75,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           email: data.email?.trim() || 'customer@chipng.com',
           phone: data.whatsapp || '',
           card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
-          amount: totalAmountKobo,
+          amount: totalAmountNgn,
         }),
       });
 
@@ -156,7 +112,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
     }
   };
 
-  const handlePaystackClose = () => {
+  const handleFlutterwaveClose = () => {
     setIsProcessing(false);
     // Trigger automated follow-up webhook for abandoned checkout
     fetch('/api/funnel/webhook-trigger', {
@@ -174,79 +130,47 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
     }).catch(() => {});
   };
 
-  // Dedicated robust payment launcher
-  const triggerPaystack = () => {
-    setPaystackError(null);
+  // Dedicated robust Flutterwave payment launcher
+  const triggerFlutterwave = async () => {
+    setPaymentError(null);
     setIsProcessing(true);
 
     const txRef = `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const customerEmail = data.email?.trim() || 'customer@chipng.com';
 
-    const transactionOptions = {
-      key: PAYSTACK_PUBLIC_KEY,
-      publicKey: PAYSTACK_PUBLIC_KEY,
-      email: customerEmail,
-      amount: totalAmountKobo,
-      currency: 'NGN',
-      ref: txRef,
-      reference: txRef,
-      firstname: (data.customerName || data.name || '').split(' ')[0] || 'Valued',
-      lastname: (data.customerName || data.name || '').split(' ').slice(1).join(' ') || 'Customer',
-      phone: data.whatsapp || '',
-      metadata: {
-        name: data.customerName || data.name,
-        phone: data.whatsapp,
-        custom_fields: [
-          { display_name: 'Card Tier', variable_name: 'card_tier', value: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)' },
-          { display_name: 'Surface Name', variable_name: 'surface_name', value: data.name },
-          { display_name: 'Surface Title', variable_name: 'surface_title', value: data.title },
-          { display_name: 'Handle', variable_name: 'handle', value: data.handle },
-          { display_name: 'Phone Tap Sticker Add-on', variable_name: 'bump_phone_tag', value: bumpPhoneTag ? 'Yes (₦7,500)' : 'No' },
-          { display_name: 'VIP Production & Analytics', variable_name: 'bump_vip_queue', value: bumpVipQueue ? 'Yes (₦5,000)' : 'No' },
-        ],
-      },
-    };
-
     try {
-      const paystack = new PaystackPop();
-      paystack.newTransaction({
-        ...transactionOptions,
+      await openFlutterwavePayment({
+        txRef,
+        amount: totalAmountNgn,
+        currency: 'NGN',
+        customer: {
+          email: customerEmail,
+          phone_number: data.whatsapp || '',
+          name: data.customerName || data.name || 'Valued Customer',
+        },
+        title: `CHIP NG — ${data.tier === 'plastic' ? 'Custom Smart PVC Card' : 'Laser-Engraved Metal Card'}`,
+        description: `CHIP NG Contactless Card (${data.material})`,
+        meta: {
+          card_tier: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
+          surface_name: data.name,
+          surface_title: data.title,
+          handle: data.handle,
+          bump_phone_tag: bumpPhoneTag ? 'Yes (₦7,500)' : 'No',
+          bump_vip_queue: bumpVipQueue ? 'Yes (₦5,000)' : 'No',
+        },
         onSuccess: (res: any) => {
           setIsProcessing(false);
-          handlePaystackSuccess(res || { reference: txRef });
+          handleFlutterwaveSuccess(res || { tx_ref: txRef });
         },
-        onCancel: () => {
+        onClose: () => {
           setIsProcessing(false);
-          handlePaystackClose();
-        },
-        onError: (err: any) => {
-          console.error('Paystack popup error:', err);
-          setIsProcessing(false);
-          setPaystackError(err?.message || 'Unable to open Paystack payment modal. You can choose Direct Bank Transfer below.');
-        },
-        onLoad: () => {
-          setIsProcessing(false);
+          handleFlutterwaveClose();
         },
       });
     } catch (err: any) {
-      console.warn('PaystackPop newTransaction failed, using hook fallback:', err);
-      try {
-        initializePaymentFallback({
-          config: transactionOptions as any,
-          onSuccess: (res: any) => {
-            setIsProcessing(false);
-            handlePaystackSuccess(res || { reference: txRef });
-          },
-          onClose: () => {
-            setIsProcessing(false);
-            handlePaystackClose();
-          },
-        });
-      } catch (hookErr: any) {
-        console.error('All Paystack initialization failed:', hookErr);
-        setIsProcessing(false);
-        setPaystackError('Paystack checkout could not open. Please use Direct Bank Transfer below for instant dispatch.');
-      }
+      console.error('Flutterwave popup error:', err);
+      setIsProcessing(false);
+      setPaymentError(err?.message || 'Unable to open Flutterwave payment modal. You can choose Direct Bank Transfer below.');
     }
   };
 
@@ -266,7 +190,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
       `📌 *Order Ref:* ${refString}`,
       `💳 *Card Tier:* ${tierDisplay} NFC Card (${data.material || 'Standard'})`,
       `💰 *Amount Paid:* ${formattedAmount}`,
-      '🏦 *Destination Bank:* Okoye Chuka Victor (Opay: 8100764154)',
+      '🏦 *Destination Bank:* CHUKA VICTOR OKOYE (OPay: 611 287 2208)',
       '',
       '👤 *Customer Details:*',
       `• Name: ${cleanCustomerName}`,
@@ -297,16 +221,16 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
     }
 
     // 2. Register order and transition to Stage 6B onboarding
-    handlePaystackSuccess({ reference: refString });
+    handleFlutterwaveSuccess({ reference: refString });
   };
 
   const copyBankDetails = () => {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText('8100764154');
+        navigator.clipboard.writeText('6112872208');
       } else {
         const textarea = document.createElement('textarea');
-        textarea.value = '8100764154';
+        textarea.value = '6112872208';
         textarea.style.position = 'fixed';
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
@@ -338,7 +262,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         {!paymentSuccess && (
           <button
             onClick={() => {
-              handlePaystackClose();
+              handleFlutterwaveClose();
               onClose();
             }}
             className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-20"
@@ -473,23 +397,23 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 <button
                   type="button"
                   onClick={() => {
-                    setPaystackError(null);
-                    setPaymentMethod('paystack');
+                    setPaymentError(null);
+                    setPaymentMethod('flutterwave');
                   }}
                   className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
-                    paymentMethod === 'paystack'
+                    paymentMethod === 'flutterwave'
                       ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
                       : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
                   }`}
                 >
                   <CreditCard className="w-4 h-4 text-[#B600A8]" />
-                  <span>Card / USSD / Apple Pay</span>
+                  <span>Flutterwave (Card / USSD / Apple Pay)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
-                    setPaystackError(null);
+                    setPaymentError(null);
                     setPaymentMethod('transfer');
                   }}
                   className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
@@ -505,14 +429,14 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             </div>
 
             {/* Payment Action Pane */}
-            {paymentMethod === 'paystack' ? (
+            {paymentMethod === 'flutterwave' ? (
               <div className="flex flex-col gap-3">
-                {paystackError && (
+                {paymentError && (
                   <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2.5 text-xs text-amber-200">
                     <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="font-semibold text-amber-300 mb-1">Paystack Notice</p>
-                      <p className="leading-relaxed opacity-90">{paystackError}</p>
+                      <p className="font-semibold text-amber-300 mb-1">Flutterwave Notice</p>
+                      <p className="leading-relaxed opacity-90">{paymentError}</p>
                       <button
                         type="button"
                         onClick={() => setPaymentMethod('transfer')}
@@ -527,18 +451,18 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 <button
                   type="button"
                   disabled={isProcessing}
-                  onClick={triggerPaystack}
+                  onClick={triggerFlutterwave}
                   className="w-full py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-purple-950/50 active:scale-98 transition-all disabled:opacity-75 disabled:cursor-wait"
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Connecting to Paystack...</span>
+                      <span>Connecting to Flutterwave...</span>
                     </>
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      <span>Pay ₦{totalAmountNgn.toLocaleString()} with Paystack</span>
+                      <span>Pay ₦{totalAmountNgn.toLocaleString()} with Flutterwave</span>
                     </>
                   )}
                 </button>
@@ -559,7 +483,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <div>
                       <span className="font-bold text-white block">Bank-Grade Checkout Security</span>
                       <span className="text-white/60 text-[11px] leading-relaxed">
-                        Processed via Paystack using 256-bit SSL encryption. We never see or store your banking credentials.
+                        Processed via Flutterwave using PCI-DSS Level 1 certified 256-bit encryption. We never see or store your banking credentials.
                       </span>
                     </div>
                   </div>
@@ -590,13 +514,13 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   <div className="flex flex-col">
                     <span className="text-[10px] text-white/50 uppercase">Bank Name</span>
                     <span className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
-                      <span>Opay</span>
+                      <span>OPay</span>
                       <span className="text-[10px] text-white/50 font-normal">(OPay Digital Services)</span>
                     </span>
                     <span className="text-[10px] text-white/50 uppercase mt-1.5">Account Number</span>
-                    <span className="text-xl font-mono font-black text-amber-300 tracking-wider">8100764154</span>
+                    <span className="text-xl font-mono font-black text-amber-300 tracking-wider">611 287 2208</span>
                     <span className="text-[10px] text-white/50 uppercase mt-1">Account Name</span>
-                    <span className="text-sm font-bold text-white tracking-wide">Okoye Chuka Victor</span>
+                    <span className="text-sm font-bold text-white tracking-wide">CHUKA VICTOR OKOYE</span>
                   </div>
 
                   <button
@@ -610,7 +534,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 </div>
 
                 <p className="text-[11px] text-white/60">
-                  After transferring <strong>₦{totalAmountNgn.toLocaleString()}</strong> to <strong>Okoye Chuka Victor (Opay: 8100764154)</strong>, click the button below to send your transfer receipt directly to our WhatsApp Concierge for instant dispatch queueing:
+                  After transferring <strong>₦{totalAmountNgn.toLocaleString()}</strong> to <strong>CHUKA VICTOR OKOYE (OPay: 611 287 2208)</strong>, click the button below to send your transfer receipt directly to our WhatsApp Concierge for instant dispatch queueing:
                 </p>
 
                 <button

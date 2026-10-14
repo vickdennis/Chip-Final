@@ -2,8 +2,8 @@ import React from 'react';
 
 export const MakroMarquee: React.FC = () => {
   const brands = [
-    { name: 'Paystack', symbol: 'PAYSTACK' },
     { name: 'Flutterwave', symbol: 'FLUTTERWAVE' },
+    { name: 'OPay', symbol: 'OPAY' },
     { name: 'Techstars', symbol: 'TECHSTARS' },
     { name: 'PiggyVest', symbol: 'PIGGYVEST' },
     { name: 'Moniepoint', symbol: 'MONIEPOINT' },

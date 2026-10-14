@@ -361,7 +361,7 @@ export default function AdminPixelManager() {
                     <Play className="w-3 h-3 text-emerald-500" />
                   </div>
                   <span className="font-bold text-xs sm:text-sm text-neutral-950 dark:text-white block">CompletePayment</span>
-                  <p className="text-[11px] text-neutral-400 mt-1">Paystack purchase</p>
+                  <p className="text-[11px] text-neutral-400 mt-1">Flutterwave purchase</p>
                 </div>
                 <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-2">Test Dispatch →</span>
               </button>
@@ -407,7 +407,7 @@ export default function AdminPixelManager() {
             <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs text-neutral-600 dark:text-neutral-400 flex items-start gap-2.5">
               <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
               <span>
-                Dual-tracking active: All link-in-bio page views, buy box clicks, and Paystack checkouts broadcast both TikTok Pixel and Meta events synchronously.
+                Dual-tracking active: All link-in-bio page views, buy box clicks, and Flutterwave checkouts broadcast both TikTok Pixel and Meta events synchronously.
               </span>
             </div>
           </div>

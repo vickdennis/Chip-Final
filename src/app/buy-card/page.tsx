@@ -175,7 +175,7 @@ export default function BuyCardPage() {
           'Tier 2: Smart Metal Card (24g solid 304 steel) — ₦50,000',
           'Tier 3: Metal Debit Card + Custom Design (28g alloy, EMV transplant) — ₦80,000–₦100,000',
           'Delivery: 24–48h express Lagos; 2–4 days nationwide via DHL/GIGL',
-          'Payment: Paystack (Cards, Bank Transfer, USSD) or Cash on Delivery (Lagos)'
+          'Payment: Flutterwave (Cards, Bank Transfer, USSD, Apple Pay) or Cash on Delivery (Lagos)'
         ]}
         citationSource="CHIP NG Official Pricing Table 2026"
       />

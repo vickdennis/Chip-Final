@@ -5,7 +5,7 @@ import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, User
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { SocialMediaIconBadge, SocialIconStyle } from '../components/social/SocialMediaIconBadge';
-import { PaystackButton } from 'react-paystack';
+import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import { QRCodeSVG } from 'qrcode.react';
 import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
@@ -968,44 +968,65 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                         <span className="text-[10px] opacity-50">+ ₦200 fee</span>
                       </div>
                       <p className="text-[13px] opacity-60 mb-4 flex-1 line-clamp-3">{p.description}</p>
-                      <PaystackButton
-                        reference={'' + Math.floor((Math.random() * 1000000000) + 1)}
-                        email={profile?.contact_email || profile?.email || 'guest@chipng.com'}
-                        amount={Math.round((Number(p.price) + 200) * 100)}
-                        publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                        text={`Buy Now • ₦${(Number(p.price) + 200).toLocaleString()}`}
-                        onSuccess={async (response: any) => {
+                      <button
+                        type="button"
+                        onClick={async () => {
                           try {
-                            await supabase.from('purchases').insert({
-                              product_id: p.id,
-                              seller_id: p.profile_id,
-                              buyer_email: 'guest@chipng.com',
-                              amount: p.price,
-                              platform_fee: p.price * 0.05,
-                              net_earnings: p.price * 0.95,
-                              reference: response.reference,
-                              status: 'success'
+                            const txRef = `PROD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                            const priceTotal = Number(p.price) + 200;
+                            await openFlutterwavePayment({
+                              txRef,
+                              amount: priceTotal,
+                              currency: 'NGN',
+                              customer: {
+                                email: profile?.contact_email || profile?.email || 'guest@chipng.com',
+                                name: profile?.name || 'Customer',
+                              },
+                              title: `CHIP NG — ${p.name}`,
+                              description: `Digital product instant download: ${p.name}`,
+                              meta: {
+                                product_id: p.id,
+                                seller_id: p.profile_id,
+                              },
+                              onSuccess: async (response: any) => {
+                                const ref = response?.tx_ref || response?.transaction_id || txRef;
+                                try {
+                                  await supabase.from('purchases').insert({
+                                    product_id: p.id,
+                                    seller_id: p.profile_id,
+                                    buyer_email: 'guest@chipng.com',
+                                    amount: p.price,
+                                    platform_fee: p.price * 0.05,
+                                    net_earnings: p.price * 0.95,
+                                    reference: ref,
+                                    status: 'success'
+                                  });
+                                  toast.success('Payment complete! Reference: ' + ref + '. Accessing your purchased item...');
+                                  if (p.file_url) {
+                                    const link = document.createElement('a');
+                                    link.href = p.file_url;
+                                    link.setAttribute('download', p.name || 'download');
+                                    link.setAttribute('target', '_blank');
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                  } else {
+                                    toast.info('This product does not have a downloadable file attached.');
+                                  }
+                                } catch(err) {
+                                  console.error(err);
+                                  toast.error('Error processing purchase.');
+                                }
+                              },
                             });
-                            toast.success('Payment complete! Reference: ' + response.reference + '. Accessing your purchased item...');
-                            if (p.file_url) {
-                              const link = document.createElement('a');
-                              link.href = p.file_url;
-                              link.setAttribute('download', p.name || 'download');
-                              link.setAttribute('target', '_blank');
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-                            } else {
-                              toast.info('This product does not have a downloadable file attached.');
-                            }
-                          } catch(err) {
-                            console.error(err);
-                            toast.error('Error processing purchase.');
+                          } catch (e: any) {
+                            toast.error(e?.message || 'Failed to open Flutterwave checkout');
                           }
                         }}
-                        onClose={() => {}}
                         className={`w-full ${cardBgClass} text-current hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto cursor-pointer`}
-                      />
+                      >
+                        Buy Now • ₦{(Number(p.price) + 200).toLocaleString()}
+                      </button>
                     </div>
                   </div>
                 ))}

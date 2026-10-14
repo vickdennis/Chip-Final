@@ -55,7 +55,7 @@ export default function PrivacyPolicyView({ onNavigate, isDarkMode, toggleDarkMo
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Contact & Profile Identifiers:</strong> Name, work email, verified handle, custom links, and optional vCard attributes you elect to display.</li>
-              <li><strong>Financial Telemetry:</strong> Invoiced amounts, settlement status, and recurring revenue schedules. Payment card processing is handled via PCI-DSS Level 1 compliant partners (Stripe, Paystack). We never store raw card numbers.</li>
+              <li><strong>Financial Telemetry:</strong> Invoiced amounts, settlement status, and recurring revenue schedules. Payment card processing is handled via PCI-DSS Level 1 compliant partners (Stripe, Flutterwave). We never store raw card numbers.</li>
               <li><strong>Hardware & NFC Telemetry:</strong> Anonymized interaction counters (e.g., tap frequency, browser agent) to calculate conversion analytics without capturing individual visitors' private device data.</li>
             </ul>
 

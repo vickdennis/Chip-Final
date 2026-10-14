@@ -40,7 +40,7 @@ export default function AdminSalesManager() {
             NFC Card Sales & Orders
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-            Real-time physical card checkout logs, buyer shipping details, and Paystack settlement status.
+            Real-time physical card checkout logs, buyer shipping details, and Flutterwave settlement status.
           </p>
         </div>
         <button 
@@ -95,7 +95,7 @@ export default function AdminSalesManager() {
         <div className="p-6 border-b border-neutral-200/80 dark:border-white/10 flex items-center justify-between">
           <div>
             <h3 className="font-bold text-neutral-950 dark:text-white text-base">Customer Transaction History</h3>
-            <p className="text-xs text-neutral-400 mt-0.5">Direct records received via Paystack webhook and direct checkout</p>
+            <p className="text-xs text-neutral-400 mt-0.5">Direct records received via Flutterwave webhook and direct checkout</p>
           </div>
           <span className="text-xs font-semibold px-3 py-1 rounded-full bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300">
             {sales.length} records

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { PaystackButton } from 'react-paystack';
+import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
@@ -1058,43 +1058,69 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     </p>
                   </div>
 
-                  <PaystackButton
-                    reference={`SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`}
-                    email={profile.contact_email || profile.email || 'user@example.com'}
-                    amount={Math.round((Number(selectedNfcCard?.price || 0) + 200) * 100)}
-                    publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                    text="Order & Proceed to Paystack"
-                    onSuccess={async (response) => {
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!checkoutName || !checkoutPhone || !checkoutAddress || !selectedNfcCard) {
+                        alert('Please fill in your name, WhatsApp phone, and delivery address.');
+                        return;
+                      }
+                      const txRef = `SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+                      const priceTotal = Number(selectedNfcCard?.price || 0) + 200;
                       try {
-                        await supabase.from('purchases').insert({
-                          product_id: selectedNfcCard.id,
-                          seller_id: null,
-                          buyer_email: checkoutName || profile.email || 'Guest',
-                          amount: selectedNfcCard.price,
-                          platform_fee: selectedNfcCard.price * 0.05,
-                          net_earnings: selectedNfcCard.price * 0.95,
-                          reference: response.reference,
-                          status: 'success'
+                        await openFlutterwavePayment({
+                          txRef,
+                          amount: priceTotal,
+                          currency: 'NGN',
+                          customer: {
+                            email: profile.contact_email || profile.email || 'user@example.com',
+                            name: checkoutName,
+                            phone_number: checkoutPhone,
+                          },
+                          title: `CHIP NG — ${selectedNfcCard.name}`,
+                          description: `NFC Smart Card Order for ${checkoutName}`,
+                          meta: {
+                            product_id: selectedNfcCard.id,
+                            delivery_address: checkoutAddress,
+                          },
+                          onSuccess: async (response: any) => {
+                            const ref = response?.tx_ref || response?.transaction_id || txRef;
+                            try {
+                              await supabase.from('purchases').insert({
+                                product_id: selectedNfcCard.id,
+                                seller_id: null,
+                                buyer_email: checkoutName || profile.email || 'Guest',
+                                amount: selectedNfcCard.price,
+                                platform_fee: selectedNfcCard.price * 0.05,
+                                net_earnings: selectedNfcCard.price * 0.95,
+                                reference: ref,
+                                status: 'success'
+                              });
+                              alert('Payment complete! We will process your NFC card order shortly.');
+                              
+                              const message = `*New NFC Card Order from ${checkoutName} (${checkoutPhone})*\n\n*Item:* ${selectedNfcCard.name} (₦${Number(selectedNfcCard.price).toLocaleString()})\n*Delivery Address:* ${checkoutAddress}\n*Reference:* ${ref}`;
+                              const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
+                              window.open(waUrl, '_blank');
+                              
+                              setSelectedNfcCard(null);
+                              setCheckoutName('');
+                              setCheckoutPhone('');
+                              setCheckoutAddress('');
+                            } catch(err) {
+                              console.error(err);
+                              alert('Error processing purchase.');
+                            }
+                          },
                         });
-                        alert('Payment complete! We will process your NFC card order shortly.');
-                        
-                        const message = `*New NFC Card Order from ${checkoutName} (${checkoutPhone})*\n\n*Item:* ${selectedNfcCard.name} (₦${Number(selectedNfcCard.price).toLocaleString()})\n*Delivery Address:* ${checkoutAddress}\n*Reference:* ${response.reference}`;
-                        const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
-                        window.open(waUrl, '_blank');
-                        
-                        setSelectedNfcCard(null);
-                        setCheckoutName('');
-                        setCheckoutPhone('');
-                        setCheckoutAddress('');
-                      } catch(err) {
-                        console.error(err);
-                        alert('Error processing purchase.');
+                      } catch (err: any) {
+                        alert(err?.message || 'Failed to open Flutterwave gateway');
                       }
                     }}
-                    onClose={() => {}}
-                    className="w-full bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 transition-all font-bold text-sm py-3.5 rounded-full flex items-center justify-center cursor-pointer text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!selectedNfcCard || !checkoutName || !checkoutPhone || !checkoutAddress}
-                  />
+                    className="w-full bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 transition-all font-bold text-sm py-3.5 rounded-full flex items-center justify-center cursor-pointer text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Order & Proceed to Flutterwave
+                  </button>
                 </div>
               </section>
 
@@ -1397,37 +1423,54 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             Cancel Subscription
                           </button>
                         ) : (
-                          <PaystackButton
-                            reference={(new Date()).getTime().toString()}
-                            email={profile.contact_email || profile.email || 'user@example.com'}
-                            amount={3000 * verificationMonths * 100}
-                            publicKey={(import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_98c73643bf533425b945bb3c328918539f3100ca'}
-                            text="Get Verified"
-                            onSuccess={async (ref) => {
-                              setProfile({ ...profile, is_verified: true });
-                              const { data: { user } } = await supabase.auth.getUser();
-                              if (user) {
-                                await supabase.from('profiles').update({ is_verified: true }).eq('id', user.id);
-                                try {
-                                  await supabase.from('purchases').insert([{
-                                    buyer_email: profile.contact_email || profile.email || 'user@example.com',
-                                    amount: 3000 * verificationMonths,
-                                    platform_fee: 3000 * verificationMonths,
-                                    net_earnings: 0,
-                                    reference: ref.reference || ('VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase()),
-                                    purchase_type: 'verification',
-                                    seller_id: user.id,
-                                    status: 'expires_' + (Date.now() + verificationMonths * 30 * 24 * 60 * 60 * 1000)
-                                  }]);
-                                } catch (e) {
-                                  console.error("Failed to record verification purchase", e);
-                                }
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const txRef = 'VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                              const verifyAmount = 3000 * verificationMonths;
+                              try {
+                                await openFlutterwavePayment({
+                                  txRef,
+                                  amount: verifyAmount,
+                                  currency: 'NGN',
+                                  customer: {
+                                    email: profile.contact_email || profile.email || 'user@example.com',
+                                    name: profile.name || 'User',
+                                  },
+                                  title: 'CHIP NG — Verification Badge',
+                                  description: `Verified badge subscription for ${verificationMonths} month(s)`,
+                                  onSuccess: async (ref: any) => {
+                                    const refStr = ref?.tx_ref || ref?.transaction_id || txRef;
+                                    setProfile({ ...profile, is_verified: true });
+                                    const { data: { user } } = await supabase.auth.getUser();
+                                    if (user) {
+                                      await supabase.from('profiles').update({ is_verified: true }).eq('id', user.id);
+                                      try {
+                                        await supabase.from('purchases').insert([{
+                                          buyer_email: profile.contact_email || profile.email || 'user@example.com',
+                                          amount: verifyAmount,
+                                          platform_fee: verifyAmount,
+                                          net_earnings: 0,
+                                          reference: refStr,
+                                          purchase_type: 'verification',
+                                          seller_id: user.id,
+                                          status: 'expires_' + (Date.now() + verificationMonths * 30 * 24 * 60 * 60 * 1000)
+                                        }]);
+                                      } catch (e) {
+                                        console.error("Failed to record verification purchase", e);
+                                      }
+                                    }
+                                    alert('Payment successful! You are now verified.');
+                                  },
+                                });
+                              } catch (err: any) {
+                                alert(err?.message || 'Failed to open Flutterwave gateway');
                               }
-                              alert('Payment successful! You are now verified.');
                             }}
-                            onClose={() => {}}
                             className="px-5 py-2.5 text-xs font-bold rounded-full transition-all bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 shadow-sm cursor-pointer"
-                          />
+                          >
+                            Get Verified
+                          </button>
                         )}
                       </div>
                     </div>

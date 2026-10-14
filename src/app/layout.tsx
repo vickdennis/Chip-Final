@@ -115,7 +115,7 @@ const localBusinessSchema = {
   email: 'hello@chipng.com',
   priceRange: '₦₦',
   currenciesAccepted: 'NGN, USD, GBP',
-  paymentAccepted: 'Cash, Credit Card, Debit Card, Paystack, Bank Transfer',
+  paymentAccepted: 'Cash, Credit Card, Debit Card, Flutterwave, Bank Transfer',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Lekki Phase 1',

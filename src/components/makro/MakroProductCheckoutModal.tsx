@@ -18,11 +18,10 @@ import {
   Smartphone,
   ExternalLink
 } from 'lucide-react';
-import { usePaystackPayment } from 'react-paystack';
-import PaystackPop from '@paystack/inline-js';
 import { ShopProduct } from './MakroShop';
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import { toast } from '../Toast';
+import { FLUTTERWAVE_PUBLIC_KEY, openFlutterwavePayment } from '../../utils/flutterwaveClient';
 
 interface MakroProductCheckoutModalProps {
   isOpen: boolean;
@@ -30,10 +29,6 @@ interface MakroProductCheckoutModalProps {
   product: ShopProduct;
   onNavigate?: (view: any) => void;
 }
-
-const PAYSTACK_PUBLIC_KEY =
-  (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY ||
-  'pk_live_98c73643bf533425b945bb3c328918539f3100ca';
 
 const NIGERIAN_STATES = [
   'Lagos (Express 24-48h Delivery)',
@@ -93,7 +88,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
   // Add-ons & Payment options
   const [includePhoneTag, setIncludePhoneTag] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'transfer'>('paystack');
+  const [paymentMethod, setPaymentMethod] = useState<'flutterwave' | 'transfer'>('flutterwave');
   const [copiedBank, setCopiedBank] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
@@ -149,29 +144,6 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
     };
   }, [isOpen]);
 
-  // Paystack configuration
-  const paystackConfig = {
-    reference: `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    email: email.trim() || 'customer@chipng.com',
-    amount: totalPriceKobo,
-    publicKey: PAYSTACK_PUBLIC_KEY,
-    currency: 'NGN',
-    metadata: {
-      name: customerName || engravedName || 'Customer',
-      phone: whatsapp,
-      custom_fields: [
-        { display_name: 'Product Ordered', variable_name: 'product_name', value: product.name },
-        { display_name: 'Laser-Engraved Name', variable_name: 'engraved_name', value: engravedName },
-        { display_name: 'Surface Title', variable_name: 'surface_title', value: engravedTitle },
-        { display_name: 'Delivery State', variable_name: 'delivery_state', value: selectedState },
-        { display_name: 'Delivery Address', variable_name: 'delivery_address', value: deliveryAddress },
-        { display_name: 'Phone Tap Sticker Add-on', variable_name: 'phone_tag_addon', value: includePhoneTag ? 'Yes (+₦7,500)' : 'No' },
-      ],
-    },
-  };
-
-  const initializePaystackFallback = usePaystackPayment(paystackConfig);
-
   if (!isOpen) return null;
 
   const validateForm = () => {
@@ -197,12 +169,12 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
   const handlePaymentSuccess = async (reference: any) => {
     setIsProcessing(true);
-    const refString = reference?.reference || reference?.trxref || `CHIP-${Date.now()}`;
+    const refString = reference?.tx_ref || reference?.transaction_id || reference?.reference || reference?.trxref || `CHIP-${Date.now()}`;
     setPaymentSuccess({ ...reference, reference: refString });
 
     try {
-      // 1. Verify and record on backend
-      await fetch(`/api/paystack/verify/${encodeURIComponent(refString)}`, {
+      // 1. Verify and record on backend via Flutterwave verify endpoint
+      await fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(refString)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -210,7 +182,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
           email: email.trim(),
           phone: whatsapp,
           card_type: product.name,
-          amount: totalPriceKobo,
+          amount: totalPrice,
         }),
       }).catch(() => {});
 
@@ -247,7 +219,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
     }
   };
 
-  const handlePaystackCheckout = () => {
+  const handleFlutterwaveCheckout = async () => {
     if (!validateForm()) return;
 
     setIsProcessing(true);
@@ -255,59 +227,38 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
     const txRef = `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    const transactionOptions = {
-      key: PAYSTACK_PUBLIC_KEY,
-      publicKey: PAYSTACK_PUBLIC_KEY,
-      email: email.trim(),
-      amount: totalPriceKobo,
-      currency: 'NGN',
-      ref: txRef,
-      reference: txRef,
-      firstname: customerName.split(' ')[0] || 'Valued',
-      lastname: customerName.split(' ').slice(1).join(' ') || 'Customer',
-      phone: whatsapp,
-      metadata: {
-        name: customerName,
-        phone: whatsapp,
-        custom_fields: [
-          { display_name: 'Product Ordered', variable_name: 'product_name', value: product.name },
-          { display_name: 'Laser-Engraved Name', variable_name: 'engraved_name', value: engravedName || customerName },
-          { display_name: 'Title/Role', variable_name: 'engraved_title', value: engravedTitle },
-          { display_name: 'Delivery Address', variable_name: 'delivery_address', value: `${deliveryAddress}, ${selectedState}` },
-          { display_name: 'Add-on Phone Tag', variable_name: 'phone_tag_addon', value: includePhoneTag ? 'Yes (+₦7,500)' : 'No' },
-        ],
-      },
-    };
-
     try {
-      const paystack = new PaystackPop();
-      paystack.newTransaction({
-        ...transactionOptions,
+      await openFlutterwavePayment({
+        txRef,
+        amount: totalPrice,
+        currency: 'NGN',
+        customer: {
+          email: email.trim(),
+          name: customerName,
+          phone_number: whatsapp,
+        },
+        title: `CHIP NG — ${product.name}`,
+        description: `Custom Laser Engraved NFC Card (${selectedState})`,
+        meta: {
+          product_name: product.name,
+          engraved_name: engravedName || customerName,
+          engraved_title: engravedTitle,
+          delivery_address: `${deliveryAddress}, ${selectedState}`,
+          phone_tag_addon: includePhoneTag ? 'Yes (+₦7,500)' : 'No',
+        },
         onSuccess: (res: any) => {
           setIsProcessing(false);
-          handlePaymentSuccess(res || { reference: txRef });
+          handlePaymentSuccess(res || { tx_ref: txRef });
         },
-        onCancel: () => {
+        onClose: () => {
           setIsProcessing(false);
           toast.info('Payment window closed. Your order details are saved.');
         },
       });
-    } catch (err) {
-      console.warn('PaystackPop failed to launch, falling back to hook:', err);
-      try {
-        initializePaystackFallback({
-          onSuccess: (res: any) => {
-            setIsProcessing(false);
-            handlePaymentSuccess(res);
-          },
-          onClose: () => {
-            setIsProcessing(false);
-          },
-        });
-      } catch (e) {
-        setIsProcessing(false);
-        setErrorMessage('Failed to open payment gateway. Please select Bank Transfer or try again.');
-      }
+    } catch (err: any) {
+      setIsProcessing(false);
+      console.error('Flutterwave launch error:', err);
+      setErrorMessage(err.message || 'Failed to open Flutterwave gateway. Please try again or use Bank Transfer.');
     }
   };
 
@@ -325,6 +276,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
       `Hello CHIP NG Concierge, I just initiated a Direct Bank Transfer order on the homepage:\n\n` +
       `*Product:* ${product.name}\n` +
       `*Amount to Pay:* ₦${totalPrice.toLocaleString()}\n` +
+      `*Destination Bank:* CHUKA VICTOR OKOYE (OPay: 611 287 2208)\n` +
       `*Name on Card:* ${engravedName || customerName}\n` +
       `*Role/Company:* ${engravedTitle || 'N/A'}\n` +
       `*Recipient Name:* ${customerName}\n` +
@@ -764,15 +716,15 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                   <div className="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod('paystack')}
+                      onClick={() => setPaymentMethod('flutterwave')}
                       className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        paymentMethod === 'paystack'
+                        paymentMethod === 'flutterwave'
                           ? 'border-emerald-500 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 shadow-xs'
                           : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
                       }`}
                     >
                       <CreditCard className="w-4 h-4 text-emerald-500" />
-                      <span>Paystack (Cards / Bank / USSD)</span>
+                      <span>Flutterwave (Cards / Bank / USSD / Apple Pay)</span>
                     </button>
 
                     <button
@@ -793,22 +745,25 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                     <div className="p-4 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 space-y-3 text-xs">
                       <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-white/10">
                         <span className="text-neutral-500 font-mono">Bank Name</span>
-                        <span className="font-bold text-neutral-950 dark:text-white">Providus Bank / Moniepoint</span>
+                        <span className="font-bold text-neutral-950 dark:text-white flex items-center gap-1.5">
+                          <span>OPay</span>
+                          <span className="text-[10px] text-neutral-400 font-normal">(OPay Digital Services)</span>
+                        </span>
                       </div>
                       <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-white/10">
                         <span className="text-neutral-500 font-mono">Account Name</span>
-                        <span className="font-bold text-neutral-950 dark:text-white">CHIP NG TECHNOLOGIES LTD</span>
+                        <span className="font-bold text-neutral-950 dark:text-white tracking-wide">CHUKA VICTOR OKOYE</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-neutral-500 font-mono text-[11px]">Account Number</div>
-                          <div className="text-base font-extrabold text-neutral-950 dark:text-white font-mono tracking-wider">
-                            0128947264
+                          <div className="text-base sm:text-lg font-extrabold text-neutral-950 dark:text-white font-mono tracking-wider">
+                            611 287 2208
                           </div>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleCopyAccount('0128947264')}
+                          onClick={() => handleCopyAccount('6112872208')}
                           className="px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-xs font-semibold flex items-center gap-1.5 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 cursor-pointer shadow-2xs"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -846,22 +801,22 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                       </span>
                     </div>
 
-                    {paymentMethod === 'paystack' ? (
+                    {paymentMethod === 'flutterwave' ? (
                       <button
                         type="button"
-                        onClick={handlePaystackCheckout}
+                        onClick={handleFlutterwaveCheckout}
                         disabled={isProcessing}
                         className="group flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-full bg-[#D2F843] text-neutral-950 font-black text-xs sm:text-sm hover:opacity-95 active:scale-95 transition-all shadow-lg cursor-pointer disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Launching Paystack...</span>
+                            <span>Launching Flutterwave...</span>
                           </>
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            <span>Pay ₦{totalPrice.toLocaleString()} with Paystack</span>
+                            <span>Pay ₦{totalPrice.toLocaleString()} with Flutterwave</span>
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                           </>
                         )}
@@ -885,7 +840,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                     </span>
                     <span>&bull;</span>
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-500" /> Paystack Verified Merchant
+                      <ShieldCheck className="w-3 h-3 text-emerald-500" /> Flutterwave Verified Merchant
                     </span>
                     <span>&bull;</span>
                     <span className="flex items-center gap-1">

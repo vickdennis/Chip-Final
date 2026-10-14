@@ -84,7 +84,7 @@ const pricingSchema = {
           name: 'What payment methods are accepted for CHIP NG in Nigeria?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'CHIP NG accepts all major Nigerian payment methods via Paystack: Debit/Credit cards (Mastercard, Visa, Verve), Direct Bank Transfer, USSD, and Apple Pay for international clients. Same-day cash on delivery is also available for select Lagos courier drop-offs.'
+            text: 'CHIP NG accepts all major Nigerian payment methods via Flutterwave: Debit/Credit cards (Mastercard, Visa, Verve), Direct Bank Transfer, USSD, and Apple Pay for international clients. Same-day cash on delivery is also available for select Lagos courier drop-offs.'
           }
         }
       ]

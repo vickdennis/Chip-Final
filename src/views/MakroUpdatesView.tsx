@@ -56,7 +56,7 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
       badge: 'Storefront',
       title: 'Digital Products & Paid 1-on-1 Consultations in ₦',
       description:
-        'Monetize your audience directly from your bio link. Sell e-books, templates, and consulting slots with instant settlements directly in ₦ (Naira) via Paystack.',
+        'Monetize your audience directly from your bio link. Sell e-books, templates, and consulting slots with instant settlements directly in ₦ (Naira) via Flutterwave.',
       highlights: [
         'Zero-fee instant bank transfer and debit card checkout',
         'Automated digital file delivery and consultation calendar sync',
