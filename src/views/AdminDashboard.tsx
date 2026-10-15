@@ -72,22 +72,51 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, bucket: string = 'covers') => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     const filePath = `${fileName}`;
 
     setUploadingImage(true);
     try {
+      // 1. Read file as base64 Data URL
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      // 2. Upload via reliable /api/upload
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl, filename: file.name })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            setter(json.url);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 3. Fallback to Supabase if session exists
       const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file);
-      if (uploadError) {
-        throw uploadError;
+      if (!uploadError) {
+        const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+        setter(data.publicUrl);
+        return;
       }
-      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      setter(data.publicUrl);
+
+      // 4. Fallback to Data URL
+      setter(dataUrl);
     } catch (error: any) {
-      alert("Error uploading image: " + error.message);
+      console.warn("Upload fallback error:", error);
     } finally {
       setUploadingImage(false);
+      e.target.value = '';
     }
   };
 

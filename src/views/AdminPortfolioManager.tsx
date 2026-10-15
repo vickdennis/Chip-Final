@@ -23,7 +23,9 @@ import {
   Layers, 
   Code,
   ArrowUpRight,
-  AlertTriangle
+  AlertTriangle,
+  X,
+  Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../components/Toast';
@@ -200,22 +202,80 @@ export const AdminPortfolioManager: React.FC = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `portfolio_${Date.now()}.${fileExt}`;
+
+    // Validate image format
+    if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i)) {
+      toast.error('Please select an image file (PNG, JPG, WebP, SVG, or GIF).');
+      return;
+    }
+
+    // Limit to 20MB
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('Image size exceeds 20MB limit. Please choose a smaller image.');
+      return;
+    }
+
     setUploadingImage(true);
 
     try {
-      const { error: uploadError } = await supabase.storage.from('covers').upload(fileName, file);
-      if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('covers').getPublicUrl(fileName);
-      setter(data.publicUrl);
-      toast.success('Image uploaded successfully!');
+      // 1. Read file as base64 data URL
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      // 2. Primary: Post to internal /api/portfolio/upload
+      try {
+        const res = await fetch('/api/portfolio/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: dataUrl,
+            filename: file.name
+          })
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            setter(json.url);
+            toast.success('Image uploaded successfully!');
+            return;
+          }
+        }
+      } catch (serverErr) {
+        console.warn('Backend image upload endpoint error, trying fallback:', serverErr);
+      }
+
+      // 3. Fallback: Try Supabase storage if available
+      try {
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `portfolio_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('covers').upload(fileName, file, { upsert: true });
+        if (!uploadError) {
+          const { data } = supabase.storage.from('covers').getPublicUrl(fileName);
+          if (data?.publicUrl) {
+            setter(data.publicUrl);
+            toast.success('Image uploaded to cloud storage!');
+            return;
+          }
+        }
+      } catch (sbErr) {
+        console.warn('Supabase storage fallback error:', sbErr);
+      }
+
+      // 4. Resilience: Use dataUrl directly so user is never blocked
+      setter(dataUrl);
+      toast.success('Image attached successfully!');
     } catch (err: any) {
-      console.warn('Upload fallback error:', err);
-      // Fallback: convert file to object URL or notify user
-      alert('Could not upload to bucket: ' + err.message + '. You can paste any direct image URL instead.');
+      console.error('Image processing error:', err);
+      toast.error('Could not process image: ' + (err.message || 'Unknown error'));
     } finally {
       setUploadingImage(false);
+      // Reset input value so identical file can be selected again if needed
+      e.target.value = '';
     }
   };
 
@@ -530,27 +590,134 @@ export const AdminPortfolioManager: React.FC = () => {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase text-neutral-500 mb-1.5">
-              Portrait Image URL
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={profile.about_image_url}
-                onChange={(e) => setProfile({ ...profile, about_image_url: e.target.value })}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
-              />
-              <label className="px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer">
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, about_image_url: url }))}
-                />
+          {/* Visual Assets & Photo Section */}
+          <div className="border-t border-neutral-200/80 dark:border-white/10 pt-5 space-y-4">
+            <h4 className="text-sm font-bold text-neutral-950 dark:text-white flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-[#D2F843]" />
+              <span>Portfolio Visual Assets & Media</span>
+            </h4>
+
+            {/* Avatar / Profile Photo */}
+            <div>
+              <label className="block text-xs font-semibold uppercase text-neutral-500 mb-1.5">
+                Avatar Photo URL (Profile Tile)
               </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={profile.avatar_url}
+                  onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                  placeholder="/chipng_exact_tile.png or https://..."
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                />
+                <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                  <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, avatar_url: url }))}
+                  />
+                </label>
+              </div>
+              {profile.avatar_url && (
+                <div className="relative mt-2 p-2 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center gap-3">
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="Avatar Preview" 
+                    className="w-10 h-10 object-cover rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-900"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 truncate">{profile.avatar_url}</div>
+                    <div className="text-[10px] text-emerald-500 font-medium">✓ Avatar preview ready</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Hero / Cover Image */}
+            <div>
+              <label className="block text-xs font-semibold uppercase text-neutral-500 mb-1.5">
+                Hero 3D Card / Logo Cover URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={profile.hero_image_url}
+                  onChange={(e) => setProfile({ ...profile, hero_image_url: e.target.value })}
+                  placeholder="/chipng_3d_logo.jpg or https://..."
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                />
+                <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                  <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, hero_image_url: url }))}
+                  />
+                </label>
+              </div>
+              {profile.hero_image_url && (
+                <div className="relative mt-2 p-2 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center gap-3">
+                  <img 
+                    src={profile.hero_image_url} 
+                    alt="Hero Preview" 
+                    className="w-16 h-10 object-cover rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-900"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 truncate">{profile.hero_image_url}</div>
+                    <div className="text-[10px] text-emerald-500 font-medium">✓ Hero preview ready</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Portrait / About Image */}
+            <div>
+              <label className="block text-xs font-semibold uppercase text-neutral-500 mb-1.5">
+                Portrait / About Section Image URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={profile.about_image_url}
+                  onChange={(e) => setProfile({ ...profile, about_image_url: e.target.value })}
+                  placeholder="https://... or /uploads/..."
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                />
+                <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                  <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, about_image_url: url }))}
+                  />
+                </label>
+              </div>
+              {profile.about_image_url && (
+                <div className="relative mt-2 p-2 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center gap-3">
+                  <img 
+                    src={profile.about_image_url} 
+                    alt="Portrait Preview" 
+                    className="w-12 h-16 object-cover rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-900"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 truncate">{profile.about_image_url}</div>
+                    <div className="text-[10px] text-emerald-500 font-medium">✓ Portrait preview ready</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -856,20 +1023,44 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={editingProject.image_url || ''}
                     onChange={(e) => setEditingProject({ ...editingProject, image_url: e.target.value })}
-                    placeholder="https://... or /chipng_3d_logo.jpg"
+                    placeholder="https://... or /uploads/..."
                     className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1c1f28] text-xs font-mono outline-none"
                   />
-                  <label className="px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 cursor-pointer">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload</span>
+                  <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
+                    {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                    <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={uploadingImage}
                       className="hidden"
                       onChange={(e) => handleImageUpload(e, (url) => setEditingProject({ ...editingProject, image_url: url }))}
                     />
                   </label>
                 </div>
+
+                {editingProject.image_url && (
+                  <div className="relative mt-2.5 p-2 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center gap-3">
+                    <img 
+                      src={editingProject.image_url} 
+                      alt="Project Preview" 
+                      className="w-16 h-12 object-cover rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-900"
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 truncate">{editingProject.image_url}</div>
+                      <div className="text-[10px] text-emerald-500 font-medium">✓ Image preview ready</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingProject({ ...editingProject, image_url: '' })}
+                      className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-400 hover:text-red-500 transition-colors cursor-pointer"
+                      title="Clear image"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-2">

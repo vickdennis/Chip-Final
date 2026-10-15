@@ -227,6 +227,29 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
 
     setUploadingImage(true);
     try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl, filename: file.name })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            setPostForm({ ...postForm, cover_image_url: json.url });
+            showToast('Cover image uploaded successfully.', 'success');
+            return;
+          }
+        }
+      } catch (e) {}
+
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const filePath = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       
@@ -243,15 +266,20 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
         });
       }
 
-      if (uploadRes.error) throw uploadRes.error;
+      if (!uploadRes.error) {
+        const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+        setPostForm({ ...postForm, cover_image_url: data.publicUrl });
+        showToast('Cover image uploaded successfully.', 'success');
+        return;
+      }
 
-      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      setPostForm({ ...postForm, cover_image_url: data.publicUrl });
-      showToast('Cover image uploaded successfully.', 'success');
+      setPostForm({ ...postForm, cover_image_url: dataUrl });
+      showToast('Cover image attached successfully.', 'success');
     } catch (error: any) {
       showToast('Error uploading cover image: ' + error.message, 'error');
     } finally {
       setUploadingImage(false);
+      e.target.value = '';
     }
   };
 

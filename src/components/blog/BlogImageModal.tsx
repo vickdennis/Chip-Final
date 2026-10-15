@@ -37,6 +37,29 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
     setUploadError(null);
 
     try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl, filename: file.name })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            onInsert(json.url, altText || file.name.replace(/\.[^/.]+$/, ''));
+            onClose();
+            return;
+          }
+        }
+      } catch (e) {}
+
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const cleanFileName = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
@@ -48,7 +71,6 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
       });
 
       if (uploadResult.error) {
-        // Fallback to 'covers' bucket
         targetBucket = 'covers';
         uploadResult = await supabase.storage.from(targetBucket).upload(cleanFileName, file, {
           cacheControl: '3600',
@@ -56,12 +78,14 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
         });
       }
 
-      if (uploadResult.error) {
-        throw new Error(uploadResult.error.message);
+      if (!uploadResult.error) {
+        const { data } = supabase.storage.from(targetBucket).getPublicUrl(cleanFileName);
+        onInsert(data.publicUrl, altText || file.name.replace(/\.[^/.]+$/, ''));
+        onClose();
+        return;
       }
 
-      const { data } = supabase.storage.from(targetBucket).getPublicUrl(cleanFileName);
-      onInsert(data.publicUrl, altText || file.name.replace(/\.[^/.]+$/, ''));
+      onInsert(dataUrl, altText || file.name.replace(/\.[^/.]+$/, ''));
       onClose();
     } catch (err: any) {
       setUploadError(err.message || 'Failed to upload image. Please try again or use direct URL.');

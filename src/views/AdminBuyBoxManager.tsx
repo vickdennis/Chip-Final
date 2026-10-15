@@ -32,19 +32,45 @@ export default function AdminBuyBoxManager() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     const filePath = `${fileName}`;
     setUploadingImage(true);
     try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl, filename: file.name })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            setForm({ ...form, image_url: json.url });
+            return;
+          }
+        }
+      } catch (e) {}
+
       const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-      setForm({ ...form, image_url: data.publicUrl });
+      if (!uploadError) {
+        const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+        setForm({ ...form, image_url: data.publicUrl });
+        return;
+      }
+      setForm({ ...form, image_url: dataUrl });
     } catch (error: any) {
-      alert('Error uploading image: ' + error.message);
+      console.warn('Error uploading image:', error);
     } finally {
       setUploadingImage(false);
+      e.target.value = '';
     }
   };
 

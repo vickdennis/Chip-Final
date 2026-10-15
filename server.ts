@@ -501,7 +501,8 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // CORS and preflight handling
   app.use((req, res, next) => {
@@ -1199,6 +1200,66 @@ async function startServer() {
       db.prepare('INSERT INTO post_meta (post_slug, product_json, faq_json, focus_keyword) VALUES (?, ?, ?, ?) ON CONFLICT(post_slug) DO UPDATE SET product_json=excluded.product_json, faq_json=excluded.faq_json, focus_keyword=excluded.focus_keyword').run(post_slug, product_json, faq_json, focus_keyword);
       res.json({ success: true });
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
+  });
+
+  // ================= Portfolio & Media Asset Upload API =================
+  app.post(['/api/portfolio/upload', '/api/upload'], async (req, res) => {
+    try {
+      const { image, filename } = req.body || {};
+      if (!image) {
+        return res.status(400).json({ error: 'No image data provided' });
+      }
+
+      // Ensure public/uploads directory exists
+      const uploadsDir = path.resolve('public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Parse base64 data URL
+      let buffer: Buffer;
+      let ext = 'jpg';
+
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const mimeType = matches[1].toLowerCase();
+        if (mimeType.includes('png')) ext = 'png';
+        else if (mimeType.includes('webp')) ext = 'webp';
+        else if (mimeType.includes('svg')) ext = 'svg';
+        else if (mimeType.includes('gif')) ext = 'gif';
+        else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = 'jpg';
+        buffer = Buffer.from(matches[2], 'base64');
+      } else {
+        // Raw base64 string
+        buffer = Buffer.from(image, 'base64');
+      }
+
+      const rawBaseName = (filename || `portfolio_${Date.now()}`)
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[^a-zA-Z0-9_-]/g, '_');
+      const finalFileName = `${rawBaseName}_${Date.now()}.${ext}`;
+      const filePath = path.join(uploadsDir, finalFileName);
+
+      fs.writeFileSync(filePath, buffer);
+
+      // If dist/uploads exists in production build, sync it too
+      try {
+        const distUploads = path.resolve('dist', 'uploads');
+        if (fs.existsSync(distUploads)) {
+          fs.writeFileSync(path.join(distUploads, finalFileName), buffer);
+        }
+      } catch (err) {}
+
+      const publicUrl = `/uploads/${finalFileName}`;
+      return res.json({
+        success: true,
+        url: publicUrl,
+        filename: finalFileName
+      });
+    } catch (error: any) {
+      console.error('Image upload error:', error);
+      return res.status(500).json({ error: error.message || 'Failed to save uploaded image' });
+    }
   });
 
   // ================= Portfolio CMS API Endpoints =================
@@ -2659,7 +2720,8 @@ Ref: ${payment_reference}`,
     next();
   });
 
-  // Static files from public folder
+  // Static files from public folder & uploads
+  app.use('/uploads', express.static(path.resolve('public', 'uploads')));
   app.use(express.static(path.resolve('public')));
 
   // Vite middleware for development
