@@ -251,82 +251,19 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [articlePage, setArticlePage] = useState(1);
   const [featuredSlideIndex, setFeaturedSlideIndex] = useState(0);
-  const [uploadingCover, setUploadingCover] = useState(false);
-
-  const handleAboutCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-
-    if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i)) {
-      toast.error('Please choose a valid image file (PNG, JPG, WebP, SVG, GIF).');
-      return;
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error('Image size exceeds 20MB limit. Please choose a smaller file.');
-      return;
-    }
-
-    setUploadingCover(true);
-
-    try {
-      // Read file as base64 data URL
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-      });
-
-      let finalUrl = dataUrl;
-
-      // 1. Post to backend upload endpoint
-      try {
-        const res = await fetch('/api/portfolio/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            image: dataUrl,
-            filename: file.name
-          })
-        });
-
-        if (res.ok) {
-          const json = await res.json();
-          if (json.url) {
-            finalUrl = json.url;
-          }
-        }
-      } catch (uploadErr) {
-        console.warn('Server upload error, using local data URL:', uploadErr);
-      }
-
-      // 2. Persist to SQLite portfolio database
-      try {
-        await fetch('/api/portfolio/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            about_image_url: finalUrl
-          })
-        });
-      } catch (dbErr) {
-        console.warn('Database save error:', dbErr);
-      }
-
-      // 3. Update active state
-      setProfile((prev) => ({ ...prev, about_image_url: finalUrl }));
-      toast.success('About cover image updated successfully!');
-    } catch (err: any) {
-      console.error('Failed to process cover image:', err);
-      toast.error('Could not upload image: ' + (err.message || 'Unknown error'));
-    } finally {
-      setUploadingCover(false);
-      e.target.value = '';
-    }
-  };
 
   useEffect(() => {
+    // Check local storage cache for instant hydration
+    try {
+      const cached = localStorage.getItem('chipng_portfolio_profile');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          setProfile((prev) => ({ ...prev, ...parsed }));
+        }
+      }
+    } catch (e) {}
+
     // Fetch live portfolio data from server
     fetch('/api/portfolio')
       .then((res) => {
@@ -655,25 +592,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
                   alt={profile.name}
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-102 transition-transform duration-500"
                 />
-
-                {/* Direct Upload / Change About Me Photo Button */}
-                <div className="absolute top-3 right-3 z-20">
-                  <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/75 hover:bg-black text-white/90 hover:text-white border border-white/20 backdrop-blur-md text-[11px] font-mono cursor-pointer transition-all shadow-lg hover:scale-105 active:scale-95">
-                    {uploadingCover ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" />
-                    ) : (
-                      <Camera className="w-3.5 h-3.5 text-[#D2F843]" />
-                    )}
-                    <span>{uploadingCover ? 'Uploading...' : 'Change Photo'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploadingCover}
-                      className="hidden"
-                      onChange={handleAboutCoverUpload}
-                    />
-                  </label>
-                </div>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-5 pointer-events-none">
                   <span className="text-sm font-bold text-white">{profile.name}</span>

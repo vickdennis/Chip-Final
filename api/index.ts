@@ -12,7 +12,8 @@ function getSupabase() {
 }
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // CORS headers
 app.use((req, res, next) => {
@@ -576,6 +577,286 @@ app.post('/api/lead', async (req: Request, res: Response) => {
       name, whatsapp, city, post_slug, source, clicked_variant: clicked_variant || null
     }]);
     res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ================= Portfolio CMS API Endpoints (Vercel Serverless & Node) =================
+const DEFAULT_PORTFOLIO_PROFILE = {
+  id: 1,
+  name: 'Victor Okoye',
+  handle: 'victor.okoye',
+  title: 'Full-stack Developer',
+  subtitle: 'My goal is to write maintainable, clean and understandable code so that product development is enjoyable, scalable, and high-impact.',
+  bio: "Hello! I'm Victor Okoye, a full-stack developer and hardware-software architect based in Lagos, Nigeria. More than 6 years of experience building scalable web applications, contactless NFC devices, and high-conversion e-commerce systems.",
+  years_experience: '6+ years',
+  location: 'Lagos, Nigeria',
+  avatar_url: '/chipng_exact_tile.png',
+  hero_image_url: '/chipng_3d_logo.jpg',
+  about_image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+  skills_frontend: 'TypeScript / React / Next.js / Tailwind CSS / Vue / React Native / Redux Toolkit / Framer Motion / Puppeteer',
+  skills_styles: 'Tailwind CSS / SCSS / PostCSS / CSS Modules / Headless UI / Radix UI / Motion',
+  skills_backend: 'Node.js / Express / TypeScript / PostgreSQL / SQLite / Supabase / Redis / Kafka / REST & GraphQL / Flutterwave API',
+  skills_devops: 'Docker / Linux / Vercel / Google Cloud Run / CI/CD / Git / Nginx / Cloudflare',
+  social_github: 'https://github.com/vickdennis',
+  social_linkedin: 'https://linkedin.com/company/chipng',
+  social_twitter: 'https://x.com/chipng_nfc',
+  social_whatsapp: 'https://wa.me/2348100764154',
+  social_instagram: 'https://instagram.com/chipng_nfc',
+  social_telegram: 'https://t.me/chipng',
+  social_email: 'hello@chipng.com',
+  featured_article_title: 'Hardware Engineering: Sub-10ms NFC Response Times',
+  featured_article_desc: 'How we tuned antenna resonance and coil coupling to achieve instant contact exchange without companion apps across iOS and Android.',
+  featured_article_tag: 'NFC + Hardware Engineering',
+  featured_article_url: 'https://chipng.com/blog/hardware-engineering-sub-10ms-nfc'
+};
+
+const DEFAULT_PORTFOLIO_PROJECTS = [
+  {
+    id: 1,
+    title: 'CHIP NG',
+    slug: 'chipng',
+    category: 'Hardware & Dynamic Identity',
+    tagline: 'Premier Contactless Smart NFC Cards & Dynamic Link-in-Bio Platform',
+    description: 'The premier contactless NFC smart business card and dynamic link-in-bio platform in Nigeria. Features sub-10ms NTAG216 response, zero app needed, frictionless Flutterwave checkout, dynamic vCard contact exchange, analytics telemetry, and automated nationwide logistics.',
+    technologies: 'Next.js, TypeScript, NFC NTAG216, Tailwind CSS, Flutterwave, Supabase, SQLite, Node.js',
+    live_url: 'https://chipng.com',
+    github_url: 'https://github.com/vickdennis',
+    image_url: '/chipng_3d_logo.jpg',
+    featured: 1,
+    sort_order: 1
+  },
+  {
+    id: 2,
+    title: 'Alvora Store',
+    slug: 'alvora-store',
+    category: 'Luxury E-Commerce & Retail',
+    tagline: 'Luxury Apparel, Designer Handbags & Premium Lifestyle Essentials',
+    description: 'Premier luxury lifestyle brand offering bespoke apparel, elegant designer handbags, and curated accessories in Nigeria. Architected with modern Next.js App Router, real-time shopping cart state, nationwide courier logistics integration, Cloudflare edge acceleration, and mobile-optimized luxury checkout.',
+    technologies: 'Next.js, React, TypeScript, Tailwind CSS, Cart Engine, Cloudflare, Paytech',
+    live_url: 'https://alvora.com.ng',
+    github_url: 'https://github.com/vickdennis',
+    image_url: 'https://alvora.com.ng/IMG_2394.jpeg',
+    featured: 1,
+    sort_order: 2
+  },
+  {
+    id: 3,
+    title: 'Kana Master',
+    slug: 'kana-master',
+    category: 'Interactive EdTech WebApp',
+    tagline: 'Kinesthetic Japanese Stroke Order & Memorization Engine',
+    description: 'A progressive web application for learning Hiragana and Katakana through interactive SVG stroke vector drawing, real-time stroke order heuristics, spaced repetition algorithms, and offline-first IndexedDB storage.',
+    technologies: 'React, TypeScript, Canvas API, SVG Path Interpolation, IndexedDB, Tailwind CSS',
+    live_url: 'https://chipng.com',
+    github_url: 'https://github.com/vickdennis',
+    image_url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop',
+    featured: 1,
+    sort_order: 3
+  },
+  {
+    id: 4,
+    title: 'Anime Sentry',
+    slug: 'anime-sentry',
+    category: 'Distributed Systems & Automation',
+    tagline: 'Sub-second Release Tracker & Push Notification Engine',
+    description: 'High-throughput microservice architecture tracking global media release schedules with Redis pub/sub queues, automated web scrapers, dynamic RSS generation, and real-time Discord webhook broadcasting.',
+    technologies: 'Node.js, Express, Redis, Docker, Cheerio, Webhooks, TypeScript, SQLite',
+    live_url: 'https://chipng.com',
+    github_url: 'https://github.com/vickdennis',
+    image_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop',
+    featured: 1,
+    sort_order: 4
+  }
+];
+
+let serverlessPortfolioProfile: any = { ...DEFAULT_PORTFOLIO_PROFILE };
+let serverlessPortfolioProjects: any[] = [...DEFAULT_PORTFOLIO_PROJECTS];
+
+// Try loading SQLite if available
+let serverlessDb: any = null;
+try {
+  const Database = require('better-sqlite3');
+  const sqliteFile = path.resolve(process.cwd(), 'leads.sqlite');
+  if (fs.existsSync(sqliteFile)) {
+    serverlessDb = new Database(sqliteFile);
+  }
+} catch (e) {}
+
+// GET /api/portfolio
+app.get('/api/portfolio', (req: Request, res: Response) => {
+  try {
+    let profile = serverlessPortfolioProfile;
+    let projects = serverlessPortfolioProjects;
+    let articles: any[] = [];
+
+    if (serverlessDb) {
+      try {
+        const dbProfile = serverlessDb.prepare('SELECT * FROM portfolio_profile WHERE id = 1').get();
+        if (dbProfile) profile = { ...DEFAULT_PORTFOLIO_PROFILE, ...dbProfile };
+        const dbProjects = serverlessDb.prepare('SELECT * FROM portfolio_projects ORDER BY sort_order ASC, id ASC').all();
+        if (dbProjects && dbProjects.length > 0) projects = dbProjects;
+        const dbArticles = serverlessDb.prepare('SELECT * FROM portfolio_articles ORDER BY sort_order ASC, id ASC').all();
+        if (dbArticles) articles = dbArticles;
+      } catch (dbErr) {}
+    }
+
+    res.json({
+      success: true,
+      profile,
+      projects,
+      articles
+    });
+  } catch (err: any) {
+    res.json({
+      success: true,
+      profile: serverlessPortfolioProfile,
+      projects: serverlessPortfolioProjects,
+      articles: []
+    });
+  }
+});
+
+// POST /api/portfolio/upload & /api/upload
+app.post(['/api/portfolio/upload', '/api/upload'], async (req: Request, res: Response) => {
+  try {
+    const { image, filename } = req.body || {};
+    if (!image) {
+      return res.status(400).json({ error: 'No image data provided' });
+    }
+
+    let publicUrl = image;
+    let finalFileName = filename || `img_${Date.now()}.jpg`;
+
+    // Attempt writing to public/uploads or /tmp/uploads
+    try {
+      const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      let buffer: Buffer;
+      let ext = 'jpg';
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const mimeType = matches[1].toLowerCase();
+        if (mimeType.includes('png')) ext = 'png';
+        else if (mimeType.includes('webp')) ext = 'webp';
+        else if (mimeType.includes('svg')) ext = 'svg';
+        else if (mimeType.includes('gif')) ext = 'gif';
+        buffer = Buffer.from(matches[2], 'base64');
+      } else {
+        buffer = Buffer.from(image, 'base64');
+      }
+
+      const rawBaseName = (filename || `portfolio_${Date.now()}`)
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[^a-zA-Z0-9_-]/g, '_');
+      finalFileName = `${rawBaseName}_${Date.now()}.${ext}`;
+      const filePath = path.join(uploadsDir, finalFileName);
+
+      fs.writeFileSync(filePath, buffer);
+      publicUrl = `/uploads/${finalFileName}`;
+    } catch (fsErr) {
+      // If filesystem is read-only (Vercel Serverless), the base64 dataUrl is safely returned directly!
+      publicUrl = image;
+    }
+
+    res.json({
+      success: true,
+      url: publicUrl,
+      filename: finalFileName
+    });
+  } catch (err: any) {
+    console.error('Upload handler error:', err);
+    res.status(500).json({ error: err.message || 'Failed to upload' });
+  }
+});
+
+// POST /api/portfolio/profile
+app.post('/api/portfolio/profile', (req: Request, res: Response) => {
+  try {
+    serverlessPortfolioProfile = {
+      ...serverlessPortfolioProfile,
+      ...req.body,
+      updated_at: new Date().toISOString()
+    };
+
+    if (serverlessDb) {
+      try {
+        const {
+          name, handle, title, subtitle, bio, years_experience, location,
+          avatar_url, hero_image_url, about_image_url,
+          skills_frontend, skills_styles, skills_backend, skills_devops,
+          social_github, social_linkedin, social_twitter, social_whatsapp, social_instagram, social_telegram, social_email
+        } = serverlessPortfolioProfile;
+
+        serverlessDb.prepare(`
+          UPDATE portfolio_profile SET
+            name = COALESCE(?, name),
+            handle = COALESCE(?, handle),
+            title = COALESCE(?, title),
+            subtitle = COALESCE(?, subtitle),
+            bio = COALESCE(?, bio),
+            years_experience = COALESCE(?, years_experience),
+            location = COALESCE(?, location),
+            avatar_url = COALESCE(?, avatar_url),
+            hero_image_url = COALESCE(?, hero_image_url),
+            about_image_url = COALESCE(?, about_image_url),
+            skills_frontend = COALESCE(?, skills_frontend),
+            skills_styles = COALESCE(?, skills_styles),
+            skills_backend = COALESCE(?, skills_backend),
+            skills_devops = COALESCE(?, skills_devops),
+            social_github = COALESCE(?, social_github),
+            social_linkedin = COALESCE(?, social_linkedin),
+            social_twitter = COALESCE(?, social_twitter),
+            social_whatsapp = COALESCE(?, social_whatsapp),
+            social_instagram = COALESCE(?, social_instagram),
+            social_telegram = COALESCE(?, social_telegram),
+            social_email = COALESCE(?, social_email),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = 1
+        `).run(
+          name, handle, title, subtitle, bio, years_experience, location,
+          avatar_url, hero_image_url, about_image_url,
+          skills_frontend, skills_styles, skills_backend, skills_devops,
+          social_github, social_linkedin, social_twitter, social_whatsapp, social_instagram, social_telegram, social_email
+        );
+      } catch (dbErr) {}
+    }
+
+    res.json({
+      success: true,
+      profile: serverlessPortfolioProfile
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/portfolio/project
+app.post('/api/portfolio/project', (req: Request, res: Response) => {
+  try {
+    const projectData = req.body;
+    if (projectData.id) {
+      serverlessPortfolioProjects = serverlessPortfolioProjects.map(p => p.id === projectData.id ? { ...p, ...projectData } : p);
+    } else {
+      const newId = Date.now();
+      serverlessPortfolioProjects.push({ ...projectData, id: newId });
+    }
+    res.json({ success: true, message: 'Project saved' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/portfolio/project/:id
+app.delete('/api/portfolio/project/:id', (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    serverlessPortfolioProjects = serverlessPortfolioProjects.filter(p => p.id !== id);
+    res.json({ success: true, message: 'Project deleted' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -115,17 +115,29 @@ export const AdminPortfolioManager: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Partial<PortfolioProject> | null>(null);
 
   const fetchPortfolioData = async () => {
+    try {
+      const cached = localStorage.getItem('chipng_portfolio_profile');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed) setProfile((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch (e) {}
+
     setLoading(true);
     try {
       const res = await fetch('/api/portfolio');
       if (res.ok) {
         const data = await res.json();
-        if (data.profile) setProfile(data.profile);
+        if (data.profile) {
+          setProfile(data.profile);
+          try {
+            localStorage.setItem('chipng_portfolio_profile', JSON.stringify(data.profile));
+          } catch (e) {}
+        }
         if (data.projects) setProjects(data.projects);
       }
     } catch (err) {
-      console.error('Failed to fetch portfolio data:', err);
-      toast.error('Failed to load portfolio data');
+      console.warn('Portfolio data fetch fallback to local cache:', err);
     } finally {
       setLoading(false);
     }
@@ -138,6 +150,10 @@ export const AdminPortfolioManager: React.FC = () => {
   const handleSaveProfile = async () => {
     setSavingProfile(true);
     try {
+      localStorage.setItem('chipng_portfolio_profile', JSON.stringify(profile));
+    } catch (e) {}
+
+    try {
       const res = await fetch('/api/portfolio/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -146,10 +162,10 @@ export const AdminPortfolioManager: React.FC = () => {
       if (res.ok) {
         toast.success('Portfolio profile updated successfully!');
       } else {
-        toast.error('Error updating profile');
+        toast.error('Server save error, but saved locally');
       }
     } catch (e: any) {
-      toast.error(e.message || 'Network error');
+      toast.success('Portfolio profile saved locally!');
     } finally {
       setSavingProfile(false);
     }
@@ -756,7 +772,13 @@ export const AdminPortfolioManager: React.FC = () => {
                         disabled={uploadingImage}
                         className="hidden"
                         onChange={(e) => handleImageUpload(e, async (url) => {
-                          setProfile(prev => ({ ...prev, about_image_url: url }));
+                          setProfile((prev) => {
+                            const updated = { ...prev, about_image_url: url };
+                            try {
+                              localStorage.setItem('chipng_portfolio_profile', JSON.stringify(updated));
+                            } catch (e) {}
+                            return updated;
+                          });
                           try {
                             await fetch('/api/portfolio/profile', {
                               method: 'POST',
