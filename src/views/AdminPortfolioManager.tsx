@@ -618,7 +618,17 @@ export const AdminPortfolioManager: React.FC = () => {
                     accept="image/*"
                     disabled={uploadingImage}
                     className="hidden"
-                    onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, avatar_url: url }))}
+                    onChange={(e) => handleImageUpload(e, async (url) => {
+                      setProfile(prev => ({ ...prev, avatar_url: url }));
+                      try {
+                        await fetch('/api/portfolio/profile', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ avatar_url: url })
+                        });
+                        toast.success('Avatar image saved!');
+                      } catch (err) {}
+                    })}
                   />
                 </label>
               </div>
@@ -659,7 +669,17 @@ export const AdminPortfolioManager: React.FC = () => {
                     accept="image/*"
                     disabled={uploadingImage}
                     className="hidden"
-                    onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, hero_image_url: url }))}
+                    onChange={(e) => handleImageUpload(e, async (url) => {
+                      setProfile(prev => ({ ...prev, hero_image_url: url }));
+                      try {
+                        await fetch('/api/portfolio/profile', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ hero_image_url: url })
+                        });
+                        toast.success('Hero cover image saved!');
+                      } catch (err) {}
+                    })}
                   />
                 </label>
               </div>
@@ -680,44 +700,82 @@ export const AdminPortfolioManager: React.FC = () => {
             </div>
 
             {/* Portrait / About Image */}
-            <div>
-              <label className="block text-xs font-semibold uppercase text-neutral-500 mb-1.5">
-                Portrait / About Section Image URL
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={profile.about_image_url}
-                  onChange={(e) => setProfile({ ...profile, about_image_url: e.target.value })}
-                  placeholder="https://... or /uploads/..."
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
-                />
-                <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
-                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
-                  <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={uploadingImage}
-                    className="hidden"
-                    onChange={(e) => handleImageUpload(e, (url) => setProfile({ ...profile, about_image_url: url }))}
-                  />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold uppercase text-neutral-500">
+                  About Me Cover / Portrait Photo (Reflects live in Portfolio)
                 </label>
+                {profile.about_image_url && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setProfile(prev => ({ ...prev, about_image_url: '' }));
+                      await fetch('/api/portfolio/profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ about_image_url: '' })
+                      });
+                      toast.success('Cover photo reset.');
+                    }}
+                    className="text-[11px] text-red-500 hover:underline cursor-pointer"
+                  >
+                    Reset Photo
+                  </button>
+                )}
               </div>
-              {profile.about_image_url && (
-                <div className="relative mt-2 p-2 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center gap-3">
-                  <img 
-                    src={profile.about_image_url} 
-                    alt="Portrait Preview" 
-                    className="w-12 h-16 object-cover rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-900"
+
+              {/* Big Interactive Visual Dropzone Card */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start bg-neutral-50 dark:bg-black/40 p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10">
+                <div className="w-24 h-32 rounded-xl overflow-hidden border border-neutral-300 dark:border-neutral-700 bg-neutral-900 shrink-0 relative group shadow-sm">
+                  <img
+                    src={profile.about_image_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop'}
+                    alt="About Me Cover"
+                    className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 truncate">{profile.about_image_url}</div>
-                    <div className="text-[10px] text-emerald-500 font-medium">✓ Portrait preview ready</div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                    <span className="text-[10px] text-white font-mono font-medium">Cover</span>
                   </div>
                 </div>
-              )}
+
+                <div className="flex-1 w-full space-y-2.5">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={profile.about_image_url}
+                      onChange={(e) => setProfile({ ...profile, about_image_url: e.target.value })}
+                      placeholder="https://... or /uploads/..."
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                    />
+                    <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
+                      {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                      <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingImage}
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(e, async (url) => {
+                          setProfile(prev => ({ ...prev, about_image_url: url }));
+                          try {
+                            await fetch('/api/portfolio/profile', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ about_image_url: url })
+                            });
+                            toast.success('About Me cover photo uploaded & saved live!');
+                          } catch (err) {
+                            console.warn('Auto-save error:', err);
+                          }
+                        })}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-neutral-500">
+                    Supports high-resolution PNG, JPG, WebP, or SVG. When uploaded, it automatically saves to your database and updates the About Me section at <code className="text-[#D2F843] bg-neutral-900 px-1 py-0.5 rounded font-mono">/portfolio</code>.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
