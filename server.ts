@@ -242,10 +242,187 @@ db.exec(`
     sent_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS portfolio_profile (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    name TEXT NOT NULL DEFAULT 'Victor Okoye',
+    handle TEXT NOT NULL DEFAULT 'victor.okoye',
+    title TEXT NOT NULL DEFAULT 'Full-stack Developer',
+    subtitle TEXT NOT NULL DEFAULT 'My goal is to write maintainable, clean and understandable code so that product development is enjoyable, scalable, and high-impact.',
+    bio TEXT NOT NULL DEFAULT 'Hello! I''m Victor Okoye, a full-stack developer and hardware-software architect based in Lagos, Nigeria. More than 6 years of experience building scalable web applications, contactless NFC devices, and high-conversion e-commerce systems.',
+    years_experience TEXT NOT NULL DEFAULT '6+ years',
+    location TEXT NOT NULL DEFAULT 'Lagos, Nigeria',
+    avatar_url TEXT NOT NULL DEFAULT '/chipng_exact_tile.png',
+    hero_image_url TEXT NOT NULL DEFAULT '/chipng_3d_logo.jpg',
+    about_image_url TEXT NOT NULL DEFAULT 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+    skills_frontend TEXT NOT NULL DEFAULT 'TypeScript / React / Next.js / Tailwind CSS / Vue / React Native / Redux Toolkit / Framer Motion / Puppeteer',
+    skills_styles TEXT NOT NULL DEFAULT 'Tailwind CSS / SCSS / PostCSS / CSS Modules / Headless UI / Radix UI / Motion',
+    skills_backend TEXT NOT NULL DEFAULT 'Node.js / Express / TypeScript / PostgreSQL / SQLite / Supabase / Redis / Kafka / REST & GraphQL / Flutterwave API',
+    skills_devops TEXT NOT NULL DEFAULT 'Docker / Linux / Vercel / Google Cloud Run / CI/CD / Git / Nginx / Cloudflare',
+    social_github TEXT NOT NULL DEFAULT 'https://github.com/vickdennis',
+    social_linkedin TEXT NOT NULL DEFAULT 'https://linkedin.com/company/chipng',
+    social_twitter TEXT NOT NULL DEFAULT 'https://x.com/chipng_nfc',
+    social_whatsapp TEXT NOT NULL DEFAULT 'https://wa.me/2348100764154',
+    social_instagram TEXT NOT NULL DEFAULT 'https://instagram.com/chipng_nfc',
+    social_telegram TEXT NOT NULL DEFAULT 'https://t.me/chipng',
+    social_email TEXT NOT NULL DEFAULT 'hello@chipng.com',
+    featured_article_title TEXT NOT NULL DEFAULT 'Hardware Engineering: Sub-10ms NFC Response Times',
+    featured_article_desc TEXT NOT NULL DEFAULT 'How we tuned antenna resonance and coil coupling to achieve instant contact exchange without companion apps across iOS and Android.',
+    featured_article_tag TEXT NOT NULL DEFAULT 'NFC + Hardware Engineering',
+    featured_article_url TEXT NOT NULL DEFAULT 'https://chipng.com/blog/hardware-engineering-sub-10ms-nfc',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS portfolio_projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    category TEXT DEFAULT 'Full-Stack',
+    tagline TEXT,
+    description TEXT NOT NULL,
+    technologies TEXT NOT NULL,
+    live_url TEXT NOT NULL,
+    github_url TEXT,
+    image_url TEXT NOT NULL,
+    featured INTEGER DEFAULT 1,
+    sort_order INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS portfolio_articles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    excerpt TEXT NOT NULL,
+    read_time TEXT DEFAULT '5 min read',
+    date TEXT DEFAULT '2026',
+    url TEXT NOT NULL,
+    sort_order INTEGER DEFAULT 0
+  );
 `);
 
+// Seed default portfolio profile
+try {
+  const profileRow = db.prepare('SELECT id FROM portfolio_profile WHERE id = 1').get();
+  if (!profileRow) {
+    db.prepare(`
+      INSERT INTO portfolio_profile (id, name, handle, title, subtitle, bio, years_experience, location, social_github, social_linkedin, social_twitter, social_whatsapp, social_instagram, social_telegram, social_email)
+      VALUES (1, 'Victor Okoye', 'victor.okoye', 'Full-stack Developer', 'My goal is to write maintainable, clean and understandable code so that product development is enjoyable, scalable, and high-impact.', 'Hello! I''m Victor Okoye, a full-stack developer and hardware-software architect based in Lagos, Nigeria. More than 6 years of experience building scalable web applications, contactless NFC devices, and high-conversion e-commerce systems.', '6+ years', 'Lagos, Nigeria', 'https://github.com/vickdennis', 'https://linkedin.com/company/chipng', 'https://x.com/chipng_nfc', 'https://wa.me/2348100764154', 'https://instagram.com/chipng_nfc', 'https://t.me/chipng', 'hello@chipng.com')
+    `).run();
+  }
+} catch (e) {
+  console.warn('Portfolio profile seed error:', e);
+}
 
-const kwCount = db.prepare('SELECT COUNT(*) as c FROM seo_keywords').get().c;
+// Seed default portfolio projects (CHIP NG & Alvora Store & Mobile)
+try {
+  const projectCount = db.prepare('SELECT COUNT(*) as c FROM portfolio_projects').get().c;
+  if (projectCount === 0) {
+    const insertProj = db.prepare(`
+      INSERT INTO portfolio_projects (title, slug, category, tagline, description, technologies, live_url, github_url, image_url, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insertProj.run(
+      'CHIP NG',
+      'chipng',
+      'Hardware & Dynamic Identity',
+      'Premier Contactless Smart Cards & Dynamic Link-in-Bio Platform',
+      'The premier contactless NFC smart business card and dynamic link-in-bio platform in Nigeria. Engineered with sub-10ms NTAG216 response, zero app needed, frictionless Flutterwave checkout, dynamic vCard contact exchange, analytics telemetry, and automated nationwide logistics.',
+      'Next.js, TypeScript, NFC NTAG216, Tailwind CSS, Flutterwave, Supabase, SQLite, Node.js',
+      'https://chipng.com',
+      'https://github.com/vickdennis/Chip-Final',
+      'https://www.chipng.com/chipng_3d_logo.jpg',
+      1
+    );
+
+    insertProj.run(
+      'Alvora Store',
+      'alvora-store',
+      'Luxury E-Commerce & Retail',
+      'Luxury Apparel, Designer Handbags & Premium Lifestyle Essentials',
+      'Exclusive digital storefront for Nigeria’s premier luxury apparel and designer handbag brand. Architected with modern Next.js App Router, real-time shopping bag state, nationwide courier logistics integration, Cloudflare edge acceleration, and mobile-optimized luxury UI.',
+      'Next.js, React, TypeScript, Tailwind CSS, Cart Engine, Cloudflare, Paytech',
+      'https://alvora.com.ng',
+      'https://github.com/vickdennis',
+      'https://alvora.com.ng/IMG_2394.jpeg',
+      2
+    );
+
+    insertProj.run(
+      'Kana Master',
+      'kana-master',
+      'Mobile iOS & Android App',
+      'Japanese Audio Training & Kinesthetic Stroke Exercise App',
+      'Kana Master is an iOS & Android application designed for learning Katakana and Hiragana. It includes audio training for correct pronunciation, kinetic stroke exercises, and spaced repetition models.',
+      'TypeScript, React Native, Redux Toolkit, i18n, Audio API',
+      'https://chipng.com',
+      'https://github.com/vickdennis',
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop',
+      3
+    );
+
+    insertProj.run(
+      'Anime Sentry',
+      'anime-sentry',
+      'Microservice & Webhook Bot',
+      'Automated High-Performance Release Monitoring Engine',
+      'High-performance microservice engine tracking episode releases worldwide. Built with automated cron web workers, Telegram Bot API webhook relays, and Redis caching for instant notification dispatch.',
+      'Go, Gin, GORM, PostgreSQL, Redis, Docker, Telegram API',
+      'https://chipng.com',
+      'https://github.com/vickdennis',
+      'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop',
+      4
+    );
+  }
+} catch (e) {
+  console.warn('Portfolio projects seed error:', e);
+}
+
+// Seed default portfolio articles
+try {
+  const articleCount = db.prepare('SELECT COUNT(*) as c FROM portfolio_articles').get().c;
+  if (articleCount === 0) {
+    const insertArt = db.prepare(`
+      INSERT INTO portfolio_articles (title, slug, excerpt, read_time, date, url, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insertArt.run(
+      'Hardware Engineering: Sub-10ms NFC Response Times',
+      'hardware-engineering-sub-10ms-nfc',
+      'How we tuned antenna resonance and coil coupling to achieve instant contact exchange without companion apps across iOS and Android.',
+      '4 min read',
+      '2026',
+      'https://chipng.com/blog/hardware-engineering-sub-10ms-nfc',
+      1
+    );
+
+    insertArt.run(
+      'Predictive AI Cash Runway Forecasting for Startups',
+      'predictive-ai-cash-runway-forecasting',
+      'Architecting multi-scenario financial simulations with Monte Carlo models in high-growth African tech companies.',
+      '6 min read',
+      '2026',
+      'https://chipng.com/blog/predictive-ai-cash-runway-forecasting',
+      2
+    );
+
+    insertArt.run(
+      'The Simplest Example is Kafka + Golang Microservices',
+      'simplest-example-kafka-golang',
+      'A practical architectural guide to implementing low-latency, event-driven microservices using Apache Kafka and Go routines.',
+      '5 min read',
+      '2026',
+      'https://chipng.com/blog/hardware-engineering-sub-10ms-nfc',
+      3
+    );
+  }
+} catch (e) {
+  console.warn('Portfolio articles seed error:', e);
+}
+const kwRow = db.prepare('SELECT COUNT(*) as c FROM seo_keywords').get() as { c: number } | undefined;
+const kwCount = kwRow ? kwRow.c : 0;
 if (kwCount === 0) {
   const insertKw = db.prepare('INSERT INTO seo_keywords (keyword_phrase, target_url_slug, type) VALUES (?, ?, ?)');
   insertKw.run('nfc card lagos', '/nfc-card-price-lagos-realtors', 'product');
@@ -1022,6 +1199,189 @@ async function startServer() {
       db.prepare('INSERT INTO post_meta (post_slug, product_json, faq_json, focus_keyword) VALUES (?, ?, ?, ?) ON CONFLICT(post_slug) DO UPDATE SET product_json=excluded.product_json, faq_json=excluded.faq_json, focus_keyword=excluded.focus_keyword').run(post_slug, product_json, faq_json, focus_keyword);
       res.json({ success: true });
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
+  });
+
+  // ================= Portfolio CMS API Endpoints =================
+  app.get('/api/portfolio', (req, res) => {
+    try {
+      const profile = db.prepare('SELECT * FROM portfolio_profile WHERE id = 1').get() || {};
+      const projects = db.prepare('SELECT * FROM portfolio_projects ORDER BY sort_order ASC, id ASC').all();
+      const articles = db.prepare('SELECT * FROM portfolio_articles ORDER BY sort_order ASC, id ASC').all();
+      res.json({
+        success: true,
+        profile,
+        projects,
+        articles
+      });
+    } catch (e: any) {
+      console.error("portfolio fetch error", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/portfolio/profile', (req, res) => {
+    try {
+      const {
+        name,
+        handle,
+        title,
+        subtitle,
+        bio,
+        years_experience,
+        location,
+        avatar_url,
+        hero_image_url,
+        about_image_url,
+        skills_frontend,
+        skills_styles,
+        skills_backend,
+        skills_devops,
+        social_github,
+        social_linkedin,
+        social_twitter,
+        social_whatsapp,
+        social_instagram,
+        social_telegram,
+        social_email,
+        featured_article_title,
+        featured_article_desc,
+        featured_article_tag,
+        featured_article_url
+      } = req.body;
+
+      const stmt = db.prepare(`
+        UPDATE portfolio_profile SET
+          name = COALESCE(?, name),
+          handle = COALESCE(?, handle),
+          title = COALESCE(?, title),
+          subtitle = COALESCE(?, subtitle),
+          bio = COALESCE(?, bio),
+          years_experience = COALESCE(?, years_experience),
+          location = COALESCE(?, location),
+          avatar_url = COALESCE(?, avatar_url),
+          hero_image_url = COALESCE(?, hero_image_url),
+          about_image_url = COALESCE(?, about_image_url),
+          skills_frontend = COALESCE(?, skills_frontend),
+          skills_styles = COALESCE(?, skills_styles),
+          skills_backend = COALESCE(?, skills_backend),
+          skills_devops = COALESCE(?, skills_devops),
+          social_github = COALESCE(?, social_github),
+          social_linkedin = COALESCE(?, social_linkedin),
+          social_twitter = COALESCE(?, social_twitter),
+          social_whatsapp = COALESCE(?, social_whatsapp),
+          social_instagram = COALESCE(?, social_instagram),
+          social_telegram = COALESCE(?, social_telegram),
+          social_email = COALESCE(?, social_email),
+          featured_article_title = COALESCE(?, featured_article_title),
+          featured_article_desc = COALESCE(?, featured_article_desc),
+          featured_article_tag = COALESCE(?, featured_article_tag),
+          featured_article_url = COALESCE(?, featured_article_url),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = 1
+      `);
+
+      stmt.run(
+        name, handle, title, subtitle, bio, years_experience, location,
+        avatar_url, hero_image_url, about_image_url,
+        skills_frontend, skills_styles, skills_backend, skills_devops,
+        social_github, social_linkedin, social_twitter, social_whatsapp, social_instagram, social_telegram, social_email,
+        featured_article_title, featured_article_desc, featured_article_tag, featured_article_url
+      );
+
+      const updated = db.prepare('SELECT * FROM portfolio_profile WHERE id = 1').get();
+      res.json({ success: true, profile: updated });
+    } catch (e: any) {
+      console.error("portfolio profile update error", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/portfolio/project', (req, res) => {
+    try {
+      const {
+        id,
+        title,
+        slug,
+        category,
+        tagline,
+        description,
+        technologies,
+        live_url,
+        github_url,
+        image_url,
+        featured = 1,
+        sort_order = 0
+      } = req.body;
+
+      const safeSlug = slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : `proj-${Date.now()}`);
+
+      if (id) {
+        const stmt = db.prepare(`
+          UPDATE portfolio_projects SET
+            title = ?,
+            slug = ?,
+            category = ?,
+            tagline = ?,
+            description = ?,
+            technologies = ?,
+            live_url = ?,
+            github_url = ?,
+            image_url = ?,
+            featured = ?,
+            sort_order = ?
+          WHERE id = ?
+        `);
+        stmt.run(title, safeSlug, category, tagline, description, technologies, live_url, github_url, image_url, featured, sort_order, id);
+        res.json({ success: true, id, message: 'Project updated successfully' });
+      } else {
+        const stmt = db.prepare(`
+          INSERT INTO portfolio_projects (title, slug, category, tagline, description, technologies, live_url, github_url, image_url, featured, sort_order)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const info = stmt.run(title, safeSlug, category, tagline, description, technologies, live_url, github_url, image_url, featured, sort_order);
+        res.json({ success: true, id: info.lastInsertRowid, message: 'Project created successfully' });
+      }
+    } catch (e: any) {
+      console.error("portfolio project save error", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete('/api/portfolio/project/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM portfolio_projects WHERE id = ?').run(req.params.id);
+      res.json({ success: true, message: 'Project deleted' });
+    } catch (e: any) {
+      console.error("portfolio project delete error", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/portfolio/article', (req, res) => {
+    try {
+      const { id, title, slug, excerpt, read_time, date, url, sort_order = 0 } = req.body;
+      const safeSlug = slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `art-${Date.now()}`);
+      if (id) {
+        db.prepare('UPDATE portfolio_articles SET title=?, slug=?, excerpt=?, read_time=?, date=?, url=?, sort_order=? WHERE id=?')
+          .run(title, safeSlug, excerpt, read_time, date, url, sort_order, id);
+        res.json({ success: true, id });
+      } else {
+        const info = db.prepare('INSERT INTO portfolio_articles (title, slug, excerpt, read_time, date, url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)')
+          .run(title, safeSlug, excerpt, read_time, date, url, sort_order);
+        res.json({ success: true, id: info.lastInsertRowid });
+      }
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete('/api/portfolio/article/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM portfolio_articles WHERE id = ?').run(req.params.id);
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   app.post('/api/post-view/:slug', (req, res) => {

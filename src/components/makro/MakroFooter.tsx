@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewState } from '../../App';
-import { ArrowUp, Star } from 'lucide-react';
+import { ArrowUp, Star, Briefcase } from 'lucide-react';
 import BrandLogo from '../BrandLogo';
 import { SocialMediaIconBadge } from '../social/SocialMediaIconBadge';
 
@@ -125,6 +125,16 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
+                <button 
+                  onClick={() => onNavigate('portfolio')} 
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5 font-medium text-neutral-900 dark:text-neutral-200"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-[#6B8500] dark:text-[#D2F843]" />
+                  <span>Portfolio</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-900 text-white dark:bg-[#D2F843] dark:text-neutral-950 font-bold">New</span>
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavigate('updates' as ViewState)} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
                   Updates & Releases
                 </button>
@@ -143,6 +153,15 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
               Resources
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
+              <li>
+                <button 
+                  onClick={() => onNavigate('portfolio')} 
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <span>Victor Okoye Portfolio</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400">/portfolio</span>
+                </button>
+              </li>
               <li>
                 <button onClick={() => onNavigate('blog-directory')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
                   Engineering Blog
@@ -186,6 +205,13 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
           </div>
 
           <div className="flex items-center gap-6">
+            <button
+              onClick={() => onNavigate('portfolio')}
+              className="flex items-center gap-1.5 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer font-medium"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-[#6B8500] dark:text-[#D2F843]" />
+              <span>Portfolio</span>
+            </button>
             <button
               onClick={scrollToTop}
               className="flex items-center gap-1.5 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"

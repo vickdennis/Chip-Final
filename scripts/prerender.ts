@@ -59,6 +59,7 @@ async function main() {
     { path: 'privacy', changefreq: 'monthly', priority: '0.5' },
     { path: 'terms-of-service', changefreq: 'monthly', priority: '0.5' },
     { path: 'terms', changefreq: 'monthly', priority: '0.5' },
+    { path: 'portfolio', changefreq: 'weekly', priority: '0.8' },
   ];
 
   // 2. Commercial Landing Pages

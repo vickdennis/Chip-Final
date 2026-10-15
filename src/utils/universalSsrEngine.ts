@@ -813,13 +813,45 @@ export async function applyUniversalSsr(
     });
   }
 
+  // 7.8. Standalone Portfolio Page (/portfolio)
+  if (normalizedPath === '/portfolio') {
+    const portfolioSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      mainEntity: {
+        '@type': 'Person',
+        name: 'Victor Okoye',
+        jobTitle: 'Full-stack Developer & Hardware-Software Architect',
+        worksFor: {
+          '@type': 'Organization',
+          name: 'CHIP NG Technologies Ltd'
+        },
+        sameAs: [
+          'https://github.com/vickdennis',
+          'https://linkedin.com/company/chipng',
+          'https://x.com/chipng_nfc',
+          'https://instagram.com/chipng_nfc'
+        ]
+      }
+    };
+
+    return injectSeoMetadata(output, {
+      title: 'Victor Okoye — Full-stack Developer & Hardware-Software Architect | Portfolio',
+      description: 'Explore the full-stack engineering portfolio of Victor Okoye. Founder and lead engineer behind CHIP NG contactless smart cards and Alvora luxury e-commerce.',
+      canonical: 'https://www.chipng.com/portfolio',
+      ogType: 'profile',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: JSON.stringify(portfolioSchema)
+    });
+  }
+
   // 8. Dynamic User Profiles (/@username & /username)
   const RESERVED_ROUTES = [
     '/admin', '/enterprise', '/login', '/dashboard', '/api', '/blog',
     '/app', '/download', '/mobile', '/android',
     '/company', '/about', '/updates', '/contact', '/buy-card', '/shop',
     '/pricing', '/faq', '/shipping', '/refund-policy', '/privacy-policy',
-    '/privacy', '/terms-of-service', '/terms', '/nfc-sales'
+    '/privacy', '/terms-of-service', '/terms', '/nfc-sales', '/portfolio'
   ];
 
   const isReserved = RESERVED_ROUTES.some(r => normalizedPath === r || normalizedPath.startsWith(r + '/'));

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase, adminAuthClient } from '../supabaseClient';
-import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye, Sun, Moon, X, CreditCard } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye, Sun, Moon, X, CreditCard, Briefcase } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { ebooksData } from '../utils/ebooksData';
 import AdminBlogManager from './AdminBlogManager';
@@ -13,6 +13,7 @@ import AdminNotificationManager from './AdminNotificationManager';
 import AdminSalesManager from './AdminSalesManager';
 import AdminPixelManager from './AdminPixelManager';
 import AdminAppDownloadsManager from './AdminAppDownloadsManager';
+import { AdminPortfolioManager } from './AdminPortfolioManager';
 import { MessageCircle, Send, Bell, Link as LinkIcon, Smartphone } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 
@@ -24,11 +25,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads'>(() => {
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads' | 'portfolio'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam && ['analytics', 'users', 'products', 'blog', 'leads', 'buybox', 'seo', 'broadcast', 'notifications', 'sales', 'pixel', 'downloads'].includes(tabParam)) {
+      if (tabParam && ['analytics', 'users', 'products', 'blog', 'leads', 'buybox', 'seo', 'broadcast', 'notifications', 'sales', 'pixel', 'downloads', 'portfolio'].includes(tabParam)) {
         return tabParam as any;
       }
     }
@@ -617,6 +618,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               { id: 'broadcast', label: 'Broadcast', icon: Send },
               { id: 'notifications', label: 'Notifications', icon: Bell },
               { id: 'pixel', label: 'Pixels & Tracking', icon: Activity },
+              { id: 'portfolio', label: 'Portfolio CMS', icon: Briefcase },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1278,6 +1280,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         )}
         {activeTab === 'downloads' && (
           <AdminAppDownloadsManager />
+        )}
+        {activeTab === 'portfolio' && (
+          <AdminPortfolioManager />
         )}
       </div>
     </div>

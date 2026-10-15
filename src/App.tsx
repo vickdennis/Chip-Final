@@ -16,6 +16,7 @@ import CommercialLandingView from './views/CommercialLandingView';
 import { MakroCompanyView } from './views/MakroCompanyView';
 import { MakroUpdatesView } from './views/MakroUpdatesView';
 import { MakroContactView } from './views/MakroContactView';
+import { PortfolioView } from './views/PortfolioView';
 import { COMMERCIAL_PAGES } from './data/commercialPagesData';
 import { supabase } from './supabaseClient';
 import { ToastContainer } from './components/Toast';
@@ -37,7 +38,8 @@ export type ViewState =
   | 'terms-of-service'
   | 'shipping'
   | 'refund-policy'
-  | 'commercial-landing';
+  | 'commercial-landing'
+  | 'portfolio';
 
 const RESERVED_CORE_ROUTES = new Set([
   '',
@@ -67,7 +69,8 @@ const RESERVED_CORE_ROUTES = new Set([
   'terms-of-service',
   'refund-policy',
   'shipping',
-  'api'
+  'api',
+  'portfolio'
 ]);
 
 export default function App() {
@@ -128,6 +131,7 @@ export default function App() {
     if (path === '/terms-of-service' || path === '/terms') return 'terms-of-service';
     if (path === '/shipping') return 'shipping';
     if (path === '/refund-policy') return 'refund-policy';
+    if (path === '/portfolio') return 'portfolio';
     if (path.startsWith('/blog/')) return 'blog-article';
     
     if (path !== '' && path !== '/' && !RESERVED_CORE_ROUTES.has(cleanSegment)) {
@@ -267,6 +271,8 @@ export default function App() {
       window.history.pushState({}, '', '/shipping');
     } else if (view === 'refund-policy') {
       window.history.pushState({}, '', '/refund-policy');
+    } else if (view === 'portfolio') {
+      window.history.pushState({}, '', '/portfolio');
     } else if ((view as string) === 'mobile-app') {
       window.history.pushState({}, '', '/');
       setCurrentView('landing');
@@ -311,6 +317,7 @@ export default function App() {
       {currentView === 'terms-of-service' && <TermsOfServiceView onNavigate={handleNavigate} isDarkMode={isDarkMode} />}
       {currentView === 'shipping' && <ShippingPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
       {currentView === 'refund-policy' && <RefundPolicyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />}
+      {currentView === 'portfolio' && <PortfolioView onNavigate={handleNavigate} />}
       {currentView === 'commercial-landing' && commercialSlug && (
         <CommercialLandingView 
           slug={commercialSlug} 
