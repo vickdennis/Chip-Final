@@ -98,7 +98,7 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
         <section className="pt-16 pb-14 md:pt-24 md:pb-20">
           <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center space-y-5">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 Product Changelog & Roadmap
               </span>
@@ -151,7 +151,7 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
                     <span className="font-mono text-sm font-bold text-neutral-950 dark:text-white bg-neutral-100 dark:bg-neutral-800 px-3 py-1 rounded-full">
                       {item.version}
                     </span>
-                    <span className="text-xs font-semibold text-[#84A900] dark:text-[#D2F843]">
+                    <span className="text-xs font-semibold text-[#76BB08] dark:text-[#76BB08]">
                       {item.badge}
                     </span>
                   </div>

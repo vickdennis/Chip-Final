@@ -87,7 +87,7 @@ export const MakroCompanyView: React.FC<MakroCompanyViewProps> = ({
         <section className="pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="max-w-5xl mx-auto px-6 sm:px-8 text-center space-y-6">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 Our Mission & Story
               </span>
@@ -107,7 +107,7 @@ export const MakroCompanyView: React.FC<MakroCompanyViewProps> = ({
         <section className="py-16 border-y border-neutral-200/70 dark:border-neutral-800/80 bg-white dark:bg-[#0C0E13]">
           <div className="max-w-4xl mx-auto px-6 sm:px-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
             <div className="md:col-span-4">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-[#84A900] dark:text-[#D2F843]">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-[#76BB08] dark:text-[#76BB08]">
                 01. The Origin
               </h2>
               <div className="text-2xl font-bold text-neutral-950 dark:text-white mt-2">
@@ -192,7 +192,7 @@ export const MakroCompanyView: React.FC<MakroCompanyViewProps> = ({
                     <h4 className="text-lg font-bold text-neutral-950 dark:text-white">
                       {member.name}
                     </h4>
-                    <div className="text-xs font-medium text-[#84A900] dark:text-[#D2F843] mb-3">
+                    <div className="text-xs font-medium text-[#76BB08] dark:text-[#76BB08] mb-3">
                       {member.role}
                     </div>
                     <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">

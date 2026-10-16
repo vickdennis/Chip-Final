@@ -85,7 +85,7 @@ export default function AdminPixelManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
             <Activity className="w-3.5 h-3.5" /> Ad Telemetry & Pixels
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
@@ -245,7 +245,7 @@ export default function AdminPixelManager() {
                 </p>
               </div>
               {lastTestedEvent && (
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30">
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30">
                   Last Fired: {lastTestedEvent}
                 </span>
               )}
@@ -255,17 +255,17 @@ export default function AdminPixelManager() {
               {/* Event 1: PageView */}
               <button
                 onClick={() => handleTestEvent('PageView')}
-                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#D2F843] transition-all text-left flex flex-col justify-between group cursor-pointer"
+                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#76BB08] transition-all text-left flex flex-col justify-between group cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] font-semibold uppercase text-neutral-400">Top-Funnel</span>
-                    <Play className="w-3 h-3 text-[#6c8600] dark:text-[#D2F843]" />
+                    <Play className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                   </div>
                   <span className="font-bold text-xs sm:text-sm text-neutral-950 dark:text-white block">PageView</span>
                   <p className="text-[11px] text-neutral-400 mt-1">Landing visit</p>
                 </div>
-                <span className="text-[10px] font-semibold text-[#6c8600] dark:text-[#D2F843] mt-2">Test Dispatch →</span>
+                <span className="text-[10px] font-semibold text-[#76BB08] dark:text-[#76BB08] mt-2">Test Dispatch →</span>
               </button>
 
               {/* Event 2: ViewContent (PVC ₦30k) */}
@@ -279,17 +279,17 @@ export default function AdminPixelManager() {
                     currency: 'NGN',
                   })
                 }
-                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#D2F843] transition-all text-left flex flex-col justify-between group cursor-pointer"
+                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#76BB08] transition-all text-left flex flex-col justify-between group cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] font-semibold uppercase text-neutral-400">Engagement</span>
-                    <Play className="w-3 h-3 text-[#6c8600] dark:text-[#D2F843]" />
+                    <Play className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                   </div>
                   <span className="font-bold text-xs sm:text-sm text-neutral-950 dark:text-white block">ViewContent (PVC)</span>
                   <p className="text-[11px] text-neutral-400 mt-1">PVC Card (₦30,000)</p>
                 </div>
-                <span className="text-[10px] font-semibold text-[#6c8600] dark:text-[#D2F843] mt-2">Test Dispatch →</span>
+                <span className="text-[10px] font-semibold text-[#76BB08] dark:text-[#76BB08] mt-2">Test Dispatch →</span>
               </button>
 
               {/* Event 3: ViewContent (Metal ₦100k) */}
@@ -303,17 +303,17 @@ export default function AdminPixelManager() {
                     currency: 'NGN',
                   })
                 }
-                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#D2F843] transition-all text-left flex flex-col justify-between group cursor-pointer"
+                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#76BB08] transition-all text-left flex flex-col justify-between group cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] font-semibold uppercase text-neutral-400">High-Ticket</span>
-                    <Play className="w-3 h-3 text-[#6c8600] dark:text-[#D2F843]" />
+                    <Play className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                   </div>
                   <span className="font-bold text-xs sm:text-sm text-neutral-950 dark:text-white block">ViewContent (Metal)</span>
                   <p className="text-[11px] text-neutral-400 mt-1">Metal Card (₦100,000)</p>
                 </div>
-                <span className="text-[10px] font-semibold text-[#6c8600] dark:text-[#D2F843] mt-2">Test Dispatch →</span>
+                <span className="text-[10px] font-semibold text-[#76BB08] dark:text-[#76BB08] mt-2">Test Dispatch →</span>
               </button>
 
               {/* Event 4: InitiateCheckout */}
@@ -328,17 +328,17 @@ export default function AdminPixelManager() {
                     num_items: 1,
                   })
                 }
-                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#D2F843] transition-all text-left flex flex-col justify-between group cursor-pointer"
+                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#76BB08] transition-all text-left flex flex-col justify-between group cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] font-semibold uppercase text-neutral-400">Mid-Funnel</span>
-                    <Play className="w-3 h-3 text-[#6c8600] dark:text-[#D2F843]" />
+                    <Play className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                   </div>
                   <span className="font-bold text-xs sm:text-sm text-neutral-950 dark:text-white block">InitiateCheckout</span>
                   <p className="text-[11px] text-neutral-400 mt-1">Modal opened</p>
                 </div>
-                <span className="text-[10px] font-semibold text-[#6c8600] dark:text-[#D2F843] mt-2">Test Dispatch →</span>
+                <span className="text-[10px] font-semibold text-[#76BB08] dark:text-[#76BB08] mt-2">Test Dispatch →</span>
               </button>
 
               {/* Event 5: CompletePayment */}
@@ -353,7 +353,7 @@ export default function AdminPixelManager() {
                     transaction_id: 'TEST_CHIP_' + Math.floor(Math.random() * 899999 + 100000),
                   })
                 }
-                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#D2F843] transition-all text-left flex flex-col justify-between group cursor-pointer"
+                className="p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:border-[#76BB08] transition-all text-left flex flex-col justify-between group cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-center mb-1">
@@ -392,7 +392,7 @@ export default function AdminPixelManager() {
                   type="text"
                   placeholder="e.g. 192847192837461"
                   defaultValue="102938475618293"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                 />
                 <button
                   type="button"
@@ -418,7 +418,7 @@ export default function AdminPixelManager() {
       <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-[#6c8600] dark:text-[#D2F843]" />
+            <Terminal className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
             <h3 className="font-bold text-base text-neutral-950 dark:text-white">
               Real-Time Tracking Event Stream
             </h3>
@@ -452,7 +452,7 @@ export default function AdminPixelManager() {
                   <tr key={idx} className="hover:bg-neutral-50/60 dark:hover:bg-white/[0.02]">
                     <td className="p-3 text-neutral-400 whitespace-nowrap font-mono">{log.time}</td>
                     <td className="p-3 font-semibold text-neutral-950 dark:text-white">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30">
                         {log.name}
                       </span>
                     </td>

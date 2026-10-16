@@ -111,7 +111,7 @@ export default function AdminAppDownloadsManager() {
   if (loading) {
     return (
       <div className="bg-white dark:bg-[#111318] rounded-3xl p-12 text-center border border-neutral-200/80 dark:border-white/10">
-        <div className="w-10 h-10 border-2 border-[#D2F843] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-10 h-10 border-2 border-[#76BB08] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-sm font-semibold text-neutral-500">Loading Official Mobile App Telemetry...</p>
       </div>
     );
@@ -137,11 +137,11 @@ export default function AdminAppDownloadsManager() {
     <div className="space-y-8">
       {/* Top Header & Quick Action Bar */}
       <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 sm:p-8 border border-neutral-200/80 dark:border-white/10 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#D2F843]/15 via-blue-500/10 to-transparent blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#76BB08]/15 via-blue-500/10 to-transparent blur-3xl pointer-events-none rounded-full" />
         
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/20 border border-[#D2F843]/30 text-xs font-bold text-neutral-900 dark:text-[#D2F843] mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/20 border border-[#76BB08]/30 text-xs font-bold text-neutral-900 dark:text-[#76BB08] mb-3">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live Radar Telemetry v2.4.0</span>
             </div>
@@ -177,7 +177,7 @@ export default function AdminAppDownloadsManager() {
                 disabled={simulating}
                 className="px-4 py-2.5 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer shadow-sm"
               >
-                <Zap className="w-3.5 h-3.5 text-[#D2F843] dark:text-neutral-950" />
+                <Zap className="w-3.5 h-3.5 text-[#76BB08] dark:text-neutral-950" />
                 <span>Simulate Tap Event</span>
               </button>
             </div>
@@ -191,7 +191,7 @@ export default function AdminAppDownloadsManager() {
         {/* Total Downloads Card */}
         <div className="bg-white dark:bg-[#111318] p-6 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-neutral-300 dark:hover:border-white/20 transition-all">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/20 text-neutral-900 dark:text-[#D2F843] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/20 text-neutral-900 dark:text-[#76BB08] flex items-center justify-center font-bold">
               <Download className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
@@ -205,7 +205,7 @@ export default function AdminAppDownloadsManager() {
             {total.toLocaleString()}
           </p>
           <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div className="bg-[#D2F843] h-full rounded-full" style={{ width: '74%' }} />
+            <div className="bg-[#76BB08] h-full rounded-full" style={{ width: '74%' }} />
           </div>
           <p className="text-[11px] text-neutral-400 mt-2 font-medium">Goal: 5,000 installs</p>
         </div>
@@ -331,7 +331,7 @@ export default function AdminAppDownloadsManager() {
                     </div>
                     <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-hidden flex flex-col justify-end h-32 p-0.5">
                       <div 
-                        className="w-full rounded-lg bg-gradient-to-t from-emerald-600 via-neutral-900 to-[#D2F843] dark:from-emerald-500 dark:via-white dark:to-[#D2F843] transition-all group-hover:scale-105"
+                        className="w-full rounded-lg bg-gradient-to-t from-emerald-600 via-neutral-900 to-[#76BB08] dark:from-emerald-500 dark:via-white dark:to-[#76BB08] transition-all group-hover:scale-105"
                         style={{ height: `${heightPercent}%` }}
                       />
                     </div>
@@ -359,7 +359,7 @@ export default function AdminAppDownloadsManager() {
             {/* Top Nigerian Hubs */}
             <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 border border-neutral-200/80 dark:border-white/10 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-4 h-4 text-[#D2F843]" />
+                <MapPin className="w-4 h-4 text-[#76BB08]" />
                 <h3 className="text-sm font-bold text-neutral-950 dark:text-white">
                   Top Download Locations
                 </h3>
@@ -378,7 +378,7 @@ export default function AdminAppDownloadsManager() {
                       <span className="text-neutral-500">{loc.count} ({loc.percent}%)</span>
                     </div>
                     <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#D2F843] dark:bg-[#D2F843] h-full rounded-full" style={{ width: `${loc.percent}%` }} />
+                      <div className="bg-[#76BB08] dark:bg-[#76BB08] h-full rounded-full" style={{ width: `${loc.percent}%` }} />
                     </div>
                   </div>
                 ))}
@@ -388,7 +388,7 @@ export default function AdminAppDownloadsManager() {
             {/* Popular Hardware Antennas */}
             <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 border border-neutral-200/80 dark:border-white/10 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <Radio className="w-4 h-4 text-[#D2F843]" />
+                <Radio className="w-4 h-4 text-[#76BB08]" />
                 <h3 className="text-sm font-bold text-neutral-950 dark:text-white">
                   Verified Device Antennas
                 </h3>
@@ -487,7 +487,7 @@ export default function AdminAppDownloadsManager() {
                           </span>
                         </div>
                         <div className="text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5">
-                          <MapPin className="w-3 h-3 text-[#D2F843] shrink-0" />
+                          <MapPin className="w-3 h-3 text-[#76BB08] shrink-0" />
                           <span className="truncate">{dl.city || 'Lagos'}, {dl.country || 'Nigeria'}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-1.5">

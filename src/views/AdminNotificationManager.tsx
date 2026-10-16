@@ -193,7 +193,7 @@ export default function AdminNotificationManager() {
   return (
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
           <Bell className="w-3.5 h-3.5" /> In-App Announcements
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
@@ -232,7 +232,7 @@ export default function AdminNotificationManager() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Announcement Title</label>
               <input 
                 type="text"
-                className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]"
+                className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. New NFC Card Styles Are Now Live!"
@@ -242,7 +242,7 @@ export default function AdminNotificationManager() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Announcement Body</label>
               <textarea 
-                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843] h-32 resize-none"
+                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08] h-32 resize-none"
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder="Enter details visible in the bell notification drawer across all user accounts..."

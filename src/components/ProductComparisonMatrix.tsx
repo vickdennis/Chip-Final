@@ -150,7 +150,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
       badge: '★ Executive Bestseller',
       desc: '28g aerospace alloy with deep CNC dual-sided engraving.',
       btnLabel: 'Select Heavy Metal (10% Off)',
-      btnStyle: 'bg-[#D2F843] hover:bg-[#c2e833] text-neutral-950 font-black',
+      btnStyle: 'bg-[#76BB08] hover:bg-[#c2e833] text-neutral-950 font-black',
     },
   };
 
@@ -158,7 +158,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
     <div className="w-full my-10 sm:my-16">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 px-2 sm:px-4">
-        <div className="inline-flex items-center gap-2 bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5">
+        <div className="inline-flex items-center gap-2 bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5">
           <Sparkles className="w-3.5 h-3.5" />
           Hardware & Feature Transparency
         </div>
@@ -216,7 +216,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                   className={`py-2 px-1 rounded-xl flex flex-col items-center justify-center transition-all min-h-[48px] text-center ${
                     isSelected
                       ? tierKey === 'heavy_metal'
-                        ? 'bg-[#D2F843] text-neutral-950 shadow-sm'
+                        ? 'bg-[#76BB08] text-neutral-950 shadow-sm'
                         : 'bg-white dark:bg-[#161821] text-neutral-950 dark:text-white shadow-sm font-bold'
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                   }`}
@@ -241,7 +241,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
           {/* Active Tier Mobile Card */}
           <div className={`rounded-3xl border p-5 sm:p-6 transition-all ${
             activeMobileTier === 'heavy_metal'
-              ? 'bg-neutral-950 text-white dark:bg-[#151821] border-[#D2F843] shadow-[0_10px_30px_rgba(210,248,67,0.12)]'
+              ? 'bg-neutral-950 text-white dark:bg-[#151821] border-[#76BB08] shadow-[0_10px_30px_rgba(118, 187, 8,0.12)]'
               : activeMobileTier === 'metal'
               ? 'bg-neutral-900 text-white dark:bg-[#14161f] border-neutral-700 shadow-md'
               : 'bg-white dark:bg-[#111318] text-neutral-950 dark:text-white border-neutral-200/80 dark:border-white/10 shadow-sm'
@@ -249,7 +249,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold ${
                 activeMobileTier === 'heavy_metal'
-                  ? 'bg-[#D2F843] text-neutral-950'
+                  ? 'bg-[#76BB08] text-neutral-950'
                   : activeMobileTier === 'metal'
                   ? 'bg-white/10 text-white'
                   : 'bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-white/80'
@@ -397,11 +397,11 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                 </th>
 
                 {/* TIER 3: CUSTOM HEAVY METAL */}
-                <th className="p-4 sm:p-6 w-1/4 align-top border-l-2 border-[#D2F843] bg-[#D2F843]/10 relative">
-                  <div className="absolute top-2 right-4 bg-[#D2F843] text-neutral-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                <th className="p-4 sm:p-6 w-1/4 align-top border-l-2 border-[#76BB08] bg-[#76BB08]/10 relative">
+                  <div className="absolute top-2 right-4 bg-[#76BB08] text-neutral-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
                     Executive Bestseller
                   </div>
-                  <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] font-bold">
+                  <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] font-bold">
                     Boardroom Authority
                   </span>
                   <div className="text-lg sm:text-xl font-extrabold text-neutral-950 dark:text-white mt-2">
@@ -417,7 +417,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                   <button
                     type="button"
                     onClick={() => onSelectTier?.('heavy_metal')}
-                    className="mt-4 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#D2F843] hover:bg-[#c2e833] text-neutral-950 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md font-extrabold min-h-[40px]"
+                    className="mt-4 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#76BB08] hover:bg-[#c2e833] text-neutral-950 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md font-extrabold min-h-[40px]"
                   >
                     <span>Select Executive</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -474,10 +474,10 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                         )}
                       </td>
 
-                      <td className="py-3 sm:py-4 px-4 sm:px-6 text-xs border-l-2 border-[#D2F843] text-neutral-950 dark:text-white font-semibold bg-[#D2F843]/[0.03]">
+                      <td className="py-3 sm:py-4 px-4 sm:px-6 text-xs border-l-2 border-[#76BB08] text-neutral-950 dark:text-white font-semibold bg-[#76BB08]/[0.03]">
                         {typeof row.customMetal === 'boolean' ? (
                           row.customMetal ? (
-                            <Check className="w-4 h-4 text-[#84A900] dark:text-[#D2F843]" />
+                            <Check className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
                           ) : (
                             <Minus className="w-4 h-4 text-neutral-300 dark:text-neutral-600" />
                           )
@@ -497,7 +497,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
       {/* Psychology Summary Callout */}
       <div className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-2xl bg-neutral-900 text-white dark:bg-[#161821] border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 w-full sm:w-auto">
-          <div className="w-10 h-10 rounded-xl bg-[#D2F843] text-neutral-950 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#76BB08] text-neutral-950 flex items-center justify-center shrink-0">
             <Zap className="w-5 h-5" />
           </div>
           <div>
@@ -510,7 +510,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
         <button
           type="button"
           onClick={() => onSelectTier?.('heavy_metal')}
-          className="w-full sm:w-auto px-5 py-3 rounded-full bg-[#D2F843] text-neutral-950 font-bold text-xs hover:bg-[#c2e833] transition-colors whitespace-nowrap cursor-pointer shrink-0 shadow-sm text-center min-h-[44px]"
+          className="w-full sm:w-auto px-5 py-3 rounded-full bg-[#76BB08] text-neutral-950 font-bold text-xs hover:bg-[#c2e833] transition-colors whitespace-nowrap cursor-pointer shrink-0 shadow-sm text-center min-h-[44px]"
         >
           Build Your Custom Metal Card &rarr;
         </button>

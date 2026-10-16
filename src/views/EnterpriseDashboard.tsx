@@ -228,7 +228,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
   if (!enterprise) {
     // Upsell state
     return (
-      <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#76BB08] selection:text-neutral-950 font-sans flex items-center justify-center p-4">
         <div className="bg-white dark:bg-[#111318] max-w-xl w-full p-8 sm:p-10 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 text-center">
           <div className="flex justify-center mb-6">
             <BrandLogo size="lg" iconOnly />
@@ -239,10 +239,10 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
           </p>
           
           <div className="bg-neutral-50/70 dark:bg-white/[0.02] border border-neutral-200/60 dark:border-white/5 rounded-2xl p-5 text-left mb-8 space-y-3">
-            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#D2F843]" /> <span className="text-sm font-medium">20+ NFC Cards & Bio Seats included</span></div>
-            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#D2F843]" /> <span className="text-sm font-medium">Centralized Brand & Logo Control</span></div>
-            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#D2F843]" /> <span className="text-sm font-medium">Team-wide Tap Telemetry & Conversion Tracking</span></div>
-            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#D2F843]" /> <span className="text-sm font-medium">Single Consolidated Monthly Invoice in ₦</span></div>
+            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#76BB08]" /> <span className="text-sm font-medium">20+ NFC Cards & Bio Seats included</span></div>
+            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#76BB08]" /> <span className="text-sm font-medium">Centralized Brand & Logo Control</span></div>
+            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#76BB08]" /> <span className="text-sm font-medium">Team-wide Tap Telemetry & Conversion Tracking</span></div>
+            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#76BB08]" /> <span className="text-sm font-medium">Single Consolidated Monthly Invoice in ₦</span></div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -273,7 +273,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                   alert(err?.message || 'Failed to open Flutterwave gateway');
                 }
               }}
-              className="flex-1 py-3.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
+              className="flex-1 py-3.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
             >
               Subscribe (₦99,000/mo)
             </button>
@@ -285,7 +285,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
 
   // Dashboard state
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white font-sans selection:bg-[#D2F843] selection:text-neutral-950 transition-colors pb-20">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white font-sans selection:bg-[#76BB08] selection:text-neutral-950 transition-colors pb-20">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 backdrop-blur-md border-b border-neutral-200/80 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -294,7 +294,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-neutral-950 dark:text-white tracking-tight">{enterprise.name}</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#D2F843] text-neutral-950">Enterprise Fleet</span>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#76BB08] text-neutral-950">Enterprise Fleet</span>
               </div>
             </div>
           </div>
@@ -323,7 +323,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
               <button 
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`flex items-center gap-3 px-4 py-3 text-left w-auto md:w-full shrink-0 md:shrink text-xs font-bold rounded-2xl transition-all ${activeTab === item.id ? 'bg-[#D2F843] text-neutral-950 shadow-sm' : 'hover:bg-neutral-100 dark:hover:bg-white/5 text-neutral-600 dark:text-neutral-400'}`}
+                className={`flex items-center gap-3 px-4 py-3 text-left w-auto md:w-full shrink-0 md:shrink text-xs font-bold rounded-2xl transition-all ${activeTab === item.id ? 'bg-[#76BB08] text-neutral-950 shadow-sm' : 'hover:bg-neutral-100 dark:hover:bg-white/5 text-neutral-600 dark:text-neutral-400'}`}
               >
                 <item.icon className="w-4 h-4" /> {item.label}
               </button>
@@ -348,7 +348,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                 <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 p-6 rounded-3xl shadow-sm">
                   <div className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Network Profile Views</div>
                   <div className="text-4xl font-extrabold text-neutral-950 dark:text-white flex items-center gap-2">
-                    {networkViews} <Activity className="w-6 h-6 text-[#16a34a] dark:text-[#D2F843]" />
+                    {networkViews} <Activity className="w-6 h-6 text-[#16a34a] dark:text-[#76BB08]" />
                   </div>
                 </div>
                 <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 p-6 rounded-3xl shadow-sm">
@@ -362,7 +362,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                 <div className="h-48 flex items-end gap-3 text-neutral-400 text-xs">
                   {[4, 12, 8, 15, 20, 18, 25].map((val, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                       <div className="w-full bg-[#D2F843]/20 hover:bg-[#D2F843] rounded-t-xl transition-all" style={{ height: `${(val/25)*100}%` }}></div>
+                       <div className="w-full bg-[#76BB08]/20 hover:bg-[#76BB08] rounded-t-xl transition-all" style={{ height: `${(val/25)*100}%` }}></div>
                        <span className="font-medium text-[11px]">Day {i+1}</span>
                     </div>
                   ))}
@@ -380,7 +380,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                  </div>
                  <button 
                    onClick={() => setIsCreatingEmployee(true)}
-                   className="bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+                   className="bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
                  >
                    <Plus className="w-4 h-4" /> Add Team Member
                  </button>
@@ -398,33 +398,33 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Email</label>
-                          <input required type="email" value={employeeForm.email} onChange={e => setEmployeeForm({...employeeForm, email: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                          <input required type="email" value={employeeForm.email} onChange={e => setEmployeeForm({...employeeForm, email: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Temporary Password</label>
-                          <input required type="password" value={employeeForm.password} onChange={e => setEmployeeForm({...employeeForm, password: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                          <input required type="password" value={employeeForm.password} onChange={e => setEmployeeForm({...employeeForm, password: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                         </div>
                       </div>
                     )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Full Name</label>
-                        <input required type="text" value={employeeForm.full_name} onChange={e => setEmployeeForm({...employeeForm, full_name: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                        <input required type="text" value={employeeForm.full_name} onChange={e => setEmployeeForm({...employeeForm, full_name: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Username (Bio URL slug)</label>
-                        <input type="text" value={employeeForm.username} onChange={e => setEmployeeForm({...employeeForm, username: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                        <input type="text" value={employeeForm.username} onChange={e => setEmployeeForm({...employeeForm, username: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Headline / Department</label>
-                      <input type="text" value={employeeForm.headline} onChange={e => setEmployeeForm({...employeeForm, headline: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                      <input type="text" value={employeeForm.headline} onChange={e => setEmployeeForm({...employeeForm, headline: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Bio</label>
-                      <textarea rows={3} value={employeeForm.bio} onChange={e => setEmployeeForm({...employeeForm, bio: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm resize-none" />
+                      <textarea rows={3} value={employeeForm.bio} onChange={e => setEmployeeForm({...employeeForm, bio: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm resize-none" />
                     </div>
-                    <button type="submit" className="bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider w-full shadow-sm transition-all cursor-pointer">
+                    <button type="submit" className="bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider w-full shadow-sm transition-all cursor-pointer">
                       {editingEmployee ? 'Save Changes' : 'Create Employee Profile'}
                     </button>
                   </form>
@@ -492,12 +492,12 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
               <form onSubmit={handleSaveBranding} className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Company Name</label>
-                  <input required type="text" value={brandForm.name} onChange={e => setBrandForm({...brandForm, name: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                  <input required type="text" value={brandForm.name} onChange={e => setBrandForm({...brandForm, name: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1.5">Company Logo URL</label>
-                  <input type="text" placeholder="https://..." value={brandForm.logo_url} onChange={e => setBrandForm({...brandForm, logo_url: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm" />
+                  <input type="text" placeholder="https://..." value={brandForm.logo_url} onChange={e => setBrandForm({...brandForm, logo_url: e.target.value})} className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm" />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -513,7 +513,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                     <select 
                       value={brandForm.brand_font} 
                       onChange={e => setBrandForm({...brandForm, brand_font: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50 text-sm"
+                      className="w-full px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50 text-sm"
                     >
                       <option value="sans">Inter (Modern Clean)</option>
                       <option value="mono">JetBrains Mono</option>
@@ -522,7 +522,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                   </div>
                 </div>
 
-                <button type="submit" className="bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider w-full shadow-sm transition-all cursor-pointer">
+                <button type="submit" className="bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider w-full shadow-sm transition-all cursor-pointer">
                   Enforce Brand Guidelines
                 </button>
               </form>
@@ -542,7 +542,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                      <div className="font-bold text-lg mb-0.5">Enterprise Fleet Tier</div>
                      <div className="text-xs text-neutral-500 dark:text-neutral-400 uppercase">Billed Monthly (₦99,000.00)</div>
                    </div>
-                   <span className="px-3 py-1 bg-[#D2F843] text-neutral-950 text-xs font-bold rounded-full">Active</span>
+                   <span className="px-3 py-1 bg-[#76BB08] text-neutral-950 text-xs font-bold rounded-full">Active</span>
                  </div>
 
                  <div>
@@ -551,7 +551,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                      <span className="text-xs font-bold text-neutral-500">{employees.length} / {enterprise.total_seats} Assigned</span>
                    </div>
                    <div className="h-2 w-full bg-neutral-100 dark:bg-white/10 rounded-full overflow-hidden">
-                     <div className="h-full bg-[#D2F843]" style={{ width: `${(employees.length / enterprise.total_seats) * 100}%`}}></div>
+                     <div className="h-full bg-[#76BB08]" style={{ width: `${(employees.length / enterprise.total_seats) * 100}%`}}></div>
                    </div>
                  </div>
 
@@ -587,7 +587,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                          alert(err?.message || 'Failed to open Flutterwave gateway');
                        }
                      }}
-                     className="w-full py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer"
+                     className="w-full py-3 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer"
                    >
                      Purchase Additional Seats (₦25,000 / 10 seats)
                    </button>

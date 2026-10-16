@@ -341,7 +341,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-sm text-neutral-950 dark:text-white">Notifications</h3>
               {unreadCount > 0 && (
-                <span className="text-[10px] bg-[#D2F843] text-neutral-950 font-bold px-2 py-0.5 rounded-full">{unreadCount} New</span>
+                <span className="text-[10px] bg-[#76BB08] text-neutral-950 font-bold px-2 py-0.5 rounded-full">{unreadCount} New</span>
               )}
             </div>
             {unreadCount > 0 && (
@@ -367,13 +367,13 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       key={notif.id} 
                       className={`p-3.5 transition-colors text-left relative group ${
                         isUnread 
-                          ? 'bg-[#D2F843]/5 dark:bg-[#D2F843]/10 hover:bg-[#D2F843]/10 dark:hover:bg-[#D2F843]/15' 
+                          ? 'bg-[#76BB08]/5 dark:bg-[#76BB08]/10 hover:bg-[#76BB08]/10 dark:hover:bg-[#76BB08]/15' 
                           : 'hover:bg-neutral-50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1.5 mb-1">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] shrink-0" />}
+                          {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-[#76BB08] shrink-0" />}
                           <h4 className="font-bold text-xs text-neutral-950 dark:text-white truncate">{notif.title}</h4>
                         </div>
                         {isUnread && (
@@ -838,9 +838,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         
         {/* Live System Broadcast Banner for all unread announcements */}
         {latestUnreadBroadcast && (
-          <div className="w-full bg-[#D2F843]/15 border border-[#D2F843]/40 p-4 sm:p-5 rounded-2xl flex items-start justify-between gap-4 mb-6 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <div className="w-full bg-[#76BB08]/15 border border-[#76BB08]/40 p-4 sm:p-5 rounded-2xl flex items-start justify-between gap-4 mb-6 shadow-sm animate-in fade-in slide-in-from-top-2">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-[#D2F843] text-neutral-950 shrink-0">
+              <div className="p-2 rounded-xl bg-[#76BB08] text-neutral-950 shrink-0">
                 <Bell className="w-4 h-4" />
               </div>
               <div>
@@ -868,7 +868,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 Profile & NFC Hub
               </h1>
               {profile?.is_admin && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/40 text-[10px] font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/40 text-[10px] font-bold uppercase tracking-wider">
                   <Shield className="w-3 h-3" /> Admin
                 </span>
               )}
@@ -880,7 +880,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           {profile?.is_admin && (
             <button
               onClick={() => onNavigate('admin-dashboard')}
-              className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 border border-[#D2F843]/40 shadow-xs transition-all cursor-pointer shrink-0"
+              className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 border border-[#76BB08]/40 shadow-xs transition-all cursor-pointer shrink-0"
               title="Open Super Admin Dashboard"
             >
               <Shield className="w-3.5 h-3.5" />
@@ -916,13 +916,13 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <h3 className="font-bold text-base text-neutral-950 dark:text-white tracking-tight">Order NFC Smart Card</h3>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">Direct factory dispatch with 1-tap contact sync</p>
                   </div>
-                  <SmartphoneNfc className="w-5 h-5 text-[#6c8600] dark:text-[#D2F843]" />
+                  <SmartphoneNfc className="w-5 h-5 text-[#76BB08] dark:text-[#76BB08]" />
                 </div>
                 <div className="p-6 sm:p-8 flex flex-col gap-6">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Select Card Finish</label>
                     <select
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/60 focus:border-[#76BB08] text-sm font-medium"
                       value={selectedNfcCard?.id || ''}
                       onChange={(e) => {
                         const card = shopProducts.find(p => p.id === e.target.value);
@@ -947,7 +947,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       )}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-[10px] font-bold uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-[10px] font-bold uppercase tracking-wider">
                             NTAG216 Chip
                           </span>
                         </div>
@@ -969,7 +969,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         value={checkoutName} 
                         onChange={e => setCheckoutName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium"
+                        className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/60 focus:border-[#76BB08] text-sm font-medium"
                       />
                     </div>
                     <div>
@@ -979,7 +979,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         value={checkoutPhone} 
                         onChange={e => setCheckoutPhone(e.target.value)}
                         placeholder="08012345678"
-                        className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium"
+                        className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/60 focus:border-[#76BB08] text-sm font-medium"
                       />
                     </div>
                   </div>
@@ -991,15 +991,15 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       onChange={e => setCheckoutAddress(e.target.value)}
                       placeholder="Enter full physical address for dispatch"
                       rows={3}
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] text-sm font-medium resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/60 focus:border-[#76BB08] text-sm font-medium resize-none"
                     />
                   </div>
 
                   {/* Transparent Pricing Trust Callout */}
-                  <div className="p-4 rounded-2xl bg-[#D2F843]/10 border border-[#D2F843]/30 flex flex-col gap-1.5 text-left mb-2">
+                  <div className="p-4 rounded-2xl bg-[#76BB08]/10 border border-[#76BB08]/30 flex flex-col gap-1.5 text-left mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#D2F843] animate-pulse"></span>
-                      <span className="text-[11px] font-bold text-[#6c8600] dark:text-[#D2F843] uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-[#76BB08] animate-pulse"></span>
+                      <span className="text-[11px] font-bold text-[#76BB08] dark:text-[#76BB08] uppercase tracking-wider">
                         Transparent Software Guarantee
                       </span>
                     </div>
@@ -1070,7 +1070,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       }
                     }}
                     disabled={!selectedNfcCard || !checkoutName || !checkoutPhone || !checkoutAddress}
-                    className="w-full bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 transition-all font-bold text-sm py-3.5 rounded-full flex items-center justify-center cursor-pointer text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 transition-all font-bold text-sm py-3.5 rounded-full flex items-center justify-center cursor-pointer text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Order & Proceed to Flutterwave
                   </button>
@@ -1126,7 +1126,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   <button
                     type="button"
                     onClick={() => onNavigate('admin-dashboard')}
-                    className="w-full py-3 px-4 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs border border-[#D2F843]/50"
+                    className="w-full py-3 px-4 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs border border-[#76BB08]/50"
                   >
                     <Shield className="w-4 h-4" />
                     <span>Open Super Admin Control Center</span>
@@ -1179,7 +1179,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   value={profile.full_name || ''}
                   onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                   placeholder="e.g. Victor Okoye"
-                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-semibold text-neutral-900 dark:text-white"
+                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#76BB08] focus:ring-2 focus:ring-[#76BB08]/50 outline-none transition-all text-sm font-semibold text-neutral-900 dark:text-white"
                 />
               </div>
 
@@ -1188,7 +1188,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
                   USERNAME
                 </label>
-                <div className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center focus-within:ring-2 focus-within:ring-[#D2F843]/50 focus-within:border-[#D2F843] transition-all">
+                <div className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center focus-within:ring-2 focus-within:ring-[#76BB08]/50 focus-within:border-[#76BB08] transition-all">
                   <span className="text-sm font-medium text-neutral-400 dark:text-neutral-500 select-none mr-2">
                     chipng.com/
                   </span>
@@ -1212,7 +1212,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   value={profile.headline || ''}
                   onChange={(e) => setProfile({ ...profile, headline: e.target.value })}
                   placeholder="e.g. Founder And Group Managing Director"
-                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-semibold text-neutral-900 dark:text-white"
+                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#76BB08] focus:ring-2 focus:ring-[#76BB08]/50 outline-none transition-all text-sm font-semibold text-neutral-900 dark:text-white"
                 />
               </div>
 
@@ -1225,7 +1225,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   value={profile.bio || ''}
                   onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                   placeholder="Tell visitors what you do and what you're passionate about..."
-                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white resize-none"
+                  className="w-full px-5 py-4 bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl focus:border-[#76BB08] focus:ring-2 focus:ring-[#76BB08]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white resize-none"
                 />
               </div>
 
@@ -1237,7 +1237,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         value={profile.contact_email || ''}
                         onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
                         placeholder={profile.email}
-                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#76BB08] focus:ring-2 focus:ring-[#76BB08]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -1268,7 +1268,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                   setProfile({ ...profile, phone_number: JSON.stringify(newArr) });
                                 }}
                                 placeholder="+234 800 000 0000"
-                                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
+                                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#76BB08] focus:ring-2 focus:ring-[#76BB08]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                               />
                               {arr.length > 1 && (
                                 <button
@@ -1292,7 +1292,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               }}
                               className="mt-1 self-start flex items-center gap-2 px-4 py-2.5 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-900 dark:text-white rounded-xl text-xs font-bold transition-colors"
                             >
-                              <Plus className="w-4 h-4 text-[#D2F843]" /> Add Phone Number
+                              <Plus className="w-4 h-4 text-[#76BB08]" /> Add Phone Number
                             </button>
                           );
                         })()}
@@ -1305,7 +1305,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         value={profile.address || ''}
                         onChange={(e) => setProfile({ ...profile, address: e.target.value })}
                         placeholder="Victoria Island, Lagos, Nigeria"
-                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#D2F843] focus:ring-2 focus:ring-[#D2F843]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#76BB08] focus:ring-2 focus:ring-[#76BB08]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
                       />
                     </div>
 
@@ -1318,7 +1318,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         type="button"
                         onClick={handleSaveContactDetails}
                         disabled={savingContactDetails}
-                        className="w-full sm:w-auto px-5 py-2.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        className="w-full sm:w-auto px-5 py-2.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                       >
                         {savingContactDetails ? (
                           <>
@@ -1346,7 +1346,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="text-sm font-bold text-neutral-950 dark:text-white">Blue Verification Badge</h4>
                           {profile.is_verified && (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#D2F843] text-neutral-950">Active</span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#76BB08] text-neutral-950">Active</span>
                           )}
                         </div>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">Build trust with a verified badge next to your handle for ₦3,000/month</p>
@@ -1420,7 +1420,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                 alert(err?.message || 'Failed to open Flutterwave gateway');
                               }
                             }}
-                            className="px-5 py-2.5 text-xs font-bold rounded-full transition-all bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 shadow-sm cursor-pointer"
+                            className="px-5 py-2.5 text-xs font-bold rounded-full transition-all bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 shadow-sm cursor-pointer"
                           >
                             Get Verified
                           </button>
@@ -1495,7 +1495,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Profile Traffic</h3>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Real-time bio visitor impressions</p>
                 </div>
-                <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/10 dark:bg-[#76BB08]/20 flex items-center justify-center text-neutral-900 dark:text-[#76BB08]">
                   <Activity className="w-5 h-5" />
                 </div>
               </div>
@@ -1503,7 +1503,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <div className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Total Profile Impressions</div>
                 <div className="text-4xl font-extrabold flex items-center gap-3 text-neutral-950 dark:text-white">
                   {profileViews} 
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#D2F843]/20 text-neutral-950 dark:text-[#D2F843] flex items-center gap-1">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#76BB08]/20 text-neutral-950 dark:text-[#76BB08] flex items-center gap-1">
                     <Eye className="w-3.5 h-3.5" /> Live
                   </span>
                 </div>
@@ -1550,7 +1550,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     checked={profile.show_availability !== false}
                     onChange={(e) => setProfile({ ...profile, show_availability: e.target.checked })}
                     id="show-avail" 
-                    className="w-4 h-4 rounded text-neutral-900 focus:ring-[#D2F843]" 
+                    className="w-4 h-4 rounded text-neutral-900 focus:ring-[#76BB08]" 
                   />
                   <label htmlFor="show-avail" className="text-neutral-800 dark:text-neutral-200 text-xs font-semibold cursor-pointer">Display booking widget on public bio</label>
                 </div>
@@ -1601,7 +1601,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
                   <button 
                     onClick={handleDownloadVCard}
-                    className="w-full px-4 py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
                   >
                     <Download className="w-4 h-4" /> Download vCard Contact File
                   </button>
@@ -1669,11 +1669,11 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">2-Way Contact Exchange</h3>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-[#D2F843] text-[10px] font-mono font-bold">Active on NFC</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-[#76BB08] text-[10px] font-mono font-bold">Active on NFC</span>
                   </div>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Let prospects send their contact details back to your dashboard with 1 tap</p>
                 </div>
-                <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 flex items-center justify-center text-[#5b7300] dark:text-[#D2F843]">
+                <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 flex items-center justify-center text-[#5b7300] dark:text-[#76BB08]">
                   <UserCheck className="w-5 h-5" />
                 </div>
               </div>
@@ -1719,7 +1719,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Social Channels & Connected Accounts</h3>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Showcase your social handles with real-time followers & custom icons</p>
                 </div>
-                <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/10 dark:bg-[#76BB08]/20 flex items-center justify-center text-neutral-900 dark:text-[#76BB08]">
                   <Share className="w-5 h-5" />
                 </div>
               </div>
@@ -1730,7 +1730,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <select 
                       value={profile.social_links_style || 'color-circle'}
                       onChange={(e) => setProfile({ ...profile, social_links_style: e.target.value })}
-                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/50"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/50"
                     >
                       <option value="color-circle">Color Circle (Vibrant Brand Colors)</option>
                       <option value="white-circle">White Circle Minimal</option>
@@ -1760,7 +1760,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         }
                       }}
                       id="show-followers" 
-                      className="w-4 h-4 rounded text-neutral-900 focus:ring-[#D2F843]" 
+                      className="w-4 h-4 rounded text-neutral-900 focus:ring-[#76BB08]" 
                     />
                     <label htmlFor="show-followers" className="text-neutral-800 dark:text-neutral-200 text-xs font-semibold cursor-pointer">Display aggregate follower tally on card</label>
                   </div>
@@ -1787,7 +1787,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           newLinks[i].platform = e.target.value;
                           setSocialLinks(newLinks);
                         }}
-                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl font-medium text-xs bg-white dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/50"
+                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl font-medium text-xs bg-white dark:bg-[#151821] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/50"
                       >
                         {SOCIAL_PLATFORMS.map(p => (
                           <option key={p.name} value={p.name}>{p.name}</option>
@@ -1802,7 +1802,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           setSocialLinks(newLinks);
                         }}
                         placeholder="https://instagram.com/username" 
-                        className="flex-1 px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white bg-white dark:bg-[#151821] outline-none focus:ring-2 focus:ring-[#D2F843]/50 min-w-[140px]" 
+                        className="flex-1 px-4 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white bg-white dark:bg-[#151821] outline-none focus:ring-2 focus:ring-[#76BB08]/50 min-w-[140px]" 
                       />
                       <div className="flex items-center gap-2 w-28 relative">
                         <input 
@@ -1814,7 +1814,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             setSocialLinks(newLinks);
                           }}
                           placeholder="Followers" 
-                          className="w-full px-3 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white bg-white dark:bg-[#151821] outline-none focus:ring-2 focus:ring-[#D2F843]/50" 
+                          className="w-full px-3 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white bg-white dark:bg-[#151821] outline-none focus:ring-2 focus:ring-[#76BB08]/50" 
                         />
                         <button 
                           title="Auto-fetch followers"
@@ -1853,7 +1853,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   onClick={() => setSocialLinks([...socialLinks, { platform: 'Website', url: '', follower_count: 0 }])}
                   className="self-start px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-950 font-bold text-xs rounded-full flex items-center gap-2 transition-all shadow-sm"
                 >
-                  <Plus className="w-4 h-4 text-[#D2F843]" /> Add Another Social Channel
+                  <Plus className="w-4 h-4 text-[#76BB08]" /> Add Another Social Channel
                 </button>
               </div>
             </section>
@@ -1873,7 +1873,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">Public Profile Theme & Layout</h3>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Select a layout preset and ambient palette for your public page</p>
                   </div>
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/10 dark:bg-[#D2F843]/20 flex items-center justify-center text-neutral-900 dark:text-[#D2F843]">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/10 dark:bg-[#76BB08]/20 flex items-center justify-center text-neutral-900 dark:text-[#76BB08]">
                     <Settings className="w-5 h-5" />
                   </div>
                 </div>
@@ -1886,7 +1886,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         <button
                           key={color}
                           onClick={() => { setProfile({ ...profile, bg_color: color }); }}
-                          className={`w-10 h-10 rounded-full border-2 transition-all cursor-pointer ${profile.bg_color === color ? 'border-[#D2F843] scale-115 shadow-md ring-2 ring-[#D2F843]/50' : 'border-neutral-200 dark:border-white/10 hover:scale-105'}`}
+                          className={`w-10 h-10 rounded-full border-2 transition-all cursor-pointer ${profile.bg_color === color ? 'border-[#76BB08] scale-115 shadow-md ring-2 ring-[#76BB08]/50' : 'border-neutral-200 dark:border-white/10 hover:scale-105'}`}
                           style={{ backgroundColor: color }}
                           aria-label={`Select color ${color}`}
                         />
@@ -1905,7 +1905,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           <div 
                             key={layout.id} 
                             onClick={() => { setProfile({ ...profile, theme: layout.id }); }}
-                            className={`cursor-pointer rounded-2xl border p-4 flex flex-col items-center justify-between gap-3 transition-all ${isActive ? 'border-[#D2F843] bg-[#D2F843]/10 dark:bg-[#D2F843]/10 shadow-sm ring-1 ring-[#D2F843]' : 'border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 bg-neutral-50/50 dark:bg-white/[0.02]'}`}
+                            className={`cursor-pointer rounded-2xl border p-4 flex flex-col items-center justify-between gap-3 transition-all ${isActive ? 'border-[#76BB08] bg-[#76BB08]/10 dark:bg-[#76BB08]/10 shadow-sm ring-1 ring-[#76BB08]' : 'border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 bg-neutral-50/50 dark:bg-white/[0.02]'}`}
                           >
                             <div className="w-16 h-20 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl flex flex-col p-1.5 shadow-xs text-neutral-900 dark:text-white">
                               {layout.id === 'default' && (
@@ -1972,7 +1972,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   <div className="flex justify-end pt-5 border-t border-neutral-100 dark:border-white/5">
                     <button 
                       onClick={handleSave} 
-                      className="px-6 py-3 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold transition-all text-xs flex items-center gap-2 shadow-sm cursor-pointer"
+                      className="px-6 py-3 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full font-bold transition-all text-xs flex items-center gap-2 shadow-sm cursor-pointer"
                     >
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       {saving ? 'Saving...' : 'Save Appearance'}
@@ -2142,7 +2142,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 step={0.1}
                 aria-labelledby="Zoom"
                 onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full accent-[#D2F843]"
+                className="w-full accent-[#76BB08]"
               />
             </div>
             <div className="flex justify-end gap-3 mt-6">
@@ -2156,7 +2156,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 Cancel
               </button>
               <button
-                className="px-6 py-2.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold text-xs flex items-center justify-center min-w-[110px] shadow-sm transition-all"
+                className="px-6 py-2.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full font-bold text-xs flex items-center justify-center min-w-[110px] shadow-sm transition-all"
                 disabled={uploading}
                 onClick={handleCropSave}
               >
@@ -2239,9 +2239,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <button
                   key={size}
                   onClick={() => setCurrentLink({...currentLink, size})}
-                  className={`flex flex-col items-center justify-center py-3 rounded-2xl border transition-all ${currentLink.size === size ? 'border-[#D2F843] text-neutral-950 dark:text-white bg-[#D2F843]/15' : 'border-neutral-200/80 dark:border-white/10 text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
+                  className={`flex flex-col items-center justify-center py-3 rounded-2xl border transition-all ${currentLink.size === size ? 'border-[#76BB08] text-neutral-950 dark:text-white bg-[#76BB08]/15' : 'border-neutral-200/80 dark:border-white/10 text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
                 >
-                  <div className={`w-6 border-2 mb-2 rounded-md ${currentLink.size === size ? 'border-[#D2F843]' : 'border-neutral-400'} ${size === 'Big' ? 'h-5' : size === 'Medium' ? 'h-3' : size === 'Small' ? 'h-2' : 'h-1'}`}></div>
+                  <div className={`w-6 border-2 mb-2 rounded-md ${currentLink.size === size ? 'border-[#76BB08]' : 'border-neutral-400'} ${size === 'Big' ? 'h-5' : size === 'Medium' ? 'h-3' : size === 'Small' ? 'h-2' : 'h-1'}`}></div>
                   <span className="text-[11px] font-bold">{size}</span>
                 </button>
               ))}
@@ -2260,7 +2260,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <span className="text-xs font-bold text-neutral-900 dark:text-white">Auto-Fetch Website Favicon</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={currentLink.use_link_icon} onChange={(e) => setCurrentLink({...currentLink, use_link_icon: e.target.checked})} />
-                  <div className="w-11 h-6 bg-neutral-300 dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D2F843]"></div>
+                  <div className="w-11 h-6 bg-neutral-300 dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#76BB08]"></div>
                 </label>
               </div>
 
@@ -2269,7 +2269,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 placeholder="https://yourwebsite.com or @handle"
                 value={currentLink.url}
                 onChange={(e) => setCurrentLink({...currentLink, url: e.target.value})}
-                className="w-full bg-white dark:bg-[#101216] border border-neutral-200/80 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium"
+                className="w-full bg-white dark:bg-[#101216] border border-neutral-200/80 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/50 font-medium"
               />
 
               <input
@@ -2277,7 +2277,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 placeholder="Link Title (e.g. Read My Portfolio)"
                 value={currentLink.label}
                 onChange={(e) => setCurrentLink({...currentLink, label: e.target.value})}
-                className="w-full bg-white dark:bg-[#101216] border border-neutral-200/80 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D2F843]/50 font-medium"
+                className="w-full bg-white dark:bg-[#101216] border border-neutral-200/80 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/50 font-medium"
               />
             </div>
 
@@ -2292,7 +2292,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 }
                 setIsLinkModalOpen(false);
               }}
-              className="w-full mt-6 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold py-3.5 rounded-full transition-all text-sm shadow-sm cursor-pointer"
+              className="w-full mt-6 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold py-3.5 rounded-full transition-all text-sm shadow-sm cursor-pointer"
             >
               Save Link Card
             </button>
@@ -2303,7 +2303,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       {setupGuideActive && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-neutral-900 dark:bg-neutral-900 text-white p-5 rounded-3xl shadow-2xl z-50 flex flex-col sm:flex-row items-center gap-6 border border-neutral-700/60 min-w-[300px] sm:min-w-[500px] max-w-[90vw] animate-in slide-in-from-bottom-10">
           <div className="flex-1 flex flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#D2F843] mb-1">Step {setupStep} of {setupSteps.length}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#76BB08] mb-1">Step {setupStep} of {setupSteps.length}</span>
             <span className="font-bold text-base">{setupSteps.find(s => s.id === setupStep)?.name}</span>
             <span className="text-xs text-neutral-300 mt-1 leading-snug">
               {setupStep === 1 && "Add your full name, headline, and bio in the Profile Identity section."}
@@ -2332,7 +2332,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   alert("🎉 Setup Complete! Your public bio card is ready.");
                 }
               }}
-              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 rounded-full font-bold transition-all text-xs shadow-sm"
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full font-bold transition-all text-xs shadow-sm"
             >
               {setupStep < setupSteps.length ? "Next Step" : "Finish Setup"}
             </button>

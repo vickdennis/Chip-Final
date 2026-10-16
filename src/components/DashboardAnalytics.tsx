@@ -79,18 +79,18 @@ export default function DashboardAnalytics({
         
         {/* Profile details */}
         <div className="flex items-center gap-4 text-left">
-          <div className="w-14 h-14 rounded-2xl bg-[#D2F843] p-0.5 shadow-sm relative shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-[#76BB08] p-0.5 shadow-sm relative shrink-0">
             <div className="w-full h-full rounded-[14px] bg-neutral-950 flex items-center justify-center font-bold text-white text-lg sm:text-xl">
               {profile?.full_name?.charAt(0) || profile?.username?.charAt(0) || '?'}
             </div>
-            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#D2F843] border-2 border-white dark:border-neutral-900 flex items-center justify-center" />
+            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#76BB08] border-2 border-white dark:border-neutral-900 flex items-center justify-center" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-lg text-neutral-950 dark:text-white leading-tight">
                 {profile?.full_name || profile?.username || 'User'}
               </h3>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D2F843]/20 text-[#596e00] dark:text-[#D2F843] text-[10px] font-bold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] text-[10px] font-bold">
                 LIVE TELEMETRY
               </span>
             </div>
@@ -106,7 +106,7 @@ export default function DashboardAnalytics({
             className="p-2 rounded-xl bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors"
             title="Refresh Real-time Feed"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#6c8600] dark:text-[#D2F843]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#76BB08] dark:text-[#76BB08]' : ''}`} />
           </button>
           
           <div className="flex flex-col bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl p-3.5 px-5 self-start text-left">
@@ -114,7 +114,7 @@ export default function DashboardAnalytics({
             <span className="text-2xl font-extrabold text-neutral-950 dark:text-white leading-none tracking-tight">
               {totalViews.toLocaleString()}
             </span>
-            <span className="text-[11px] text-emerald-600 dark:text-[#D2F843] font-bold mt-1.5 flex items-center gap-1">
+            <span className="text-[11px] text-emerald-600 dark:text-[#76BB08] font-bold mt-1.5 flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Real-time active
             </span>
           </div>
@@ -132,7 +132,7 @@ export default function DashboardAnalytics({
         </div>
 
         <div className="bg-neutral-50/70 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl p-5 flex flex-col">
-          <div className="w-9 h-9 rounded-xl bg-[#D2F843]/20 text-[#596e00] dark:text-[#D2F843] flex items-center justify-center mb-3">
+          <div className="w-9 h-9 rounded-xl bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center mb-3">
             <MousePointerClick className="w-5 h-5" />
           </div>
           <span className="font-extrabold text-2xl text-neutral-950 dark:text-white mb-0.5">{totalClicks.toLocaleString()}</span>
@@ -192,12 +192,12 @@ export default function DashboardAnalytics({
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
-                    <Globe className="w-3.5 h-3.5 text-[#6c8600] dark:text-[#D2F843]" /> Direct Web / Bio Link
+                    <Globe className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" /> Direct Web / Bio Link
                   </span>
                   <span className="text-neutral-950 dark:text-white font-mono">{webViews} ({webPct}%)</span>
                 </div>
                 <div className="w-full h-2 bg-neutral-200 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#D2F843] rounded-full transition-all duration-500" style={{ width: `${webPct}%` }} />
+                  <div className="h-full bg-[#76BB08] rounded-full transition-all duration-500" style={{ width: `${webPct}%` }} />
                 </div>
               </div>
             </div>
@@ -222,7 +222,7 @@ export default function DashboardAnalytics({
                 {topLinks.map((link, idx) => (
                   <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 text-xs">
                     <div className="flex items-center gap-2 truncate pr-2">
-                      <span className="w-5 h-5 rounded-md bg-[#D2F843]/20 text-[#596e00] dark:text-[#D2F843] font-bold text-[10px] flex items-center justify-center shrink-0">
+                      <span className="w-5 h-5 rounded-md bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] font-bold text-[10px] flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <span className="font-semibold text-neutral-950 dark:text-white truncate">
@@ -257,7 +257,7 @@ export default function DashboardAnalytics({
             {recentActivity.slice(0, 6).map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs">
                 <div className="flex items-center gap-2 truncate pr-2">
-                  <span className={`w-2 h-2 rounded-full ${item.event_type === 'view' ? 'bg-blue-500' : 'bg-[#D2F843]'}`} />
+                  <span className={`w-2 h-2 rounded-full ${item.event_type === 'view' ? 'bg-blue-500' : 'bg-[#76BB08]'}`} />
                   <span className="font-semibold text-neutral-950 dark:text-white capitalize truncate">
                     {item.event_type === 'view' ? `Profile Visit via ${item.detail}` : `Clicked "${item.detail}"`}
                   </span>

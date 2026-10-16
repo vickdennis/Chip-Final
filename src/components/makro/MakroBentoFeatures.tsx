@@ -12,7 +12,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
         {/* Section Header */}
         <div className="max-w-2xl mb-14 sm:mb-18">
           <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+            <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
               Hardware + Software Ecosystem
             </span>
@@ -33,7 +33,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
-                  <Zap className="w-5 h-5 text-[#84A900] dark:text-[#D2F843]" />
+                  <Zap className="w-5 h-5 text-[#76BB08] dark:text-[#76BB08]" />
                 </div>
                 <div className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-full text-xs">
                   <button
@@ -80,7 +80,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
                       {activeChipType === 'metal' ? 'Shielded Ceramic Antenna: 100% Signal' : 'High-Flex PVC Coil: Universal Range'}
                     </span>
                   </div>
-                  <span className="text-[#84A900] dark:text-[#D2F843] font-semibold">
+                  <span className="text-[#76BB08] dark:text-[#76BB08] font-semibold">
                     {activeChipType === 'metal' ? 'Zero Battery Required' : '100% Waterproof'}
                   </span>
                 </div>
@@ -96,7 +96,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
           {/* Bento Card 2: 5 cols - Instant NFC & Smart Touchpoints */}
           <div className="lg:col-span-5 bg-white dark:bg-[#12141B] rounded-3xl p-7 sm:p-9 border border-neutral-200/80 dark:border-neutral-800 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <div className="w-10 h-10 rounded-2xl bg-[#D2F843] text-neutral-950 flex items-center justify-center mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-[#76BB08] text-neutral-950 flex items-center justify-center mb-6">
                 <Smartphone className="w-5 h-5" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-950 dark:text-white tracking-tight mb-2">
@@ -111,11 +111,11 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-[#D2F843]"></div>
+                      <div className="w-2 h-2 rounded-full bg-[#76BB08]"></div>
                     </div>
                     <span className="text-xs font-mono tracking-widest text-neutral-400">CHIP METAL</span>
                   </div>
-                  <Zap className="w-4 h-4 text-[#D2F843]" />
+                  <Zap className="w-4 h-4 text-[#76BB08]" />
                 </div>
                 
                 <div className="space-y-1">
@@ -141,7 +141,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 flex items-center justify-center shrink-0">
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
@@ -195,7 +195,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
                 </div>
 
                 <div className="p-4 sm:p-5 rounded-2xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200/60 dark:border-neutral-800 text-center">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#84A900] dark:text-[#D2F843] tabular-nums font-mono">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-[#76BB08] dark:text-[#76BB08] tabular-nums font-mono">
                     100%
                   </div>
                   <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-medium">
@@ -207,7 +207,7 @@ export const MakroBentoFeatures: React.FC<{ onAction?: () => void }> = ({ onActi
 
             <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+                <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
                 <span>Automatic 2-Way Contact Sync & Instant CSV/CRM Export</span>
               </div>
               <span className="font-mono text-neutral-600 dark:text-neutral-400">

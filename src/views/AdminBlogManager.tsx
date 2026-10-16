@@ -599,7 +599,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
               placeholder="e.g. Why Lagos Realtors Need NFC Business Cards in 2026"
               value={postForm.title}
               onChange={handleTitleChange}
-              className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-lg sm:text-xl font-bold text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] transition-colors"
+              className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-lg sm:text-xl font-bold text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] transition-colors"
             />
           </div>
 
@@ -617,7 +617,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                 required
                 value={postForm.slug}
                 onChange={handleSlugChange}
-                className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-r-2xl text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-r-2xl text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
             {slugError && (
@@ -637,7 +637,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
               <select
                 value={postForm.category}
                 onChange={(e) => setPostForm({ ...postForm, category: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               >
                 {CATEGORIES.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -654,7 +654,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                 value={postForm.author}
                 onChange={(e) => setPostForm({ ...postForm, author: e.target.value })}
                 placeholder="CHIP NG Editorial"
-                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -667,7 +667,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="NFC, Lagos, Realtor, Networking"
-                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
           </div>
@@ -730,7 +730,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                 <button
                   type="button"
                   onClick={handleGenerateExcerpt}
-                  className="text-xs text-[#6b8500] dark:text-[#D2F843] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-[#76BB08] dark:text-[#76BB08] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <Sparkles className="w-3 h-3" /> Auto-extract from content
                 </button>
@@ -744,7 +744,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
               value={postForm.excerpt}
               onChange={(e) => setPostForm({ ...postForm, excerpt: e.target.value })}
               placeholder="A short, compelling summary of this article shown on cards and in search results..."
-              className="w-full p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] leading-relaxed resize-y"
+              className="w-full p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] leading-relaxed resize-y"
             />
           </div>
 
@@ -767,7 +767,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
               className="w-full p-4 flex justify-between items-center hover:bg-neutral-100/60 dark:hover:bg-white/5 transition-colors cursor-pointer"
             >
               <h3 className="font-bold text-sm flex items-center gap-2 text-neutral-950 dark:text-white">
-                <Settings className="w-4 h-4 text-[#84A900] dark:text-[#D2F843]" />
+                <Settings className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
                 <span>SEO, Google Snippet & OpenGraph Meta</span>
               </h3>
               {showSeo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -800,7 +800,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                     value={postForm.meta_title}
                     onChange={(e) => setPostForm({ ...postForm, meta_title: e.target.value })}
                     placeholder={postForm.title || 'Page title in Google tabs'}
-                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                   />
                 </div>
 
@@ -813,7 +813,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                     value={postForm.meta_description}
                     onChange={(e) => setPostForm({ ...postForm, meta_description: e.target.value })}
                     placeholder={postForm.excerpt || 'Search engine summary description'}
-                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] resize-y"
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] resize-y"
                   />
                 </div>
 
@@ -826,7 +826,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                     value={postForm.focus_keyword}
                     onChange={(e) => setPostForm({ ...postForm, focus_keyword: e.target.value })}
                     placeholder="e.g. NFC business card Lagos"
-                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                   />
                 </div>
               </div>
@@ -883,9 +883,9 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
                 ? 'bg-rose-600 text-white border-rose-500'
                 : 'bg-neutral-900 text-neutral-100 border-neutral-700'
             }`}>
-              {toast.type === 'success' && <Check className="w-4 h-4 text-[#D2F843] dark:text-[#6a8700]" />}
+              {toast.type === 'success' && <Check className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />}
               {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-white" />}
-              {toast.type === 'info' && <Sparkles className="w-4 h-4 text-[#D2F843]" />}
+              {toast.type === 'info' && <Sparkles className="w-4 h-4 text-[#76BB08]" />}
               <span>{toast.message}</span>
               <button
                 type="button"
@@ -907,7 +907,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
       {/* Header and Create Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
             <FileText className="w-3.5 h-3.5" /> Content Engine & SEO
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
@@ -957,7 +957,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
         </div>
 
         <div className="p-5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-center">
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#596e00] dark:text-[#D2F843] tracking-tight">
+          <div className="text-2xl sm:text-3xl font-extrabold text-[#76BB08] dark:text-[#76BB08] tracking-tight">
             {posts.reduce((sum, p) => sum + (p.views || 0), 0)}
           </div>
           <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mt-1">
@@ -975,7 +975,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
             placeholder="Search by title, slug, category, or tag..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
           />
         </div>
 
@@ -1225,7 +1225,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
       {resumeDraftPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white dark:bg-[#12141A] w-full max-w-sm rounded-3xl border border-neutral-200 dark:border-white/10 shadow-2xl p-6 text-neutral-900 dark:text-white space-y-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] flex items-center justify-center mx-auto">
+            <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center mx-auto">
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="text-center space-y-1">
@@ -1276,9 +1276,9 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
               ? 'bg-rose-600 text-white border-rose-500'
               : 'bg-neutral-900 text-neutral-100 border-neutral-700'
           }`}>
-            {toast.type === 'success' && <Check className="w-4 h-4 text-[#D2F843] dark:text-[#6a8700]" />}
+            {toast.type === 'success' && <Check className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />}
             {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-white" />}
-            {toast.type === 'info' && <Sparkles className="w-4 h-4 text-[#D2F843]" />}
+            {toast.type === 'info' && <Sparkles className="w-4 h-4 text-[#76BB08]" />}
             <span>{toast.message}</span>
             <button
               type="button"

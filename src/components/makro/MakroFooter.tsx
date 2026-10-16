@@ -87,7 +87,7 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                   className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5"
                 >
                   <span>Standalone Sales Funnel</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#D2F843]/20 text-[#6B8500] dark:text-[#D2F843] font-bold">/buy-card</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] font-bold">/buy-card</span>
                 </button>
               </li>
               <li>
@@ -129,9 +129,9 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('portfolio')} 
                   className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5 font-medium text-neutral-900 dark:text-neutral-200"
                 >
-                  <Briefcase className="w-3.5 h-3.5 text-[#6B8500] dark:text-[#D2F843]" />
+                  <Briefcase className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
                   <span>Portfolio</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-900 text-white dark:bg-[#D2F843] dark:text-neutral-950 font-bold">New</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-900 text-white dark:bg-[#76BB08] dark:text-neutral-950 font-bold">New</span>
                 </button>
               </li>
               <li>
@@ -209,7 +209,7 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('portfolio')}
               className="flex items-center gap-1.5 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer font-medium"
             >
-              <Briefcase className="w-3.5 h-3.5 text-[#6B8500] dark:text-[#D2F843]" />
+              <Briefcase className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
               <span>Portfolio</span>
             </button>
             <button

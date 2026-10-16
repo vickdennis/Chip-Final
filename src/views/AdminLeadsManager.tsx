@@ -309,7 +309,7 @@ export default function AdminLeadsManager() {
       {/* Top Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-neutral-200/80 dark:border-white/10">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-bold uppercase tracking-wider mb-2">
             <MessageCircle className="w-3.5 h-3.5" /> Direct Inquiries & Support Pipeline
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
@@ -335,13 +335,13 @@ export default function AdminLeadsManager() {
             disabled={simulating}
             className="px-3.5 py-2 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
           >
-            <Zap className="w-3.5 h-3.5 text-[#D2F843] dark:text-neutral-950" />
+            <Zap className="w-3.5 h-3.5 text-[#76BB08] dark:text-neutral-950" />
             <span>Simulate Inquiry</span>
           </button>
 
           <button
             onClick={activeSubTab === 'inquiries' ? downloadInquiriesCSV : downloadLeadsCSV}
-            className="px-4 py-2 rounded-xl bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -415,7 +415,7 @@ export default function AdminLeadsManager() {
             </div>
 
             <div className="p-5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl">
-              <div className="text-2xl sm:text-3xl font-black text-[#596e00] dark:text-[#D2F843] tracking-tight">
+              <div className="text-2xl sm:text-3xl font-black text-[#76BB08] dark:text-[#76BB08] tracking-tight">
                 &lt;45 min
               </div>
               <div className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mt-1">
@@ -433,7 +433,7 @@ export default function AdminLeadsManager() {
                 placeholder="Search by name, email, topic, or message keyword..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843]"
+                className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/60 focus:border-[#76BB08]"
               />
             </div>
 

@@ -218,7 +218,7 @@ export default function BlogArticleView({
     return (
       <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-9 h-9 rounded-full border-2 border-neutral-300 dark:border-neutral-700 border-t-[#D2F843] animate-spin" />
+          <div className="w-9 h-9 rounded-full border-2 border-neutral-300 dark:border-neutral-700 border-t-[#76BB08] animate-spin" />
           <span className="text-xs font-mono text-neutral-400">Loading article...</span>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function BlogArticleView({
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950">
+      <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950">
         <MakroNavbar
           currentView="blog-article"
           onNavigate={onNavigate}
@@ -291,7 +291,7 @@ export default function BlogArticleView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950">
       <Helmet>
         <title>{ogTitle}</title>
         <meta name="title" content={ogTitle} />
@@ -351,7 +351,7 @@ export default function BlogArticleView({
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 text-xs font-semibold shadow-xs mb-6 transition-all"
             title="Edit this post in Super Admin"
           >
-            <Edit3 className="w-3.5 h-3.5 text-[#D2F843] dark:text-[#6b8500]" />
+            <Edit3 className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
             <span>Edit Article</span>
           </a>
         </div>
@@ -359,7 +359,7 @@ export default function BlogArticleView({
         {/* Article Header */}
         <header className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-neutral-500">
-            <span className="px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] font-bold">
+            <span className="px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] font-bold">
               {categoryName}
             </span>
             <span>·</span>
@@ -497,10 +497,10 @@ export default function BlogArticleView({
         {/* CTA Conversion Box */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
           <div className="relative rounded-3xl p-8 sm:p-12 overflow-hidden bg-neutral-950 text-white dark:bg-[#12141A] border border-neutral-800 shadow-xl">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-[#D2F843]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-72 h-72 bg-[#76BB08]/10 rounded-full blur-3xl pointer-events-none" />
             
             <div className="relative z-10 max-w-xl space-y-4">
-              <span className="px-3 py-1 rounded-full bg-[#D2F843]/20 text-[#D2F843] text-[11px] font-mono font-bold uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-full bg-[#76BB08]/20 text-[#76BB08] text-[11px] font-mono font-bold uppercase tracking-wider">
                 Official Hardware & Profile Platform
               </span>
               <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -512,7 +512,7 @@ export default function BlogArticleView({
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => onNavigate('nfc-sales')}
-                  className="px-6 py-3 rounded-full bg-[#D2F843] text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer shadow-sm"
+                  className="px-6 py-3 rounded-full bg-[#76BB08] text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer shadow-sm"
                 >
                   <span>Order Your Smart NFC Card</span>
                   <ArrowRight className="w-4 h-4" />

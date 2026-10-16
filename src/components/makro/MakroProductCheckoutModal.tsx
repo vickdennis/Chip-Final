@@ -312,12 +312,12 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
         {/* Top Header Bar */}
         <div className="px-6 sm:px-8 py-5 border-b border-neutral-100 dark:border-white/10 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#D2F843] flex items-center justify-center text-neutral-950 font-black text-xs shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-[#76BB08] flex items-center justify-center text-neutral-950 font-black text-xs shadow-xs">
               <Zap className="w-4 h-4 fill-neutral-950" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#6B8500] dark:text-[#D2F843]">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#76BB08] dark:text-[#76BB08]">
                   CHIP NG Express Checkout
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold font-mono">
@@ -434,7 +434,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                     </div>
 
                     <div className="flex items-center gap-1.5 opacity-80">
-                      <Zap className="w-4 h-4 text-[#D2F843]" />
+                      <Zap className="w-4 h-4 text-[#76BB08]" />
                       <span className="text-[10px] font-mono tracking-widest font-bold">NTAG216</span>
                     </div>
                   </div>
@@ -538,7 +538,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                     <span><strong>12-Month Hardware Guarantee:</strong> Free replacement on chip failure.</span>
                   </div>
                   <div className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300 font-medium">
-                    <Sparkles className="w-4 h-4 text-[#84A900] dark:text-[#D2F843] shrink-0" />
+                    <Sparkles className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08] shrink-0" />
                     <span><strong>Bonus Included:</strong> Free 3 Months Pro Analytics Dashboard.</span>
                   </div>
                 </div>
@@ -570,7 +570,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         placeholder="e.g. Victor Dennis"
                         value={engravedName}
                         onChange={(e) => setEngravedName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]"
                       />
                     </div>
 
@@ -583,7 +583,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         placeholder="e.g. Founder & CEO"
                         value={engravedTitle}
                         onChange={(e) => setEngravedTitle(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]"
                       />
                     </div>
                   </div>
@@ -608,7 +608,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                           setCustomerName(e.target.value);
                           if (!engravedName) setEngravedName(e.target.value);
                         }}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]"
                       />
                     </div>
 
@@ -621,7 +621,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         placeholder="+234 810 000 0000"
                         value={whatsapp}
                         onChange={(e) => setWhatsapp(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]"
                       />
                     </div>
 
@@ -634,7 +634,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         placeholder="yourname@gmail.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]"
                       />
                     </div>
 
@@ -645,7 +645,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                       <select
                         value={selectedState}
                         onChange={(e) => setSelectedState(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843] cursor-pointer"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08] cursor-pointer"
                       >
                         {NIGERIAN_STATES.map((st) => (
                           <option key={st} value={st}>
@@ -664,7 +664,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         placeholder="e.g. 15 Admiralty Way, Lekki Phase 1, Lagos"
                         value={deliveryAddress}
                         onChange={(e) => setDeliveryAddress(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]"
                       />
                     </div>
                   </div>
@@ -675,14 +675,14 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                   onClick={() => setIncludePhoneTag(!includePhoneTag)}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                     includePhoneTag
-                      ? 'border-[#D2F843] bg-[#D2F843]/10 dark:bg-[#D2F843]/5'
+                      ? 'border-[#76BB08] bg-[#76BB08]/10 dark:bg-[#76BB08]/5'
                       : 'border-neutral-200 dark:border-white/10 hover:border-neutral-300'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`w-5 h-5 rounded-md mt-0.5 flex items-center justify-center border transition-colors ${
                       includePhoneTag
-                        ? 'bg-[#D2F843] border-[#D2F843] text-neutral-950'
+                        ? 'bg-[#76BB08] border-[#76BB08] text-neutral-950'
                         : 'border-neutral-400 bg-white dark:bg-white/10'
                     }`}>
                       {includePhoneTag && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -732,11 +732,11 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                       onClick={() => setPaymentMethod('transfer')}
                       className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                         paymentMethod === 'transfer'
-                          ? 'border-[#D2F843] bg-[#D2F843]/15 text-neutral-950 dark:text-[#D2F843] shadow-xs'
+                          ? 'border-[#76BB08] bg-[#76BB08]/15 text-neutral-950 dark:text-[#76BB08] shadow-xs'
                           : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
                       }`}
                     >
-                      <Building2 className="w-4 h-4 text-[#6B8500] dark:text-[#D2F843]" />
+                      <Building2 className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
                       <span>Direct Bank Transfer</span>
                     </button>
                   </div>
@@ -806,7 +806,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         type="button"
                         onClick={handleFlutterwaveCheckout}
                         disabled={isProcessing}
-                        className="group flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-full bg-[#D2F843] text-neutral-950 font-black text-xs sm:text-sm hover:opacity-95 active:scale-95 transition-all shadow-lg cursor-pointer disabled:opacity-50"
+                        className="group flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-full bg-[#76BB08] text-neutral-950 font-black text-xs sm:text-sm hover:opacity-95 active:scale-95 transition-all shadow-lg cursor-pointer disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <>

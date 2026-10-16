@@ -133,7 +133,7 @@ export default function AdminBuyBoxManager() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4">
       {/* Form column */}
       <div className="lg:col-span-5 bg-white dark:bg-[#111318] p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 h-fit">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
           <Package className="w-3.5 h-3.5" /> Direct Conversion Widget
         </div>
         <h3 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white mb-1">
@@ -146,11 +146,11 @@ export default function AdminBuyBoxManager() {
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Card / Product Name</label>
-            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} placeholder="e.g. Executive Metal NFC Card" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} placeholder="e.g. Executive Metal NFC Card" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
           </div>
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Price (₦)</label>
-            <input required value={form.price_ngn} onChange={e=>setForm({...form, price_ngn: e.target.value})} placeholder="e.g. 29,900" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+            <input required value={form.price_ngn} onChange={e=>setForm({...form, price_ngn: e.target.value})} placeholder="e.g. 29,900" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
           </div>
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Hero Visual</label>
@@ -169,7 +169,7 @@ export default function AdminBuyBoxManager() {
               value={form.image_url} 
               onChange={e=>setForm({...form, image_url: e.target.value})} 
               placeholder="Or paste image URL"
-              className="mt-2 w-full px-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+              className="mt-2 w-full px-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" 
             />
           </div>
           
@@ -181,7 +181,7 @@ export default function AdminBuyBoxManager() {
                 try { current = JSON.parse(form.benefits_json); } catch(e) {}
                 current.push('');
                 setForm({...form, benefits_json: JSON.stringify(current)});
-              }} className="text-xs text-[#6c8600] dark:text-[#D2F843] font-semibold flex items-center gap-1 cursor-pointer">
+              }} className="text-xs text-[#76BB08] dark:text-[#76BB08] font-semibold flex items-center gap-1 cursor-pointer">
                 <Plus className="w-3.5 h-3.5" /> Add Bullet
               </button>
             </div>
@@ -199,7 +199,7 @@ export default function AdminBuyBoxManager() {
                        setForm({...form, benefits_json: JSON.stringify(newB)});
                      }} 
                      placeholder="Benefit point..."
-                     className="flex-1 px-3 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+                     className="flex-1 px-3 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" 
                    />
                    <button 
                      type="button" 
@@ -219,22 +219,22 @@ export default function AdminBuyBoxManager() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Rating</label>
-              <input type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" />
+              <input type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" />
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Review Count</label>
-              <input type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" />
+              <input type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Highlight Badge</label>
-              <input value={form.badge_text} onChange={e=>setForm({...form, badge_text: e.target.value})} placeholder="e.g. BESTSELLER" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" />
+              <input value={form.badge_text} onChange={e=>setForm({...form, badge_text: e.target.value})} placeholder="e.g. BESTSELLER" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" />
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">WhatsApp Link</label>
-              <input value={form.whatsapp_link} onChange={e=>setForm({...form, whatsapp_link: e.target.value})} placeholder="https://wa.me/..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" />
+              <input value={form.whatsapp_link} onChange={e=>setForm({...form, whatsapp_link: e.target.value})} placeholder="https://wa.me/..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" />
             </div>
           </div>
 
@@ -279,13 +279,13 @@ export default function AdminBuyBoxManager() {
                   {p.image_url ? (
                     <img src={p.image_url} alt="" className="w-16 h-16 object-cover rounded-2xl border border-neutral-200/80 dark:border-white/10 shrink-0" />
                   ) : (
-                    <div className="w-16 h-16 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center shrink-0">
                       <Package className="w-6 h-6" />
                     </div>
                   )}
                   <div>
                     {p.badge_text && (
-                      <span className="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] mb-1">
+                      <span className="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] mb-1">
                         {p.badge_text}
                       </span>
                     )}

@@ -34,7 +34,7 @@ export default function LandingView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950">
       {/* Makro Navigation Top Bar */}
       <MakroNavbar
         currentView="landing"

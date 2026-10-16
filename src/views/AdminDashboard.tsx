@@ -560,7 +560,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const proPlanUsers = users.filter(u => u.is_pro || u.enterprise_id).length;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans transition-colors pb-24">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#76BB08] selection:text-neutral-950 font-sans transition-colors pb-24">
       {/* Top Navbar matching homepage MakroNavbar */}
       <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 border-b border-neutral-200/80 dark:border-white/10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
@@ -572,7 +572,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             >
               <BrandLogo size="md" />
             </button>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider">
               <Shield className="w-3 h-3" /> Super Admin
             </span>
           </div>
@@ -620,8 +620,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-8">
         {/* Header Title Section */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span> Command Hub
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#76BB08]"></span> Command Hub
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
             Super Admin Control Center
@@ -661,7 +661,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/5'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D2F843] dark:text-neutral-950' : ''}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#76BB08] dark:text-neutral-950' : ''}`} />
                   <span>{tab.label}</span>
                   {tab.id === 'leads' && unreadInquiriesCount > 0 && (
                     <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black animate-pulse shadow-xs">
@@ -680,7 +680,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 flex items-center justify-center">
                     <Users className="w-4 h-4" />
                   </div>
                   <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Members</span>
@@ -696,7 +696,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               
               <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 flex items-center justify-center">
                     <Package className="w-4 h-4" />
                   </div>
                   <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Store</span>
@@ -712,7 +712,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
               <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 flex items-center justify-center">
                     <DollarSign className="w-4 h-4" />
                   </div>
                   <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Earnings</span>
@@ -728,7 +728,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
               <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 flex items-center justify-center">
                     <Eye className="w-4 h-4" />
                   </div>
                   <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Reach</span>
@@ -745,10 +745,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               {/* KPI 5: App Downloads */}
               <div 
                 onClick={() => setActiveTab('downloads')}
-                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#D2F843] dark:hover:border-[#D2F843]/60 transition-all cursor-pointer group"
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#76BB08] dark:hover:border-[#76BB08]/60 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 flex items-center justify-center">
                     <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   </div>
                   <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Live Telemetry</span>
@@ -756,7 +756,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">App Installs</h3>
                   <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">1,856</p>
-                  <div className="text-[11px] text-[#6c8600] dark:text-[#D2F843] mt-2 flex items-center justify-between font-bold">
+                  <div className="text-[11px] text-[#76BB08] dark:text-[#76BB08] mt-2 flex items-center justify-between font-bold">
                     <span>Android & iOS</span>
                     <span>Radar →</span>
                   </div>
@@ -908,7 +908,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     placeholder="Search users..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-full text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#D2F843]/60 focus:border-[#D2F843] transition-all"
+                    className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-full text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#76BB08]/60 focus:border-[#76BB08] transition-all"
                   />
                 </div>
                 <button 
@@ -950,7 +950,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <a href={`/${u.username}`} target="_blank" rel="noreferrer" className="font-mono text-xs text-neutral-900 dark:text-neutral-100 font-medium hover:text-[#596e00] dark:hover:text-[#D2F843] transition-colors">
+                        <a href={`/${u.username}`} target="_blank" rel="noreferrer" className="font-mono text-xs text-neutral-900 dark:text-neutral-100 font-medium hover:text-[#76BB08] dark:hover:text-[#76BB08] transition-colors">
                           @{u.username || 'unknown'}
                         </a>
                       </td>
@@ -967,7 +967,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       </td>
                       <td className="py-3.5 px-4">
                         {u.is_admin ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-[11px] font-bold uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-[11px] font-bold uppercase tracking-wider">
                             <Shield className="w-3 h-3" /> Admin
                           </span>
                         ) : (
@@ -1038,28 +1038,28 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Full Name</label>
-                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Username</label>
-                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Headline / Job Title</label>
-                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Bio</label>
-                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Contact Email</label>
-                        <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                        <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number</label>
-                        <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                        <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                       </div>
                     </div>
 
@@ -1102,29 +1102,29 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Number of Accounts</label>
-                      <input required type="number" min="1" max="100" value={newUserForm.number_of_accounts} onChange={e => setNewUserForm({...newUserForm, number_of_accounts: parseInt(e.target.value) || 1})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input required type="number" min="1" max="100" value={newUserForm.number_of_accounts} onChange={e => setNewUserForm({...newUserForm, number_of_accounts: parseInt(e.target.value) || 1})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                       <p className="text-[11px] text-neutral-400 mt-1">If &gt;1, creates aliases like user+1@email.com</p>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Email *</label>
-                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input required type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Password *</label>
-                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input required type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Full Name *</label>
-                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                      <input required value={newUserForm.full_name} onChange={e => setNewUserForm({...newUserForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Username</label>
-                        <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional handle" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                        <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional handle" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number</label>
-                        <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="+234..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                        <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="+234..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                       </div>
                     </div>
 
@@ -1146,7 +1146,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         {activeTab === 'products' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-5 bg-white dark:bg-[#111318] p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 h-fit">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
                 Inventory Sync
               </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-white mb-4">
@@ -1156,11 +1156,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               <form onSubmit={handleSaveProduct} className="flex flex-col gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Product Name</label>
-                  <input required value={prodForm.name} onChange={e=>setProdForm({...prodForm, name: e.target.value})} placeholder="e.g. Matte Obsidian NFC Business Card" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                  <input required value={prodForm.name} onChange={e=>setProdForm({...prodForm, name: e.target.value})} placeholder="e.g. Matte Obsidian NFC Business Card" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Price (₦)</label>
-                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} placeholder="e.g. 25000" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                  <input required type="text" value={prodForm.price} onChange={e=>setProdForm({...prodForm, price: e.target.value})} placeholder="e.g. 25000" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Product Media (Images & Videos)</label>
@@ -1210,7 +1210,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Description</label>
-                  <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} placeholder="Hardware specifications, NFC chip details..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] focus:ring-1 focus:ring-[#D2F843]" />
+                  <textarea rows={3} value={prodForm.description} onChange={e=>setProdForm({...prodForm, description: e.target.value})} placeholder="Hardware specifications, NFC chip details..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
                 </div>
                 <div className="flex gap-3 mt-2">
                   <button disabled={uploadingImage} type="submit" className="flex-1 py-3 px-5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-50">
@@ -1243,7 +1243,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex justify-between items-start mb-2 gap-2">
                         <h4 className="font-bold text-neutral-950 dark:text-white text-base leading-snug">{p.name}</h4>
-                        <span className="font-bold text-neutral-950 dark:text-white bg-[#D2F843]/20 text-[#596e00] dark:text-[#D2F843] px-2.5 py-1 rounded-full text-xs shrink-0">
+                        <span className="font-bold text-neutral-950 dark:text-white bg-[#76BB08]/20 text-[#76BB08] dark:text-[#76BB08] px-2.5 py-1 rounded-full text-xs shrink-0">
                           ₦{Number(p.price).toLocaleString()}
                         </span>
                       </div>

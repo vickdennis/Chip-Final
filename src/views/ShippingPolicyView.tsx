@@ -16,7 +16,7 @@ export default function ShippingPolicyView({
   toggleDarkMode = () => {},
 }: ShippingPolicyViewProps) {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950 font-sans">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950 font-sans">
       <MakroNavbar
         currentView="landing"
         onNavigate={onNavigate}
@@ -28,7 +28,7 @@ export default function ShippingPolicyView({
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-12">
           
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] text-xs font-mono font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] text-xs font-mono font-bold">
               LOGISTICS & FULFILLMENT
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-neutral-950 dark:text-white">
@@ -41,7 +41,7 @@ export default function ShippingPolicyView({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-[#12141B] p-6 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center">
                 <Clock className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-base text-neutral-950 dark:text-white">Lagos Delivery</h3>
@@ -51,7 +51,7 @@ export default function ShippingPolicyView({
             </div>
 
             <div className="bg-white dark:bg-[#12141B] p-6 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center">
                 <Truck className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-base text-neutral-950 dark:text-white">Pan-Nigeria Express</h3>
@@ -61,7 +61,7 @@ export default function ShippingPolicyView({
             </div>
 
             <div className="bg-white dark:bg-[#12141B] p-6 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center">
                 <PackageCheck className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-base text-neutral-950 dark:text-white">Live Tracking</h3>

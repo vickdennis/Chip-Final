@@ -367,11 +367,11 @@ export default function NfcSalesView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 relative overflow-x-hidden font-sans transition-colors flex flex-col justify-between pb-24 md:pb-0">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#76BB08] selection:text-neutral-950 relative overflow-x-hidden font-sans transition-colors flex flex-col justify-between pb-24 md:pb-0">
       
       {/* Background Ambience Light Glows */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-[#D2F843]/10 via-emerald-500/5 to-transparent blur-[140px] pointer-events-none z-0" />
-      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#D2F843]/5 blur-[160px] pointer-events-none z-0" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-[#76BB08]/10 via-emerald-500/5 to-transparent blur-[140px] pointer-events-none z-0" />
+      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#76BB08]/5 blur-[160px] pointer-events-none z-0" />
 
       {/* Top Header Navigation matching Homepage */}
       <MakroNavbar
@@ -419,7 +419,7 @@ export default function NfcSalesView({
         {/* Hero Copywriting Block - Rendered immediately for lightning-fast First Contentful Paint */}
         <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12 px-2 sm:px-0">
           <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1.5 shadow-2xs mb-3.5 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-            <span className="w-5 h-5 rounded-full bg-[#D2F843] flex items-center justify-center text-neutral-950">
+            <span className="w-5 h-5 rounded-full bg-[#76BB08] flex items-center justify-center text-neutral-950">
               <Zap className="w-3 h-3 fill-current text-neutral-950" />
             </span>
             <span>{personaContent.badge}</span>
@@ -440,7 +440,7 @@ export default function NfcSalesView({
                 key={idx}
                 className="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 text-neutral-800 dark:text-neutral-200 shadow-2xs flex items-center gap-1.5 text-[11px] sm:text-xs"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#6c8600] dark:text-[#D2F843]" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
                 <span>{pillar}</span>
               </span>
             ))}
@@ -477,8 +477,8 @@ export default function NfcSalesView({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#6c8600] dark:text-[#D2F843] font-bold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] animate-pulse" />
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#76BB08] dark:text-[#76BB08] font-bold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#76BB08] animate-pulse" />
                           NFC Tag Detected • CHIP.NG
                         </span>
                         <span className="text-[10px] font-mono text-white/40">Just Now</span>
@@ -498,7 +498,7 @@ export default function NfcSalesView({
               <div className="w-full relative rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 md:p-8 bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col items-center">
                 
                 {/* Stage Ambient Radial Light */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] sm:w-[480px] h-[280px] sm:h-[480px] bg-gradient-to-br from-[#D2F843]/15 via-emerald-500/5 to-transparent blur-[110px] pointer-events-none z-0" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] sm:w-[480px] h-[280px] sm:h-[480px] bg-gradient-to-br from-[#76BB08]/15 via-emerald-500/5 to-transparent blur-[110px] pointer-events-none z-0" />
 
                 {/* Card Hardware Status Bar */}
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between w-full max-w-[560px] mb-3 sm:mb-6 gap-2">
@@ -532,7 +532,7 @@ export default function NfcSalesView({
                 <div className="relative z-10 w-full max-w-[560px] mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3">
                   <button
                     onClick={handleSimulateTap}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-bold bg-neutral-950 text-white dark:bg-[#D2F843] dark:text-neutral-950 hover:bg-[#D2F843] hover:text-neutral-950 flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95 transition-all min-h-[44px]"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-bold bg-neutral-950 text-white dark:bg-[#76BB08] dark:text-neutral-950 hover:bg-[#76BB08] hover:text-neutral-950 flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95 transition-all min-h-[44px]"
                   >
                     <Wifi className="w-3.5 h-3.5 rotate-90" />
                     <span>Simulate Phone Tap</span>
@@ -580,7 +580,7 @@ export default function NfcSalesView({
                 {/* Console Header */}
                 <div className="flex items-center justify-between pb-3.5 sm:pb-4 border-b border-neutral-200/60 dark:border-white/10">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#D2F843]/20 border border-[#D2F843]/40 flex items-center justify-center text-[#6c8600] dark:text-[#D2F843]">
+                    <div className="w-8 h-8 rounded-lg bg-[#76BB08]/20 border border-[#76BB08]/40 flex items-center justify-center text-[#76BB08] dark:text-[#76BB08]">
                       <Sliders className="w-4 h-4" />
                     </div>
                     <div>
@@ -605,7 +605,7 @@ export default function NfcSalesView({
                     <label className="text-[11px] sm:text-xs font-bold text-neutral-900 dark:text-white/90 uppercase tracking-wider font-mono">
                       1. Material & Finish
                     </label>
-                    <span className="text-[10px] sm:text-[11px] text-[#6c8600] dark:text-[#D2F843] font-mono font-medium truncate">
+                    <span className="text-[10px] sm:text-[11px] text-[#76BB08] dark:text-[#76BB08] font-mono font-medium truncate">
                       {getMaterialLabel(heroMaterial)}
                     </span>
                   </div>
@@ -652,7 +652,7 @@ export default function NfcSalesView({
                           onClick={() => setHeroMaterial(item.id)}
                           className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[96px] ${
                             isSelected
-                              ? 'bg-[#D2F843]/10 dark:bg-[#D2F843]/15 border-[#D2F843] ring-2 ring-[#D2F843]/40 shadow-xs'
+                              ? 'bg-[#76BB08]/10 dark:bg-[#76BB08]/15 border-[#76BB08] ring-2 ring-[#76BB08]/40 shadow-xs'
                               : 'bg-neutral-50 dark:bg-[#151821] border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20'
                           }`}
                         >
@@ -677,7 +677,7 @@ export default function NfcSalesView({
                               {item.price}
                             </span>
                             {isSelected && (
-                              <Check className="w-3.5 h-3.5 text-[#6c8600] dark:text-[#D2F843]" />
+                              <Check className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
                             )}
                           </div>
                         </button>
@@ -698,7 +698,7 @@ export default function NfcSalesView({
                       <span className="text-[10px] font-mono text-neutral-500 dark:text-white/60">
                         {heroMaterial.includes('metal') ? 'Laser Engraved Name:' : 'UV Printed Name:'}
                       </span>
-                      <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#D2F843] transition-colors">
+                      <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#76BB08] transition-colors">
                         <input
                           type="text"
                           value={heroCustomName}
@@ -715,7 +715,7 @@ export default function NfcSalesView({
                       <span className="text-[10px] font-mono text-neutral-500 dark:text-white/60">
                         {heroMaterial.includes('metal') ? 'Engraved Executive Title / Role:' : 'Printed Title / Role:'}
                       </span>
-                      <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#D2F843] transition-colors">
+                      <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#76BB08] transition-colors">
                         <input
                           type="text"
                           value={heroCustomTitle}
@@ -731,7 +731,7 @@ export default function NfcSalesView({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-mono text-neutral-500 dark:text-white/60">Company / Brand:</span>
-                        <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#D2F843] transition-colors">
+                        <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#76BB08] transition-colors">
                           <input
                             type="text"
                             value={heroCompany}
@@ -745,7 +745,7 @@ export default function NfcSalesView({
 
                       <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-mono text-neutral-500 dark:text-white/60">Bio Handle:</span>
-                        <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#D2F843] transition-colors">
+                        <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#76BB08] transition-colors">
                           <span className="text-neutral-400 dark:text-white/40 text-xs font-mono">@</span>
                           <input
                             type="text"
@@ -786,7 +786,7 @@ export default function NfcSalesView({
                     onClick={handleOrderHeroCard}
                     className="group flex items-center justify-center gap-3 w-full py-3.5 pl-2 pr-6 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-bold text-sm"
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
+                    <div className="w-9 h-9 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                       <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
                     </div>
                     <span>Order This Custom Card</span>
@@ -811,7 +811,7 @@ export default function NfcSalesView({
         <div className="mt-14 sm:mt-20 pt-10 sm:pt-14 border-t border-neutral-200/80 dark:border-white/10">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs mb-3 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]" />
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]" />
               Engine 2: Cloud Bio & vCard Engine
             </div>
             <h3 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] text-neutral-950 dark:text-white">
@@ -839,7 +839,7 @@ export default function NfcSalesView({
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16 px-2 sm:px-0">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs mb-3 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]" />
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]" />
               Physical Hardware Advantage
             </div>
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-[-0.03em] text-neutral-950 dark:text-white leading-tight">
@@ -876,7 +876,7 @@ export default function NfcSalesView({
                 className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 transition-all flex flex-col justify-between shadow-xs"
               >
                 <div>
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#D2F843]/15 border border-[#D2F843]/30 flex items-center justify-center text-[#6c8600] dark:text-[#D2F843] mb-3.5 sm:mb-4">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#76BB08]/15 border border-[#76BB08]/30 flex items-center justify-center text-[#76BB08] dark:text-[#76BB08] mb-3.5 sm:mb-4">
                     <prop.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <span className="text-[10px] font-mono uppercase px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-white/70">
@@ -893,10 +893,10 @@ export default function NfcSalesView({
           <div className="mt-12 sm:mt-16 p-5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 relative overflow-hidden shadow-sm">
             {/* Subtle Gold Ambient Radial Glow */}
             <div className="absolute top-0 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
-            <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#D2F843]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+            <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#76BB08]/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
             <div className="max-w-3xl mx-auto text-center flex flex-col items-center">
-              <span className="text-xs font-mono uppercase tracking-widest text-[#6c8600] dark:text-[#D2F843] font-bold px-3 py-1 rounded-full bg-[#D2F843]/15 border border-[#D2F843]/30 mb-2.5 sm:mb-3">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#76BB08] dark:text-[#76BB08] font-bold px-3 py-1 rounded-full bg-[#76BB08]/15 border border-[#76BB08]/30 mb-2.5 sm:mb-3">
                 Omni-Channel Handover
               </span>
               <h3 className="text-xl sm:text-3xl md:text-4xl font-bold text-neutral-950 dark:text-white tracking-tight">
@@ -924,7 +924,7 @@ export default function NfcSalesView({
 
               <div
                 id="social-toast-notice"
-                className="opacity-0 transition-opacity duration-300 text-xs font-mono text-emerald-600 dark:text-[#D2F843] bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-full mt-2"
+                className="opacity-0 transition-opacity duration-300 text-xs font-mono text-emerald-600 dark:text-[#76BB08] bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-full mt-2"
               >
                 ✓ Tap simulated
               </div>
@@ -934,7 +934,7 @@ export default function NfcSalesView({
           {/* Video Demonstration Proof (Real TikTok Embeds - Lazy-loaded) */}
           <div ref={tiktokSectionRef} className="mt-12 sm:mt-16 pt-10 sm:pt-12 border-t border-neutral-200/80 dark:border-white/10">
             <div className="text-center mb-8 sm:mb-10 px-2">
-              <span className="text-xs font-mono uppercase tracking-widest text-[#6c8600] dark:text-[#D2F843] font-bold">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#76BB08] dark:text-[#76BB08] font-bold">
                 See It In Action
               </span>
               <h3 className="text-xl sm:text-3xl font-bold text-neutral-950 dark:text-white mt-1">
@@ -987,7 +987,7 @@ export default function NfcSalesView({
 
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16 px-2 sm:px-0">
           <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs mb-3 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-            <span className="w-2 h-2 rounded-full bg-[#D2F843]" />
+            <span className="w-2 h-2 rounded-full bg-[#76BB08]" />
             Simple, Transparent Pricing
           </div>
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-[-0.035em] text-neutral-950 dark:text-white leading-tight">
@@ -1053,7 +1053,7 @@ export default function NfcSalesView({
               onClick={() => handleOpenCustomizer('plastic', 'plastic_white')}
               className="mt-4 group flex items-center justify-center gap-2.5 w-full py-3.5 pl-2 pr-5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-bold text-xs sm:text-sm min-h-[44px]"
             >
-              <div className="w-8 h-8 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                 <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
               </div>
               <span>Get Smart PVC (₦30,000)</span>
@@ -1120,19 +1120,19 @@ export default function NfcSalesView({
           </div>
 
           {/* TIER 3: CUSTOM HEAVY METAL EDITION (₦100,000) - BOARDROOM AUTHORITY */}
-          <div className="mt-4 md:mt-0 relative p-5 sm:p-7 md:p-8 rounded-[28px] sm:rounded-[32px] bg-neutral-950 text-white dark:bg-[#151821] border-2 border-[#D2F843] shadow-[0_10px_40px_rgba(210,248,67,0.18)] flex flex-col justify-between transform lg:-translate-y-2">
+          <div className="mt-4 md:mt-0 relative p-5 sm:p-7 md:p-8 rounded-[28px] sm:rounded-[32px] bg-neutral-950 text-white dark:bg-[#151821] border-2 border-[#76BB08] shadow-[0_10px_40px_rgba(118, 187, 8,0.18)] flex flex-col justify-between transform lg:-translate-y-2">
             
             {/* Bestseller Badge */}
-            <div className="absolute -top-3.5 sm:-top-4 left-1/2 -translate-x-1/2 bg-[#D2F843] text-neutral-950 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
+            <div className="absolute -top-3.5 sm:-top-4 left-1/2 -translate-x-1/2 bg-[#76BB08] text-neutral-950 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
               ★ Executive Bestseller • Boardroom Choice
             </div>
 
             <div>
               <div className="flex items-center justify-between gap-2 mb-4">
-                <span className="text-[11px] font-mono uppercase px-3 py-1 rounded-full bg-[#D2F843]/20 text-[#D2F843] border border-[#D2F843]/40 font-bold">
+                <span className="text-[11px] font-mono uppercase px-3 py-1 rounded-full bg-[#76BB08]/20 text-[#76BB08] border border-[#76BB08]/40 font-bold">
                   Bespoke Luxury • Authority
                 </span>
-                <span className="text-xs font-mono text-[#D2F843] font-bold">28g Aerospace Alloy</span>
+                <span className="text-xs font-mono text-[#76BB08] font-bold">28g Aerospace Alloy</span>
               </div>
 
               <h3 className="text-xl sm:text-2xl font-bold text-white">Custom Heavy Metal</h3>
@@ -1143,7 +1143,7 @@ export default function NfcSalesView({
               <div className="flex items-baseline gap-3 my-5 sm:my-6 p-3.5 sm:p-4 rounded-2xl bg-white/[0.05] border border-white/10">
                 <span className="text-3xl sm:text-4xl font-black text-white">₦100,000</span>
                 <span className="text-neutral-400 line-through text-sm">₦150,000</span>
-                <span className="text-xs font-bold font-mono text-[#D2F843] ml-auto px-2.5 py-1 rounded-full bg-[#D2F843]/15 border border-[#D2F843]/30">
+                <span className="text-xs font-bold font-mono text-[#76BB08] ml-auto px-2.5 py-1 rounded-full bg-[#76BB08]/15 border border-[#76BB08]/30">
                   Save 33%
                 </span>
               </div>
@@ -1165,7 +1165,7 @@ export default function NfcSalesView({
                     'Lifetime Indestructible Hardware & Engraving Warranty',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#D2F843] shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-[#76BB08] shrink-0 mt-0.5" />
                       <span className={i < 3 ? 'font-bold text-white' : ''}>{feat}</span>
                     </li>
                   ))}
@@ -1175,7 +1175,7 @@ export default function NfcSalesView({
 
             <button
               onClick={() => handleOpenCustomizer('debit', 'metal_gold')}
-              className="mt-4 group flex items-center justify-center gap-2.5 w-full py-3.5 pl-2 pr-5 rounded-full bg-[#D2F843] text-neutral-950 hover:bg-[#bce42d] active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-extrabold text-xs sm:text-sm min-h-[44px]"
+              className="mt-4 group flex items-center justify-center gap-2.5 w-full py-3.5 pl-2 pr-5 rounded-full bg-[#76BB08] text-neutral-950 hover:bg-[#bce42d] active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-extrabold text-xs sm:text-sm min-h-[44px]"
             >
               <div className="w-8 h-8 rounded-full bg-neutral-950 text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                 <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
@@ -1205,7 +1205,7 @@ export default function NfcSalesView({
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs mb-4 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]" />
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]" />
               Got Questions?
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-[-0.03em] text-neutral-950 dark:text-white">
@@ -1237,7 +1237,7 @@ export default function NfcSalesView({
             ].map((faq, i) => (
               <div key={i} className="p-7 rounded-[24px] bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 flex flex-col gap-2.5 shadow-xs">
                 <h4 className="font-bold text-sm sm:text-base text-neutral-950 dark:text-white flex items-start gap-2.5">
-                  <HelpCircle className="w-4 h-4 text-[#6c8600] dark:text-[#D2F843] shrink-0 mt-1" />
+                  <HelpCircle className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08] shrink-0 mt-1" />
                   <span>{faq.q}</span>
                 </h4>
                 <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed pl-6.5">{faq.a}</p>
@@ -1298,7 +1298,7 @@ export default function NfcSalesView({
       {/* Mobile Sticky Bar with iOS safe-area inset support */}
       <div className="fixed bottom-0 left-0 w-full px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-xl border-t border-neutral-200/80 dark:border-white/10 z-40 md:hidden flex items-center justify-between gap-3 shadow-lg">
         <div className="flex flex-col min-w-0">
-          <span className="text-[11px] font-mono text-[#6c8600] dark:text-[#D2F843] font-bold flex items-center gap-1 truncate">
+          <span className="text-[11px] font-mono text-[#76BB08] dark:text-[#76BB08] font-bold flex items-center gap-1 truncate">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             10% VIP Discount Active
           </span>
@@ -1310,7 +1310,7 @@ export default function NfcSalesView({
         <button
           onClick={() => handleOpenCustomizer('metal')}
           onMouseEnter={preloadFunnelModals}
-          className="px-5 py-2.5 rounded-full font-bold text-xs bg-neutral-950 text-white dark:bg-[#D2F843] dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-transform shadow-sm cursor-pointer whitespace-nowrap min-h-[42px] flex items-center justify-center shrink-0"
+          className="px-5 py-2.5 rounded-full font-bold text-xs bg-neutral-950 text-white dark:bg-[#76BB08] dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-transform shadow-sm cursor-pointer whitespace-nowrap min-h-[42px] flex items-center justify-center shrink-0"
         >
           <span>Customize Now</span>
         </button>

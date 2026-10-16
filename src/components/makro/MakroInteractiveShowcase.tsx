@@ -23,7 +23,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+            <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
               Interactive Product Showcase
             </span>
@@ -57,7 +57,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D2F843] dark:text-neutral-950' : ''}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#76BB08] dark:text-neutral-950' : ''}`} />
                   {tab.label}
                 </button>
               );
@@ -72,7 +72,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
           {activeTab === 'card' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-5 space-y-5">
-                <div className="inline-block px-2.5 py-1 rounded bg-[#D2F843]/20 text-neutral-900 dark:text-[#D2F843] text-xs font-bold font-mono">
+                <div className="inline-block px-2.5 py-1 rounded bg-[#76BB08]/20 text-neutral-900 dark:text-[#76BB08] text-xs font-bold font-mono">
                   HARDWARE GRADE: AEROSPACE STAINLESS STEEL
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-bold text-neutral-950 dark:text-white tracking-tight">
@@ -125,11 +125,11 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                       onClick={() => setSelectedTheme('lime')}
                       className={`flex items-center gap-2 p-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                         selectedTheme === 'lime'
-                          ? 'border-[#84A900] bg-[#D2F843]/20 text-neutral-950 dark:text-white font-bold'
+                          ? 'border-[#76BB08] bg-[#76BB08]/20 text-neutral-950 dark:text-white font-bold'
                           : 'border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400'
                       }`}
                     >
-                      <span className="w-3.5 h-3.5 rounded-full bg-[#D2F843] border border-neutral-600 shrink-0"></span>
+                      <span className="w-3.5 h-3.5 rounded-full bg-[#76BB08] border border-neutral-600 shrink-0"></span>
                       <span className="truncate">Lime Edition PVC</span>
                     </button>
                   </div>
@@ -169,20 +169,20 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                       ? 'bg-gradient-to-tr from-amber-700 via-amber-500 to-amber-200 text-neutral-950 border border-amber-300 shadow-amber-500/20'
                       : selectedTheme === 'titanium'
                       ? 'bg-gradient-to-tr from-neutral-300 via-neutral-100 to-neutral-400 text-neutral-900 border border-neutral-300'
-                      : 'bg-gradient-to-tr from-neutral-950 via-neutral-900 to-[#1e2410] text-white border border-[#D2F843]/50'
+                      : 'bg-gradient-to-tr from-neutral-950 via-neutral-900 to-[#1e2410] text-white border border-[#76BB08]/50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-5 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-[#D2F843]"></div>
+                        <div className="w-2 h-2 rounded-full bg-[#76BB08]"></div>
                       </div>
                       <span className="text-xs font-mono font-bold tracking-widest uppercase">
                         CHIP METAL
                       </span>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                      <Zap className="w-4 h-4 text-[#D2F843]" />
+                      <Zap className="w-4 h-4 text-[#76BB08]" />
                     </div>
                   </div>
 
@@ -194,7 +194,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
 
                   <div className="flex items-center justify-between text-[11px] font-mono opacity-80 pt-4 border-t border-white/10">
                     <span>NFC ISO 14443A · 13.56 MHz</span>
-                    <span className="text-[#D2F843] font-bold">TAP TO CONNECT</span>
+                    <span className="text-[#76BB08] font-bold">TAP TO CONNECT</span>
                   </div>
                 </div>
               </div>
@@ -205,7 +205,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
           {activeTab === 'bio' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-5 space-y-5">
-                <div className="inline-block px-2.5 py-1 rounded bg-[#D2F843]/20 text-neutral-900 dark:text-[#D2F843] text-xs font-bold font-mono">
+                <div className="inline-block px-2.5 py-1 rounded bg-[#76BB08]/20 text-neutral-900 dark:text-[#76BB08] text-xs font-bold font-mono">
                   LINK-IN-BIO ENGINE: ULTRA FAST &lt;200MS LOAD
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-bold text-neutral-950 dark:text-white tracking-tight">
@@ -248,7 +248,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                   <div className="w-24 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-full mx-auto mb-2"></div>
                   
                   {/* Avatar */}
-                  <div className="relative w-16 h-16 rounded-full mx-auto overflow-hidden ring-4 ring-[#D2F843]">
+                  <div className="relative w-16 h-16 rounded-full mx-auto overflow-hidden ring-4 ring-[#76BB08]">
                     <img
                       src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"
                       alt="Creator avatar"
@@ -259,7 +259,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                   <div>
                     <h4 className="text-base font-bold text-neutral-950 dark:text-white flex items-center justify-center gap-1">
                       Amara Nwosu
-                      <span className="w-4 h-4 rounded-full bg-[#D2F843] text-neutral-950 text-[10px] flex items-center justify-center font-bold">✓</span>
+                      <span className="w-4 h-4 rounded-full bg-[#76BB08] text-neutral-950 text-[10px] flex items-center justify-center font-bold">✓</span>
                     </h4>
                     <p className="text-xs text-neutral-500">Design Director · Studio Kora</p>
                     <p className="text-[11px] text-neutral-400 mt-1 font-mono">chipng.com/@amara</p>
@@ -340,7 +340,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
               <div className="lg:col-span-7 flex justify-center bg-neutral-50 dark:bg-[#181B24] p-6 sm:p-8 rounded-2xl border border-neutral-200/60 dark:border-neutral-800">
                 <div className="w-full max-w-[360px] bg-white dark:bg-neutral-900 rounded-2xl p-6 shadow-xl border border-neutral-200 dark:border-neutral-800 space-y-4">
                   <div className="text-center space-y-1">
-                    <div className="w-10 h-10 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center mx-auto mb-2 font-bold">
+                    <div className="w-10 h-10 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center mx-auto mb-2 font-bold">
                       <UserCheck className="w-5 h-5" />
                     </div>
                     <h4 className="text-base font-bold text-neutral-950 dark:text-white">Exchange Details with Vickthor</h4>
@@ -378,7 +378,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                           value={visitorName}
                           onChange={(e) => setVisitorName(e.target.value)}
                           placeholder="e.g. Tunde Balogun"
-                          className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#D2F843]"
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#76BB08]"
                         />
                       </div>
                       <div>
@@ -389,7 +389,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                           value={visitorPhone}
                           onChange={(e) => setVisitorPhone(e.target.value)}
                           placeholder="e.g. +234 802 345 6789"
-                          className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#D2F843]"
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#76BB08]"
                         />
                       </div>
                       <button
@@ -451,7 +451,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                 <div className="space-y-2">
                   <div className="p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-[#D2F843]/20 text-neutral-950 dark:text-[#D2F843] flex items-center justify-center font-mono font-bold text-[10px]">
+                      <div className="w-7 h-7 rounded-full bg-[#76BB08]/20 text-neutral-950 dark:text-[#76BB08] flex items-center justify-center font-mono font-bold text-[10px]">
                         NFC
                       </div>
                       <div>
@@ -472,12 +472,12 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                         <div className="text-neutral-500 text-[10px]">Abuja FCT · 18 mins ago</div>
                       </div>
                     </div>
-                    <span className="text-[#84A900] dark:text-[#D2F843] font-mono font-bold">Booked Call (₦25,000)</span>
+                    <span className="text-[#76BB08] dark:text-[#76BB08] font-mono font-bold">Booked Call (₦25,000)</span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-[#D2F843]/20 text-neutral-950 dark:text-[#D2F843] flex items-center justify-center font-mono font-bold text-[10px]">
+                      <div className="w-7 h-7 rounded-full bg-[#76BB08]/20 text-neutral-950 dark:text-[#76BB08] flex items-center justify-center font-mono font-bold text-[10px]">
                         NFC
                       </div>
                       <div>

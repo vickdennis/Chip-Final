@@ -93,7 +93,7 @@ export function RelatedPosts({
     <div className="mt-16 mb-8 border-t border-neutral-200/80 dark:border-neutral-800 pt-12">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#84A900] dark:text-[#D2F843]">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#76BB08] dark:text-[#76BB08]">
             Curated For You
           </span>
           <h3 className="font-extrabold text-2xl sm:text-3xl tracking-tight text-neutral-950 dark:text-white mt-1">
@@ -129,11 +129,11 @@ export function RelatedPosts({
               </div>
 
               <div className="p-5 space-y-2">
-                <div className="text-[11px] font-mono text-[#84A900] dark:text-[#D2F843] font-semibold">
+                <div className="text-[11px] font-mono text-[#76BB08] dark:text-[#76BB08] font-semibold">
                   {post.keywords?.[0] || 'Article'}
                 </div>
 
-                <h4 className="font-bold text-base leading-snug text-neutral-950 dark:text-white group-hover:text-[#84A900] dark:group-hover:text-[#D2F843] transition-colors line-clamp-2">
+                <h4 className="font-bold text-base leading-snug text-neutral-950 dark:text-white group-hover:text-[#76BB08] dark:group-hover:text-[#76BB08] transition-colors line-clamp-2">
                   {post.title}
                 </h4>
 

@@ -16,7 +16,7 @@ export default function RefundPolicyView({
   toggleDarkMode = () => {},
 }: RefundPolicyViewProps) {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950 font-sans">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950 font-sans">
       <MakroNavbar
         currentView="landing"
         onNavigate={onNavigate}
@@ -28,7 +28,7 @@ export default function RefundPolicyView({
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-12">
           
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] text-xs font-mono font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] text-xs font-mono font-bold">
               CUSTOMER ASSURANCE
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-neutral-950 dark:text-white">
@@ -52,7 +52,7 @@ export default function RefundPolicyView({
 
             <section className="space-y-3">
               <h2 className="text-xl font-bold text-neutral-950 dark:text-white flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-[#6b8500] dark:text-[#D2F843]" />
+                <RefreshCw className="w-5 h-5 text-[#76BB08] dark:text-[#76BB08]" />
                 Digital Proof & Customization Approval
               </h2>
               <p>

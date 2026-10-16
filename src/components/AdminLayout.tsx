@@ -43,7 +43,7 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#D2F843] selection:text-neutral-950 font-sans transition-colors flex flex-col">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#76BB08] selection:text-neutral-950 font-sans transition-colors flex flex-col">
       {/* Top Header - Ultra-clean App Header (Matching Screen 2 in IMG_3124.jpeg) */}
       <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 border-b border-neutral-200/80 dark:border-white/10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
@@ -99,7 +99,7 @@ export default function AdminLayout({
             {isAdmin && (
               <button
                 onClick={() => onNavigate('admin-dashboard')}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#D2F843]/40 bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] hover:bg-[#D2F843]/25 font-bold text-xs transition-all cursor-pointer shadow-2xs"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#76BB08]/40 bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] hover:bg-[#76BB08]/25 font-bold text-xs transition-all cursor-pointer shadow-2xs"
                 title="Super Admin Dashboard"
               >
                 <Shield className="w-3.5 h-3.5" />

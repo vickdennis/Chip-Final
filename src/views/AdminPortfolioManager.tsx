@@ -344,7 +344,7 @@ export const AdminPortfolioManager: React.FC = () => {
             Victor Okoye Portfolio
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-            Manage projects, bio descriptions, skills bento, and verified social channels reflecting live at <code className="text-[#D2F843] bg-neutral-900 px-1.5 py-0.5 rounded font-mono">/portfolio</code>.
+            Manage projects, bio descriptions, skills bento, and verified social channels reflecting live at <code className="text-[#76BB08] bg-neutral-900 px-1.5 py-0.5 rounded font-mono">/portfolio</code>.
           </p>
         </div>
 
@@ -442,7 +442,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 });
                 setIsModalOpen(true);
               }}
-              className="px-4 py-2.5 rounded-full bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs flex items-center gap-2 transition-transform cursor-pointer shadow-sm"
+              className="px-4 py-2.5 rounded-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs flex items-center gap-2 transition-transform cursor-pointer shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add New Project</span>
@@ -469,7 +469,7 @@ export const AdminPortfolioManager: React.FC = () => {
                     </div>
                     {proj.category && (
                       <div className="absolute bottom-2.5 left-2.5">
-                        <span className="px-2 py-0.5 rounded-full bg-[#D2F843] text-neutral-950 font-bold text-[10px] font-mono">
+                        <span className="px-2 py-0.5 rounded-full bg-[#76BB08] text-neutral-950 font-bold text-[10px] font-mono">
                           {proj.category}
                         </span>
                       </div>
@@ -492,7 +492,7 @@ export const AdminPortfolioManager: React.FC = () => {
                   </div>
 
                   {proj.tagline && (
-                    <p className="text-xs font-semibold text-emerald-600 dark:text-[#D2F843] mt-0.5">
+                    <p className="text-xs font-semibold text-emerald-600 dark:text-[#76BB08] mt-0.5">
                       {proj.tagline}
                     </p>
                   )}
@@ -577,7 +577,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 type="text"
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -589,7 +589,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 type="text"
                 value={profile.handle}
                 onChange={(e) => setProfile({ ...profile, handle: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -601,7 +601,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 type="text"
                 value={profile.title}
                 onChange={(e) => setProfile({ ...profile, title: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -613,7 +613,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 type="text"
                 value={profile.years_experience}
                 onChange={(e) => setProfile({ ...profile, years_experience: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
           </div>
@@ -626,7 +626,7 @@ export const AdminPortfolioManager: React.FC = () => {
               rows={2}
               value={profile.subtitle}
               onChange={(e) => setProfile({ ...profile, subtitle: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
             />
           </div>
 
@@ -638,14 +638,14 @@ export const AdminPortfolioManager: React.FC = () => {
               rows={3}
               value={profile.bio}
               onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
             />
           </div>
 
           {/* Visual Assets & Photo Section */}
           <div className="border-t border-neutral-200/80 dark:border-white/10 pt-5 space-y-4">
             <h4 className="text-sm font-bold text-neutral-950 dark:text-white flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-[#D2F843]" />
+              <ImageIcon className="w-4 h-4 text-[#76BB08]" />
               <span>Portfolio Visual Assets & Media</span>
             </h4>
 
@@ -660,10 +660,10 @@ export const AdminPortfolioManager: React.FC = () => {
                   value={profile.avatar_url}
                   onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
                   placeholder="/chipng_exact_tile.png or https://..."
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                 />
                 <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
-                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#76BB08]" /> : <Upload className="w-3.5 h-3.5" />}
                   <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
                   <input
                     type="file"
@@ -711,10 +711,10 @@ export const AdminPortfolioManager: React.FC = () => {
                   value={profile.hero_image_url}
                   onChange={(e) => setProfile({ ...profile, hero_image_url: e.target.value })}
                   placeholder="/chipng_3d_logo.jpg or https://..."
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                 />
                 <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
-                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#76BB08]" /> : <Upload className="w-3.5 h-3.5" />}
                   <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
                   <input
                     type="file"
@@ -797,10 +797,10 @@ export const AdminPortfolioManager: React.FC = () => {
                       value={profile.about_image_url}
                       onChange={(e) => setProfile({ ...profile, about_image_url: e.target.value })}
                       placeholder="https://... or /uploads/..."
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                     />
                     <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
-                      {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                      {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#76BB08]" /> : <Upload className="w-3.5 h-3.5" />}
                       <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
                       <input
                         type="file"
@@ -830,7 +830,7 @@ export const AdminPortfolioManager: React.FC = () => {
                     </label>
                   </div>
                   <p className="text-[11px] text-neutral-500">
-                    Supports high-resolution PNG, JPG, WebP, or SVG. When uploaded, it automatically saves to your database and updates the About Me section at <code className="text-[#D2F843] bg-neutral-900 px-1 py-0.5 rounded font-mono">/portfolio</code>.
+                    Supports high-resolution PNG, JPG, WebP, or SVG. When uploaded, it automatically saves to your database and updates the About Me section at <code className="text-[#76BB08] bg-neutral-900 px-1 py-0.5 rounded font-mono">/portfolio</code>.
                   </p>
                 </div>
               </div>
@@ -931,7 +931,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 value={profile.social_github}
                 onChange={(e) => setProfile({ ...profile, social_github: e.target.value })}
                 placeholder="https://github.com/vickdennis"
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -945,7 +945,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 value={profile.social_linkedin}
                 onChange={(e) => setProfile({ ...profile, social_linkedin: e.target.value })}
                 placeholder="https://linkedin.com/company/chipng"
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -959,7 +959,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 value={profile.social_twitter}
                 onChange={(e) => setProfile({ ...profile, social_twitter: e.target.value })}
                 placeholder="https://x.com/chipng_nfc"
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -973,7 +973,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 value={profile.social_whatsapp}
                 onChange={(e) => setProfile({ ...profile, social_whatsapp: e.target.value })}
                 placeholder="https://wa.me/2348100764154"
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -987,7 +987,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 value={profile.social_instagram}
                 onChange={(e) => setProfile({ ...profile, social_instagram: e.target.value })}
                 placeholder="https://instagram.com/chipng_nfc"
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -1001,7 +1001,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 value={profile.social_email}
                 onChange={(e) => setProfile({ ...profile, social_email: e.target.value })}
                 placeholder="hello@chipng.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
             </div>
           </div>
@@ -1143,7 +1143,7 @@ export const AdminPortfolioManager: React.FC = () => {
                     className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1c1f28] text-xs font-mono outline-none"
                   />
                   <label className={`px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 cursor-pointer ${uploadingImage ? 'opacity-70 pointer-events-none' : ''}`}>
-                    {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D2F843]" /> : <Upload className="w-3.5 h-3.5" />}
+                    {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#76BB08]" /> : <Upload className="w-3.5 h-3.5" />}
                     <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
                     <input
                       type="file"
@@ -1209,7 +1209,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 type="button"
                 onClick={handleSaveProject}
                 disabled={savingProject}
-                className="px-6 py-2.5 rounded-full bg-[#D2F843] hover:bg-[#c4eb32] text-neutral-950 font-bold text-xs flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                className="px-6 py-2.5 rounded-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
               >
                 {savingProject ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                 <span>Save Project</span>

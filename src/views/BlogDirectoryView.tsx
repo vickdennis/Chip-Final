@@ -195,7 +195,7 @@ export default function BlogDirectoryView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950">
       <Helmet>
         <title>Journal & Engineering - CHIPNG</title>
         <meta
@@ -218,7 +218,7 @@ export default function BlogDirectoryView({
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="max-w-2xl space-y-4">
                 <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1">
-                  <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+                  <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
                   <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                     The CHIPNG Journal
                   </span>
@@ -247,7 +247,7 @@ export default function BlogDirectoryView({
                   onClick={downloadRssFeed}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 >
-                  <Rss className="w-3.5 h-3.5 text-[#84A900] dark:text-[#D2F843]" />
+                  <Rss className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
                   <span>RSS</span>
                 </button>
               </div>
@@ -296,7 +296,7 @@ export default function BlogDirectoryView({
 
                 <div className="lg:col-span-5 space-y-4">
                   <div className="flex items-center gap-3 text-xs text-neutral-500 font-mono">
-                    <span className="text-[#84A900] dark:text-[#D2F843] font-bold">
+                    <span className="text-[#76BB08] dark:text-[#76BB08] font-bold">
                       {featuredPost.keywords?.[0] || 'Deep Dive'}
                     </span>
                     <span>·</span>
@@ -306,7 +306,7 @@ export default function BlogDirectoryView({
                     </span>
                   </div>
 
-                  <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#84A900] dark:group-hover:text-[#D2F843] transition-colors leading-tight">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#76BB08] dark:group-hover:text-[#76BB08] transition-colors leading-tight">
                     {featuredPost.title}
                   </h2>
 
@@ -348,7 +348,7 @@ export default function BlogDirectoryView({
                       </div>
 
                       <div className="flex items-center gap-2 text-xs text-neutral-500 font-mono">
-                        <span className="text-[#84A900] dark:text-[#D2F843] font-semibold">
+                        <span className="text-[#76BB08] dark:text-[#76BB08] font-semibold">
                           {post.keywords?.[0] || 'Article'}
                         </span>
                         <span>·</span>
@@ -357,7 +357,7 @@ export default function BlogDirectoryView({
                         </time>
                       </div>
 
-                      <h3 className="text-lg font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#84A900] dark:group-hover:text-[#D2F843] transition-colors leading-snug">
+                      <h3 className="text-lg font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#76BB08] dark:group-hover:text-[#76BB08] transition-colors leading-snug">
                         {post.title}
                       </h3>
 

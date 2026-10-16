@@ -44,7 +44,7 @@ export const MakroFAQ: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+            <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
               Frequently Asked Questions
             </span>

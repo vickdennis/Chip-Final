@@ -38,7 +38,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex items-center justify-center p-6">
           <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-[#12141B] border border-neutral-200/80 dark:border-neutral-800 text-center shadow-lg space-y-5">
-            <div className="w-14 h-14 rounded-2xl bg-[#D2F843]/10 text-neutral-900 dark:text-[#D2F843] flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-[#76BB08]/10 text-neutral-900 dark:text-[#76BB08] flex items-center justify-center mx-auto">
               <AlertCircle className="w-7 h-7" />
             </div>
             
@@ -51,7 +51,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
             <button
               onClick={this.handleReload}
-              className="w-full py-3 px-6 rounded-full bg-neutral-950 text-white dark:bg-[#D2F843] dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="w-full py-3 px-6 rounded-full bg-neutral-950 text-white dark:bg-[#76BB08] dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Reload CHIP NG</span>

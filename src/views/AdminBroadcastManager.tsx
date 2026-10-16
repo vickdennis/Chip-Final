@@ -182,7 +182,7 @@ export default function AdminBroadcastManager() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4">
       {/* Configuration Column */}
       <div className="lg:col-span-7 bg-white dark:bg-[#111318] p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
           <Send className="w-3.5 h-3.5" /> WhatsApp Push Engine
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-neutral-950 dark:text-white mb-1">
@@ -197,11 +197,11 @@ export default function AdminBroadcastManager() {
             <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Campaign Format</label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold cursor-pointer text-neutral-900 dark:text-neutral-200">
-                <input type="radio" name="sendType" checked={sendType === 'post'} onChange={() => setSendType('post')} className="accent-neutral-950 dark:accent-[#D2F843]" />
+                <input type="radio" name="sendType" checked={sendType === 'post'} onChange={() => setSendType('post')} className="accent-neutral-950 dark:accent-[#76BB08]" />
                 <FileText className="w-4 h-4" /> Share Blog Post
               </label>
               <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold cursor-pointer text-neutral-900 dark:text-neutral-200">
-                <input type="radio" name="sendType" checked={sendType === 'custom'} onChange={() => setSendType('custom')} className="accent-neutral-950 dark:accent-[#D2F843]" />
+                <input type="radio" name="sendType" checked={sendType === 'custom'} onChange={() => setSendType('custom')} className="accent-neutral-950 dark:accent-[#76BB08]" />
                 <MessageCircle className="w-4 h-4" /> Custom Message
               </label>
             </div>
@@ -211,7 +211,7 @@ export default function AdminBroadcastManager() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Choose Article</label>
               <select 
-                className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                 onChange={(e) => setSelectedPost(posts.find(p => p.id === e.target.value))}
                 value={selectedPost?.id || ''}
               >
@@ -227,7 +227,7 @@ export default function AdminBroadcastManager() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Message Template (Use {'{Name}'})</label>
               <textarea 
-                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843] h-32"
+                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] h-32"
                 value={customMessage}
                 onChange={e => setCustomMessage(e.target.value)}
               />
@@ -240,7 +240,7 @@ export default function AdminBroadcastManager() {
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <select 
-                className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
                 value={audienceFilter}
                 onChange={e => {
                   setAudienceFilter(e.target.value as any);
@@ -255,13 +255,13 @@ export default function AdminBroadcastManager() {
               </select>
 
               {audienceFilter === 'city' && (
-                <select className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+                <select className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
                   {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               )}
 
               {audienceFilter === 'source' && (
-                <select className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+                <select className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
                   {uniqueSources.map(s => <option key={s} value={s}>/{s}</option>)}
                 </select>
               )}
@@ -285,7 +285,7 @@ export default function AdminBroadcastManager() {
 
         <div className="mt-6 pt-4 border-t border-neutral-200/80 dark:border-white/10">
           <div className="flex items-start gap-2 text-xs text-neutral-400 mb-4">
-            <AlertCircle className="w-4 h-4 shrink-0 text-[#6c8600] dark:text-[#D2F843] mt-0.5" />
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#76BB08] dark:text-[#76BB08] mt-0.5" />
             <p><strong>{eligibleLeads.length} recipients</strong> ready. Auto-skips users messaged within 7 days or who requested opt-out.</p>
           </div>
           

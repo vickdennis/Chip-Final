@@ -33,8 +33,8 @@ export default function SanitizedBlogContent({ content, className = '' }: Saniti
         prose-h3:text-xl sm:prose-h3:text-2xl prose-h3:mt-6 prose-h3:mb-2
         prose-p:my-4 prose-p:leading-relaxed
         prose-strong:font-bold prose-strong:text-neutral-950 dark:prose-strong:text-white
-        prose-a:text-[#6a8700] dark:prose-a:text-[#D2F843] prose-a:underline prose-a:font-semibold hover:prose-a:opacity-80
-        prose-blockquote:border-l-4 prose-blockquote:border-[#D2F843] prose-blockquote:bg-neutral-100/80 dark:prose-blockquote:bg-neutral-800/60 prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-2xl prose-blockquote:my-6 prose-blockquote:italic
+        prose-a:text-[#76BB08] dark:prose-a:text-[#76BB08] prose-a:underline prose-a:font-semibold hover:prose-a:opacity-80
+        prose-blockquote:border-l-4 prose-blockquote:border-[#76BB08] prose-blockquote:bg-neutral-100/80 dark:prose-blockquote:bg-neutral-800/60 prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-2xl prose-blockquote:my-6 prose-blockquote:italic
         prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:my-1
         prose-ol:list-decimal prose-ol:pl-6 prose-ol:my-4 prose-li:my-1
         prose-img:rounded-3xl prose-img:border prose-img:border-neutral-200/80 dark:prose-img:border-neutral-800 prose-img:my-8 prose-img:max-h-[550px] prose-img:w-full prose-img:object-cover prose-img:shadow-sm

@@ -33,8 +33,8 @@ export default function AdminSalesManager() {
       {/* Top Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span> Hardware Logistics & Orders
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#76BB08]"></span> Hardware Logistics & Orders
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
             NFC Card Sales & Orders
@@ -57,7 +57,7 @@ export default function AdminSalesManager() {
         <div className="bg-white dark:bg-[#111318] p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Gross Volume</span>
-            <span className="p-2 rounded-xl bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843]"><TrendingUp className="w-4 h-4" /></span>
+            <span className="p-2 rounded-xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08]"><TrendingUp className="w-4 h-4" /></span>
           </div>
           <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
             ₦{totalRevenue.toLocaleString()}
@@ -143,7 +143,7 @@ export default function AdminSalesManager() {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30">
                         <ShoppingBag className="w-3 h-3" />
                         {sale.card_type}
                       </div>

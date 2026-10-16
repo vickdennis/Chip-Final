@@ -71,7 +71,7 @@ export default function AdminSeoManager() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4">
       {/* Keyword Bank */}
       <div className="lg:col-span-8 bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-xs font-semibold uppercase tracking-wider mb-2">
           <Search className="w-3.5 h-3.5" /> Organic Search & Internal Linking
         </div>
         <h3 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white mb-1">
@@ -85,19 +85,19 @@ export default function AdminSeoManager() {
           <input 
             required 
             placeholder="Keyword Phrase (e.g. NFC card)" 
-            className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+            className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" 
             value={form.keyword_phrase} 
             onChange={e=>setForm({...form, keyword_phrase: e.target.value})} 
           />
           <input 
             required 
             placeholder="Target Slug (e.g. /blog/nfc-guide)" 
-            className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+            className="flex-1 px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" 
             value={form.target_url_slug} 
             onChange={e=>setForm({...form, target_url_slug: e.target.value})} 
           />
           <select 
-            className="px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]" 
+            className="px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs sm:text-sm text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]" 
             value={form.type} 
             onChange={e=>setForm({...form, type: e.target.value})}
           >
@@ -160,7 +160,7 @@ export default function AdminSeoManager() {
       <div className="lg:col-span-4 bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between">
         <div>
           <h3 className="text-base font-bold text-neutral-950 dark:text-white flex items-center gap-2 mb-4">
-            <Activity className="w-4 h-4 text-[#6c8600] dark:text-[#D2F843]" />
+            <Activity className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
             Internal Link Health Monitor
           </h3>
           

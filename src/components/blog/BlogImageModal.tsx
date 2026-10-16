@@ -111,7 +111,7 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
       <div className="bg-white dark:bg-[#12141A] w-full max-w-md rounded-3xl border border-neutral-200 dark:border-white/10 shadow-2xl p-6 text-neutral-900 dark:text-white space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-2 font-bold text-sm">
-            <ImageIcon className="w-4 h-4 text-[#84A900] dark:text-[#D2F843]" />
+            <ImageIcon className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
             <span>Insert Image into Article</span>
           </div>
           <button
@@ -182,7 +182,7 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
                 placeholder="e.g. Lagos Realtor tapping NFC business card on iPhone"
                 value={altText}
                 onChange={(e) => setAltText(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 outline-none focus:border-[#D2F843]"
+                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 outline-none focus:border-[#76BB08]"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
                 placeholder="https://images.unsplash.com/photo-..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 outline-none focus:border-[#D2F843]"
+                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 outline-none focus:border-[#76BB08]"
               />
             </div>
 
@@ -211,7 +211,7 @@ export default function BlogImageModal({ isOpen, onClose, onInsert }: BlogImageM
                 placeholder="e.g. Modern metal NFC business card"
                 value={altText}
                 onChange={(e) => setAltText(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 outline-none focus:border-[#D2F843]"
+                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 outline-none focus:border-[#76BB08]"
               />
             </div>
 

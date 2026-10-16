@@ -12,7 +12,7 @@ interface PrivacyPolicyViewProps {
 
 export default function PrivacyPolicyView({ onNavigate, isDarkMode, toggleDarkMode }: PrivacyPolicyViewProps) {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950">
       <MakroNavbar
         currentView="privacy-policy"
         onNavigate={onNavigate}
@@ -32,7 +32,7 @@ export default function PrivacyPolicyView({ onNavigate, isDarkMode, toggleDarkMo
         <div className="bg-white dark:bg-[#12141B] rounded-3xl p-8 sm:p-12 border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-8">
           <div className="space-y-3 pb-6 border-b border-neutral-100 dark:border-neutral-800">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#84A900] dark:text-[#D2F843]" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
               <span>Legal Governance</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white">

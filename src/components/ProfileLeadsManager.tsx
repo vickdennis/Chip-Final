@@ -459,7 +459,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
       <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-100 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#D2F843]/20 flex items-center justify-center text-[#5b7300] dark:text-[#D2F843] shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#76BB08]/20 flex items-center justify-center text-[#5b7300] dark:text-[#76BB08] shrink-0">
               <UserCheck className="w-6 h-6" />
             </div>
             <div>
@@ -480,7 +480,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
           <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-[#D2F843] hover:bg-[#c5eb32] text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              className="px-3.5 py-2 rounded-xl bg-[#76BB08] hover:bg-[#c5eb32] text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
               title="Add a contact manually"
             >
               <Plus className="w-4 h-4" />
@@ -492,7 +492,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
               className="p-2 rounded-xl border border-neutral-200/80 dark:border-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
               title="Refresh contacts"
             >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#6c8600] dark:text-[#D2F843]' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#76BB08] dark:text-[#76BB08]' : ''}`} />
             </button>
 
             <button
@@ -533,10 +533,10 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
           </div>
 
           <div className="p-4 sm:p-5 rounded-2xl bg-neutral-50 dark:bg-white/[0.02] border border-neutral-200/60 dark:border-white/5">
-            <span className="text-[11px] font-mono text-emerald-600 dark:text-[#D2F843] uppercase tracking-wider block">
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-[#76BB08] uppercase tracking-wider block">
               Converted Deals & Connections
             </span>
-            <div className="text-3xl font-extrabold text-emerald-600 dark:text-[#D2F843] mt-1">
+            <div className="text-3xl font-extrabold text-emerald-600 dark:text-[#76BB08] mt-1">
               {convertedCount}
             </div>
             <span className="text-[11px] text-neutral-400 mt-1 block">
@@ -546,9 +546,9 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
         </div>
 
         {/* How 2-Way Contact Exchange Works Strip */}
-        <div className="mt-6 p-4 rounded-2xl bg-[#D2F843]/10 border border-[#D2F843]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="mt-6 p-4 rounded-2xl bg-[#76BB08]/10 border border-[#76BB08]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center shrink-0 font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center shrink-0 font-bold text-xs">
               2W
             </div>
             <div className="text-xs text-neutral-800 dark:text-neutral-200">
@@ -560,7 +560,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
               href={`/${profile.username || ''}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-bold text-neutral-900 dark:text-[#D2F843] hover:underline flex items-center gap-1 shrink-0 self-end sm:self-auto"
+              className="text-xs font-bold text-neutral-900 dark:text-[#76BB08] hover:underline flex items-center gap-1 shrink-0 self-end sm:self-auto"
             >
               <span>Test on your profile</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -622,7 +622,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
       <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-12 text-center text-xs text-neutral-400 flex flex-col items-center justify-center gap-2">
-            <RefreshCw className="w-6 h-6 animate-spin text-[#D2F843]" />
+            <RefreshCw className="w-6 h-6 animate-spin text-[#76BB08]" />
             <span>Loading captured contacts...</span>
           </div>
         ) : filteredLeads.length === 0 ? (
@@ -683,7 +683,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                         </h4>
                         <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase ${
                           isConverted 
-                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-[#D2F843] border border-emerald-500/30' 
+                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-[#76BB08] border border-emerald-500/30' 
                             : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                         }`}>
                           {isConverted ? 'Converted' : 'New Contact'}
@@ -799,8 +799,8 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
             </button>
 
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#D2F843]" />
-              <span className="text-[11px] font-mono uppercase tracking-wider text-[#6c8600] dark:text-[#D2F843] font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#76BB08]" />
+              <span className="text-[11px] font-mono uppercase tracking-wider text-[#76BB08] dark:text-[#76BB08] font-bold">
                 Manual Contact Entry
               </span>
             </div>
@@ -823,7 +823,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. Tunde Balogun"
-                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#D2F843]"
+                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#76BB08]"
                 />
               </div>
 
@@ -837,7 +837,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                     value={newWhatsapp}
                     onChange={(e) => setNewWhatsapp(e.target.value)}
                     placeholder="e.g. 0803 123 4567"
-                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#D2F843]"
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#76BB08]"
                   />
                 </div>
 
@@ -850,7 +850,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="tunde@company.ng"
-                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#D2F843]"
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#76BB08]"
                   />
                 </div>
               </div>
@@ -864,7 +864,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                   value={newCompany}
                   onChange={(e) => setNewCompany(e.target.value)}
                   placeholder="e.g. Managing Director, Sterling Capital"
-                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#D2F843]"
+                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#76BB08]"
                 />
               </div>
 
@@ -877,7 +877,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="e.g. Met at Lagos Tech Fest. Wants quote for 25 Smart Metal cards for partners."
-                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#D2F843]"
+                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#76BB08]"
                 />
               </div>
 
@@ -892,7 +892,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                 <button
                   type="submit"
                   disabled={submittingManual}
-                  className="px-5 py-2.5 rounded-xl bg-[#D2F843] hover:bg-[#c5eb32] text-neutral-950 font-bold text-xs transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-[#76BB08] hover:bg-[#c5eb32] text-neutral-950 font-bold text-xs transition-colors shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {submittingManual ? 'Saving...' : 'Save Contact'}
                 </button>

@@ -97,7 +97,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           </span>
           {subtitle && (
             <span
-              className={`font-mono uppercase tracking-widest font-semibold text-[#6b8500] dark:text-[#D2F843] mt-1 ${currentSize.subText}`}
+              className={`font-mono uppercase tracking-widest font-semibold text-[#76BB08] dark:text-[#76BB08] mt-1 ${currentSize.subText}`}
             >
               {subtitle}
             </span>

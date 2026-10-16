@@ -309,10 +309,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
               )}
 
               {/* Transparent Pricing Trust Box (CHIP Core + 3-Months Pro Free) */}
-              <div className="p-3.5 rounded-2xl bg-[#D2F843]/10 border border-[#D2F843]/30 flex flex-col gap-1.5 my-1 text-left">
+              <div className="p-3.5 rounded-2xl bg-[#76BB08]/10 border border-[#76BB08]/30 flex flex-col gap-1.5 my-1 text-left">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#D2F843] animate-pulse"></span>
-                  <span className="text-[11px] font-bold text-[#D2F843] uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-[#76BB08] animate-pulse"></span>
+                  <span className="text-[11px] font-bold text-[#76BB08] uppercase tracking-wider">
                     Transparent Software Guarantee
                   </span>
                 </div>

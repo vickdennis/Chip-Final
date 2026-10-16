@@ -118,7 +118,7 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
               onClick={() => onNavigate('login')}
               className="group flex items-center gap-3 pl-1.5 pr-5 py-1.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 shadow-sm cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
+              <div className="w-8 h-8 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
                 <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-200" />
               </div>
               <span className="text-sm font-semibold tracking-tight whitespace-nowrap">

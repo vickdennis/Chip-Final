@@ -379,7 +379,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
               className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all text-xs font-mono cursor-pointer border border-white/5"
               title="Return to CHIP NG Home"
             >
-              <Home className="w-3.5 h-3.5 text-[#D2F843] group-hover:scale-110 transition-transform" />
+              <Home className="w-3.5 h-3.5 text-[#76BB08] group-hover:scale-110 transition-transform" />
               <span>chipng.com</span>
             </button>
             <span className="text-white/20 font-mono">/</span>
@@ -706,7 +706,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
                   <div className="flex-1 sm:px-4">
                     <h4 className="text-sm font-bold text-white leading-tight">{job.company}</h4>
                     <span className="text-xs text-white/70 block mt-0.5 font-medium">{job.role}</span>
-                    <span className="text-[11px] font-mono text-[#D2F843] block mt-1">{job.stack}</span>
+                    <span className="text-[11px] font-mono text-[#76BB08] block mt-1">{job.stack}</span>
                   </div>
                 </div>
               ))}
@@ -782,7 +782,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
                       </div>
 
                       {project.tagline && (
-                        <p className="text-xs text-[#D2F843] font-medium font-mono">
+                        <p className="text-xs text-[#76BB08] font-medium font-mono">
                           {project.tagline}
                         </p>
                       )}
@@ -808,7 +808,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
                           href={project.live_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#D2F843] transition-colors"
+                          className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#76BB08] transition-colors"
                         >
                           <span>Visit Live Website</span>
                           <ArrowRight className="w-3.5 h-3.5" />

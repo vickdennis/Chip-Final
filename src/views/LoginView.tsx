@@ -97,7 +97,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950 transition-colors">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950 transition-colors">
       
       {/* Top Bar */}
       <header className="px-6 sm:px-8 py-6 flex items-center justify-between">

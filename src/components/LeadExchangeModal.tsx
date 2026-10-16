@@ -134,8 +134,8 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
         {!submitted ? (
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#D2F843] animate-pulse" />
-              <span className="text-[11px] font-mono uppercase tracking-wider text-[#D2F843] font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#76BB08] animate-pulse" />
+              <span className="text-[11px] font-mono uppercase tracking-wider text-[#76BB08] font-bold">
                 2-Way Contact Exchange
               </span>
             </div>
@@ -152,7 +152,7 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
                 <label className="block text-[11px] font-bold text-white/70 uppercase mb-1">
                   Your Full Name *
                 </label>
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#D2F843] transition-colors">
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#76BB08] transition-colors">
                   <User className="w-4 h-4 text-white/40 shrink-0" />
                   <input
                     type="text"
@@ -169,7 +169,7 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
                 <label className="block text-[11px] font-bold text-white/70 uppercase mb-1">
                   WhatsApp / Phone Number *
                 </label>
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#D2F843] transition-colors">
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#76BB08] transition-colors">
                   <Phone className="w-4 h-4 text-white/40 shrink-0" />
                   <input
                     type="tel"
@@ -186,7 +186,7 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
                   <label className="block text-[11px] font-bold text-white/70 uppercase mb-1">
                     Email Address
                   </label>
-                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#D2F843] transition-colors">
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#76BB08] transition-colors">
                     <Mail className="w-4 h-4 text-white/40 shrink-0" />
                     <input
                       type="email"
@@ -202,7 +202,7 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
                   <label className="block text-[11px] font-bold text-white/70 uppercase mb-1">
                     Company / Title
                   </label>
-                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#D2F843] transition-colors">
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#76BB08] transition-colors">
                     <Building2 className="w-4 h-4 text-white/40 shrink-0" />
                     <input
                       type="text"
@@ -219,7 +219,7 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
                 <label className="block text-[11px] font-bold text-white/70 uppercase mb-1">
                   Note / Context
                 </label>
-                <div className="flex items-start gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#D2F843] transition-colors">
+                <div className="flex items-start gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#76BB08] transition-colors">
                   <MessageSquare className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
                   <textarea
                     rows={2}
@@ -234,7 +234,7 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-2 w-full py-3.5 rounded-full font-bold text-xs sm:text-sm bg-[#D2F843] text-neutral-950 hover:bg-[#bce42d] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                className="mt-2 w-full py-3.5 rounded-full font-bold text-xs sm:text-sm bg-[#76BB08] text-neutral-950 hover:bg-[#bce42d] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
               >
                 {submitting ? (
                   <>

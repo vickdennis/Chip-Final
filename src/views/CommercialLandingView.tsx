@@ -70,7 +70,7 @@ export default function CommercialLandingView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#D2F843] selection:text-neutral-950 font-sans">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#76BB08] selection:text-neutral-950 font-sans">
       <MakroNavbar
         currentView="landing"
         onNavigate={onNavigate}
@@ -87,7 +87,7 @@ export default function CommercialLandingView({
               
               <div className="lg:col-span-7 space-y-6">
                 <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-[#D2F843] animate-pulse"></span>
+                  <span className="w-2 h-2 rounded-full bg-[#76BB08] animate-pulse"></span>
                   <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 font-mono tracking-tight">
                     {page.heroBadge}
                   </span>
@@ -102,8 +102,8 @@ export default function CommercialLandingView({
                 </p>
 
                 {page.locationFocus && (
-                  <div className="flex items-center gap-2 text-xs font-mono text-[#6b8500] dark:text-[#D2F843] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843]"></span>
+                  <div className="flex items-center gap-2 text-xs font-mono text-[#76BB08] dark:text-[#76BB08] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#76BB08]"></span>
                     <span>Service Territory: {page.locationFocus}</span>
                   </div>
                 )}
@@ -113,7 +113,7 @@ export default function CommercialLandingView({
                     onClick={() => onNavigate('nfc-sales')}
                     className="group flex items-center gap-3 pl-2 pr-6 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform shadow-xs">
+                    <div className="w-9 h-9 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform shadow-xs">
                       <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                     </div>
                     <span className="text-sm font-bold tracking-tight">
@@ -154,7 +154,7 @@ export default function CommercialLandingView({
                   </div>
                   
                   <div className="space-y-3 text-center">
-                    <div className="inline-block px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] font-mono text-[11px] font-bold">
+                    <div className="inline-block px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] font-mono text-[11px] font-bold">
                       SMART NFC HARDWARE
                     </div>
                     <h3 className="text-xl font-bold text-neutral-950 dark:text-white">
@@ -176,7 +176,7 @@ export default function CommercialLandingView({
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-neutral-500">Profile Updates:</span>
-                      <span className="font-semibold text-emerald-600 dark:text-[#D2F843]">Unlimited Lifetime Free</span>
+                      <span className="font-semibold text-emerald-600 dark:text-[#76BB08]">Unlimited Lifetime Free</span>
                     </div>
                   </div>
                 </div>
@@ -202,7 +202,7 @@ export default function CommercialLandingView({
         <section className="py-20 md:py-24 bg-[#FAFAFA] dark:bg-[#0A0B0E] border-b border-neutral-200/80 dark:border-neutral-800">
           <div className="max-w-7xl mx-auto px-6 sm:px-8">
             <div className="text-center max-w-2xl mx-auto mb-14">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#6b8500] dark:text-[#D2F843]">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#76BB08] dark:text-[#76BB08]">
                 Engineered for High-Stakes Networking
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight mt-2">
@@ -216,7 +216,7 @@ export default function CommercialLandingView({
                   key={i}
                   className="bg-white dark:bg-[#12141B] rounded-2xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] flex items-center justify-center">
                     {renderIcon(b.icon)}
                   </div>
                   <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">
@@ -236,7 +236,7 @@ export default function CommercialLandingView({
           <section className="py-20 md:py-24 bg-white dark:bg-[#07080B] border-b border-neutral-200/80 dark:border-neutral-800">
             <div className="max-w-5xl mx-auto px-6 sm:px-8 space-y-12">
               <div className="text-center max-w-2xl mx-auto">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#6b8500] dark:text-[#D2F843]">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#76BB08] dark:text-[#76BB08]">
                   Field Tested in Nigeria
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight mt-2">
@@ -250,13 +250,13 @@ export default function CommercialLandingView({
                     key={i}
                     className="p-8 rounded-3xl bg-neutral-50 dark:bg-[#12141B] border border-neutral-200/80 dark:border-neutral-800 space-y-4 shadow-sm"
                   >
-                    <div className="text-xs font-mono font-bold text-[#6b8500] dark:text-[#D2F843] uppercase tracking-wider">
+                    <div className="text-xs font-mono font-bold text-[#76BB08] dark:text-[#76BB08] uppercase tracking-wider">
                       {uc.role}
                     </div>
                     <div className="text-sm font-semibold text-neutral-900 dark:text-white">
                       Scenario: {uc.scenario}
                     </div>
-                    <blockquote className="text-sm text-neutral-600 dark:text-neutral-300 italic border-l-2 border-[#D2F843] pl-4">
+                    <blockquote className="text-sm text-neutral-600 dark:text-neutral-300 italic border-l-2 border-[#76BB08] pl-4">
                       "{uc.quote}"
                     </blockquote>
                   </div>
@@ -329,7 +329,7 @@ export default function CommercialLandingView({
         {/* Conversion CTA Banner */}
         <section className="py-20 bg-neutral-950 text-white relative overflow-hidden">
           <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center space-y-6 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-mono font-bold text-[#D2F843]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-mono font-bold text-[#76BB08]">
               FAST DISPATCH • 24–48 HOURS IN LAGOS
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
@@ -341,7 +341,7 @@ export default function CommercialLandingView({
             <div className="pt-4 flex flex-wrap justify-center items-center gap-4">
               <button
                 onClick={() => onNavigate('nfc-sales')}
-                className="px-8 py-3.5 rounded-full bg-[#D2F843] text-neutral-950 font-extrabold text-sm hover:opacity-90 active:scale-95 transition-all shadow-xl cursor-pointer"
+                className="px-8 py-3.5 rounded-full bg-[#76BB08] text-neutral-950 font-extrabold text-sm hover:opacity-90 active:scale-95 transition-all shadow-xl cursor-pointer"
               >
                 Order Your Card Now
               </button>

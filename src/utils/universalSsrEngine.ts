@@ -223,7 +223,7 @@ export async function renderUserProfileSsr(
               <div style="padding: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; text-align: left;">
                 <div style="font-weight: 700; font-size: 14px; color: #ffffff;">${escapeHtml(p.name)}</div>
                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin: 4px 0 8px 0;">${escapeHtml(p.description || '')}</div>
-                <div style="font-weight: 800; color: #D2F843; font-size: 15px;">₦${Number(p.price || 0).toLocaleString()}</div>
+                <div style="font-weight: 800; color: #76BB08; font-size: 15px;">₦${Number(p.price || 0).toLocaleString()}</div>
               </div>
             `).join('')}
           </div>
@@ -255,7 +255,7 @@ export async function renderUserProfileSsr(
 
       <!-- Quick Action Buttons -->
       <div style="display: flex; gap: 10px; width: 100%; max-width: 380px; margin-bottom: 8px;">
-        <a href="${vCardUrl}" style="flex: 1; padding: 12px 18px; background: #D2F843; color: #09090b; font-weight: 700; font-size: 13px; border-radius: 999px; text-decoration: none; text-align: center; box-shadow: 0 4px 12px rgba(210, 248, 67, 0.3);">
+        <a href="${vCardUrl}" style="flex: 1; padding: 12px 18px; background: #76BB08; color: #09090b; font-weight: 700; font-size: 13px; border-radius: 999px; text-decoration: none; text-align: center; box-shadow: 0 4px 12px rgba(118, 187, 8, 0.3);">
           Save Contact (vCard)
         </a>
         ${profile.phone_number ? `
@@ -276,7 +276,7 @@ export async function renderUserProfileSsr(
 
       <!-- Powered By Footer -->
       <footer style="margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 11px; color: rgba(255, 255, 255, 0.4); font-family: monospace;">
-        POWERED BY <a href="https://www.chipng.com" style="color: #D2F843; text-decoration: none; font-weight: 700;">CHIP NG</a> CONTACTLESS NFC HARDWARE
+        POWERED BY <a href="https://www.chipng.com" style="color: #76BB08; text-decoration: none; font-weight: 700;">CHIP NG</a> CONTACTLESS NFC HARDWARE
       </footer>
 
     </main>
@@ -407,7 +407,7 @@ export async function renderBlogArticleSsr(
       <div style="background: #09090b; color: #ffffff; padding: 36px; border-radius: 24px; text-align: center; margin-top: 48px;">
         <h2 style="font-size: 24px; font-weight: 800; margin: 0 0 10px 0;">Upgrade Your Executive Networking in Nigeria</h2>
         <p style="font-size: 15px; color: #a1a1aa; max-width: 520px; margin: 0 auto 24px auto;">Order your custom laser-engraved NFC metal card or matte PVC card with sub-10ms contactless response.</p>
-        <a href="/buy-card" style="display: inline-block; padding: 14px 28px; background: #D2F843; color: #09090b; font-weight: 800; font-size: 14px; border-radius: 999px; text-decoration: none;">
+        <a href="/buy-card" style="display: inline-block; padding: 14px 28px; background: #76BB08; color: #09090b; font-weight: 800; font-size: 14px; border-radius: 999px; text-decoration: none;">
           Order Your NFC Card Today (From ₦30,000)
         </a>
       </div>
@@ -785,7 +785,7 @@ export async function applyUniversalSsr(
 <div id="root">
   <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0c0d12; color: #ffffff; min-height: 100vh; padding: 48px 16px 80px 16px;">
     <main style="max-width: 960px; margin: 0 auto; text-align: center;">
-      <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(210, 248, 67, 0.15); color: #D2F843; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">
+      <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(118, 187, 8, 0.15); color: #76BB08; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">
         Official Mobile Companion v2.4.0
       </span>
       <h1 style="font-size: 44px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px 0; color: #ffffff;">
@@ -796,7 +796,7 @@ export async function applyUniversalSsr(
       </p>
       <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
         <a href="https://apps.apple.com/app/chip-ng/id6470000000" style="padding: 14px 28px; border-radius: 16px; background: #ffffff; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for iOS</a>
-        <a href="https://play.google.com/store/apps/details?id=com.chipng.app" style="padding: 14px 28px; border-radius: 16px; background: #D2F843; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for Android</a>
+        <a href="https://play.google.com/store/apps/details?id=com.chipng.app" style="padding: 14px 28px; border-radius: 16px; background: #76BB08; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for Android</a>
       </div>
     </main>
   </div>

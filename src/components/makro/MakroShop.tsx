@@ -143,7 +143,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-16">
           <div className="max-w-2xl space-y-4">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">
                 Official Hardware & Smart Cards Store
               </span>
@@ -235,7 +235,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                   {/* Badges Overlay */}
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="px-3 py-1 rounded-full bg-neutral-950/80 backdrop-blur-md text-white text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5">
-                      <Zap className="w-3 h-3 text-[#D2F843]" />
+                      <Zap className="w-3 h-3 text-[#76BB08]" />
                       <span>{isMetal ? 'Heavy Metal Edition' : 'Ultra-Slim PVC'}</span>
                     </span>
                   </div>
@@ -255,7 +255,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                             setSelectedMediaIndex((prev) => ({ ...prev, [product.id]: mIdx }));
                           }}
                           className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                            activeIndex === mIdx ? 'bg-[#D2F843] w-6' : 'bg-white/60 hover:bg-white'
+                            activeIndex === mIdx ? 'bg-[#76BB08] w-6' : 'bg-white/60 hover:bg-white'
                           }`}
                           aria-label={`View image ${mIdx + 1}`}
                         />
@@ -268,7 +268,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                 <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-5">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
-                      <h3 className="text-xl font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#84A900] dark:group-hover:text-[#D2F843] transition-colors leading-snug">
+                      <h3 className="text-xl font-bold text-neutral-950 dark:text-white tracking-tight group-hover:text-[#76BB08] dark:group-hover:text-[#76BB08] transition-colors leading-snug">
                         {product.name}
                       </h3>
                     </div>
@@ -281,19 +281,19 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                     {/* Hardware Specifications */}
                     <div className="pt-2 grid grid-cols-2 gap-2 text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
                       <div className="flex items-center gap-1.5">
-                        <Check className="w-3 h-3 text-[#84A900] dark:text-[#D2F843]" />
+                        <Check className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                         <span>NTAG216 Chip</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Check className="w-3 h-3 text-[#84A900] dark:text-[#D2F843]" />
+                        <Check className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                         <span>iOS & Android</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Check className="w-3 h-3 text-[#84A900] dark:text-[#D2F843]" />
+                        <Check className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                         <span>Zero App Needed</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Check className="w-3 h-3 text-[#84A900] dark:text-[#D2F843]" />
+                        <Check className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Core Free + 3-Mo Pro</span>
                       </div>
                     </div>
@@ -315,7 +315,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                       className="group/btn flex items-center gap-2 pl-4 pr-3 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
                     >
                       <span>Order Card</span>
-                      <div className="w-6 h-6 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover/btn:translate-x-0.5 transition-transform">
+                      <div className="w-6 h-6 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover/btn:translate-x-0.5 transition-transform">
                         <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                       </div>
                     </button>
@@ -329,7 +329,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
         {/* Simple, Transparent Pricing Section */}
         <div className="mt-16 pt-12 border-t border-neutral-200/80 dark:border-white/10">
           <div className="max-w-3xl mx-auto text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 text-[11px] font-bold uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] border border-[#76BB08]/30 text-[11px] font-bold uppercase tracking-wider mb-3">
               Simple, Transparent Pricing
             </div>
             <h3 className="text-2xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
@@ -386,17 +386,17 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
             </div>
 
             {/* CHIP Pro Dashboard Box */}
-            <div className="rounded-3xl p-6 sm:p-8 bg-neutral-950 text-white dark:bg-[#16181f] border-2 border-[#D2F843] shadow-lg flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-4 right-4 bg-[#D2F843] text-neutral-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-xs">
+            <div className="rounded-3xl p-6 sm:p-8 bg-neutral-950 text-white dark:bg-[#16181f] border-2 border-[#76BB08] shadow-lg flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-4 right-4 bg-[#76BB08] text-neutral-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-xs">
                 3-Months Free Trial
               </div>
               <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-bold text-[#D2F843] mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-bold text-[#76BB08] mb-4">
                   For Power Networkers & Teams
                 </div>
                 <h4 className="text-xl font-extrabold text-white">CHIP Pro Dashboard</h4>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold font-mono text-[#D2F843]">₦3,000</span>
+                  <span className="text-3xl font-extrabold font-mono text-[#76BB08]">₦3,000</span>
                   <span className="text-xs text-white/70 font-medium">/month (First 3 months 100% FREE with any card)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-2 mb-6">
@@ -405,25 +405,25 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
 
                 <ul className="space-y-3 text-xs sm:text-sm text-neutral-200">
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-[#D2F843] shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-[#76BB08] shrink-0 mt-0.5" />
                     <span><strong>Advanced Tap Analytics:</strong> Track tap locations, link clicks, and profile views over time.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-[#D2F843] shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-[#76BB08] shrink-0 mt-0.5" />
                     <span><strong>2-Way Contact Capture:</strong> Let prospects submit their info directly to you.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-[#D2F843] shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-[#76BB08] shrink-0 mt-0.5" />
                     <span><strong>Automatic CRM Export:</strong> Sync your captured leads to your favorite tools.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-[#D2F843] shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-[#76BB08] shrink-0 mt-0.5" />
                     <span><strong>Premium Branding:</strong> Remove CHIPNG watermarks and use custom color themes.</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-white/10 text-[11px] text-[#D2F843] text-center font-medium">
+              <div className="mt-8 pt-4 border-t border-white/10 text-[11px] text-[#76BB08] text-center font-medium">
                 Downgrade anytime without penalties: Your physical card works forever.
               </div>
             </div>
@@ -434,7 +434,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
         <div className="mt-14 p-6 sm:p-8 rounded-3xl bg-neutral-100/80 dark:bg-[#12141B] border border-neutral-200/80 dark:border-neutral-800 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white shrink-0 shadow-2xs">
-              <Truck className="w-5 h-5 text-[#84A900] dark:text-[#D2F843]" />
+              <Truck className="w-5 h-5 text-[#76BB08] dark:text-[#76BB08]" />
             </div>
             <div>
               <div className="text-xs font-bold text-neutral-900 dark:text-white">Fast Nationwide Delivery</div>
@@ -444,7 +444,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
 
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white shrink-0 shadow-2xs">
-              <ShieldCheck className="w-5 h-5 text-[#84A900] dark:text-[#D2F843]" />
+              <ShieldCheck className="w-5 h-5 text-[#76BB08] dark:text-[#76BB08]" />
             </div>
             <div>
               <div className="text-xs font-bold text-neutral-900 dark:text-white">12-Month Hardware Guarantee</div>
@@ -454,7 +454,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
 
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white shrink-0 shadow-2xs">
-              <RefreshCw className="w-5 h-5 text-[#84A900] dark:text-[#D2F843]" />
+              <RefreshCw className="w-5 h-5 text-[#76BB08] dark:text-[#76BB08]" />
             </div>
             <div>
               <div className="text-xs font-bold text-neutral-900 dark:text-white">Unlimited Link Updates</div>

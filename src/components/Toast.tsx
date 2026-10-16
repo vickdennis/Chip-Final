@@ -66,16 +66,16 @@ export const ToastContainer: React.FC = () => {
           key={t.id}
           className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm font-medium transition-all transform animate-in fade-in slide-in-from-top-4 duration-200 ${
             t.type === 'success'
-              ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 border-[#D2F843]/50 ring-1 ring-[#D2F843]/30'
+              ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 border-[#76BB08]/50 ring-1 ring-[#76BB08]/30'
               : t.type === 'error'
               ? 'bg-red-950 text-white border-red-500/50 ring-1 ring-red-500/30'
               : 'bg-neutral-900 text-white border-neutral-700'
           }`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            {t.type === 'success' && <CheckCircle2 className="w-4 h-4 text-[#D2F843] dark:text-[#6c8600] shrink-0" />}
+            {t.type === 'success' && <CheckCircle2 className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08] shrink-0" />}
             {t.type === 'error' && <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />}
-            {t.type === 'info' && <Info className="w-4 h-4 text-[#D2F843] shrink-0" />}
+            {t.type === 'info' && <Info className="w-4 h-4 text-[#76BB08] shrink-0" />}
             <span className="truncate">{t.message}</span>
           </div>
           <button

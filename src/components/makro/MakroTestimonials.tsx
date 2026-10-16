@@ -40,7 +40,7 @@ export const MakroTestimonials: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14 sm:mb-16">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3 py-1 mb-4">
-              <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 Trusted by Leaders
               </span>
@@ -70,7 +70,7 @@ export const MakroTestimonials: React.FC = () => {
               className="bg-white dark:bg-[#12141B] rounded-3xl p-7 sm:p-8 border border-neutral-200/80 dark:border-neutral-800 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="space-y-4">
-                <div className="inline-block text-[11px] font-mono font-semibold text-[#84A900] dark:text-[#D2F843] bg-neutral-100 dark:bg-neutral-800/90 px-2.5 py-1 rounded-full">
+                <div className="inline-block text-[11px] font-mono font-semibold text-[#76BB08] dark:text-[#76BB08] bg-neutral-100 dark:bg-neutral-800/90 px-2.5 py-1 rounded-full">
                   {t.metric}
                 </div>
                 <p className="text-sm sm:text-base text-neutral-700 dark:text-neutral-300 leading-relaxed">

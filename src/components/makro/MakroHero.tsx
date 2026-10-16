@@ -74,7 +74,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
             
             {/* Category Pill Badge with Icon */}
             <div className="inline-flex items-center gap-2 self-start bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
-              <span className="w-5 h-5 rounded-full bg-[#D2F843] flex items-center justify-center text-neutral-950">
+              <span className="w-5 h-5 rounded-full bg-[#76BB08] flex items-center justify-center text-neutral-950">
                 <Zap className="w-3 h-3 fill-current text-neutral-950" />
               </span>
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">
@@ -103,7 +103,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
                 onClick={onGetStarted}
                 className="group flex items-center gap-3 pl-2 pr-6 py-2 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#D2F843] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
+                <div className="w-10 h-10 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                   <ArrowRight className="w-5 h-5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
                 </div>
                 <span className="text-base font-semibold tracking-tight whitespace-nowrap">
@@ -169,7 +169,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
           <div className="lg:col-span-6 relative flex items-center justify-center mt-6 lg:mt-0">
             
             {/* Ambient Backlight */}
-            <div className="absolute w-72 h-72 rounded-full bg-lime-300/15 dark:bg-lime-400/10 blur-3xl pointer-events-none -top-10 right-10"></div>
+            <div className="absolute w-72 h-72 rounded-full bg-[#76BB08]/15 dark:bg-[#76BB08]/10 blur-3xl pointer-events-none -top-10 right-10"></div>
             
             {/* Image Container with Smooth Bottom Fade */}
             <div className="relative w-full max-w-[460px] mx-auto rounded-3xl overflow-hidden shadow-sm">
@@ -199,7 +199,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
                   <span className="text-2xl font-bold tracking-tight text-neutral-950 dark:text-white tabular-nums">
                     {currentData.taps}
                   </span>
-                  <span className="text-[#84A900] dark:text-[#D2F843] text-xs font-semibold flex items-center">
+                  <span className="text-[#76BB08] dark:text-[#76BB08] text-xs font-semibold flex items-center">
                     ▲
                   </span>
                 </div>
@@ -218,7 +218,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
                 
                 {/* 3 Day Row matching image */}
                 <div className="grid grid-cols-3 gap-1 text-center mb-3">
-                  <div className="bg-[#D2F843] text-neutral-950 rounded-md py-1">
+                  <div className="bg-[#76BB08] text-neutral-950 rounded-md py-1">
                     <div className="text-[10px] font-bold">1</div>
                     <div className="text-[9px] font-medium">Tap</div>
                   </div>
@@ -258,7 +258,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
               <div className="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-neutral-900 dark:bg-white"></span>
-                  <span className="w-2 h-2 rounded-full bg-[#D2F843]"></span>
+                  <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
                 </div>
               </div>
 
@@ -356,7 +356,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
                   <span className="text-neutral-400 text-xs hidden sm:inline">&bull; Real Nigerian Founders Tapping Live</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#D2F843] bg-[#D2F843]/15 px-2.5 py-0.5 rounded-full border border-[#D2F843]/30">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#76BB08] bg-[#76BB08]/15 px-2.5 py-0.5 rounded-full border border-[#76BB08]/30">
                     &lt; 10ms Response
                   </span>
                   <span className="text-[11px] text-neutral-400 font-mono hidden md:inline">
@@ -387,7 +387,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
               {/* Bottom Feature Highlights inside Card */}
               <div className="p-4 sm:p-5 bg-neutral-900/90 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#D2F843] shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#76BB08] shrink-0">
                     <Smartphone className="w-4 h-4" />
                   </div>
                   <div>
@@ -407,7 +407,7 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#D2F843] shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#76BB08] shrink-0">
                     <Zap className="w-4 h-4" />
                   </div>
                   <div>

@@ -47,7 +47,7 @@ export default function BlogPreviewModal({ isOpen, onClose, post }: BlogPreviewM
           {/* Header Metadata */}
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-neutral-500">
-              <span className="px-3 py-1 rounded-full bg-[#D2F843]/15 text-[#6b8500] dark:text-[#D2F843] font-bold">
+              <span className="px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] dark:text-[#76BB08] font-bold">
                 {post.category || post.keywords?.[0] || 'CHIP NG Journal'}
               </span>
               <span>·</span>
@@ -105,7 +105,7 @@ export default function BlogPreviewModal({ isOpen, onClose, post }: BlogPreviewM
           {/* CTA Box */}
           <div className="mt-12 p-8 rounded-3xl bg-neutral-950 text-white dark:bg-[#12141A] border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center sm:text-left">
-              <div className="text-xs uppercase tracking-wider font-mono text-[#D2F843] font-bold">
+              <div className="text-xs uppercase tracking-wider font-mono text-[#76BB08] font-bold">
                 Level Up Your Networking
               </div>
               <h3 className="text-xl font-bold">Upgrade to CHIP NG Smart Cards</h3>
@@ -113,7 +113,7 @@ export default function BlogPreviewModal({ isOpen, onClose, post }: BlogPreviewM
                 One contactless tap replaces stacks of paper cards. Update your listings, links, and contact info dynamically.
               </p>
             </div>
-            <button className="px-6 py-3 rounded-full bg-[#D2F843] text-neutral-950 text-xs font-bold hover:opacity-90 flex items-center gap-2 whitespace-nowrap cursor-pointer">
+            <button className="px-6 py-3 rounded-full bg-[#76BB08] text-neutral-950 text-xs font-bold hover:opacity-90 flex items-center gap-2 whitespace-nowrap cursor-pointer">
               <span>Order Smart Card</span>
               <ArrowRight className="w-4 h-4" />
             </button>

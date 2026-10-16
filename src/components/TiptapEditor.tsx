@@ -64,7 +64,7 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-[#6a8700] dark:text-[#D2F843] underline font-semibold',
+          class: 'text-[#76BB08] dark:text-[#76BB08] underline font-semibold',
           target: '_blank',
           rel: 'noopener noreferrer',
         },
@@ -372,7 +372,7 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
             className="p-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer flex items-center gap-1 font-semibold text-xs"
             title="Insert Image (Upload or URL)"
           >
-            <ImageIcon className="w-4 h-4 text-[#84A900] dark:text-[#D2F843]" />
+            <ImageIcon className="w-4 h-4 text-[#76BB08] dark:text-[#76BB08]" />
             <span className="hidden sm:inline">Add Image</span>
           </button>
 
@@ -422,7 +422,7 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
                 onChange(e.target.value);
               }}
               rows={16}
-              className="w-full font-mono text-xs p-4 rounded-2xl bg-neutral-900 text-neutral-100 border border-neutral-700 outline-none focus:border-[#D2F843] leading-relaxed resize-y"
+              className="w-full font-mono text-xs p-4 rounded-2xl bg-neutral-900 text-neutral-100 border border-neutral-700 outline-none focus:border-[#76BB08] leading-relaxed resize-y"
               placeholder="<p>Write raw HTML here if needed...</p>"
             />
           </div>
@@ -452,7 +452,7 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
           <div className="bg-white dark:bg-[#151821] border border-neutral-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl max-w-md w-full space-y-4">
             <div className="flex items-center justify-between border-b border-neutral-100 dark:border-white/5 pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-1.5">
-                <LinkIcon className="w-3.5 h-3.5 text-[#84A900] dark:text-[#D2F843]" />
+                <LinkIcon className="w-3.5 h-3.5 text-[#76BB08] dark:text-[#76BB08]" />
                 {linkInputUrl ? 'Edit Hyperlink' : 'Insert Hyperlink'}
               </span>
               <button
@@ -483,7 +483,7 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
                     setIsLinkModalOpen(false);
                   }
                 }}
-                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#111318] border border-neutral-200 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#D2F843]"
+                className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#111318] border border-neutral-200 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#76BB08]"
               />
               <p className="text-[11px] text-neutral-400">
                 You can link to internal sections, external websites, or direct WhatsApp numbers.
