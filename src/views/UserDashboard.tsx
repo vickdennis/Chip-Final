@@ -889,50 +889,6 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           )}
         </div>
 
-        {/* Category Filter Pills (Exact UI/UX match to middle phone in IMG_3124.jpeg) */}
-        <div className="mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden py-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <div className="inline-flex items-center gap-2.5">
-            {[
-              { id: 'profile', label: 'ALL' },
-              { id: 'social', label: 'SOCIALS' },
-              { id: 'links', label: 'LINKS' },
-              { id: 'appearance', label: 'THEME & STYLE' },
-              { id: 'analytics', label: 'ANALYTICS' },
-              { id: 'gallery', label: 'GALLERY' },
-              { id: 'leads', label: '2-WAY LEADS', badge: leadsStats.newCount > 0 ? leadsStats.newCount : undefined },
-              { id: 'nfc', label: 'NFC CARDS' },
-              { id: 'settings', label: 'SETTINGS' },
-            ].map((pill) => {
-              const isPillActive = activeTab === pill.id;
-              return (
-                <button
-                  key={pill.id}
-                  onClick={() => setActiveTab(pill.id as any)}
-                  className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-                    isPillActive
-                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm scale-102'
-                      : 'bg-white dark:bg-transparent border border-neutral-300 dark:border-white/15 text-neutral-700 dark:text-neutral-300 hover:border-neutral-900 dark:hover:border-white hover:text-neutral-950 dark:hover:text-white shadow-2xs'
-                  }`}
-                >
-                  <span>{pill.label}</span>
-                  {pill.badge && (
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                  )}
-                </button>
-              );
-            })}
-            {profile?.is_admin && (
-              <button 
-                onClick={() => onNavigate('admin-dashboard')}
-                className="shrink-0 px-4 py-2 text-xs font-extrabold rounded-full transition-all flex items-center gap-1.5 cursor-pointer bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 hover:bg-[#D2F843]/30"
-                title="Super Admin Dashboard"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>SUPER ADMIN</span>
-              </button>
-            )}
-          </div>
-        </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
