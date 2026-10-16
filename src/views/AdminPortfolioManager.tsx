@@ -125,16 +125,34 @@ export const AdminPortfolioManager: React.FC = () => {
 
     setLoading(true);
     try {
+      // 1. Try Supabase cloud database first
+      try {
+        const { data: spProfile } = await supabase.from('portfolio_profile').select('*').eq('id', 1).maybeSingle();
+        if (spProfile) {
+          setProfile((prev) => ({ ...prev, ...spProfile }));
+          try {
+            localStorage.setItem('chipng_portfolio_profile', JSON.stringify(spProfile));
+          } catch (e) {}
+        }
+        const { data: spProjects } = await supabase.from('portfolio_projects').select('*').order('sort_order', { ascending: true });
+        if (spProjects && spProjects.length > 0) {
+          setProjects(spProjects);
+        }
+      } catch (sbErr) {}
+
+      // 2. Fetch from backend API
       const res = await fetch('/api/portfolio');
       if (res.ok) {
         const data = await res.json();
         if (data.profile) {
-          setProfile(data.profile);
+          setProfile((prev) => ({ ...prev, ...data.profile }));
           try {
             localStorage.setItem('chipng_portfolio_profile', JSON.stringify(data.profile));
           } catch (e) {}
         }
-        if (data.projects) setProjects(data.projects);
+        if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+          setProjects(data.projects);
+        }
       }
     } catch (err) {
       console.warn('Portfolio data fetch fallback to local cache:', err);
@@ -153,6 +171,14 @@ export const AdminPortfolioManager: React.FC = () => {
       localStorage.setItem('chipng_portfolio_profile', JSON.stringify(profile));
     } catch (e) {}
 
+    // 1. Sync with Supabase cloud database
+    try {
+      await supabase.from('portfolio_profile').upsert({ id: 1, ...profile, updated_at: new Date().toISOString() });
+    } catch (sbErr) {
+      console.warn('Supabase portfolio_profile sync:', sbErr);
+    }
+
+    // 2. Sync with backend API
     try {
       const res = await fetch('/api/portfolio/profile', {
         method: 'POST',
@@ -236,7 +262,32 @@ export const AdminPortfolioManager: React.FC = () => {
     setUploadingImage(true);
 
     try {
-      // 1. Read file as base64 data URL
+      // 1. Primary: Try Supabase Cloud Storage (covers or portfolio bucket)
+      try {
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const cleanName = `portfolio_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        
+        let uploadRes = await supabase.storage.from('covers').upload(cleanName, file, { upsert: true });
+        let targetBucket = 'covers';
+        
+        if (uploadRes.error) {
+          uploadRes = await supabase.storage.from('portfolio').upload(cleanName, file, { upsert: true });
+          targetBucket = 'portfolio';
+        }
+
+        if (!uploadRes.error) {
+          const { data } = supabase.storage.from(targetBucket).getPublicUrl(cleanName);
+          if (data?.publicUrl) {
+            setter(data.publicUrl);
+            toast.success('Image uploaded to Supabase Storage!');
+            return;
+          }
+        }
+      } catch (sbErr) {
+        console.warn('Supabase storage upload attempt:', sbErr);
+      }
+
+      // 2. Read file as base64 data URL
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -244,7 +295,7 @@ export const AdminPortfolioManager: React.FC = () => {
         reader.readAsDataURL(file);
       });
 
-      // 2. Primary: Post to internal /api/portfolio/upload
+      // 3. Fallback: Post to internal /api/portfolio/upload
       try {
         const res = await fetch('/api/portfolio/upload', {
           method: 'POST',
@@ -264,24 +315,7 @@ export const AdminPortfolioManager: React.FC = () => {
           }
         }
       } catch (serverErr) {
-        console.warn('Backend image upload endpoint error, trying fallback:', serverErr);
-      }
-
-      // 3. Fallback: Try Supabase storage if available
-      try {
-        const fileExt = file.name.split('.').pop() || 'jpg';
-        const fileName = `portfolio_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('covers').upload(fileName, file, { upsert: true });
-        if (!uploadError) {
-          const { data } = supabase.storage.from('covers').getPublicUrl(fileName);
-          if (data?.publicUrl) {
-            setter(data.publicUrl);
-            toast.success('Image uploaded to cloud storage!');
-            return;
-          }
-        }
-      } catch (sbErr) {
-        console.warn('Supabase storage fallback error:', sbErr);
+        console.warn('Backend image upload endpoint error, using data URL:', serverErr);
       }
 
       // 4. Resilience: Use dataUrl directly so user is never blocked

@@ -675,8 +675,20 @@ let serverlessPortfolioProfile: any = { ...DEFAULT_PORTFOLIO_PROFILE };
 let serverlessPortfolioProjects: any[] = [...DEFAULT_PORTFOLIO_PROJECTS];
 
 // GET /api/portfolio
-app.get('/api/portfolio', (req: Request, res: Response) => {
+app.get('/api/portfolio', async (req: Request, res: Response) => {
   try {
+    try {
+      const supabase = getSupabase();
+      const { data: spProfile } = await supabase.from('portfolio_profile').select('*').eq('id', 1).maybeSingle();
+      if (spProfile) {
+        serverlessPortfolioProfile = { ...DEFAULT_PORTFOLIO_PROFILE, ...spProfile };
+      }
+      const { data: spProjects } = await supabase.from('portfolio_projects').select('*').order('sort_order', { ascending: true });
+      if (spProjects && spProjects.length > 0) {
+        serverlessPortfolioProjects = spProjects;
+      }
+    } catch (sbErr) {}
+
     res.json({
       success: true,
       profile: serverlessPortfolioProfile,
@@ -686,8 +698,8 @@ app.get('/api/portfolio', (req: Request, res: Response) => {
   } catch (err: any) {
     res.json({
       success: true,
-      profile: DEFAULT_PORTFOLIO_PROFILE,
-      projects: DEFAULT_PORTFOLIO_PROJECTS,
+      profile: serverlessPortfolioProfile,
+      projects: serverlessPortfolioProjects,
       articles: []
     });
   }
@@ -750,13 +762,18 @@ app.post(['/api/portfolio/upload', '/api/upload'], async (req: Request, res: Res
 });
 
 // POST /api/portfolio/profile
-app.post('/api/portfolio/profile', (req: Request, res: Response) => {
+app.post('/api/portfolio/profile', async (req: Request, res: Response) => {
   try {
     serverlessPortfolioProfile = {
       ...serverlessPortfolioProfile,
       ...req.body,
       updated_at: new Date().toISOString()
     };
+
+    try {
+      const supabase = getSupabase();
+      await supabase.from('portfolio_profile').upsert({ id: 1, ...serverlessPortfolioProfile, updated_at: new Date().toISOString() });
+    } catch (sbErr) {}
 
     res.json({
       success: true,

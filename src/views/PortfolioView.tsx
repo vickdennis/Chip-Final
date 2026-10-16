@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from '../components/Toast';
+import { supabase } from '../supabaseClient';
 
 interface PortfolioProject {
   id: number;
@@ -253,7 +254,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
   const [featuredSlideIndex, setFeaturedSlideIndex] = useState(0);
 
   useEffect(() => {
-    // Check local storage cache for instant hydration
+    // 1. Check local storage cache for instant hydration
     try {
       const cached = localStorage.getItem('chipng_portfolio_profile');
       if (cached) {
@@ -264,7 +265,36 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
       }
     } catch (e) {}
 
-    // Fetch live portfolio data from server
+    // 2. Try Supabase cloud database
+    try {
+      supabase
+        .from('portfolio_profile')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle()
+        .then(({ data: spProfile }) => {
+          if (spProfile) {
+            setProfile((prev) => ({ ...prev, ...spProfile }));
+            try {
+              localStorage.setItem('chipng_portfolio_profile', JSON.stringify(spProfile));
+            } catch (e) {}
+          }
+        })
+        .catch(() => {});
+
+      supabase
+        .from('portfolio_projects')
+        .select('*')
+        .order('sort_order', { ascending: true })
+        .then(({ data: spProjects }) => {
+          if (spProjects && spProjects.length > 0) {
+            setProjects(spProjects);
+          }
+        })
+        .catch(() => {});
+    } catch (e) {}
+
+    // 3. Fetch live portfolio data from server
     fetch('/api/portfolio')
       .then((res) => {
         if (!res.ok) throw new Error('Network error');
