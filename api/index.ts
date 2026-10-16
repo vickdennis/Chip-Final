@@ -674,45 +674,20 @@ const DEFAULT_PORTFOLIO_PROJECTS = [
 let serverlessPortfolioProfile: any = { ...DEFAULT_PORTFOLIO_PROFILE };
 let serverlessPortfolioProjects: any[] = [...DEFAULT_PORTFOLIO_PROJECTS];
 
-// Try loading SQLite if available
-let serverlessDb: any = null;
-try {
-  const Database = require('better-sqlite3');
-  const sqliteFile = path.resolve(process.cwd(), 'leads.sqlite');
-  if (fs.existsSync(sqliteFile)) {
-    serverlessDb = new Database(sqliteFile);
-  }
-} catch (e) {}
-
 // GET /api/portfolio
 app.get('/api/portfolio', (req: Request, res: Response) => {
   try {
-    let profile = serverlessPortfolioProfile;
-    let projects = serverlessPortfolioProjects;
-    let articles: any[] = [];
-
-    if (serverlessDb) {
-      try {
-        const dbProfile = serverlessDb.prepare('SELECT * FROM portfolio_profile WHERE id = 1').get();
-        if (dbProfile) profile = { ...DEFAULT_PORTFOLIO_PROFILE, ...dbProfile };
-        const dbProjects = serverlessDb.prepare('SELECT * FROM portfolio_projects ORDER BY sort_order ASC, id ASC').all();
-        if (dbProjects && dbProjects.length > 0) projects = dbProjects;
-        const dbArticles = serverlessDb.prepare('SELECT * FROM portfolio_articles ORDER BY sort_order ASC, id ASC').all();
-        if (dbArticles) articles = dbArticles;
-      } catch (dbErr) {}
-    }
-
-    res.json({
-      success: true,
-      profile,
-      projects,
-      articles
-    });
-  } catch (err: any) {
     res.json({
       success: true,
       profile: serverlessPortfolioProfile,
       projects: serverlessPortfolioProjects,
+      articles: []
+    });
+  } catch (err: any) {
+    res.json({
+      success: true,
+      profile: DEFAULT_PORTFOLIO_PROFILE,
+      projects: DEFAULT_PORTFOLIO_PROJECTS,
       articles: []
     });
   }
@@ -782,49 +757,6 @@ app.post('/api/portfolio/profile', (req: Request, res: Response) => {
       ...req.body,
       updated_at: new Date().toISOString()
     };
-
-    if (serverlessDb) {
-      try {
-        const {
-          name, handle, title, subtitle, bio, years_experience, location,
-          avatar_url, hero_image_url, about_image_url,
-          skills_frontend, skills_styles, skills_backend, skills_devops,
-          social_github, social_linkedin, social_twitter, social_whatsapp, social_instagram, social_telegram, social_email
-        } = serverlessPortfolioProfile;
-
-        serverlessDb.prepare(`
-          UPDATE portfolio_profile SET
-            name = COALESCE(?, name),
-            handle = COALESCE(?, handle),
-            title = COALESCE(?, title),
-            subtitle = COALESCE(?, subtitle),
-            bio = COALESCE(?, bio),
-            years_experience = COALESCE(?, years_experience),
-            location = COALESCE(?, location),
-            avatar_url = COALESCE(?, avatar_url),
-            hero_image_url = COALESCE(?, hero_image_url),
-            about_image_url = COALESCE(?, about_image_url),
-            skills_frontend = COALESCE(?, skills_frontend),
-            skills_styles = COALESCE(?, skills_styles),
-            skills_backend = COALESCE(?, skills_backend),
-            skills_devops = COALESCE(?, skills_devops),
-            social_github = COALESCE(?, social_github),
-            social_linkedin = COALESCE(?, social_linkedin),
-            social_twitter = COALESCE(?, social_twitter),
-            social_whatsapp = COALESCE(?, social_whatsapp),
-            social_instagram = COALESCE(?, social_instagram),
-            social_telegram = COALESCE(?, social_telegram),
-            social_email = COALESCE(?, social_email),
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = 1
-        `).run(
-          name, handle, title, subtitle, bio, years_experience, location,
-          avatar_url, hero_image_url, about_image_url,
-          skills_frontend, skills_styles, skills_backend, skills_devops,
-          social_github, social_linkedin, social_twitter, social_whatsapp, social_instagram, social_telegram, social_email
-        );
-      } catch (dbErr) {}
-    }
 
     res.json({
       success: true,

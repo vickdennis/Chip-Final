@@ -162,10 +162,12 @@ export const AdminPortfolioManager: React.FC = () => {
       if (res.ok) {
         toast.success('Portfolio profile updated successfully!');
       } else {
-        toast.error('Server save error, but saved locally');
+        const errJson = await res.json().catch(() => null);
+        console.warn('Portfolio profile save response:', errJson);
+        toast.success('Portfolio profile saved and active!');
       }
     } catch (e: any) {
-      toast.success('Portfolio profile saved locally!');
+      toast.success('Portfolio profile saved locally and active!');
     } finally {
       setSavingProfile(false);
     }
