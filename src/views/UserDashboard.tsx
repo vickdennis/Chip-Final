@@ -7,7 +7,7 @@ import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check } from 'lucide-react';
+import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check, Heart, ShoppingBag, Home } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -326,14 +326,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         onClick={() => {
           setShowNotifications(!showNotifications);
         }}
-        className="relative p-2 rounded-full bg-neutral-200/60 dark:bg-white/10 hover:bg-neutral-300/60 dark:hover:bg-white/15 transition-colors cursor-pointer"
+        className="relative w-10 h-10 rounded-full border border-neutral-200/80 dark:border-white/10 flex items-center justify-center bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors shadow-xs cursor-pointer"
         title="Notifications"
       >
         <Bell className="w-4 h-4 text-neutral-900 dark:text-white" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-[#0E1017] animate-pulse">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+          <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#0E1017] animate-pulse" />
         )}
       </button>
 
@@ -825,7 +823,16 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
 
   return (
-    <AdminLayout onNavigate={onNavigate} activePath="dashboard" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} hideMobileNav={true} topRightContent={NotificationBell()} isAdmin={profile?.is_admin}>
+    <AdminLayout
+      onNavigate={onNavigate}
+      activePath="dashboard"
+      isDarkMode={isDarkMode}
+      toggleDarkMode={toggleDarkMode}
+      hideMobileNav={true}
+      topRightContent={NotificationBell()}
+      isAdmin={profile?.is_admin}
+      userHeaderProfile={profile}
+    >
       <div className="pb-32">
       <div className={`${activeTab === 'leads' || activeTab === 'analytics' ? 'max-w-5xl' : 'max-w-2xl'} mx-auto px-4 sm:px-6 pt-2 pb-24 transition-all duration-200`}>
         
@@ -882,56 +889,46 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           )}
         </div>
 
-        {/* Desktop Top Tabs Navigation */}
-        <div className="mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden hidden md:block" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <div className="inline-flex bg-neutral-100 dark:bg-white/5 p-1.5 rounded-[16px] gap-1 border border-neutral-200/80 dark:border-white/10">
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'profile' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <User className="w-4 h-4" /> My Profile
-            </button>
-            <button 
-              onClick={() => setActiveTab('leads')}
-              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'leads' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <UserCheck className="w-4 h-4" /> 
-              <span>2-Way Contacts</span>
-              {leadsStats.newCount > 0 ? (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-amber-500 text-white font-bold leading-none animate-pulse">
-                  {leadsStats.newCount}
-                </span>
-              ) : leadsStats.total > 0 ? (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-neutral-200 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 font-bold leading-none">
-                  {leadsStats.total}
-                </span>
-              ) : null}
-            </button>
-            <button 
-              onClick={() => setActiveTab('social')}
-              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'social' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <Share className="w-4 h-4" /> Manage Socials
-            </button>
-            <button 
-              onClick={() => setActiveTab('nfc')}
-              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'nfc' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <SmartphoneNfc className="w-4 h-4" /> NFC Cards
-            </button>
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className={`shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'settings' ? 'bg-[#D2F843] text-neutral-950 shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <Settings className="w-4 h-4" /> Account Settings
-            </button>
+        {/* Category Filter Pills (Exact UI/UX match to middle phone in IMG_3124.jpeg) */}
+        <div className="mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden py-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div className="inline-flex items-center gap-2">
+            {[
+              { id: 'profile', label: 'ALL / OVERVIEW' },
+              { id: 'social', label: 'SOCIALS' },
+              { id: 'links', label: 'LINKS' },
+              { id: 'appearance', label: 'THEME & STYLE' },
+              { id: 'analytics', label: 'ANALYTICS' },
+              { id: 'gallery', label: 'GALLERY' },
+              { id: 'leads', label: '2-WAY LEADS', badge: leadsStats.newCount > 0 ? leadsStats.newCount : undefined },
+              { id: 'nfc', label: 'NFC CARDS' },
+              { id: 'settings', label: 'SETTINGS' },
+            ].map((pill) => {
+              const isPillActive = activeTab === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  onClick={() => setActiveTab(pill.id as any)}
+                  className={`px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    isPillActive
+                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm scale-102'
+                      : 'bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>{pill.label}</span>
+                  {pill.badge && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  )}
+                </button>
+              );
+            })}
             {profile?.is_admin && (
               <button 
                 onClick={() => onNavigate('admin-dashboard')}
-                className="shrink-0 px-4 py-2 text-[13px] font-bold rounded-[12px] transition-all flex items-center gap-2 cursor-pointer bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 hover:bg-[#D2F843]/30"
+                className="shrink-0 px-4 py-2 text-xs font-extrabold rounded-full transition-all flex items-center gap-1.5 cursor-pointer bg-[#D2F843]/20 text-[#6c8600] dark:text-[#D2F843] border border-[#D2F843]/30 hover:bg-[#D2F843]/30"
                 title="Super Admin Dashboard"
               >
-                <Shield className="w-4 h-4" /> Super Admin
+                <Shield className="w-3.5 h-3.5" />
+                <span>SUPER ADMIN</span>
               </button>
             )}
           </div>
@@ -2387,8 +2384,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         </div>
       )}
       
-        {/* Fixed Bottom Navigation Bar - Exactly matching IMG_2957.jpeg */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-xl border-t border-neutral-200/80 dark:border-white/10 px-2 py-1.5 shadow-[0_-4px_25px_rgba(0,0,0,0.06)]">
+        {/* Fixed Bottom Navigation Bar - Exactly matching IMG_2957.jpeg on Mobile */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-xl border-t border-neutral-200/80 dark:border-white/10 px-2 py-1.5 shadow-[0_-4px_25px_rgba(0,0,0,0.06)]">
           <div className="max-w-md sm:max-w-xl mx-auto flex items-center justify-between">
             {[
               { 
