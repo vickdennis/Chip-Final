@@ -82,21 +82,48 @@ export default function AdminLayout({
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 border-b border-neutral-200/80 dark:border-white/10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
           
-          {/* Zone 1: Brand Logo + Personal Console Indicator */}
+          {/* Zone 1: User Avatar + Welcome back + Name (Exact match to IMG_3124.jpeg) with Brand on Desktop */}
           <div className="flex items-center gap-3">
+            {/* Desktop Brand Logo */}
             <button
               onClick={() => onNavigate('landing')}
-              className="flex items-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-xl transition-transform cursor-pointer"
+              className="hidden lg:flex items-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-xl transition-transform cursor-pointer"
               aria-label="CHIPNG Home"
             >
               <BrandLogo size="md" />
             </button>
 
-            <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-neutral-200 dark:border-white/10">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-950/5 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 text-xs font-bold tracking-tight">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D2F843] animate-pulse"></span>
-                Dashboard
-              </span>
+            {/* Desktop Divider */}
+            <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:border-white/10" />
+
+            {/* Exact IMG_3124.jpeg Mobile & Desktop User Greeting */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onNavigate('user-dashboard')}
+                className="w-10 h-10 rounded-full border border-neutral-300 dark:border-white/15 overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0 shadow-xs focus:outline-none cursor-pointer group"
+                title="Your Profile"
+              >
+                {userHeaderProfile?.avatar_url || userHeaderProfile?.cover_image_url ? (
+                  <img
+                    src={userHeaderProfile.avatar_url || userHeaderProfile.cover_image_url}
+                    alt={userHeaderProfile.full_name || 'User'}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-bold text-xs uppercase bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                    {(userHeaderProfile?.full_name || userHeaderProfile?.username || 'U').charAt(0)}
+                  </div>
+                )}
+              </button>
+              <div className="flex flex-col text-left">
+                <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 leading-tight">
+                  Welcome back
+                </span>
+                <span className="text-xs sm:text-sm font-extrabold tracking-wide uppercase text-neutral-900 dark:text-white leading-tight truncate max-w-[130px] sm:max-w-[180px]">
+                  {userHeaderProfile?.full_name || userHeaderProfile?.username || 'CHIP USER'}
+                </span>
+              </div>
             </div>
           </div>
 

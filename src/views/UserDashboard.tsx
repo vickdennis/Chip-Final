@@ -891,9 +891,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
         {/* Category Filter Pills (Exact UI/UX match to middle phone in IMG_3124.jpeg) */}
         <div className="mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide [&::-webkit-scrollbar]:hidden py-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <div className="inline-flex items-center gap-2">
+          <div className="inline-flex items-center gap-2.5">
             {[
-              { id: 'profile', label: 'ALL / OVERVIEW' },
+              { id: 'profile', label: 'ALL' },
               { id: 'social', label: 'SOCIALS' },
               { id: 'links', label: 'LINKS' },
               { id: 'appearance', label: 'THEME & STYLE' },
@@ -908,10 +908,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <button
                   key={pill.id}
                   onClick={() => setActiveTab(pill.id as any)}
-                  className={`px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
                     isPillActive
                       ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm scale-102'
-                      : 'bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white'
+                      : 'bg-white dark:bg-transparent border border-neutral-300 dark:border-white/15 text-neutral-700 dark:text-neutral-300 hover:border-neutral-900 dark:hover:border-white hover:text-neutral-950 dark:hover:text-white shadow-2xs'
                   }`}
                 >
                   <span>{pill.label}</span>
@@ -2384,77 +2384,65 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         </div>
       )}
       
-        {/* Fixed Bottom Navigation Bar - Exactly matching IMG_2957.jpeg on Mobile */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0A0B0E]/95 backdrop-blur-xl border-t border-neutral-200/80 dark:border-white/10 px-2 py-1.5 shadow-[0_-4px_25px_rgba(0,0,0,0.06)]">
-          <div className="max-w-md sm:max-w-xl mx-auto flex items-center justify-between">
-            {[
-              { 
-                id: 'profile', 
-                label: 'Profile', 
-                icon: User 
-              },
-              { 
-                id: 'leads', 
-                label: '2-Way Leads', 
-                icon: UserCheck,
-                badge: leadsStats.newCount > 0 ? leadsStats.newCount : undefined
-              },
-              { 
-                id: 'social', 
-                label: 'Socials', 
-                icon: () => (
-                  <svg className="w-5 h-5 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="2.5" />
-                    <circle cx="12" cy="4.5" r="2" />
-                    <circle cx="12" cy="19.5" r="2" />
-                    <circle cx="4.5" cy="12" r="2" />
-                    <circle cx="19.5" cy="12" r="2" />
-                    <path d="M12 6.5v3M12 14.5v3M6.5 12h3M14.5 12h3" />
-                  </svg>
-                )
-              },
-              { 
-                id: 'nfc', 
-                label: 'NFC Cards', 
-                icon: SmartphoneNfc 
-              },
-              { 
-                id: 'settings', 
-                label: 'Settings', 
-                icon: Settings 
-              },
-            ].map((tab: any) => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className="flex flex-col items-center justify-center flex-1 py-0.5 px-0.5 cursor-pointer outline-none transition-all group relative"
-                >
-                  {/* Top Active Lime Line Indicator */}
-                  <div className={`w-8 sm:w-10 h-1 rounded-full mb-1 transition-all ${
-                    isActive ? 'bg-[#D2F843]' : 'bg-transparent'
-                  }`} />
-                  <div className={`relative transition-colors ${
-                    isActive ? 'text-neutral-950 dark:text-white' : 'text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-800 dark:group-hover:text-neutral-200'
-                  }`}>
-                    <Icon className="w-5 h-5 mx-auto" />
-                    {tab.badge && (
-                      <span className="absolute -top-1.5 -right-2 px-1 min-w-3.5 h-3.5 rounded-full bg-amber-500 text-white font-mono text-[9px] font-extrabold flex items-center justify-center leading-none shadow-xs">
-                        {tab.badge}
-                      </span>
-                    )}
-                  </div>
-                  <span className={`text-[10px] sm:text-[11px] mt-1 whitespace-nowrap transition-colors ${
-                    isActive ? 'font-bold text-neutral-950 dark:text-white' : 'font-medium text-neutral-500 dark:text-neutral-400'
-                  }`}>
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        {/* Floating Capsule Bottom Navigation Bar - Exactly matching IMG_3124.jpeg */}
+        <nav 
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#16171E]/95 dark:bg-[#121318]/95 backdrop-blur-xl border border-white/15 rounded-full p-1.5 shadow-[0_12px_45px_rgba(0,0,0,0.55)] flex items-center justify-between gap-1.5 sm:gap-2 max-w-sm sm:max-w-md w-auto"
+          aria-label="Dashboard bottom navigation"
+        >
+          {[
+            { 
+              id: 'profile', 
+              label: 'Overview', 
+              icon: Home 
+            },
+            { 
+              id: 'social', 
+              label: 'Socials & Links', 
+              icon: Heart 
+            },
+            { 
+              id: 'leads', 
+              label: '2-Way Leads', 
+              icon: UserCheck,
+              badge: leadsStats.newCount > 0 ? leadsStats.newCount : undefined
+            },
+            { 
+              id: 'nfc', 
+              label: 'NFC Cards', 
+              icon: ShoppingBag 
+            },
+            { 
+              id: 'settings', 
+              label: 'Settings', 
+              icon: User 
+            },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            return isActive ? (
+              <div
+                key={tab.id}
+                className="bg-white text-neutral-950 px-4 sm:px-5 h-10 sm:h-11 rounded-full flex flex-col items-center justify-center shadow-md transition-all select-none"
+                title={tab.label}
+              >
+                <Icon className="w-5 h-5 text-neutral-950" />
+                <span className="w-1 h-1 rounded-full bg-neutral-950 mt-0.5"></span>
+              </div>
+            ) : (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className="px-3.5 sm:px-4 h-10 sm:h-11 rounded-full flex items-center justify-center text-neutral-400 hover:text-white transition-all cursor-pointer relative group"
+                title={tab.label}
+                aria-label={tab.label}
+              >
+                <Icon className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
+                {tab.badge && (
+                  <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-[#16171E] animate-pulse" />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
           </div>
