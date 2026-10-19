@@ -38,7 +38,7 @@ export default function DashboardAnalytics({
     // Subscribe to immediate real-time cross-tab & in-app telemetry events
     const unsubscribe = subscribeToTelemetry(profile?.id, () => {
       fetchRealtimeAnalytics();
-    });
+    }, profile?.username);
 
     // Also poll every 4 seconds for remote changes
     const interval = setInterval(() => {

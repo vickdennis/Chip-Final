@@ -15,6 +15,7 @@ import DashboardAnalytics from '../components/DashboardAnalytics';
 import { ProfileLeadsManager } from '../components/ProfileLeadsManager';
 import { toast } from '../components/Toast';
 import { SocialMediaIconBadge, SOCIAL_PLATFORMS_CONFIG } from '../components/social/SocialMediaIconBadge';
+import { subscribeToTelemetry, getProfileTelemetry } from '../utils/telemetryClient';
 
 export const SOCIAL_PLATFORMS = SOCIAL_PLATFORMS_CONFIG;
 
@@ -559,6 +560,32 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       setLoading(false);
     }
   };
+
+  // Real-time live telemetry subscription for User Dashboard
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const refreshLiveTelemetry = async () => {
+      try {
+        const telemetry = await getProfileTelemetry(profile.id, profile.username, profileViews);
+        if (telemetry.totalViews !== undefined && telemetry.totalViews !== profileViews) {
+          setProfileViews(telemetry.totalViews);
+        }
+      } catch (err) {
+        console.warn('Live telemetry sync warning:', err);
+      }
+    };
+
+    const unsubscribe = subscribeToTelemetry(profile.id, refreshLiveTelemetry, profile.username);
+    
+    // Fallback heartbeat poll every 5s to sync background taps
+    const pollTimer = setInterval(refreshLiveTelemetry, 5000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(pollTimer);
+    };
+  }, [profile?.id, profile?.username, profileViews]);
 
   const handleSave = async () => {
     setSaving(true);

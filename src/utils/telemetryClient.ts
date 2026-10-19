@@ -86,7 +86,9 @@ function saveStoredTelemetry(id: string, data: TelemetryData) {
       if ('BroadcastChannel' in window) {
         const channel = new BroadcastChannel(TELEMETRY_CHANNEL_NAME);
         channel.postMessage({ type: 'TELEMETRY_UPDATED', profileId: id, data });
-        channel.close();
+        setTimeout(() => {
+          try { channel.close(); } catch (e) {}
+        }, 200);
       }
     } catch (e) {}
 
@@ -330,11 +332,23 @@ export async function getProfileTelemetry(
 /**
  * Subscribe to real-time telemetry updates across tabs or within current tab
  */
-export function subscribeToTelemetry(profileId: string, onUpdate: () => void): () => void {
+export function subscribeToTelemetry(
+  profileId: string, 
+  onUpdate: () => void, 
+  username?: string
+): () => void {
   if (typeof window === 'undefined') return () => {};
 
+  const matches = (incomingId?: string) => {
+    if (!profileId) return true;
+    if (!incomingId) return false;
+    if (incomingId === profileId) return true;
+    if (username && incomingId.toLowerCase() === username.toLowerCase()) return true;
+    return false;
+  };
+
   const handleCustomEvent = (e: any) => {
-    if (!profileId || e.detail?.profileId === profileId) {
+    if (matches(e.detail?.profileId)) {
       onUpdate();
     }
   };
@@ -346,7 +360,7 @@ export function subscribeToTelemetry(profileId: string, onUpdate: () => void): (
     if ('BroadcastChannel' in window) {
       channel = new BroadcastChannel(TELEMETRY_CHANNEL_NAME);
       channel.onmessage = (event) => {
-        if (!profileId || event.data?.profileId === profileId) {
+        if (matches(event.data?.profileId)) {
           onUpdate();
         }
       };
