@@ -14,7 +14,8 @@ import AdminSalesManager from './AdminSalesManager';
 import AdminPixelManager from './AdminPixelManager';
 import AdminAppDownloadsManager from './AdminAppDownloadsManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
-import { MessageCircle, Send, Bell, Link as LinkIcon, Smartphone } from 'lucide-react';
+import AdminUserCommsManager from './AdminUserCommsManager';
+import { MessageCircle, Send, Bell, Link as LinkIcon, Smartphone, Mail } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -25,11 +26,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads' | 'portfolio'>(() => {
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'comms' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads' | 'portfolio'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam && ['analytics', 'users', 'products', 'blog', 'leads', 'buybox', 'seo', 'broadcast', 'notifications', 'sales', 'pixel', 'downloads', 'portfolio'].includes(tabParam)) {
+      if (tabParam && ['analytics', 'users', 'comms', 'products', 'blog', 'leads', 'buybox', 'seo', 'broadcast', 'notifications', 'sales', 'pixel', 'downloads', 'portfolio'].includes(tabParam)) {
         return tabParam as any;
       }
     }
@@ -638,6 +639,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               { id: 'analytics', label: 'Analytics', icon: BarChart2 },
               { id: 'downloads', label: 'App Downloads', icon: Smartphone },
               { id: 'users', label: 'Users', icon: Users },
+              { id: 'comms', label: 'Bulk Messaging', icon: Mail },
               { id: 'products', label: 'Shop', icon: Package },
               { id: 'blog', label: 'Blog', icon: FileText },
               { id: 'leads', label: 'Inquiries & Leads', icon: MessageCircle },
@@ -912,6 +914,13 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   />
                 </div>
                 <button 
+                  onClick={() => setActiveTab('comms')}
+                  className="px-4 py-2 border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-full font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-xs cursor-pointer text-neutral-800 dark:text-neutral-200 whitespace-nowrap"
+                  title="Open User Communications & Bulk Messaging"
+                >
+                  <Mail className="w-4 h-4 text-[#76BB08]" /> Bulk Outreach
+                </button>
+                <button 
                   onClick={() => setCreatingUser(true)}
                   className="px-4 py-2 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 rounded-full font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm cursor-pointer whitespace-nowrap"
                 >
@@ -1141,6 +1150,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'comms' && (
+          <AdminUserCommsManager users={users} onRefresh={fetchData} />
         )}
 
         {activeTab === 'products' && (
