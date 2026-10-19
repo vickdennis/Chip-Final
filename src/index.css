@@ -39,6 +39,10 @@
     0%, 100% { transform: scale(1) translate(-50%, -50%); opacity: 0.25; }
     50% { transform: scale(1.2) translate(-50%, -50%); opacity: 0.55; }
   }
+  @keyframes slideProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

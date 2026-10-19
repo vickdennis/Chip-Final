@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { MakroProductCheckoutModal } from './MakroProductCheckoutModal';
+import { ProductImageSlider } from './ProductImageSlider';
 
 export interface ShopProduct {
   id: string;
@@ -33,35 +34,42 @@ const FALLBACK_PRODUCTS: ShopProduct[] = [
     name: 'NFC Smart Black Card (PVC)',
     description: 'Ultra-durable matte black PVC finish with embedded high-frequency NFC chip. Scratch-resistant, waterproof, and activates instantly on all modern iPhones and Android devices.',
     price: 35000,
-    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.28640138450754493.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.7964022577458013.jpeg"]',
+    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.28640138450754493.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.7964022577458013.jpeg","https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=800&auto=format&fit=crop&q=80"]',
   },
   {
     id: '498a254d-e6f3-409b-b18f-8771861911e0',
     name: 'NFC Smart Metal Card',
     description: 'Precision-weighted aerospace grade stainless steel with matte obsidian coating. Dual-loop ceramic antenna decoupled with micro-ferrite absorption for 360° tap resonance.',
     price: 50000,
-    image_url: 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.9650784343957072.jpeg',
-  },
-  {
-    id: '302ad048-48a6-4906-9fef-cb820da8fc81',
-    name: 'Metal Debit Card + Custom Design',
-    description: 'Bespoke precision laser engraving of your logo, signature, or custom emblem on brushed gunmetal or gold-tinted titanium. Includes VIP link-in-bio badge.',
-    price: 80000,
-    image_url: 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.39752302505154224.jpeg',
-  },
-  {
-    id: '7e57c7fa-becf-4a0a-a37f-7daf549dde5c',
-    name: 'Metal Debit Card + NFC',
-    description: 'The pinnacle executive statement. Pure dual-layer heavy metal casing with embedded contact chip & contactless NFC coil. Engineered for high-net-worth dealmakers.',
-    price: 100000,
-    image_url: 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6698054703282286.jpeg',
+    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.9650784343957072.jpeg","https://images.unsplash.com/photo-1621252179027-94459d278660?w=800&auto=format&fit=crop&q=80","https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80"]',
   },
   {
     id: '8d956503-24c6-4bc3-9337-81b1e543c8b3',
     name: 'NFC Smart White Card (PVC)',
     description: 'Minimalist ceramic white satin finish. Crisp, modern, and universally compatible. Seamlessly links to your dynamic bio link with unlimited lifetime taps.',
     price: 30000,
-    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6186616949802414.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6520971912746258.jpeg"]',
+    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6186616949802414.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6520971912746258.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.8693980018651898.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.9480990787847587.jpeg"]',
+  },
+  {
+    id: 'b5e19741-2b08-4122-8356-91b427b0c901',
+    name: 'NFC Smart Tags',
+    description: 'Compact 30mm 3D dome resin epoxy NFC tags with high-tack 3M adhesive. Sticks firmly to any phone case, laptop, reception counter, or table. Instant contactless profile launch.',
+    price: 8000,
+    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.45135496859203095.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6007388288544769.jpeg","https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=800&auto=format&fit=crop&q=80"]',
+  },
+  {
+    id: '302ad048-48a6-4906-9fef-cb820da8fc81',
+    name: 'Metal Debit Card + Custom Design',
+    description: 'Bespoke precision laser engraving of your logo, signature, or custom emblem on brushed gunmetal or gold-tinted titanium. Includes VIP link-in-bio badge.',
+    price: 80000,
+    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.39752302505154224.jpeg","https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&auto=format&fit=crop&q=80","https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80"]',
+  },
+  {
+    id: '7e57c7fa-becf-4a0a-a37f-7daf549dde5c',
+    name: 'Metal Debit Card + NFC',
+    description: 'The pinnacle executive statement. Pure dual-layer heavy metal casing with embedded contact chip & contactless NFC coil. Engineered for high-net-worth dealmakers.',
+    price: 100000,
+    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6698054703282286.jpeg","https://images.unsplash.com/photo-1621252179027-94459d278660?w=800&auto=format&fit=crop&q=80","https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80"]',
   },
 ];
 
@@ -72,8 +80,7 @@ interface MakroShopProps {
 export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
   const [products, setProducts] = useState<ShopProduct[]>(FALLBACK_PRODUCTS);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'metal' | 'pvc'>('all');
-  const [selectedMediaIndex, setSelectedMediaIndex] = useState<{ [productId: string]: number }>({});
+  const [activeFilter, setActiveFilter] = useState<'all' | 'metal' | 'pvc' | 'tags'>('all');
 
   // Modern Homepage Product Checkout Modal State
   const [selectedProductForOrder, setSelectedProductForOrder] = useState<ShopProduct | null>(null);
@@ -110,27 +117,64 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
   };
 
   // Helper to extract media images/videos from image_url which can be a JSON array or single string
-  const getProductMedia = (imageUrl: string | null): string[] => {
-    if (!imageUrl) {
-      return ['https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=800&auto=format&fit=crop&q=80'];
-    }
-    try {
-      const parsed = JSON.parse(imageUrl);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+  const getProductMedia = (imageUrl: string | null, productName: string = ''): string[] => {
+    let list: string[] = [];
+    if (imageUrl) {
+      try {
+        const parsed = JSON.parse(imageUrl);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          list = parsed.filter(Boolean);
+        } else if (typeof parsed === 'string' && parsed) {
+          list = [parsed];
+        }
+      } catch {
+        list = [imageUrl];
       }
-    } catch {
-      // Not JSON, return as single string
     }
-    return [imageUrl];
+
+    if (list.length === 0) {
+      list = ['https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=800&auto=format&fit=crop&q=80'];
+    }
+
+    // Ensure every listed card and tag has 2+ images for the smooth auto-slide effect
+    if (list.length === 1) {
+      const lower = productName.toLowerCase();
+      if (lower.includes('tag') || lower.includes('disc') || lower.includes('fob')) {
+        list.push(
+          'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6007388288544769.jpeg',
+          'https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=800&auto=format&fit=crop&q=80'
+        );
+      } else if (lower.includes('metal')) {
+        list.push(
+          'https://images.unsplash.com/photo-1621252179027-94459d278660?w=800&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80'
+        );
+      } else if (lower.includes('white')) {
+        list.push(
+          'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6520971912746258.jpeg',
+          'https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=800&auto=format&fit=crop&q=80'
+        );
+      } else {
+        list.push(
+          'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.7964022577458013.jpeg',
+          'https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=800&auto=format&fit=crop&q=80'
+        );
+      }
+    }
+
+    return list;
   };
 
   const filteredProducts = products.filter((p) => {
+    const name = p.name.toLowerCase();
     if (activeFilter === 'metal') {
-      return p.name.toLowerCase().includes('metal');
+      return name.includes('metal');
     }
     if (activeFilter === 'pvc') {
-      return p.name.toLowerCase().includes('pvc') || !p.name.toLowerCase().includes('metal');
+      return name.includes('pvc') && !name.includes('tag');
+    }
+    if (activeFilter === 'tags') {
+      return name.includes('tag') || name.includes('disc') || name.includes('fob');
     }
     return true;
   });
@@ -150,7 +194,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-950 dark:text-white tracking-tight leading-tight">
-              Premium NFC Smart Cards.
+              Premium NFC Smart Cards & Tags.
               <br />
               <span className="text-neutral-500 dark:text-neutral-400">
                 Crafted for zero-friction handshakes.
@@ -158,13 +202,13 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
             </h2>
 
             <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300">
-              One tap transfers your dynamic Link-in-Bio profile and verified vCard directly to their phone book. All cards are laser-engraved in our Lagos workshop and dispatched nationwide.
+              One tap transfers your dynamic Link-in-Bio profile and verified vCard directly to their phone book. All cards and tags are programmed in our Lagos workshop and dispatched nationwide.
             </p>
           </div>
 
           {/* Filter Pills & Live Sync Indicator */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="inline-flex p-1 bg-neutral-200/70 dark:bg-neutral-800/80 rounded-full backdrop-blur-md self-start sm:self-auto">
+            <div className="inline-flex p-1 bg-neutral-200/70 dark:bg-neutral-800/80 rounded-full backdrop-blur-md self-start sm:self-auto flex-wrap">
               <button
                 onClick={() => setActiveFilter('all')}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
@@ -173,7 +217,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                 }`}
               >
-                All Cards
+                All Cards & Tags
               </button>
               <button
                 onClick={() => setActiveFilter('metal')}
@@ -195,6 +239,16 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
               >
                 Smart PVC
               </button>
+              <button
+                onClick={() => setActiveFilter('tags')}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  activeFilter === 'tags'
+                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
+                }`}
+              >
+                Smart Tags
+              </button>
             </div>
           </div>
         </div>
@@ -202,10 +256,8 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
         {/* Product Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProducts.map((product) => {
-            const mediaList = getProductMedia(product.image_url);
-            const activeIndex = selectedMediaIndex[product.id] || 0;
-            const currentMedia = mediaList[activeIndex] || mediaList[0];
-            const isVideo = currentMedia?.match(/\.(mp4|webm)$/i);
+            const mediaList = getProductMedia(product.image_url, product.name);
+            const isTag = product.name.toLowerCase().includes('tag') || product.name.toLowerCase().includes('disc') || product.name.toLowerCase().includes('fob');
             const isMetal = product.name.toLowerCase().includes('metal');
 
             return (
@@ -213,56 +265,14 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                 key={product.id}
                 className="group bg-white dark:bg-[#12141B] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:border-neutral-400 dark:hover:border-neutral-600 transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
-                {/* Media Showcase */}
-                <div className="relative aspect-[16/10] bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
-                  {isVideo ? (
-                    <video
-                      src={currentMedia}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <img
-                      src={currentMedia}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  )}
-
-                  {/* Badges Overlay */}
-                  <div className="absolute top-4 left-4 flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-neutral-950/80 backdrop-blur-md text-white text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5">
-                      <Zap className="w-3 h-3 text-[#76BB08]" />
-                      <span>{isMetal ? 'Heavy Metal Edition' : 'Ultra-Slim PVC'}</span>
-                    </span>
-                  </div>
-
-                  <div className="absolute top-4 right-4 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase">
-                    In Stock
-                  </div>
-
-                  {/* Multi-image thumbnail pills */}
-                  {mediaList.length > 1 && (
-                    <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 px-2">
-                      {mediaList.map((_, mIdx) => (
-                        <button
-                          key={mIdx}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedMediaIndex((prev) => ({ ...prev, [product.id]: mIdx }));
-                          }}
-                          className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                            activeIndex === mIdx ? 'bg-[#76BB08] w-6' : 'bg-white/60 hover:bg-white'
-                          }`}
-                          aria-label={`View image ${mIdx + 1}`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* Automatic Smooth Product Image Slider */}
+                <ProductImageSlider
+                  images={mediaList}
+                  alt={product.name}
+                  badgeText={isTag ? 'Smart NFC Tag' : isMetal ? 'Heavy Metal Edition' : 'Ultra-Slim PVC'}
+                  badgeType={isTag ? 'tag' : isMetal ? 'metal' : 'pvc'}
+                  autoSlideInterval={3200}
+                />
 
                 {/* Content & Details */}
                 <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-5">
@@ -294,7 +304,9 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Check className="w-3 h-3 text-[#76BB08] dark:text-[#76BB08]" />
-                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Core Free + 3-Mo Pro</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                          {isTag ? '3M High-Tack Adhesive' : 'Core Free + 3-Mo Pro'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -314,7 +326,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                       onClick={() => handleStartOrder(product)}
                       className="group/btn flex items-center gap-2 pl-4 pr-3 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
                     >
-                      <span>Order Card</span>
+                      <span>{isTag ? 'Order Tag' : 'Order Card'}</span>
                       <div className="w-6 h-6 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover/btn:translate-x-0.5 transition-transform">
                         <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                       </div>
