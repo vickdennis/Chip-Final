@@ -5,6 +5,7 @@ import { MakroHero } from '../components/makro/MakroHero';
 import { MakroMarquee } from '../components/makro/MakroMarquee';
 import { MakroBentoFeatures } from '../components/makro/MakroBentoFeatures';
 import { MakroShop } from '../components/makro/MakroShop';
+import { CorporateBundleSection } from '../components/makro/CorporateBundleSection';
 import { MakroInteractiveShowcase } from '../components/makro/MakroInteractiveShowcase';
 import { MakroProofStats } from '../components/makro/MakroProofStats';
 import { MakroTestimonials } from '../components/makro/MakroTestimonials';
@@ -64,6 +65,11 @@ export default function LandingView({
 
         {/* Official Super Admin Shop Reflection Component */}
         <MakroShop
+          onNavigate={onNavigate}
+        />
+
+        {/* Corporate Fleet Bundle (10 PVC + 1 Free CEO Metal - ₦300k) */}
+        <CorporateBundleSection
           onNavigate={onNavigate}
         />
 

@@ -17,6 +17,7 @@ import { MakroCompanyView } from './views/MakroCompanyView';
 import { MakroUpdatesView } from './views/MakroUpdatesView';
 import { MakroContactView } from './views/MakroContactView';
 import { PortfolioView } from './views/PortfolioView';
+import CorporateBundleView from './views/CorporateBundleView';
 import { COMMERCIAL_PAGES } from './data/commercialPagesData';
 import { supabase } from './supabaseClient';
 import { ToastContainer } from './components/Toast';
@@ -34,6 +35,7 @@ export type ViewState =
   | 'blog-directory' 
   | 'blog-article' 
   | 'nfc-sales'
+  | 'corporate-bundle'
   | 'privacy-policy' 
   | 'terms-of-service'
   | 'shipping'
@@ -70,7 +72,8 @@ const RESERVED_CORE_ROUTES = new Set([
   'refund-policy',
   'shipping',
   'api',
-  'portfolio'
+  'portfolio',
+  'corporate-bundle'
 ]);
 
 export default function App() {
@@ -119,6 +122,7 @@ export default function App() {
     if (path === '/company' || path === '/about') return 'company';
     if (path === '/updates') return 'updates';
     if (path === '/contact') return 'contact';
+    if (path === '/corporate-bundle') return 'corporate-bundle';
     if (path === '/buy-card') return 'nfc-sales';
     if (path === '/shop') {
       setTimeout(() => {
@@ -285,6 +289,8 @@ export default function App() {
       window.history.pushState({}, '', '/updates');
     } else if (view === 'contact') {
       window.history.pushState({}, '', '/contact');
+    } else if (view === 'corporate-bundle') {
+      window.history.pushState({}, '', '/corporate-bundle');
     } else if (view === 'commercial-landing' && slug) {
       window.history.pushState({}, '', `/${slug}`);
       setCommercialSlug(slug);
@@ -302,6 +308,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white font-sans antialiased selection:bg-[#76BB08] selection:text-neutral-950">
       {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
+      {currentView === 'corporate-bundle' && <CorporateBundleView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'company' && <MakroCompanyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'updates' && <MakroUpdatesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'contact' && <MakroContactView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}

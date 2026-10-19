@@ -885,6 +885,144 @@ export async function applyUniversalSsr(
     }
   }
 
+  // 8.5 Corporate Fleet Bundle Landing Page (/corporate-bundle)
+  if (normalizedPath === '/corporate-bundle') {
+    const bundleHtml = `
+<div id="root">
+  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 1040px; margin: 0 auto; padding: 48px 16px 80px 16px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" style="font-size: 13px; color: #71717a; margin-bottom: 24px;">
+      <a href="/" style="color: #18181b; text-decoration: none; font-weight: bold;">Home</a> &gt; 
+      <span style="color: #76BB08; font-weight: bold;">Corporate Fleet Bundle</span>
+    </nav>
+
+    <!-- Header Badge -->
+    <div style="display: inline-block; padding: 6px 14px; background: rgba(118,187,8,0.15); border: 1px solid rgba(118,187,8,0.3); border-radius: 999px; color: #76BB08; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px;">
+      Limited Corporate Executive Special
+    </div>
+
+    <!-- Main Headline -->
+    <h1 style="font-size: 44px; font-weight: 900; line-height: 1.15; margin: 0 0 16px 0; color: #09090b; letter-spacing: -0.02em;">
+      Equip Your Entire Fleet.<br />
+      <span style="color: #76BB08;">10 PVC + 1 Free CEO Metal (₦300,000).</span>
+    </h1>
+
+    <p style="font-size: 18px; color: #52525b; line-height: 1.6; max-width: 720px; margin-bottom: 36px;">
+      Eliminate recurring paper card reprint costs forever. Outfit your sales reps, executives, and partners with smart contactless cards backed by centralized team management.
+    </p>
+
+    <!-- Value Offer Box -->
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 24px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); margin-bottom: 40px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; border-bottom: 1px solid #f4f4f5; padding-bottom: 20px; margin-bottom: 24px;">
+        <div>
+          <span style="font-size: 38px; font-weight: 900; color: #09090b;">₦300,000</span>
+          <span style="font-size: 18px; color: #a1a1aa; text-decoration: line-through; margin-left: 12px;">₦385,000</span>
+          <span style="display: block; font-size: 13px; color: #71717a; margin-top: 4px;">One-Time Flat Investment • 11 Smart Cards Total • Save ₦85,000</span>
+        </div>
+        <div style="padding: 6px 14px; background: rgba(16,185,129,0.12); color: #059669; border-radius: 999px; font-size: 12px; font-weight: 800; text-transform: uppercase;">
+          Save 22% Off Fleet Retail
+        </div>
+      </div>
+
+      <!-- Feature Breakdown -->
+      <h2 style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a; margin: 0 0 16px 0;">What Is Included In This Corporate Fleet:</h2>
+      <ul style="font-size: 15px; color: #27272a; line-height: 2; margin: 0 0 28px 0; padding-left: 20px;">
+        <li><strong>10x Smart NFC PVC Cards:</strong> High-frequency NXP NTAG216 chip, sub-10ms response, laser-engraved with staff name & company logo (Matte Black or Ceramic White).</li>
+        <li><strong>1x Free Executive CEO Metal Card (₦50k value):</strong> Aerospace stainless steel with laser etching for the Managing Director / CEO.</li>
+        <li><strong>Centralized Team Fleet Management Dashboard:</strong> Update staff titles, phone numbers, and vCard links dynamically without replacing physical cards.</li>
+        <li><strong>2-Way Contact Exchange & Lead Capture:</strong> Prospects tap the card and can immediately submit their contact details into your company CRM.</li>
+        <li><strong>Free Door-to-Door Insured Shipping:</strong> 24–48h express delivery across Lagos, Abuja, Port Harcourt, and nationwide.</li>
+      </ul>
+
+      <!-- CTA Buttons -->
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="https://wa.me/2349072112506?text=Hi%20CHIP%20NG%2C%20I%20want%20to%20order%20the%20Corporate%20Fleet%20Bundle%20(10%20PVC%20%2B%201%20Free%20CEO%20Metal%20for%20%E2%82%A6300k)" style="display: inline-block; padding: 14px 28px; background: #76BB08; color: #09090b; font-weight: 900; font-size: 14px; border-radius: 999px; text-decoration: none;">
+          Claim Corporate Fleet (₦300,000)
+        </a>
+        <a href="mailto:hello@chipng.com?subject=Pro-Forma%20Invoice%20Request%20-%20Corporate%20Bundle%20(10%20PVC%20%2B%201%20CEO%20Metal)&body=Please%20send%20us%20an%20official%20Pro-Forma%20Invoice%20for%20the%2010%20PVC%20%2B%201%20Free%20CEO%20Metal%20Bundle%20(%E2%82%A6300%2C000)." style="display: inline-block; padding: 14px 24px; background: #f4f4f5; color: #18181b; font-weight: 700; font-size: 14px; border-radius: 999px; text-decoration: none;">
+          Request Corporate Pro-Forma Invoice
+        </a>
+      </div>
+    </div>
+
+    <!-- Corporate FAQ for Answer Engines (Perplexity, ChatGPT, Google) -->
+    <div style="margin-top: 48px;">
+      <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">Corporate Fleet FAQs</h2>
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 6px;">How does the 10 PVC + 1 Free CEO Metal Card bundle work?</h3>
+        <p style="font-size: 15px; color: #52525b; line-height: 1.6;">You receive 10 custom laser-engraved NFC PVC cards for your executive and sales team plus 1 complimentary heavyweight laser-etched stainless steel CEO card (worth ₦50,000) for ₦300,000 one-time fee.</p>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 6px;">Can our company pay against a corporate invoice and bank transfer?</h3>
+        <p style="font-size: 15px; color: #52525b; line-height: 1.6;">Yes. We generate instant VAT-compliant Pro-Forma Invoices with corporate bank accounts (Moniepoint MFB / Sterling Bank) for corporate accounts payable departments.</p>
+      </div>
+    </div>
+  </div>
+</div>
+    `;
+
+    const bundleSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Product',
+          '@id': 'https://www.chipng.com/corporate-bundle#product',
+          name: 'CHIP NG Corporate Fleet Bundle (10 PVC + 1 Free CEO Metal)',
+          description: 'Premier contactless NFC business card fleet package for Nigerian businesses. 10 custom laser-engraved NTAG216 matte PVC cards plus 1 free laser-engraved stainless steel CEO Metal Card (₦50,000 value). Includes centralized team dashboard.',
+          image: 'https://chipng.com/chipng_exact_tile.png',
+          brand: {
+            '@type': 'Brand',
+            name: 'CHIP NG'
+          },
+          offers: {
+            '@type': 'Offer',
+            url: 'https://www.chipng.com/corporate-bundle',
+            priceCurrency: 'NGN',
+            price: '300000',
+            priceValidUntil: '2027-12-31',
+            availability: 'https://schema.org/InStock',
+            itemCondition: 'https://schema.org/NewCondition',
+            seller: {
+              '@type': 'Organization',
+              name: 'CHIP NG Technologies',
+              url: 'https://www.chipng.com'
+            }
+          }
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': 'https://www.chipng.com/corporate-bundle#faq',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is included in the CHIP NG Corporate Bundle offer?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'The Corporate Fleet Bundle includes 10 NFC Smart PVC Cards (custom engraved with company logo and employee name) and 1 complimentary laser-engraved CEO Metal Card (₦50,000 value), backed by a centralized team dashboard for ₦300,000.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Can Nigerian companies pay with corporate wire transfer against a Pro-Forma Invoice?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes. CHIP NG provides instant corporate Pro-Forma Invoices with official Moniepoint MFB and Sterling Bank corporate details for finance and procurement teams.'
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    return injectSeoMetadata(output, {
+      title: 'Corporate Fleet Bundle — 10 NFC PVC + 1 Free CEO Metal (₦300,000) | CHIP NG',
+      description: 'Order the CHIP NG Corporate Fleet Bundle: 10 Custom NFC PVC Cards + 1 Free Laser-Engraved CEO Metal Card for ₦300,000 (Save ₦85k). Centralized team dashboard, sub-10ms contactless tap, nationwide 24-48h dispatch in Nigeria.',
+      canonical: 'https://www.chipng.com/corporate-bundle',
+      schemaJsonLd: bundleSchema,
+      preRenderedHtml: bundleHtml
+    });
+  }
+
   // 9. Institutional & Policy Pages
   if (normalizedPath === '/company' || normalizedPath === '/about') {
     const companyHtml = `

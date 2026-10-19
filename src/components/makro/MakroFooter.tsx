@@ -101,6 +101,15 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
+                <button 
+                  onClick={() => onNavigate('corporate-bundle')} 
+                  className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <span>Corporate Fleet Bundle</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#76BB08]/20 text-[#76BB08] font-bold">10+1 Free</span>
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavigate('enterprise-dashboard')} className="hover:text-neutral-950 dark:hover:text-white transition-colors">
                   Enterprise Team Cards
                 </button>
