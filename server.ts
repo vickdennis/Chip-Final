@@ -2028,12 +2028,16 @@ async function startServer() {
 
   // --- Dynamic vCard 3.0 Phonebook Sync Endpoints (RFC 2426) ---
   async function generateVCardForUser(usernameOrId: string) {
-    let clean = decodeURIComponent(usernameOrId)
+    let clean = decodeURIComponent(usernameOrId || '')
       .replace(/^@/, '')
       .replace(/\.vcf$/i, '')
       .replace(/\/vcard$/i, '')
       .trim()
       .toLowerCase();
+
+    if (!clean || clean === 'vcard') {
+      clean = 'chipng';
+    }
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
     const { data: profile } = await (isUuid
@@ -2104,10 +2108,13 @@ async function startServer() {
 
   app.get([
     '/api/vcard/:username', 
+    '/api/vcard',
+    '/vcard/:username',
     '/@:username/vcard.vcf', 
     '/:username/vcard.vcf', 
     '/:username.vcf', 
-    '/@:username.vcf'
+    '/@:username.vcf',
+    '/vcard.vcf'
   ], async (req, res) => {
     try {
       const targetUser = req.params.username || '';

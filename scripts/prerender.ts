@@ -221,10 +221,10 @@ async function main() {
     }
   }
 
-  // Render User Profiles
+  // Render User Profiles & Dedicated vCard Endpoints
   for (const prof of profileList) {
     try {
-      // Render without '@'
+      // 1. Render without '@'
       const plainPath = `/${prof.username}`;
       const rendered = await applyUniversalSsr(baseHtml, {
         urlPath: plainPath,
@@ -233,19 +233,44 @@ async function main() {
       });
       writePrerenderedFile(plainPath, rendered);
 
-      // Render with '@'
+      // 2. Render with '@'
       const atPath = `/@${prof.username}`;
       writePrerenderedFile(atPath, rendered);
 
-      // Render with 'p/'
+      // 3. Render with 'p/'
       const pPath = `/p/${prof.username}`;
       writePrerenderedFile(pPath, rendered);
+
+      // 4. Render dedicated Contact vCard Route (e.g. /chipng/vcard)
+      const vcardPlainPath = `/${prof.username}/vcard`;
+      const vcardRendered = await applyUniversalSsr(baseHtml, {
+        urlPath: vcardPlainPath,
+        supabase,
+        db
+      });
+      writePrerenderedFile(vcardPlainPath, vcardRendered);
+
+      // 5. Render @-prefixed Contact vCard Route (e.g. /@chipng/vcard)
+      const vcardAtPath = `/@${prof.username}/vcard`;
+      writePrerenderedFile(vcardAtPath, vcardRendered);
     } catch (err) {
       console.error(`Error prerendering profile ${prof.username}:`, err);
     }
   }
 
-  console.log('✅ All pages successfully pre-rendered into static HTML in dist/!');
+  // Pre-render global /vcard (defaults to chipng master identity)
+  try {
+    const rootVCardRendered = await applyUniversalSsr(baseHtml, {
+      urlPath: '/chipng/vcard',
+      supabase,
+      db
+    });
+    writePrerenderedFile('/vcard', rootVCardRendered);
+  } catch (err) {
+    console.error('Error prerendering global /vcard:', err);
+  }
+
+  console.log('✅ All pages & vCard routes successfully pre-rendered into static HTML in dist/!');
 
   // Generate Master Sitemap.xml
   const today = new Date().toISOString().split('T')[0];
@@ -257,6 +282,8 @@ async function main() {
     { loc: `${BASE_URL}/`, changefreq: 'daily', priority: '1.0' },
     { loc: `${BASE_URL}/buy-card`, changefreq: 'weekly', priority: '0.95' },
     { loc: `${BASE_URL}/shop`, changefreq: 'weekly', priority: '0.95' },
+    { loc: `${BASE_URL}/corporate-bundle`, changefreq: 'weekly', priority: '0.95' },
+    { loc: `${BASE_URL}/vcard`, changefreq: 'daily', priority: '0.9' },
     { loc: `${BASE_URL}/app`, changefreq: 'weekly', priority: '0.9' },
     { loc: `${BASE_URL}/android`, changefreq: 'weekly', priority: '0.9' },
     { loc: `${BASE_URL}/pricing`, changefreq: 'weekly', priority: '0.9' },
@@ -301,14 +328,20 @@ async function main() {
   </url>`);
   }
 
-  // User profiles
+  // User profiles & Contact vCards
   for (const prof of profileList) {
     const lastmod = prof.updated_at ? new Date(prof.updated_at).toISOString().split('T')[0] : today;
     sitemapEntries.push(`  <url>
     <loc>${BASE_URL}/@${prof.username}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
+  </url>`);
+    sitemapEntries.push(`  <url>
+    <loc>${BASE_URL}/${prof.username}/vcard</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>`);
   }
 

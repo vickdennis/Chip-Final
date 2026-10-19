@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ViewState } from '../App';
-import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart, UserCheck } from 'lucide-react';
+import { 
+  ExternalLink, 
+  Mail, 
+  Link as LinkIcon, 
+  Share, 
+  Globe, 
+  Phone, 
+  MapPin, 
+  UserPlus, 
+  X, 
+  Copy, 
+  QrCode, 
+  ShoppingCart, 
+  UserCheck, 
+  Check, 
+  Sparkles, 
+  Download 
+} from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa6';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { SocialMediaIconBadge, SocialIconStyle } from '../components/social/SocialMediaIconBadge';
@@ -31,6 +49,20 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [isVCardModalOpen, setIsVCardModalOpen] = useState<boolean>(Boolean(autoDownloadVCard));
+  const [isInlineQrOpen, setIsInlineQrOpen] = useState(false);
+  const [inlineCopiedKey, setInlineCopiedKey] = useState<string | null>(null);
+
+  const copyInlineText = (text: string, key: string, label: string) => {
+    if (!text) return;
+    try {
+      navigator.clipboard.writeText(text);
+      setInlineCopiedKey(key);
+      toast.success(`${label} copied to clipboard!`);
+      setTimeout(() => setInlineCopiedKey(null), 2000);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -43,12 +75,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         setHasDownloaded(true);
         setTimeout(() => {
           downloadVCard(false);
-        }, 500);
+        }, 600);
       }
     }
   }, [profile, autoDownloadVCard, hasDownloaded]);
-
-
 
   const fetchData = async () => {
     try {
@@ -67,10 +97,15 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         }
       }
 
+      if (!effectiveUsername || effectiveUsername === 'vcard') {
+        effectiveUsername = 'chipng';
+      }
+
       if (effectiveUsername) {
         let cleanUsername = decodeURIComponent(effectiveUsername).trim();
         if (cleanUsername.endsWith('/vcard')) cleanUsername = cleanUsername.replace(/\/vcard$/, '');
         if (cleanUsername.startsWith('@')) cleanUsername = cleanUsername.slice(1);
+        if (!cleanUsername || cleanUsername === 'vcard') cleanUsername = 'chipng';
 
         console.log("Fetching profile for cleanUsername:", cleanUsername);
         
@@ -293,21 +328,6 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     }
     recordClick('Saved Contact to Phone (vCard)', undefined, 'vcard');
 
-    // 1. Trigger direct browser download via server vCard endpoint (reliable on iOS & Android)
-    try {
-      const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
-      const downloadLink = document.createElement('a');
-      downloadLink.href = serverVCardUrl;
-      downloadLink.setAttribute('download', `${profile.username || 'contact'}.vcf`);
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      return;
-    } catch (e) {
-      console.warn('Direct server vcard download failed, falling back to client blob:', e);
-    }
-
-    // 2. Client Blob generation fallback (RFC 2426 compliant)
     const fullName = profile.full_name || profile.username || 'CHIP NG User';
     const names = fullName.trim().split(' ');
     const firstName = names[0] || '';
@@ -342,15 +362,24 @@ URL;TYPE=WORK:https://www.chipng.com/@${profile.username}${photoStr}
 REV:${new Date().toISOString()}
 END:VCARD`;
 
-    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${profile.username || 'contact'}.vcf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    try {
+      const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', `${profile.username || 'contact'}.vcf`);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success(`Saved ${fullName}'s contact to phonebook (.vcf)`);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) {
+      console.warn('Client blob vcard download failed, falling back to server URL:', e);
+      try {
+        const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
+        window.location.href = serverVCardUrl;
+      } catch (err) {}
+    }
   };
 
   const getFontFamily = () => {
@@ -764,14 +793,265 @@ END:VCARD`;
 
               <button
                 onClick={() => {
-                  setIsVCardModalOpen(true);
-                  downloadVCard(false);
+                  downloadVCard(true);
                 }}
                 className={`py-3.5 px-4 rounded-2xl ${cardBgClass} text-current font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer`}
               >
                 <UserPlus className="w-4 h-4 text-emerald-500" />
                 <span>Save to Phone</span>
               </button>
+            </div>
+
+            {/* Dedicated Interactive Contact vCard Showcase Card */}
+            <div 
+              id="vcard-section"
+              className={`w-full rounded-3xl p-5 sm:p-6 mb-6 transition-all ${
+                autoDownloadVCard 
+                  ? 'bg-[#12141a] border-2 border-[#76BB08] shadow-[0_0_30px_rgba(118,187,8,0.25)] ring-1 ring-[#76BB08]' 
+                  : `${cardBgClass} border border-white/10 shadow-lg`
+              }`}
+            >
+              {/* vCard Badge Header */}
+              <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#76BB08] animate-pulse" />
+                  <span className="text-[11px] font-mono font-extrabold uppercase tracking-wider text-[#76BB08]">
+                    Verified Contact vCard 3.0
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsInlineQrOpen(!isInlineQrOpen)}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current text-xs transition-colors cursor-pointer"
+                    title="Toggle QR Code"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsVCardModalOpen(true)}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current text-xs transition-colors cursor-pointer"
+                    title="Open Fullscreen Card"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {autoDownloadVCard && (
+                <div className="mb-4 px-3 py-2 rounded-xl bg-[#76BB08]/15 border border-[#76BB08]/30 flex items-center gap-2 text-xs font-bold text-[#76BB08]">
+                  <Sparkles className="w-4 h-4 shrink-0" />
+                  <span>Direct vCard Route Active • Save to Phonebook or Connect Below</span>
+                </div>
+              )}
+
+              {/* Identity Row */}
+              <div className="flex items-center gap-3.5 mb-4">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#76BB08]/60 p-0.5 bg-neutral-900 shrink-0 shadow-md">
+                  <img 
+                    src={profile?.cover_image_url || coverUrl} 
+                    alt={profile?.full_name || 'Contact'} 
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-display font-extrabold text-base sm:text-lg text-current truncate leading-tight">
+                      {profile?.full_name || profile?.username}
+                    </h3>
+                    {profile?.is_verified && (
+                      <span className="w-4 h-4 rounded-full bg-[#0095f6] text-white flex items-center justify-center text-[9px] font-black shrink-0">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-sans text-xs opacity-75 truncate mt-0.5">
+                    {profile?.headline || 'Contactless Smart Business Card'}
+                  </p>
+                  <span className="font-mono text-[11px] text-[#76BB08] font-bold">
+                    @{profile?.username}
+                  </span>
+                </div>
+              </div>
+
+              {/* Inline QR Code View (collapsible) */}
+              {isInlineQrOpen && (
+                <div className="p-4 bg-white rounded-2xl mb-4 flex flex-col items-center justify-center animate-in fade-in duration-200 shadow-md">
+                  <QRCodeSVG
+                    value={`https://chipng.com/${profile?.username || ''}/vcard`}
+                    size={160}
+                    level="H"
+                    marginSize={1}
+                    imageSettings={{
+                      src: profile?.cover_image_url || chipngExactTile,
+                      x: undefined,
+                      y: undefined,
+                      height: 32,
+                      width: 32,
+                      excavate: true,
+                    }}
+                  />
+                  <p className="text-[11px] font-bold text-neutral-800 mt-2">
+                    Scan with camera to instantly save contact
+                  </p>
+                </div>
+              )}
+
+              {/* Contact Detail Rows */}
+              <div className="space-y-2 mb-4 text-left">
+                {/* Phones */}
+                {(() => {
+                  if (!profile?.phone_number) return null;
+                  let phones: string[] = [];
+                  try {
+                    const parsed = JSON.parse(profile.phone_number);
+                    if (Array.isArray(parsed)) phones = parsed;
+                    else phones = [profile.phone_number];
+                  } catch {
+                    phones = String(profile.phone_number).split(',').map((s: string) => s.trim());
+                  }
+                  phones = phones.filter(Boolean);
+                  if (phones.length === 0) return null;
+
+                  return phones.map((phone, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/20 dark:bg-white/5 border border-white/5 text-xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                          <Phone className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9px] uppercase tracking-wider opacity-60 block font-semibold">
+                            {idx === 0 ? 'Mobile / WhatsApp' : `Phone ${idx + 1}`}
+                          </span>
+                          <span className="font-mono font-bold truncate block text-current">
+                            {phone}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <a
+                          href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => recordClick('WhatsApp Chat', phone, 'whatsapp')}
+                          className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors"
+                          title="Chat on WhatsApp"
+                        >
+                          <FaWhatsapp className="w-3.5 h-3.5" />
+                        </a>
+                        <a
+                          href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
+                          onClick={() => recordClick('Phone Call', phone, 'phone')}
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors"
+                          title="Call"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => copyInlineText(phone, `phone_${idx}`, 'Phone')}
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors cursor-pointer"
+                          title="Copy"
+                        >
+                          {inlineCopiedKey === `phone_${idx}` ? <Check className="w-3.5 h-3.5 text-[#76BB08]" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  ));
+                })()}
+
+                {/* Email */}
+                {(profile?.contact_email || profile?.email) && (
+                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/20 dark:bg-white/5 border border-white/5 text-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                        <Mail className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] uppercase tracking-wider opacity-60 block font-semibold">
+                          Work Email
+                        </span>
+                        <span className="font-sans font-medium truncate block text-current">
+                          {profile?.contact_email || profile?.email}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a
+                        href={`mailto:${profile?.contact_email || profile?.email}`}
+                        onClick={() => recordClick('Email Send', profile?.contact_email || profile?.email, 'email')}
+                        className="p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
+                        title="Send Email"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => copyInlineText(profile?.contact_email || profile?.email, 'email', 'Email')}
+                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors cursor-pointer"
+                        title="Copy"
+                      >
+                        {inlineCopiedKey === 'email' ? <Check className="w-3.5 h-3.5 text-[#76BB08]" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Address */}
+                {profile?.address && (
+                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/20 dark:bg-white/5 border border-white/5 text-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
+                        <MapPin className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] uppercase tracking-wider opacity-60 block font-semibold">
+                          Office / City
+                        </span>
+                        <span className="font-sans font-medium truncate block text-current">
+                          {profile?.address}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => copyInlineText(profile?.address, 'address', 'Address')}
+                      className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors cursor-pointer shrink-0"
+                      title="Copy Address"
+                    >
+                      {inlineCopiedKey === 'address' ? <Check className="w-3.5 h-3.5 text-[#76BB08]" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Main Save to Phonebook Action */}
+              <button
+                type="button"
+                onClick={() => downloadVCard(false)}
+                className="w-full py-3.5 px-4 rounded-2xl bg-[#76BB08] hover:bg-[#85d309] text-neutral-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#76BB08]/20 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <Download className="w-4 h-4 stroke-[2.5]" />
+                <span>Save Contact to Phonebook (.vcf)</span>
+              </button>
+              
+              <div className="flex items-center justify-between mt-3 pt-2 text-[10px] opacity-60">
+                <span>NFC & QR Sync Ready</span>
+                <button 
+                  type="button"
+                  onClick={() => setIsVCardModalOpen(true)}
+                  className="hover:underline font-bold text-current cursor-pointer"
+                >
+                  View Details & Share →
+                </button>
+              </div>
             </div>
 
             {/* Contact/Connect Action Strip */}

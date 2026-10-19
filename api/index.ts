@@ -186,18 +186,26 @@ app.get(['/cover', '/api/cover'], async (req: Request, res: Response) => {
 // --- Dynamic vCard 3.0 Phonebook Sync Endpoints (RFC 2426) ---
 app.get([
   '/api/vcard/:username', 
+  '/api/vcard',
+  '/vcard/:username',
+  '/vcard',
   '/@:username/vcard.vcf', 
   '/:username/vcard.vcf', 
   '/:username.vcf', 
-  '/@:username.vcf'
+  '/@:username.vcf',
+  '/vcard.vcf'
 ], async (req: Request, res: Response) => {
   try {
-    let clean = decodeURIComponent(req.params.username || '')
+    let clean = decodeURIComponent(req.params.username || (req.query.vcard as string) || (req.query.username as string) || '')
       .replace(/^@/, '')
       .replace(/\.vcf$/i, '')
       .replace(/\/vcard$/i, '')
       .trim()
       .toLowerCase();
+
+    if (!clean || clean === 'vcard') {
+      clean = 'chipng';
+    }
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
     const supabase = getSupabase();

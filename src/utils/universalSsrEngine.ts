@@ -96,7 +96,8 @@ function cleanText(str: string | null | undefined, maxLength = 160): string {
  */
 export async function renderUserProfileSsr(
   username: string,
-  supabase: any
+  supabase: any,
+  isVcardRoute: boolean = false
 ): Promise<{
   title: string;
   description: string;
@@ -142,12 +143,19 @@ export async function renderUserProfileSsr(
     const profileUrl = `https://www.chipng.com/@${profile.username}`;
     const vCardUrl = `https://www.chipng.com/${profile.username}/vcard`;
 
-    const title = `${profile.full_name || profile.username} (@${profile.username}) | Contactless Digital Card & Bio | CHIP NG`;
-    const description = cleanText(
-      profile.headline 
-        ? `${profile.headline}. ${profile.bio || ''} Connect with ${profile.full_name || profile.username} with one tap on CHIP NG.`
-        : `View ${profile.full_name || profile.username}'s verified contactless smart card profile, vCard, social links, and portfolio on CHIP NG.`
-    );
+    const title = isVcardRoute
+      ? `${profile.full_name || profile.username} (@${profile.username}) | Contact vCard & Phonebook Sync | CHIP NG`
+      : `${profile.full_name || profile.username} (@${profile.username}) | Contactless Digital Card & Bio | CHIP NG`;
+
+    const description = isVcardRoute
+      ? cleanText(`Save ${profile.full_name || profile.username}'s verified phone number, email, and contactless digital identity directly to your phonebook via CHIP NG vCard 3.0.`)
+      : cleanText(
+          profile.headline 
+            ? `${profile.headline}. ${profile.bio || ''} Connect with ${profile.full_name || profile.username} with one tap on CHIP NG.`
+            : `View ${profile.full_name || profile.username}'s verified contactless smart card profile, vCard, social links, and portfolio on CHIP NG.`
+        );
+
+    const canonical = isVcardRoute ? vCardUrl : profileUrl;
 
     // Schema.org ProfilePage + Person
     const schema = {
@@ -857,7 +865,8 @@ export async function applyUniversalSsr(
   const isReserved = RESERVED_ROUTES.some(r => normalizedPath === r || normalizedPath.startsWith(r + '/'));
 
   if (!isReserved && normalizedPath !== '/') {
-    // Extract username (supports /@username, /username, /@username/vcard, /username/vcard, /p/username, /u/username)
+    // Extract username (supports /@username, /username, /@username/vcard, /username/vcard, /p/username, /u/username, /vcard)
+    const isVcardRoute = normalizedPath.endsWith('/vcard') || normalizedPath === '/vcard';
     let rawUsername = normalizedPath.replace(/^\//, '');
     try {
       rawUsername = decodeURIComponent(rawUsername);
@@ -867,9 +876,10 @@ export async function applyUniversalSsr(
     if (rawUsername.startsWith('@')) rawUsername = rawUsername.slice(1);
     if (rawUsername.endsWith('/vcard')) rawUsername = rawUsername.replace(/\/vcard$/, '');
     rawUsername = rawUsername.trim().toLowerCase();
+    if (!rawUsername || rawUsername === 'vcard') rawUsername = 'chipng';
 
     if (rawUsername) {
-      const profileSsr = await renderUserProfileSsr(rawUsername, supabase);
+      const profileSsr = await renderUserProfileSsr(rawUsername, supabase, isVcardRoute);
       if (profileSsr) {
         return injectSeoMetadata(output, {
           title: profileSsr.title,

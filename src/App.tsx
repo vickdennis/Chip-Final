@@ -138,6 +138,11 @@ export default function App() {
     if (path === '/portfolio') return 'portfolio';
     if (path.startsWith('/blog/')) return 'blog-article';
     
+    // Explicit /vcard route
+    if (path === '/vcard' || path === '/vcard/' || cleanSegment === 'vcard') {
+      return 'public-profile';
+    }
+
     if (path !== '' && path !== '/' && !RESERVED_CORE_ROUTES.has(cleanSegment)) {
       return 'public-profile';
     }
@@ -150,6 +155,10 @@ export default function App() {
     const path = window.location.pathname.replace(/\/$/, "");
     const cleanSegment = path.replace(/^\//, '');
 
+    if (path === '/vcard' || path === '/vcard/' || cleanSegment === 'vcard') {
+      return 'chipng';
+    }
+
     if (
       path !== '' && 
       path !== '/' && 
@@ -161,11 +170,13 @@ export default function App() {
         let username = decodeURIComponent(cleanSegment).trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
         if (username.startsWith('@')) username = username.slice(1);
+        if (!username || username === 'vcard') username = 'chipng';
         return username;
       } catch (e) {
         let username = cleanSegment.trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
         if (username.startsWith('@')) username = username.slice(1);
+        if (!username || username === 'vcard') username = 'chipng';
         return username;
       }
     }
@@ -173,7 +184,8 @@ export default function App() {
   });
 
   const [autoDownloadVCard, setAutoDownloadVCard] = useState<boolean>(() => {
-    return window.location.pathname.endsWith('/vcard') || window.location.pathname.endsWith('/vcard/');
+    const p = window.location.pathname.replace(/\/$/, "");
+    return p.endsWith('/vcard') || p === '/vcard';
   });
   
   const [blogSlug, setBlogSlug] = useState<string | null>(() => {
@@ -183,6 +195,41 @@ export default function App() {
     }
     return null;
   });
+
+  // Reactive URL change listener (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = window.location.pathname.replace(/\/$/, "");
+      const cleanSeg = p.replace(/^\//, '');
+      const isVCard = p.endsWith('/vcard') || p === '/vcard';
+      setAutoDownloadVCard(isVCard);
+
+      if (p === '/vcard' || p === '/vcard/' || cleanSeg === 'vcard') {
+        setPublicUsername('chipng');
+        setCurrentView('public-profile');
+        return;
+      }
+
+      if (COMMERCIAL_PAGES[cleanSeg]) {
+        setCommercialSlug(cleanSeg);
+        setCurrentView('commercial-landing');
+        return;
+      }
+
+      if (p !== '' && p !== '/' && !RESERVED_CORE_ROUTES.has(cleanSeg)) {
+        let u = decodeURIComponent(cleanSeg).trim();
+        if (u.endsWith('/vcard')) u = u.replace(/\/vcard$/, '');
+        if (u.startsWith('@')) u = u.slice(1);
+        if (!u || u === 'vcard') u = 'chipng';
+        setPublicUsername(u);
+        setCurrentView('public-profile');
+        return;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     // Safety timeout: ensure sessionLoading never hangs indefinitely on slow networks or blocked requests

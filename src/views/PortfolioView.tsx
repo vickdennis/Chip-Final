@@ -272,26 +272,30 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onNavigate }) => {
         .select('*')
         .eq('id', 1)
         .maybeSingle()
-        .then(({ data: spProfile }) => {
-          if (spProfile) {
-            setProfile((prev) => ({ ...prev, ...spProfile }));
-            try {
-              localStorage.setItem('chipng_portfolio_profile', JSON.stringify(spProfile));
-            } catch (e) {}
-          }
-        })
-        .catch(() => {});
+        .then(
+          ({ data: spProfile }) => {
+            if (spProfile) {
+              setProfile((prev) => ({ ...prev, ...spProfile }));
+              try {
+                localStorage.setItem('chipng_portfolio_profile', JSON.stringify(spProfile));
+              } catch (e) {}
+            }
+          },
+          () => {}
+        );
 
       supabase
         .from('portfolio_projects')
         .select('*')
         .order('sort_order', { ascending: true })
-        .then(({ data: spProjects }) => {
-          if (spProjects && spProjects.length > 0) {
-            setProjects(spProjects);
-          }
-        })
-        .catch(() => {});
+        .then(
+          ({ data: spProjects }) => {
+            if (spProjects && spProjects.length > 0) {
+              setProjects(spProjects);
+            }
+          },
+          () => {}
+        );
     } catch (e) {}
 
     // 3. Fetch live portfolio data from server

@@ -802,22 +802,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       return;
     }
 
-    // 1. Direct browser download via server vCard endpoint
-    try {
-      const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
-      const downloadLink = document.createElement('a');
-      downloadLink.href = serverVCardUrl;
-      downloadLink.setAttribute('download', `${profile.username || 'contact'}.vcf`);
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      toast.success('Downloaded vCard contact file');
-      return;
-    } catch (e) {
-      console.warn('Direct server vcard download failed, falling back to client blob:', e);
-    }
-
-    // 2. Client Blob generation fallback (RFC 2426 compliant)
+    // 1. Client Blob generation (RFC 2426 compliant)
     const fullName = profile.full_name || profile.username || 'CHIP NG User';
     const names = fullName.trim().split(' ');
     const firstName = names[0] || '';
@@ -852,16 +837,24 @@ URL;TYPE=WORK:https://www.chipng.com/@${profile.username}${photoStr}
 REV:${new Date().toISOString()}
 END:VCARD`;
 
-    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${profile.username || 'contact'}.vcf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    toast.success('Downloaded vCard contact file');
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    try {
+      const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', `${profile.username || 'contact'}.vcf`);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success(`Downloaded ${fullName}'s vCard contact file (.vcf)`);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) {
+      console.warn('Client blob vcard download failed, falling back to server URL:', e);
+      try {
+        const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
+        window.location.href = serverVCardUrl;
+      } catch (err) {}
+    }
   };
 
 
