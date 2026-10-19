@@ -112,7 +112,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
 
   const getWhatsAppConciergeUrl = () => {
     const text = `Hi CHIP NG! 👋\n\nI want to order the *Corporate Fleet Bundle (10 PVC + 1 Free CEO Metal for ₦300,000)* for my organization.\n\n*Company Name:* ${companyName || '[My Company]'}\n*Contact Person:* ${contactName || '[My Name]'}\n*Selected PVC Finish:* ${pvcFinish === 'split' ? '5 Black + 5 White' : pvcFinish === 'black' ? '10 Matte Black' : '10 Ceramic White'}\n*Selected CEO Metal Finish:* ${ceoFinish.toUpperCase()}\n\nPlease send us the invoice details and artwork specifications.`;
-    return `https://wa.me/2349072112506?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/2348100764154?text=${encodeURIComponent(text)}`;
   };
 
   return (
@@ -311,7 +311,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                     { title: '1x Heavyweight Executive CEO Metal Card (FREE — ₦50k value)', desc: 'Precision-weighted aerospace grade stainless steel with matte obsidian or gold coating for the CEO / Managing Director.' },
                     { title: 'Centralized Team Fleet Management Dashboard', desc: 'One central master login to reassign cards, update social/contact details, and track networking analytics across the entire firm.' },
                     { title: '2-Way Contact Exchange & Lead Capture Form', desc: 'Clients can tap and instantly send their name, phone, and inquiry back to your team.' },
-                    { title: 'Free Corporate Vector Logo Engraving', desc: 'Upload your high-res company emblem for precision laser etching across all 11 cards.' },
+                    { title: 'Free Corporate Vector Logo Engraving', desc: 'Upload your high-res company emblem for the metal card.' },
                     { title: 'Priority 24-48h Express Shipping Across Nigeria', desc: 'Free door-to-door insured delivery to your office in Lagos, Abuja, Port Harcourt, and other states.' }
                   ].map((feat, i) => (
                     <div key={i} className="flex items-start gap-3">

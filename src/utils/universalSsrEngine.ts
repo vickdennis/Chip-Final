@@ -931,12 +931,13 @@ export async function applyUniversalSsr(
         <li><strong>1x Free Executive CEO Metal Card (₦50k value):</strong> Aerospace stainless steel with laser etching for the Managing Director / CEO.</li>
         <li><strong>Centralized Team Fleet Management Dashboard:</strong> Update staff titles, phone numbers, and vCard links dynamically without replacing physical cards.</li>
         <li><strong>2-Way Contact Exchange & Lead Capture:</strong> Prospects tap the card and can immediately submit their contact details into your company CRM.</li>
+        <li><strong>Free Corporate Vector Logo Engraving:</strong> Upload your high-res company emblem for the metal card.</li>
         <li><strong>Free Door-to-Door Insured Shipping:</strong> 24–48h express delivery across Lagos, Abuja, Port Harcourt, and nationwide.</li>
       </ul>
 
       <!-- CTA Buttons -->
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="https://wa.me/2349072112506?text=Hi%20CHIP%20NG%2C%20I%20want%20to%20order%20the%20Corporate%20Fleet%20Bundle%20(10%20PVC%20%2B%201%20Free%20CEO%20Metal%20for%20%E2%82%A6300k)" style="display: inline-block; padding: 14px 28px; background: #76BB08; color: #09090b; font-weight: 900; font-size: 14px; border-radius: 999px; text-decoration: none;">
+        <a href="https://wa.me/2348100764154?text=Hi%20CHIP%20NG%2C%20I%20want%20to%20order%20the%20Corporate%20Fleet%20Bundle%20(10%20PVC%20%2B%201%20Free%20CEO%20Metal%20for%20%E2%82%A6300k)" style="display: inline-block; padding: 14px 28px; background: #76BB08; color: #09090b; font-weight: 900; font-size: 14px; border-radius: 999px; text-decoration: none;">
           Claim Corporate Fleet (₦300,000)
         </a>
         <a href="mailto:hello@chipng.com?subject=Pro-Forma%20Invoice%20Request%20-%20Corporate%20Bundle%20(10%20PVC%20%2B%201%20CEO%20Metal)&body=Please%20send%20us%20an%20official%20Pro-Forma%20Invoice%20for%20the%2010%20PVC%20%2B%201%20Free%20CEO%20Metal%20Bundle%20(%E2%82%A6300%2C000)." style="display: inline-block; padding: 14px 24px; background: #f4f4f5; color: #18181b; font-weight: 700; font-size: 14px; border-radius: 999px; text-decoration: none;">
