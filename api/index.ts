@@ -183,6 +183,98 @@ app.get(['/cover', '/api/cover'], async (req: Request, res: Response) => {
   }
 });
 
+// --- Dynamic vCard 3.0 Phonebook Sync Endpoints (RFC 2426) ---
+app.get([
+  '/api/vcard/:username', 
+  '/@:username/vcard.vcf', 
+  '/:username/vcard.vcf', 
+  '/:username.vcf', 
+  '/@:username.vcf'
+], async (req: Request, res: Response) => {
+  try {
+    let clean = decodeURIComponent(req.params.username || '')
+      .replace(/^@/, '')
+      .replace(/\.vcf$/i, '')
+      .replace(/\/vcard$/i, '')
+      .trim()
+      .toLowerCase();
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
+    const supabase = getSupabase();
+    const { data: profile } = await (isUuid
+      ? supabase.from('profiles').select('*').eq('id', clean).maybeSingle()
+      : supabase.from('profiles').select('*').ilike('username', clean).maybeSingle());
+
+    if (!profile) {
+      return res.status(404).send('Contact profile not found');
+    }
+
+    const fullName = profile.full_name || profile.username || 'CHIP NG User';
+    const nameParts = fullName.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+    let phoneLines: string[] = [];
+    if (profile.phone_number) {
+      let arr: string[] = [];
+      try {
+        const parsed = JSON.parse(profile.phone_number);
+        if (Array.isArray(parsed)) arr = parsed;
+        else arr = [profile.phone_number];
+      } catch {
+        arr = String(profile.phone_number).split(',').map((s: string) => s.trim());
+      }
+      arr = arr.filter(Boolean);
+      arr.forEach((p) => {
+        const cleanDigits = p.replace(/[^0-9+]/g, '');
+        phoneLines.push(`TEL;TYPE=CELL,VOICE;VALUE=uri:tel:${cleanDigits}`);
+        phoneLines.push(`TEL;TYPE=CELL:${p}`);
+      });
+    }
+
+    let photoLine = '';
+    if (profile.cover_image_url) {
+      try {
+        const imgRes = await fetch(profile.cover_image_url, { signal: AbortSignal.timeout(3000) });
+        if (imgRes.ok) {
+          const buf = Buffer.from(await imgRes.arrayBuffer());
+          const b64 = buf.toString('base64');
+          const cType = imgRes.headers.get('content-type') || 'image/jpeg';
+          const imgType = cType.includes('png') ? 'PNG' : 'JPEG';
+          photoLine = `PHOTO;ENCODING=b;TYPE=${imgType}:${b64}`;
+        }
+      } catch (e) {
+        photoLine = `PHOTO;VALUE=URI:${profile.cover_image_url}`;
+      }
+    }
+
+    const lines = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      'PRODID:-//CHIP NG Technologies//Contactless Smart Card vCard 3.0//EN',
+      `N:${lastName};${firstName};;;`,
+      `FN:${fullName}`,
+      profile.headline ? `TITLE:${profile.headline}` : '',
+      'ORG:CHIP NG Network',
+      profile.contact_email || profile.email ? `EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}` : '',
+      ...phoneLines,
+      profile.address ? `ADR;TYPE=WORK:;;${profile.address};;;;` : '',
+      `URL;TYPE=WORK:https://www.chipng.com/@${profile.username}`,
+      profile.bio ? `NOTE:${profile.bio.replace(/\r?\n/g, ' ')}` : '',
+      photoLine,
+      `REV:${new Date().toISOString()}`,
+      'END:VCARD'
+    ].filter(Boolean);
+
+    res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+    res.setHeader('Content-Disposition', `inline; filename="${profile.username || 'contact'}.vcf"`);
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    return res.send(lines.join('\r\n'));
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // Dynamic Profile SSR Endpoint (Matches /@username, /p/username, etc.)
 app.get('/api/profile-ssr', async (req: Request, res: Response) => {
   const username = (req.query.username || req.query.u || '') as string;

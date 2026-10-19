@@ -13,6 +13,7 @@ import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/s
 
 import DashboardAnalytics from '../components/DashboardAnalytics';
 import { ProfileLeadsManager } from '../components/ProfileLeadsManager';
+import { ContactVCardModal } from '../components/ContactVCardModal';
 import { toast } from '../components/Toast';
 import { SocialMediaIconBadge, SOCIAL_PLATFORMS_CONFIG } from '../components/social/SocialMediaIconBadge';
 import { subscribeToTelemetry, getProfileTelemetry } from '../utils/telemetryClient';
@@ -48,6 +49,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [profileViews, setProfileViews] = useState(0);
   const [activeTab, setActiveTab] = useState<'analytics' | 'leads' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc' | 'buy-nfc' | 'settings'>('profile');
   const [leadsStats, setLeadsStats] = useState<{ total: number; newCount: number; convertedCount: number }>({ total: 0, newCount: 0, convertedCount: 0 });
+  const [isVCardPreviewOpen, setIsVCardPreviewOpen] = useState(false);
 
   const fetchLeadsStats = async () => {
     if (!profile?.id) return;
@@ -793,59 +795,73 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     }
   };
 
-  const handleDownloadVCard = async () => {
+  const handleDownloadVCard = (openPreview: boolean = false) => {
     if (!profile) return;
-    
-    let photoStr = "";
-    if (profile.cover_image_url) {
-      try {
-        const response = await fetch(profile.cover_image_url);
-        const blob = await response.blob();
-        const base64data = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-        const parts = base64data.split(',');
-        if (parts.length === 2) {
-          const mimeTypeMatch = parts[0].match(/:(.*?);/);
-          const type = mimeTypeMatch ? mimeTypeMatch[1].split('/')[1].toUpperCase() : 'JPEG';
-          photoStr = `\nPHOTO;ENCODING=b;TYPE=${type}:${parts[1]}`;
-        }
-      } catch (err) {
-        console.warn("Failed to fetch profile image for vCard", err);
-        photoStr = `\nPHOTO;VALUE=URI:${profile.cover_image_url}`;
-      }
+    if (openPreview) {
+      setIsVCardPreviewOpen(true);
+      return;
     }
 
-    const vcard = (() => {
-      let phonesStr = `\nTEL;TYPE=CELL:${profile.phone_number || ''}`;
-      if (profile.phone_number) {
-        let arr = [];
-        try {
-          const parsed = JSON.parse(profile.phone_number);
-          if (Array.isArray(parsed)) arr = parsed;
-          else if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
-          else arr = [profile.phone_number];
-        } catch(e) {
-          if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
-          else arr = [profile.phone_number];
-        }
-        if (arr.filter(Boolean).length > 0) {
-          phonesStr = arr.filter(Boolean).map(p => `\nTEL;TYPE=CELL:${p}`).join('');
-        }
+    // 1. Direct browser download via server vCard endpoint
+    try {
+      const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
+      const downloadLink = document.createElement('a');
+      downloadLink.href = serverVCardUrl;
+      downloadLink.setAttribute('download', `${profile.username || 'contact'}.vcf`);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      toast.success('Downloaded vCard contact file');
+      return;
+    } catch (e) {
+      console.warn('Direct server vcard download failed, falling back to client blob:', e);
+    }
+
+    // 2. Client Blob generation fallback (RFC 2426 compliant)
+    const fullName = profile.full_name || profile.username || 'CHIP NG User';
+    const names = fullName.trim().split(' ');
+    const firstName = names[0] || '';
+    const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
+
+    let phonesStr = '';
+    if (profile.phone_number) {
+      let arr = [];
+      try {
+        const parsed = JSON.parse(profile.phone_number);
+        if (Array.isArray(parsed)) arr = parsed;
+        else arr = [profile.phone_number];
+      } catch {
+        arr = String(profile.phone_number).split(',').map((s: string) => s.trim());
       }
-      return `BEGIN:VCARD\nVERSION:3.0\nN:${profile.full_name}\nFN:${profile.full_name}\nTITLE:${profile.headline}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://www.chipng.com/@${profile.username}${photoStr}\nEND:VCARD`;
-    })();
-    
-    const blob = new Blob([vcard], { type: "text/vcard" });
+      arr = arr.filter(Boolean);
+      phonesStr = arr.map((p: string) => `\nTEL;TYPE=CELL,VOICE;VALUE=uri:tel:${p.replace(/[^0-9+]/g, '')}\nTEL;TYPE=CELL:${p}`).join('');
+    }
+
+    const photoStr = profile.cover_image_url ? `\nPHOTO;VALUE=URI:${profile.cover_image_url}` : '';
+
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+PRODID:-//CHIP NG Technologies//Contactless Smart Card vCard 3.0//EN
+N:${lastName};${firstName};;;
+FN:${fullName}
+TITLE:${profile.headline || ''}
+ORG:CHIP NG Network
+EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}
+ADR;TYPE=WORK:;;${profile.address || ''};;;;
+URL;TYPE=WORK:https://www.chipng.com/@${profile.username}${photoStr}
+REV:${new Date().toISOString()}
+END:VCARD`;
+
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `${profile.username || 'contact'}.vcf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    toast.success('Downloaded vCard contact file');
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
 
@@ -1626,12 +1642,21 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     </div>
                   )}
 
-                  <button 
-                    onClick={handleDownloadVCard}
-                    className="w-full px-4 py-3 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
-                  >
-                    <Download className="w-4 h-4" /> Download vCard Contact File
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button 
+                      onClick={() => handleDownloadVCard(false)}
+                      className="w-full px-4 py-3 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                    >
+                      <Download className="w-4 h-4" /> Download vCard (.vcf)
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setIsVCardPreviewOpen(true)}
+                      className="w-full px-4 py-3 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-neutral-900 dark:text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer border border-neutral-200/60 dark:border-white/5"
+                    >
+                      <Eye className="w-4 h-4" /> Preview Contact Card
+                    </button>
+                  </div>
 
                   {/* 1-Click Social Sharing for WhatsApp, Twitter, LinkedIn */}
                   <div className="grid grid-cols-3 gap-2 w-full">
@@ -2429,6 +2454,14 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         </nav>
 
           </div>
+
+      {/* Interactive Contact vCard Preview Modal */}
+      <ContactVCardModal
+        isOpen={isVCardPreviewOpen}
+        onClose={() => setIsVCardPreviewOpen(false)}
+        profile={profile}
+        onSaveToPhone={() => handleDownloadVCard(false)}
+      />
     </AdminLayout>
   );
 }

@@ -10,6 +10,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 import { LeadExchangeModal } from '../components/LeadExchangeModal';
+import { ContactVCardModal } from '../components/ContactVCardModal';
 import { toast } from '../components/Toast';
 import { recordProfileView, recordProfileClick as trackTelemetryClick } from '../utils/telemetryClient';
 import { Helmet } from 'react-helmet-async';
@@ -29,17 +30,21 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   const [isVcardCopied, setIsVcardCopied] = useState(false);
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
+  const [isVCardModalOpen, setIsVCardModalOpen] = useState<boolean>(Boolean(autoDownloadVCard));
 
   useEffect(() => {
     fetchData();
   }, [username]);
 
   useEffect(() => {
-    if (autoDownloadVCard && profile && !hasDownloaded) {
-      setHasDownloaded(true);
-      setTimeout(() => {
-        downloadVCard();
-      }, 500);
+    if (autoDownloadVCard && profile) {
+      setIsVCardModalOpen(true);
+      if (!hasDownloaded) {
+        setHasDownloaded(true);
+        setTimeout(() => {
+          downloadVCard(false);
+        }, 500);
+      }
     }
   }, [profile, autoDownloadVCard, hasDownloaded]);
 
@@ -281,61 +286,71 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     } catch(e) {}
   };
 
-  const downloadVCard = async () => {
+  const downloadVCard = (shouldOpenModal: boolean = false) => {
     if (!profile) return;
+    if (shouldOpenModal) {
+      setIsVCardModalOpen(true);
+    }
     recordClick('Saved Contact to Phone (vCard)', undefined, 'vcard');
-    
-    let photoStr = "";
-    if (profile.cover_image_url) {
-      try {
-        const response = await fetch(profile.cover_image_url);
-        const blob = await response.blob();
-        const base64data = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-        const parts = base64data.split(',');
-        if (parts.length === 2) {
-          const mimeTypeMatch = parts[0].match(/:(.*?);/);
-          const type = mimeTypeMatch ? mimeTypeMatch[1].split('/')[1].toUpperCase() : 'JPEG';
-          photoStr = `\nPHOTO;ENCODING=b;TYPE=${type}:${parts[1]}`;
-        }
-      } catch (err) {
-        console.warn("Failed to fetch profile image for vCard", err);
-        // Fallback to URI method if fetch fails (e.g., due to CORS)
-        photoStr = `\nPHOTO;VALUE=URI:${profile.cover_image_url}`;
-      }
+
+    // 1. Trigger direct browser download via server vCard endpoint (reliable on iOS & Android)
+    try {
+      const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
+      const downloadLink = document.createElement('a');
+      downloadLink.href = serverVCardUrl;
+      downloadLink.setAttribute('download', `${profile.username || 'contact'}.vcf`);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      return;
+    } catch (e) {
+      console.warn('Direct server vcard download failed, falling back to client blob:', e);
     }
 
-    const vcard = (() => {
-      let phonesStr = `\nTEL;TYPE=CELL:${profile.phone_number || ''}`;
-      if (profile.phone_number) {
-        let arr = [];
-        try {
-          const parsed = JSON.parse(profile.phone_number);
-          if (Array.isArray(parsed)) arr = parsed;
-          else if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
-          else arr = [profile.phone_number];
-        } catch(e) {
-          if (profile.phone_number.includes(',')) arr = profile.phone_number.split(',').map(s=>s.trim());
-          else arr = [profile.phone_number];
-        }
-        if (arr.filter(Boolean).length > 0) {
-          phonesStr = arr.filter(Boolean).map(p => `\nTEL;TYPE=CELL:${p}`).join('');
-        }
+    // 2. Client Blob generation fallback (RFC 2426 compliant)
+    const fullName = profile.full_name || profile.username || 'CHIP NG User';
+    const names = fullName.trim().split(' ');
+    const firstName = names[0] || '';
+    const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
+
+    let phonesStr = '';
+    if (profile.phone_number) {
+      let arr = [];
+      try {
+        const parsed = JSON.parse(profile.phone_number);
+        if (Array.isArray(parsed)) arr = parsed;
+        else arr = [profile.phone_number];
+      } catch {
+        arr = String(profile.phone_number).split(',').map((s: string) => s.trim());
       }
-      return `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.full_name || ''}\nTITLE:${profile.headline || ''}\nEMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}\nADR;TYPE=WORK:;;${profile.address || ''};;;;\nURL:https://www.chipng.com/@${profile.username}${photoStr}\nEND:VCARD`;
-    })();
-    
-    const blob = new Blob([vcard], { type: "text/vcard" });
+      arr = arr.filter(Boolean);
+      phonesStr = arr.map((p: string) => `\nTEL;TYPE=CELL,VOICE;VALUE=uri:tel:${p.replace(/[^0-9+]/g, '')}\nTEL;TYPE=CELL:${p}`).join('');
+    }
+
+    const photoStr = profile.cover_image_url ? `\nPHOTO;VALUE=URI:${profile.cover_image_url}` : '';
+
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+PRODID:-//CHIP NG Technologies//Contactless Smart Card vCard 3.0//EN
+N:${lastName};${firstName};;;
+FN:${fullName}
+TITLE:${profile.headline || ''}
+ORG:CHIP NG Network
+EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}
+ADR;TYPE=WORK:;;${profile.address || ''};;;;
+URL;TYPE=WORK:https://www.chipng.com/@${profile.username}${photoStr}
+REV:${new Date().toISOString()}
+END:VCARD`;
+
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `${profile.username || 'contact'}.vcf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
   const getFontFamily = () => {
@@ -469,9 +484,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               <span>Connect</span>
             </button>
             <button 
-              onClick={downloadVCard}
-              className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all pointer-events-auto`}
-              title="Save Contact to Phonebook (vCard)"
+              onClick={() => {
+                setIsVCardModalOpen(true);
+                downloadVCard(false);
+              }}
+              className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all pointer-events-auto cursor-pointer`}
+              title="View & Save Contact (vCard)"
             >
               <UserPlus className="w-4 h-4" />
             </button>
@@ -745,7 +763,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               </button>
 
               <button
-                onClick={downloadVCard}
+                onClick={() => {
+                  setIsVCardModalOpen(true);
+                  downloadVCard(false);
+                }}
                 className={`py-3.5 px-4 rounded-2xl ${cardBgClass} text-current font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer`}
               >
                 <UserPlus className="w-4 h-4 text-emerald-500" />
@@ -1064,7 +1085,16 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           isOpen={isExchangeModalOpen}
           onClose={() => setIsExchangeModalOpen(false)}
           profile={profile}
-          onVCardDownload={downloadVCard}
+          onVCardDownload={() => downloadVCard(false)}
+        />
+
+        {/* Interactive Contact vCard Modal */}
+        <ContactVCardModal
+          isOpen={isVCardModalOpen}
+          onClose={() => setIsVCardModalOpen(false)}
+          profile={profile}
+          onSaveToPhone={() => downloadVCard(false)}
+          onOpenExchangeModal={() => setIsExchangeModalOpen(true)}
         />
 
       </div>
