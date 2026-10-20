@@ -45,7 +45,7 @@ export const ContactVCardModal: React.FC<ContactVCardModalProps> = ({
   const email = profile.contact_email || profile.email || '';
   const address = profile.address || '';
   const avatarUrl = profile.cover_image_url || 'https://www.chipng.com/chipng_3d_logo.jpg';
-  const vcardDirectUrl = `https://www.chipng.com/api/vcard/${encodeURIComponent(profile.username || '')}`;
+  const vcardDirectUrl = `https://www.chipng.com/${encodeURIComponent(profile.username || '')}/vcard`;
   const profileUrl = `https://www.chipng.com/@${encodeURIComponent(profile.username || '')}`;
 
   // Parse phone numbers

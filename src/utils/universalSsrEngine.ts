@@ -140,7 +140,7 @@ export async function renderUserProfileSsr(
 
     const avatarUrl = rawCoverUrl || 'https://www.chipng.com/chipng_exact_tile.png';
     const profileUrl = `https://www.chipng.com/@${profile.username}`;
-    const vCardUrl = `https://www.chipng.com/api/vcard/${encodeURIComponent(profile.username)}`;
+    const vCardUrl = `https://www.chipng.com/${profile.username}/vcard`;
 
     const title = `${profile.full_name || profile.username} (@${profile.username}) | Contactless Digital Card & Bio | CHIP NG`;
     const description = cleanText(

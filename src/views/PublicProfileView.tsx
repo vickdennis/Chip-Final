@@ -10,6 +10,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 import { LeadExchangeModal } from '../components/LeadExchangeModal';
+import { ContactVCardModal } from '../components/ContactVCardModal';
 import { toast } from '../components/Toast';
 import { recordProfileView, recordProfileClick as trackTelemetryClick } from '../utils/telemetryClient';
 import { Helmet } from 'react-helmet-async';
@@ -30,17 +31,21 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   const [isVcardCopied, setIsVcardCopied] = useState(false);
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
+  const [isVCardModalOpen, setIsVCardModalOpen] = useState<boolean>(Boolean(autoDownloadVCard));
 
   useEffect(() => {
     fetchData();
   }, [username]);
 
   useEffect(() => {
-    if (autoDownloadVCard && profile && !hasDownloaded) {
-      setHasDownloaded(true);
-      setTimeout(() => {
-        downloadVCard();
-      }, 500);
+    if (autoDownloadVCard && profile) {
+      setIsVCardModalOpen(true);
+      if (!hasDownloaded) {
+        setHasDownloaded(true);
+        setTimeout(() => {
+          downloadVCard(false);
+        }, 400);
+      }
     }
   }, [profile, autoDownloadVCard, hasDownloaded]);
 
@@ -282,8 +287,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     } catch(e) {}
   };
 
-  const downloadVCard = () => {
+  const downloadVCard = (shouldOpenModal: boolean = false) => {
     if (!profile) return;
+    if (shouldOpenModal) {
+      setIsVCardModalOpen(true);
+    }
     recordClick('Saved Contact to Phone (vCard)', undefined, 'vcard');
     
     const success = downloadVCardClient({
@@ -293,12 +301,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     }, {
       showToast: true,
       onSuccess: () => {
-        toast.success(`Contact saved! Added ${profile.full_name || profile.username} to phonebook.`);
+        toast.success(`Saved ${profile.full_name || profile.username}'s contact to phonebook (.vcf)`);
       }
     });
 
     if (!success && profile.username) {
-      window.location.href = `/api/vcard/${encodeURIComponent(profile.username)}`;
+      window.location.href = `https://www.chipng.com/${encodeURIComponent(profile.username)}/vcard?download=1`;
     }
   };
 
@@ -433,8 +441,8 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               <span>Connect</span>
             </button>
             <button 
-              onClick={downloadVCard}
-              className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all pointer-events-auto`}
+              onClick={() => downloadVCard(true)}
+              className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all pointer-events-auto cursor-pointer`}
               title="Save Contact to Phonebook (vCard)"
             >
               <UserPlus className="w-4 h-4" />
@@ -458,7 +466,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                     {qrMode !== 'none' ? (
     <div className="w-full h-full bg-white flex items-center justify-center p-2">
       <QRCodeSVG level="H" 
-        value={qrMode === 'bio' ? `https://chipng.com/@${profile.username || ''}?source=qr` : `https://chipng.com/api/vcard/${profile.username || ''}`}
+        value={qrMode === 'bio' ? `https://chipng.com/@${profile.username || ''}?source=qr` : `https://chipng.com/${profile.username || ''}/vcard`}
         size={100} marginSize={1}
         imageSettings={{
           src: profile?.cover_image_url || coverUrl,
@@ -527,11 +535,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                      <div className={`w-6 h-6 rounded-2xl ${cardBgClass} text-current flex items-center justify-center font-bold text-[10px] shrink-0`}>
                        VC
                      </div>
-                     <span className="text-current text-[13px] truncate font-medium">chipng.com/api/vcard/{profile.username}</span>
+                     <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}/vcard</span>
                   </div>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://www.chipng.com/api/vcard/${profile.username}`);
+                      navigator.clipboard.writeText(`https://www.chipng.com/${profile.username}/vcard`);
                       setIsVcardCopied(true);
                       setTimeout(() => setIsVcardCopied(false), 2000);
                     }}
@@ -543,7 +551,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
                 {/* Direct Save Contact Action */}
                 <button
-                  onClick={downloadVCard}
+                  onClick={() => downloadVCard(true)}
                   className="w-full py-3 px-4 mb-4 rounded-2xl bg-[#76BB08] hover:bg-[#86d409] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-md"
                 >
                   <UserPlus className="w-4 h-4" />
@@ -627,22 +635,6 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         )}
 
         <div className="flex-grow pb-10 relative z-10 flex flex-col">
-          {/* Active vCard Download Status Banner (when accessed via /vcard or direct tap) */}
-          {autoDownloadVCard && (
-            <div className="w-full bg-[#76BB08] text-neutral-950 px-4 py-3 flex items-center justify-between text-xs font-bold shadow-lg z-30 sticky top-0 animate-in slide-in-from-top-2">
-              <div className="flex items-center gap-2 overflow-hidden mr-2">
-                <UserPlus className="w-4 h-4 animate-bounce shrink-0" />
-                <span className="truncate">Contact Ready to Save</span>
-              </div>
-              <button
-                onClick={downloadVCard}
-                className="bg-neutral-950 text-white px-3 py-1.5 rounded-full text-[11px] font-bold hover:bg-neutral-800 transition-colors shrink-0 cursor-pointer shadow-xs"
-              >
-                Save Contact (.vcf)
-              </button>
-            </div>
-          )}
-
           {/* Header Section */}
           {layout === 'minimal' ? (
           <section className="relative w-full flex flex-col items-center pt-16 pb-4">
@@ -734,7 +726,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
               </button>
 
               <button
-                onClick={downloadVCard}
+                onClick={() => downloadVCard(true)}
                 className={`py-3.5 px-4 rounded-2xl ${cardBgClass} text-current font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer`}
               >
                 <UserPlus className="w-4 h-4 text-emerald-500" />
@@ -1053,7 +1045,16 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
           isOpen={isExchangeModalOpen}
           onClose={() => setIsExchangeModalOpen(false)}
           profile={profile}
-          onVCardDownload={downloadVCard}
+          onVCardDownload={() => downloadVCard(false)}
+        />
+
+        {/* Interactive Contact vCard Pop-up Modal */}
+        <ContactVCardModal
+          isOpen={isVCardModalOpen}
+          onClose={() => setIsVCardModalOpen(false)}
+          profile={profile}
+          onSaveToPhone={() => downloadVCard(false)}
+          onOpenExchangeModal={() => setIsExchangeModalOpen(true)}
         />
 
       </div>
