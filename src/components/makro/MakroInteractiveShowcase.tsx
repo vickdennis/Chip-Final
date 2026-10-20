@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Smartphone, CreditCard, BarChart2, Check, ArrowRight, Download, ExternalLink, Zap, Radio, Globe, UserCheck, Shield } from 'lucide-react';
+import { downloadVCardClient } from '../../utils/vcardGenerator';
 
 export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = ({ onGetStarted }) => {
   const [activeTab, setActiveTab] = useState<'card' | 'bio' | 'leads' | 'telemetry'>('card');
@@ -268,7 +269,23 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                   {/* 1-Tap Save Contact Button */}
                   <div className="space-y-2 pt-1">
                     <button
-                      onClick={() => setLeadSaved(true)}
+                      onClick={() => {
+                        setLeadSaved(true);
+                        downloadVCardClient({
+                          full_name: 'Tunde Balogun',
+                          username: 'tunde',
+                          headline: 'Executive Creative Director at Makro Studio',
+                          phone_number: '+234 810 076 4154',
+                          contact_email: 'tunde@makro.ng',
+                          address: 'Victoria Island, Lagos, Nigeria',
+                          bio: 'Pioneering African luxury branding & interactive digital hardware.',
+                          social_links: [
+                            { platform: 'WhatsApp', url: 'https://wa.me/2348100764154' },
+                            { platform: 'LinkedIn', url: 'https://linkedin.com/company/chipng' },
+                            { platform: 'Instagram', url: 'https://instagram.com/chipng_nfc' }
+                          ]
+                        });
+                      }}
                       className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                         leadSaved
                           ? 'bg-emerald-600 text-white'

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 import { applyUniversalSsr } from '../src/utils/universalSsrEngine';
+import { generateVCardString } from '../src/utils/vcardGenerator';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthyjd.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
@@ -93,6 +94,121 @@ app.get(['/review', '/reviews', '/drop-review', '/api/review'], (req: Request, r
   res.redirect(302, 'https://g.page/r/CZGM0zQdEiY7EAE/review');
 });
 
+// --- Dedicated Universal vCard (.vcf) Contact Download Engine ---
+const handleVCardServerless = async (req: Request, res: Response) => {
+  try {
+    let rawUsername = (req.params.username || req.query.username || '') as string;
+    try {
+      rawUsername = decodeURIComponent(rawUsername);
+    } catch (e) {}
+
+    rawUsername = rawUsername
+      .replace(/^@/, '')
+      .replace(/\.vcf$/i, '')
+      .replace(/\/vcard$/i, '')
+      .trim();
+
+    if (!rawUsername) {
+      return res.status(400).send('Invalid username specified');
+    }
+
+    const supabase = getSupabase();
+    
+    // 1. Fetch Profile
+    let { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('username', rawUsername)
+      .maybeSingle();
+
+    if (!profile) {
+      const ilikeRes = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('username', rawUsername)
+        .maybeSingle();
+      profile = ilikeRes.data;
+    }
+
+    if (!profile) {
+      return res.status(404).send('Contact profile not found');
+    }
+
+    // 2. Fetch Social Links & Enterprise
+    const [socialsRes, entRes] = await Promise.allSettled([
+      supabase.from('social_links').select('*').eq('profile_id', profile.id),
+      profile.enterprise_id
+        ? supabase.from('enterprises').select('name, brand_color').eq('id', profile.enterprise_id).maybeSingle()
+        : Promise.resolve({ data: null })
+    ]);
+
+    const socialLinks = socialsRes.status === 'fulfilled' && socialsRes.value?.data ? socialsRes.value.data : [];
+    const enterprise = entRes.status === 'fulfilled' && entRes.value?.data ? entRes.value.data : null;
+
+    // 3. Server-side Image Fetch for Embedded Photo Base64
+    let imageBase64: string | null = null;
+    let imageMimeType: string | null = null;
+
+    if (profile.cover_image_url && typeof profile.cover_image_url === 'string' && profile.cover_image_url.startsWith('http')) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const imgRes = await fetch(profile.cover_image_url, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CHIPNG-Bot/1.0)' }
+        });
+        clearTimeout(timeoutId);
+
+        if (imgRes.ok) {
+          const buf = Buffer.from(await imgRes.arrayBuffer());
+          if (buf.length > 0 && buf.length < 500 * 1024) {
+            imageBase64 = buf.toString('base64');
+            imageMimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 4. Generate RFC 2426 vCard 3.0 String
+    const vCardContent = generateVCardString(
+      {
+        ...profile,
+        enterprise,
+        social_links: socialLinks
+      },
+      {
+        imageBase64,
+        imageMimeType
+      }
+    );
+
+    const cleanFilename = (profile.full_name || profile.username || 'contact')
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, '_')
+      .replace(/_+/g, '_') + '.vcf';
+
+    // 5. Send Headers & Payload
+    res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+    res.setHeader('Content-Length', Buffer.byteLength(vCardContent, 'utf-8'));
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Robots-Tag', 'noindex');
+
+    return res.send(vCardContent);
+  } catch (err: any) {
+    console.error('vCard generation error:', err);
+  }
+};
+
+app.get(['/api/vcard/:username', '/api/vcard', '/:username.vcf', '/@:username.vcf'], handleVCardServerless);
+app.get(['/:username/vcard', '/@:username/vcard'], (req: Request, res: Response, next: express.NextFunction) => {
+  if (req.query.download === '1' || req.query.format === 'vcf' || (req.headers.accept && req.headers.accept.includes('text/vcard'))) {
+    return handleVCardServerless(req, res);
+  }
+  next();
+});
+
 // --- Dynamic Cover Photo Proxy for Open Graph & Social Sharing ---
 // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards work
 app.get(['/cover/:username', '/api/cover/:username'], async (req: Request, res: Response) => {
@@ -180,106 +296,6 @@ app.get(['/cover', '/api/cover'], async (req: Request, res: Response) => {
     res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
   } catch (e) {
     res.redirect(302, 'https://www.chipng.com/chipng_3d_logo.jpg');
-  }
-});
-
-// --- Dynamic vCard 3.0 Phonebook Sync Endpoints (RFC 2426) ---
-app.get([
-  '/api/vcard/:username', 
-  '/api/vcard',
-  '/vcard/:username',
-  '/vcard',
-  '/@:username/vcard.vcf', 
-  '/:username/vcard.vcf', 
-  '/:username.vcf', 
-  '/@:username.vcf',
-  '/vcard.vcf'
-], async (req: Request, res: Response) => {
-  try {
-    let clean = decodeURIComponent(req.params.username || (req.query.vcard as string) || (req.query.username as string) || '')
-      .replace(/^@/, '')
-      .replace(/\.vcf$/i, '')
-      .replace(/\/vcard$/i, '')
-      .trim()
-      .toLowerCase();
-
-    if (!clean || clean === 'vcard') {
-      clean = 'chipng';
-    }
-
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
-    const supabase = getSupabase();
-    const { data: profile } = await (isUuid
-      ? supabase.from('profiles').select('*').eq('id', clean).maybeSingle()
-      : supabase.from('profiles').select('*').ilike('username', clean).maybeSingle());
-
-    if (!profile) {
-      return res.status(404).send('Contact profile not found');
-    }
-
-    const fullName = profile.full_name || profile.username || 'CHIP NG User';
-    const nameParts = fullName.trim().split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-
-    let phoneLines: string[] = [];
-    if (profile.phone_number) {
-      let arr: string[] = [];
-      try {
-        const parsed = JSON.parse(profile.phone_number);
-        if (Array.isArray(parsed)) arr = parsed;
-        else arr = [profile.phone_number];
-      } catch {
-        arr = String(profile.phone_number).split(',').map((s: string) => s.trim());
-      }
-      arr = arr.filter(Boolean);
-      arr.forEach((p) => {
-        const cleanDigits = p.replace(/[^0-9+]/g, '');
-        phoneLines.push(`TEL;TYPE=CELL,VOICE;VALUE=uri:tel:${cleanDigits}`);
-        phoneLines.push(`TEL;TYPE=CELL:${p}`);
-      });
-    }
-
-    let photoLine = '';
-    if (profile.cover_image_url) {
-      try {
-        const imgRes = await fetch(profile.cover_image_url, { signal: AbortSignal.timeout(3000) });
-        if (imgRes.ok) {
-          const buf = Buffer.from(await imgRes.arrayBuffer());
-          const b64 = buf.toString('base64');
-          const cType = imgRes.headers.get('content-type') || 'image/jpeg';
-          const imgType = cType.includes('png') ? 'PNG' : 'JPEG';
-          photoLine = `PHOTO;ENCODING=b;TYPE=${imgType}:${b64}`;
-        }
-      } catch (e) {
-        photoLine = `PHOTO;VALUE=URI:${profile.cover_image_url}`;
-      }
-    }
-
-    const lines = [
-      'BEGIN:VCARD',
-      'VERSION:3.0',
-      'PRODID:-//CHIP NG Technologies//Contactless Smart Card vCard 3.0//EN',
-      `N:${lastName};${firstName};;;`,
-      `FN:${fullName}`,
-      profile.headline ? `TITLE:${profile.headline}` : '',
-      'ORG:CHIP NG Network',
-      profile.contact_email || profile.email ? `EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}` : '',
-      ...phoneLines,
-      profile.address ? `ADR;TYPE=WORK:;;${profile.address};;;;` : '',
-      `URL;TYPE=WORK:https://www.chipng.com/@${profile.username}`,
-      profile.bio ? `NOTE:${profile.bio.replace(/\r?\n/g, ' ')}` : '',
-      photoLine,
-      `REV:${new Date().toISOString()}`,
-      'END:VCARD'
-    ].filter(Boolean);
-
-    res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
-    res.setHeader('Content-Disposition', `inline; filename="${profile.username || 'contact'}.vcf"`);
-    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
-    return res.send(lines.join('\r\n'));
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message });
   }
 });
 

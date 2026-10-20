@@ -1,25 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ViewState } from '../App';
-import { 
-  ExternalLink, 
-  Mail, 
-  Link as LinkIcon, 
-  Share, 
-  Globe, 
-  Phone, 
-  MapPin, 
-  UserPlus, 
-  X, 
-  Copy, 
-  QrCode, 
-  ShoppingCart, 
-  UserCheck, 
-  Check, 
-  Sparkles, 
-  Download 
-} from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa6';
+import { ExternalLink, Mail, Link as LinkIcon, Share, Globe, Phone, MapPin, UserPlus, X, Copy, QrCode, ShoppingCart, UserCheck } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SOCIAL_PLATFORMS } from './UserDashboard';
 import { SocialMediaIconBadge, SocialIconStyle } from '../components/social/SocialMediaIconBadge';
@@ -28,10 +10,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 import { LeadExchangeModal } from '../components/LeadExchangeModal';
-import { ContactVCardModal } from '../components/ContactVCardModal';
 import { toast } from '../components/Toast';
 import { recordProfileView, recordProfileClick as trackTelemetryClick } from '../utils/telemetryClient';
 import { Helmet } from 'react-helmet-async';
+import { downloadVCardClient } from '../utils/vcardGenerator';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -48,37 +30,21 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
   const [isVcardCopied, setIsVcardCopied] = useState(false);
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
-  const [isVCardModalOpen, setIsVCardModalOpen] = useState<boolean>(Boolean(autoDownloadVCard));
-  const [isInlineQrOpen, setIsInlineQrOpen] = useState(false);
-  const [inlineCopiedKey, setInlineCopiedKey] = useState<string | null>(null);
-
-  const copyInlineText = (text: string, key: string, label: string) => {
-    if (!text) return;
-    try {
-      navigator.clipboard.writeText(text);
-      setInlineCopiedKey(key);
-      toast.success(`${label} copied to clipboard!`);
-      setTimeout(() => setInlineCopiedKey(null), 2000);
-    } catch {
-      toast.error('Failed to copy');
-    }
-  };
 
   useEffect(() => {
     fetchData();
   }, [username]);
 
   useEffect(() => {
-    if (autoDownloadVCard && profile) {
-      setIsVCardModalOpen(true);
-      if (!hasDownloaded) {
-        setHasDownloaded(true);
-        setTimeout(() => {
-          downloadVCard(false);
-        }, 600);
-      }
+    if (autoDownloadVCard && profile && !hasDownloaded) {
+      setHasDownloaded(true);
+      setTimeout(() => {
+        downloadVCard();
+      }, 500);
     }
   }, [profile, autoDownloadVCard, hasDownloaded]);
+
+
 
   const fetchData = async () => {
     try {
@@ -97,15 +63,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
         }
       }
 
-      if (!effectiveUsername || effectiveUsername === 'vcard') {
-        effectiveUsername = 'chipng';
-      }
-
       if (effectiveUsername) {
         let cleanUsername = decodeURIComponent(effectiveUsername).trim();
         if (cleanUsername.endsWith('/vcard')) cleanUsername = cleanUsername.replace(/\/vcard$/, '');
         if (cleanUsername.startsWith('@')) cleanUsername = cleanUsername.slice(1);
-        if (!cleanUsername || cleanUsername === 'vcard') cleanUsername = 'chipng';
 
         console.log("Fetching profile for cleanUsername:", cleanUsername);
         
@@ -321,64 +282,23 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
     } catch(e) {}
   };
 
-  const downloadVCard = (shouldOpenModal: boolean = false) => {
+  const downloadVCard = () => {
     if (!profile) return;
-    if (shouldOpenModal) {
-      setIsVCardModalOpen(true);
-    }
     recordClick('Saved Contact to Phone (vCard)', undefined, 'vcard');
-
-    const fullName = profile.full_name || profile.username || 'CHIP NG User';
-    const names = fullName.trim().split(' ');
-    const firstName = names[0] || '';
-    const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
-
-    let phonesStr = '';
-    if (profile.phone_number) {
-      let arr = [];
-      try {
-        const parsed = JSON.parse(profile.phone_number);
-        if (Array.isArray(parsed)) arr = parsed;
-        else arr = [profile.phone_number];
-      } catch {
-        arr = String(profile.phone_number).split(',').map((s: string) => s.trim());
+    
+    const success = downloadVCardClient({
+      ...profile,
+      social_links: socialLinks,
+      enterprise: profile.enterprise
+    }, {
+      showToast: true,
+      onSuccess: () => {
+        toast.success(`Contact saved! Added ${profile.full_name || profile.username} to phonebook.`);
       }
-      arr = arr.filter(Boolean);
-      phonesStr = arr.map((p: string) => `\nTEL;TYPE=CELL,VOICE;VALUE=uri:tel:${p.replace(/[^0-9+]/g, '')}\nTEL;TYPE=CELL:${p}`).join('');
-    }
+    });
 
-    const photoStr = profile.cover_image_url ? `\nPHOTO;VALUE=URI:${profile.cover_image_url}` : '';
-
-    const vcard = `BEGIN:VCARD
-VERSION:3.0
-PRODID:-//CHIP NG Technologies//Contactless Smart Card vCard 3.0//EN
-N:${lastName};${firstName};;;
-FN:${fullName}
-TITLE:${profile.headline || ''}
-ORG:CHIP NG Network
-EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email || ''}${phonesStr}
-ADR;TYPE=WORK:;;${profile.address || ''};;;;
-URL;TYPE=WORK:https://www.chipng.com/@${profile.username}${photoStr}
-REV:${new Date().toISOString()}
-END:VCARD`;
-
-    try {
-      const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.setAttribute('download', `${profile.username || 'contact'}.vcf`);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast.success(`Saved ${fullName}'s contact to phonebook (.vcf)`);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-    } catch (e) {
-      console.warn('Client blob vcard download failed, falling back to server URL:', e);
-      try {
-        const serverVCardUrl = `/api/vcard/${encodeURIComponent(profile.username || profile.id)}`;
-        window.location.href = serverVCardUrl;
-      } catch (err) {}
+    if (!success && profile.username) {
+      window.location.href = `/api/vcard/${encodeURIComponent(profile.username)}`;
     }
   };
 
@@ -513,12 +433,9 @@ END:VCARD`;
               <span>Connect</span>
             </button>
             <button 
-              onClick={() => {
-                setIsVCardModalOpen(true);
-                downloadVCard(false);
-              }}
-              className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all pointer-events-auto cursor-pointer`}
-              title="View & Save Contact (vCard)"
+              onClick={downloadVCard}
+              className={`w-10 h-10 ${cardBgClass} text-current rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all pointer-events-auto`}
+              title="Save Contact to Phonebook (vCard)"
             >
               <UserPlus className="w-4 h-4" />
             </button>
@@ -538,10 +455,10 @@ END:VCARD`;
               
               <div className="p-8 flex flex-col items-center">
                 <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden mb-6 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-black/10 dark:border-white/10 relative">
-                   {qrMode !== 'none' ? (
+                    {qrMode !== 'none' ? (
     <div className="w-full h-full bg-white flex items-center justify-center p-2">
       <QRCodeSVG level="H" 
-        value={qrMode === 'bio' ? `https://chipng.com/${profile.username || ''}?source=qr` : `https://chipng.com/${profile.username || ''}/vcard`}
+        value={qrMode === 'bio' ? `https://chipng.com/@${profile.username || ''}?source=qr` : `https://chipng.com/api/vcard/${profile.username || ''}`}
         size={100} marginSize={1}
         imageSettings={{
           src: profile?.cover_image_url || coverUrl,
@@ -605,16 +522,16 @@ END:VCARD`;
                   </button>
                 </div>
 
-                <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-4">
+                <div className="w-full bg-gray-50 dark:bg-black/50 border border-[#333] rounded-2xl p-1.5 flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3 px-3 overflow-hidden">
                      <div className={`w-6 h-6 rounded-2xl ${cardBgClass} text-current flex items-center justify-center font-bold text-[10px] shrink-0`}>
                        VC
                      </div>
-                     <span className="text-current text-[13px] truncate font-medium">chipng.com/{profile.username}/vcard</span>
+                     <span className="text-current text-[13px] truncate font-medium">chipng.com/api/vcard/{profile.username}</span>
                   </div>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://www.chipng.com/${profile.username}/vcard`);
+                      navigator.clipboard.writeText(`https://www.chipng.com/api/vcard/${profile.username}`);
                       setIsVcardCopied(true);
                       setTimeout(() => setIsVcardCopied(false), 2000);
                     }}
@@ -623,6 +540,15 @@ END:VCARD`;
                     {isVcardCopied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
+
+                {/* Direct Save Contact Action */}
+                <button
+                  onClick={downloadVCard}
+                  className="w-full py-3 px-4 mb-4 rounded-2xl bg-[#76BB08] hover:bg-[#86d409] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-md"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Download Verified Contact (.vcf)</span>
+                </button>
 
                 {/* Instant 1-Click Social Sharing */}
                 <div className="grid grid-cols-3 gap-2 w-full mb-4">
@@ -701,6 +627,22 @@ END:VCARD`;
         )}
 
         <div className="flex-grow pb-10 relative z-10 flex flex-col">
+          {/* Active vCard Download Status Banner (when accessed via /vcard or direct tap) */}
+          {autoDownloadVCard && (
+            <div className="w-full bg-[#76BB08] text-neutral-950 px-4 py-3 flex items-center justify-between text-xs font-bold shadow-lg z-30 sticky top-0 animate-in slide-in-from-top-2">
+              <div className="flex items-center gap-2 overflow-hidden mr-2">
+                <UserPlus className="w-4 h-4 animate-bounce shrink-0" />
+                <span className="truncate">Contact Ready to Save</span>
+              </div>
+              <button
+                onClick={downloadVCard}
+                className="bg-neutral-950 text-white px-3 py-1.5 rounded-full text-[11px] font-bold hover:bg-neutral-800 transition-colors shrink-0 cursor-pointer shadow-xs"
+              >
+                Save Contact (.vcf)
+              </button>
+            </div>
+          )}
+
           {/* Header Section */}
           {layout === 'minimal' ? (
           <section className="relative w-full flex flex-col items-center pt-16 pb-4">
@@ -792,266 +734,12 @@ END:VCARD`;
               </button>
 
               <button
-                onClick={() => {
-                  downloadVCard(true);
-                }}
+                onClick={downloadVCard}
                 className={`py-3.5 px-4 rounded-2xl ${cardBgClass} text-current font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer`}
               >
                 <UserPlus className="w-4 h-4 text-emerald-500" />
                 <span>Save to Phone</span>
               </button>
-            </div>
-
-            {/* Dedicated Interactive Contact vCard Showcase Card */}
-            <div 
-              id="vcard-section"
-              className={`w-full rounded-3xl p-5 sm:p-6 mb-6 transition-all ${
-                autoDownloadVCard 
-                  ? 'bg-[#12141a] border-2 border-[#76BB08] shadow-[0_0_30px_rgba(118,187,8,0.25)] ring-1 ring-[#76BB08]' 
-                  : `${cardBgClass} border border-white/10 shadow-lg`
-              }`}
-            >
-              {/* vCard Badge Header */}
-              <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#76BB08] animate-pulse" />
-                  <span className="text-[11px] font-mono font-extrabold uppercase tracking-wider text-[#76BB08]">
-                    Verified Contact vCard 3.0
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setIsInlineQrOpen(!isInlineQrOpen)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current text-xs transition-colors cursor-pointer"
-                    title="Toggle QR Code"
-                  >
-                    <QrCode className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsVCardModalOpen(true)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current text-xs transition-colors cursor-pointer"
-                    title="Open Fullscreen Card"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {autoDownloadVCard && (
-                <div className="mb-4 px-3 py-2 rounded-xl bg-[#76BB08]/15 border border-[#76BB08]/30 flex items-center gap-2 text-xs font-bold text-[#76BB08]">
-                  <Sparkles className="w-4 h-4 shrink-0" />
-                  <span>Direct vCard Route Active • Save to Phonebook or Connect Below</span>
-                </div>
-              )}
-
-              {/* Identity Row */}
-              <div className="flex items-center gap-3.5 mb-4">
-                <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#76BB08]/60 p-0.5 bg-neutral-900 shrink-0 shadow-md">
-                  <img 
-                    src={profile?.cover_image_url || coverUrl} 
-                    alt={profile?.full_name || 'Contact'} 
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-display font-extrabold text-base sm:text-lg text-current truncate leading-tight">
-                      {profile?.full_name || profile?.username}
-                    </h3>
-                    {profile?.is_verified && (
-                      <span className="w-4 h-4 rounded-full bg-[#0095f6] text-white flex items-center justify-center text-[9px] font-black shrink-0">
-                        ✓
-                      </span>
-                    )}
-                  </div>
-                  <p className="font-sans text-xs opacity-75 truncate mt-0.5">
-                    {profile?.headline || 'Contactless Smart Business Card'}
-                  </p>
-                  <span className="font-mono text-[11px] text-[#76BB08] font-bold">
-                    @{profile?.username}
-                  </span>
-                </div>
-              </div>
-
-              {/* Inline QR Code View (collapsible) */}
-              {isInlineQrOpen && (
-                <div className="p-4 bg-white rounded-2xl mb-4 flex flex-col items-center justify-center animate-in fade-in duration-200 shadow-md">
-                  <QRCodeSVG
-                    value={`https://chipng.com/${profile?.username || ''}/vcard`}
-                    size={160}
-                    level="H"
-                    marginSize={1}
-                    imageSettings={{
-                      src: profile?.cover_image_url || chipngExactTile,
-                      x: undefined,
-                      y: undefined,
-                      height: 32,
-                      width: 32,
-                      excavate: true,
-                    }}
-                  />
-                  <p className="text-[11px] font-bold text-neutral-800 mt-2">
-                    Scan with camera to instantly save contact
-                  </p>
-                </div>
-              )}
-
-              {/* Contact Detail Rows */}
-              <div className="space-y-2 mb-4 text-left">
-                {/* Phones */}
-                {(() => {
-                  if (!profile?.phone_number) return null;
-                  let phones: string[] = [];
-                  try {
-                    const parsed = JSON.parse(profile.phone_number);
-                    if (Array.isArray(parsed)) phones = parsed;
-                    else phones = [profile.phone_number];
-                  } catch {
-                    phones = String(profile.phone_number).split(',').map((s: string) => s.trim());
-                  }
-                  phones = phones.filter(Boolean);
-                  if (phones.length === 0) return null;
-
-                  return phones.map((phone, idx) => (
-                    <div 
-                      key={idx}
-                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/20 dark:bg-white/5 border border-white/5 text-xs"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
-                          <Phone className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-[9px] uppercase tracking-wider opacity-60 block font-semibold">
-                            {idx === 0 ? 'Mobile / WhatsApp' : `Phone ${idx + 1}`}
-                          </span>
-                          <span className="font-mono font-bold truncate block text-current">
-                            {phone}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <a
-                          href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => recordClick('WhatsApp Chat', phone, 'whatsapp')}
-                          className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors"
-                          title="Chat on WhatsApp"
-                        >
-                          <FaWhatsapp className="w-3.5 h-3.5" />
-                        </a>
-                        <a
-                          href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
-                          onClick={() => recordClick('Phone Call', phone, 'phone')}
-                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors"
-                          title="Call"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => copyInlineText(phone, `phone_${idx}`, 'Phone')}
-                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors cursor-pointer"
-                          title="Copy"
-                        >
-                          {inlineCopiedKey === `phone_${idx}` ? <Check className="w-3.5 h-3.5 text-[#76BB08]" /> : <Copy className="w-3.5 h-3.5" />}
-                        </button>
-                      </div>
-                    </div>
-                  ));
-                })()}
-
-                {/* Email */}
-                {(profile?.contact_email || profile?.email) && (
-                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/20 dark:bg-white/5 border border-white/5 text-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
-                        <Mail className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] uppercase tracking-wider opacity-60 block font-semibold">
-                          Work Email
-                        </span>
-                        <span className="font-sans font-medium truncate block text-current">
-                          {profile?.contact_email || profile?.email}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <a
-                        href={`mailto:${profile?.contact_email || profile?.email}`}
-                        onClick={() => recordClick('Email Send', profile?.contact_email || profile?.email, 'email')}
-                        className="p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
-                        title="Send Email"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => copyInlineText(profile?.contact_email || profile?.email, 'email', 'Email')}
-                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors cursor-pointer"
-                        title="Copy"
-                      >
-                        {inlineCopiedKey === 'email' ? <Check className="w-3.5 h-3.5 text-[#76BB08]" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Address */}
-                {profile?.address && (
-                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/20 dark:bg-white/5 border border-white/5 text-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
-                        <MapPin className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] uppercase tracking-wider opacity-60 block font-semibold">
-                          Office / City
-                        </span>
-                        <span className="font-sans font-medium truncate block text-current">
-                          {profile?.address}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => copyInlineText(profile?.address, 'address', 'Address')}
-                      className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-current transition-colors cursor-pointer shrink-0"
-                      title="Copy Address"
-                    >
-                      {inlineCopiedKey === 'address' ? <Check className="w-3.5 h-3.5 text-[#76BB08]" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Main Save to Phonebook Action */}
-              <button
-                type="button"
-                onClick={() => downloadVCard(false)}
-                className="w-full py-3.5 px-4 rounded-2xl bg-[#76BB08] hover:bg-[#85d309] text-neutral-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#76BB08]/20 active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <Download className="w-4 h-4 stroke-[2.5]" />
-                <span>Save Contact to Phonebook (.vcf)</span>
-              </button>
-              
-              <div className="flex items-center justify-between mt-3 pt-2 text-[10px] opacity-60">
-                <span>NFC & QR Sync Ready</span>
-                <button 
-                  type="button"
-                  onClick={() => setIsVCardModalOpen(true)}
-                  className="hover:underline font-bold text-current cursor-pointer"
-                >
-                  View Details & Share →
-                </button>
-              </div>
             </div>
 
             {/* Contact/Connect Action Strip */}
@@ -1365,16 +1053,7 @@ END:VCARD`;
           isOpen={isExchangeModalOpen}
           onClose={() => setIsExchangeModalOpen(false)}
           profile={profile}
-          onVCardDownload={() => downloadVCard(false)}
-        />
-
-        {/* Interactive Contact vCard Modal */}
-        <ContactVCardModal
-          isOpen={isVCardModalOpen}
-          onClose={() => setIsVCardModalOpen(false)}
-          profile={profile}
-          onSaveToPhone={() => downloadVCard(false)}
-          onOpenExchangeModal={() => setIsExchangeModalOpen(true)}
+          onVCardDownload={downloadVCard}
         />
 
       </div>

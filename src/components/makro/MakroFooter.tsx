@@ -102,7 +102,7 @@ export const MakroFooter: React.FC<MakroFooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigate('corporate-bundle')} 
+                  onClick={() => onNavigate('nfc-sales')} 
                   className="hover:text-neutral-950 dark:hover:text-white transition-colors flex items-center gap-1.5"
                 >
                   <span>Corporate Fleet Bundle</span>

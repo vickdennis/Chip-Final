@@ -17,7 +17,6 @@ import { MakroCompanyView } from './views/MakroCompanyView';
 import { MakroUpdatesView } from './views/MakroUpdatesView';
 import { MakroContactView } from './views/MakroContactView';
 import { PortfolioView } from './views/PortfolioView';
-import CorporateBundleView from './views/CorporateBundleView';
 import { COMMERCIAL_PAGES } from './data/commercialPagesData';
 import { supabase } from './supabaseClient';
 import { ToastContainer } from './components/Toast';
@@ -35,7 +34,6 @@ export type ViewState =
   | 'blog-directory' 
   | 'blog-article' 
   | 'nfc-sales'
-  | 'corporate-bundle'
   | 'privacy-policy' 
   | 'terms-of-service'
   | 'shipping'
@@ -72,8 +70,7 @@ const RESERVED_CORE_ROUTES = new Set([
   'refund-policy',
   'shipping',
   'api',
-  'portfolio',
-  'corporate-bundle'
+  'portfolio'
 ]);
 
 export default function App() {
@@ -122,7 +119,6 @@ export default function App() {
     if (path === '/company' || path === '/about') return 'company';
     if (path === '/updates') return 'updates';
     if (path === '/contact') return 'contact';
-    if (path === '/corporate-bundle') return 'corporate-bundle';
     if (path === '/buy-card') return 'nfc-sales';
     if (path === '/shop') {
       setTimeout(() => {
@@ -138,11 +134,6 @@ export default function App() {
     if (path === '/portfolio') return 'portfolio';
     if (path.startsWith('/blog/')) return 'blog-article';
     
-    // Explicit /vcard route
-    if (path === '/vcard' || path === '/vcard/' || cleanSegment === 'vcard') {
-      return 'public-profile';
-    }
-
     if (path !== '' && path !== '/' && !RESERVED_CORE_ROUTES.has(cleanSegment)) {
       return 'public-profile';
     }
@@ -155,10 +146,6 @@ export default function App() {
     const path = window.location.pathname.replace(/\/$/, "");
     const cleanSegment = path.replace(/^\//, '');
 
-    if (path === '/vcard' || path === '/vcard/' || cleanSegment === 'vcard') {
-      return 'chipng';
-    }
-
     if (
       path !== '' && 
       path !== '/' && 
@@ -169,14 +156,14 @@ export default function App() {
       try {
         let username = decodeURIComponent(cleanSegment).trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
+        if (username.endsWith('.vcf')) username = username.replace(/\.vcf$/, '');
         if (username.startsWith('@')) username = username.slice(1);
-        if (!username || username === 'vcard') username = 'chipng';
         return username;
       } catch (e) {
         let username = cleanSegment.trim();
         if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
+        if (username.endsWith('.vcf')) username = username.replace(/\.vcf$/, '');
         if (username.startsWith('@')) username = username.slice(1);
-        if (!username || username === 'vcard') username = 'chipng';
         return username;
       }
     }
@@ -184,8 +171,8 @@ export default function App() {
   });
 
   const [autoDownloadVCard, setAutoDownloadVCard] = useState<boolean>(() => {
-    const p = window.location.pathname.replace(/\/$/, "");
-    return p.endsWith('/vcard') || p === '/vcard';
+    const p = window.location.pathname.toLowerCase().replace(/\/$/, "");
+    return p.endsWith('/vcard') || p.endsWith('.vcf');
   });
   
   const [blogSlug, setBlogSlug] = useState<string | null>(() => {
@@ -195,41 +182,6 @@ export default function App() {
     }
     return null;
   });
-
-  // Reactive URL change listener (popstate)
-  useEffect(() => {
-    const handlePopState = () => {
-      const p = window.location.pathname.replace(/\/$/, "");
-      const cleanSeg = p.replace(/^\//, '');
-      const isVCard = p.endsWith('/vcard') || p === '/vcard';
-      setAutoDownloadVCard(isVCard);
-
-      if (p === '/vcard' || p === '/vcard/' || cleanSeg === 'vcard') {
-        setPublicUsername('chipng');
-        setCurrentView('public-profile');
-        return;
-      }
-
-      if (COMMERCIAL_PAGES[cleanSeg]) {
-        setCommercialSlug(cleanSeg);
-        setCurrentView('commercial-landing');
-        return;
-      }
-
-      if (p !== '' && p !== '/' && !RESERVED_CORE_ROUTES.has(cleanSeg)) {
-        let u = decodeURIComponent(cleanSeg).trim();
-        if (u.endsWith('/vcard')) u = u.replace(/\/vcard$/, '');
-        if (u.startsWith('@')) u = u.slice(1);
-        if (!u || u === 'vcard') u = 'chipng';
-        setPublicUsername(u);
-        setCurrentView('public-profile');
-        return;
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
 
   useEffect(() => {
     // Safety timeout: ensure sessionLoading never hangs indefinitely on slow networks or blocked requests
@@ -336,8 +288,6 @@ export default function App() {
       window.history.pushState({}, '', '/updates');
     } else if (view === 'contact') {
       window.history.pushState({}, '', '/contact');
-    } else if (view === 'corporate-bundle') {
-      window.history.pushState({}, '', '/corporate-bundle');
     } else if (view === 'commercial-landing' && slug) {
       window.history.pushState({}, '', `/${slug}`);
       setCommercialSlug(slug);
@@ -355,7 +305,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white font-sans antialiased selection:bg-[#76BB08] selection:text-neutral-950">
       {currentView === 'landing' && <LandingView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
-      {currentView === 'corporate-bundle' && <CorporateBundleView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'company' && <MakroCompanyView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'updates' && <MakroUpdatesView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}
       {currentView === 'contact' && <MakroContactView onNavigate={handleNavigate} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} session={session} />}

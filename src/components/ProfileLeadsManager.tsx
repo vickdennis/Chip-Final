@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from './Toast';
 import { supabase } from '../supabaseClient';
+import { downloadVCardClient } from '../utils/vcardGenerator';
 
 export interface UserLead {
   id: number | string;
@@ -56,28 +57,18 @@ export function formatWhatsAppForLink(phone?: string): string {
 
 export function downloadLeadVCard(lead: UserLead) {
   const cleanName = (lead.name || 'Contact').trim();
-  const vCardContent = [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-    `FN:${cleanName}`,
-    `N:${cleanName};;;;`,
-    lead.company ? `ORG:${lead.company}` : '',
-    lead.whatsapp ? `TEL;TYPE=CELL,VOICE:${lead.whatsapp}` : '',
-    lead.email ? `EMAIL;TYPE=INTERNET,WORK:${lead.email}` : '',
-    lead.message ? `NOTE:Captured via CHIP NG 2-Way Contact Exchange. Note: ${lead.message.replace(/\r?\n/g, ' ')}` : 'NOTE:Captured via CHIP NG 2-Way Contact Exchange',
-    'END:VCARD'
-  ].filter(Boolean).join('\r\n');
-
-  const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `${cleanName.replace(/\s+/g, '_')}_contact.vcf`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  toast.success(`Downloaded vCard for ${cleanName}`);
+  downloadVCardClient({
+    full_name: cleanName,
+    company: lead.company,
+    phone_number: lead.whatsapp,
+    contact_email: lead.email,
+    bio: lead.message ? `Captured via CHIP NG 2-Way Contact Exchange. Note: ${lead.message}` : 'Captured via CHIP NG 2-Way Contact Exchange'
+  }, {
+    showToast: true,
+    onSuccess: () => {
+      toast.success(`Downloaded verified vCard for ${cleanName}`);
+    }
+  });
 }
 
 export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profile, onLeadsChange }) => {

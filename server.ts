@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import Database from 'better-sqlite3';
 import nodemailer from 'nodemailer';
 import { applyUniversalSsr } from './src/utils/universalSsrEngine';
+import { generateVCardString } from './src/utils/vcardGenerator';
 
 // Initialize SQLite database
 const db = new Database('leads.sqlite', { verbose: console.log });
@@ -2026,143 +2027,136 @@ async function startServer() {
     }
   });
 
-  // --- Dynamic vCard 3.0 Phonebook Sync Endpoints (RFC 2426) ---
-  async function generateVCardForUser(usernameOrId: string) {
-    let clean = decodeURIComponent(usernameOrId || '')
-      .replace(/^@/, '')
-      .replace(/\.vcf$/i, '')
-      .replace(/\/vcard$/i, '')
-      .trim()
-      .toLowerCase();
-
-    if (!clean || clean === 'vcard') {
-      clean = 'chipng';
-    }
-
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
-    const { data: profile } = await (isUuid
-      ? getSupabase().from('profiles').select('*').eq('id', clean).maybeSingle()
-      : getSupabase().from('profiles').select('*').ilike('username', clean).maybeSingle());
-
-    if (!profile) return null;
-
-    const fullName = profile.full_name || profile.username || 'CHIP NG User';
-    const nameParts = fullName.trim().split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-
-    let phoneLines: string[] = [];
-    if (profile.phone_number) {
-      let arr: string[] = [];
-      try {
-        const parsed = JSON.parse(profile.phone_number);
-        if (Array.isArray(parsed)) arr = parsed;
-        else arr = [profile.phone_number];
-      } catch {
-        arr = String(profile.phone_number).split(',').map((s: string) => s.trim());
-      }
-      arr = arr.filter(Boolean);
-      arr.forEach((p) => {
-        const cleanDigits = p.replace(/[^0-9+]/g, '');
-        phoneLines.push(`TEL;TYPE=CELL,VOICE;VALUE=uri:tel:${cleanDigits}`);
-        phoneLines.push(`TEL;TYPE=CELL:${p}`);
-      });
-    }
-
-    let photoLine = '';
-    if (profile.cover_image_url) {
-      try {
-        const imgRes = await fetch(profile.cover_image_url, { signal: AbortSignal.timeout(3000) });
-        if (imgRes.ok) {
-          const buf = Buffer.from(await imgRes.arrayBuffer());
-          const b64 = buf.toString('base64');
-          const cType = imgRes.headers.get('content-type') || 'image/jpeg';
-          const imgType = cType.includes('png') ? 'PNG' : 'JPEG';
-          photoLine = `PHOTO;ENCODING=b;TYPE=${imgType}:${b64}`;
-        }
-      } catch (e) {
-        photoLine = `PHOTO;VALUE=URI:${profile.cover_image_url}`;
-      }
-    }
-
-    const lines = [
-      'BEGIN:VCARD',
-      'VERSION:3.0',
-      'PRODID:-//CHIP NG Technologies//Contactless Smart Card vCard 3.0//EN',
-      `N:${lastName};${firstName};;;`,
-      `FN:${fullName}`,
-      profile.headline ? `TITLE:${profile.headline}` : '',
-      'ORG:CHIP NG Network',
-      profile.contact_email || profile.email ? `EMAIL;TYPE=WORK,INTERNET:${profile.contact_email || profile.email}` : '',
-      ...phoneLines,
-      profile.address ? `ADR;TYPE=WORK:;;${profile.address};;;;` : '',
-      `URL;TYPE=WORK:https://www.chipng.com/@${profile.username}`,
-      profile.bio ? `NOTE:${profile.bio.replace(/\r?\n/g, ' ')}` : '',
-      photoLine,
-      `REV:${new Date().toISOString()}`,
-      'END:VCARD'
-    ].filter(Boolean);
-
-    return { vcard: lines.join('\r\n'), profile };
-  }
-
-  app.get([
-    '/api/vcard/:username', 
-    '/api/vcard',
-    '/vcard/:username',
-    '/@:username/vcard.vcf', 
-    '/:username/vcard.vcf', 
-    '/:username.vcf', 
-    '/@:username.vcf',
-    '/vcard.vcf'
-  ], async (req, res) => {
+  // --- Dedicated Universal vCard (.vcf) Contact Download Engine ---
+  // High-performance RFC 2426 vCard delivery for NFC chips, QR scans, and direct contact book imports
+  const handleVCardDownload = async (req: express.Request, res: express.Response) => {
     try {
-      const targetUser = req.params.username || '';
-      const result = await generateVCardForUser(targetUser);
-      if (!result) {
+      let rawUsername = (req.params.username || req.query.username || '') as string;
+      try {
+        rawUsername = decodeURIComponent(rawUsername);
+      } catch (e) {}
+
+      // Clean up variations: @username, username.vcf, username/vcard
+      rawUsername = rawUsername
+        .replace(/^@/, '')
+        .replace(/\.vcf$/i, '')
+        .replace(/\/vcard$/i, '')
+        .trim();
+
+      if (!rawUsername) {
+        return res.status(400).send('Invalid username specified');
+      }
+
+      const supabase = getSupabase();
+      
+      // 1. Fetch Profile (Exact match then ilike match)
+      let { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', rawUsername)
+        .maybeSingle();
+
+      if (!profile) {
+        const ilikeRes = await supabase
+          .from('profiles')
+          .select('*')
+          .ilike('username', rawUsername)
+          .maybeSingle();
+        profile = ilikeRes.data;
+      }
+
+      if (!profile) {
         return res.status(404).send('Contact profile not found');
       }
 
-      // Record telemetry click
+      // 2. Fetch Social Links & Enterprise in parallel
+      const [socialsRes, entRes] = await Promise.allSettled([
+        supabase.from('social_links').select('*').eq('profile_id', profile.id),
+        profile.enterprise_id
+          ? supabase.from('enterprises').select('name, brand_color').eq('id', profile.enterprise_id).maybeSingle()
+          : Promise.resolve({ data: null })
+      ]);
+
+      const socialLinks = socialsRes.status === 'fulfilled' && socialsRes.value?.data ? socialsRes.value.data : [];
+      const enterprise = entRes.status === 'fulfilled' && entRes.value?.data ? entRes.value.data : null;
+
+      // 3. Server-side Image Fetch for Embedded Photo Base64 (with 1.5s timeout so it never hangs)
+      let imageBase64: string | null = null;
+      let imageMimeType: string | null = null;
+
+      if (profile.cover_image_url && typeof profile.cover_image_url === 'string' && profile.cover_image_url.startsWith('http')) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1500);
+          const imgRes = await fetch(profile.cover_image_url, {
+            signal: controller.signal,
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CHIPNG-Bot/1.0)' }
+          });
+          clearTimeout(timeoutId);
+
+          if (imgRes.ok) {
+            const buf = Buffer.from(await imgRes.arrayBuffer());
+            if (buf.length > 0 && buf.length < 500 * 1024) {
+              imageBase64 = buf.toString('base64');
+              imageMimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+            }
+          }
+        } catch (e) {
+          // Fallback to URI method in vCard
+        }
+      }
+
+      // 4. Generate RFC 2426 vCard 3.0 String
+      const vCardContent = generateVCardString(
+        {
+          ...profile,
+          enterprise,
+          social_links: socialLinks
+        },
+        {
+          imageBase64,
+          imageMimeType
+        }
+      );
+
+      const cleanFilename = (profile.full_name || profile.username || 'contact')
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '_')
+        .replace(/_+/g, '_') + '.vcf';
+
+      // Record vCard download telemetry
       try {
-        db.prepare('INSERT INTO profile_analytics_clicks (profile_id, link_title, click_type) VALUES (?, ?, ?)').run(
-          result.profile.id,
-          'Saved Contact to Phone (vCard)',
-          'vcard'
-        );
-      } catch (e) {}
-
-      res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
-      res.setHeader('Content-Disposition', `inline; filename="${result.profile.username || 'contact'}.vcf"`);
-      res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
-      return res.send(result.vcard);
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
-    }
-  });
-
-  app.get(['/@:username/vcard', '/:username/vcard'], async (req, res, next) => {
-    if (req.query.download === '1' || req.query.format === 'vcf' || req.headers.accept?.includes('text/vcard')) {
-      try {
-        const targetUser = req.params.username || '';
-        const result = await generateVCardForUser(targetUser);
-        if (result) {
-          try {
-            db.prepare('INSERT INTO profile_analytics_clicks (profile_id, link_title, click_type) VALUES (?, ?, ?)').run(
-              result.profile.id,
-              'Saved Contact to Phone (vCard)',
-              'vcard'
-            );
-          } catch (e) {}
-
-          res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
-          res.setHeader('Content-Disposition', `inline; filename="${result.profile.username || 'contact'}.vcf"`);
-          res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
-          return res.send(result.vcard);
+        if (db) {
+          db.prepare(`
+            INSERT INTO telemetry_clicks (profile_id, username, link_title, click_type, created_at)
+            VALUES (?, ?, ?, ?, ?)
+          `).run(profile.id, profile.username, 'Direct vCard Link Download', 'vcard', new Date().toISOString());
         }
       } catch (e) {}
+
+      // 5. Send Headers & Payload
+      res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(vCardContent, 'utf-8'));
+      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('X-Robots-Tag', 'noindex');
+
+      return res.send(vCardContent);
+    } catch (err: any) {
+      console.error('vCard generation error:', err);
+      res.status(500).send('Error generating vCard');
     }
-    return next();
+  };
+
+  app.get(['/api/vcard/:username', '/api/vcard', '/:username.vcf', '/@:username.vcf'], handleVCardDownload);
+
+  // Intercept direct vCard downloads on /:username/vcard if download query or text/vcard header requested
+  app.get(['/:username/vcard', '/@:username/vcard'], (req, res, next) => {
+    if (req.query.download === '1' || req.query.format === 'vcf' || (req.headers.accept && req.headers.accept.includes('text/vcard'))) {
+      return handleVCardDownload(req, res);
+    }
+    next();
   });
 
   // SEO Automation Routes

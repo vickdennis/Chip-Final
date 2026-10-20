@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, CheckCircle2, ArrowRight, User, Phone, Mail, Building2, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from './Toast';
 import { supabase } from '../supabaseClient';
+import { downloadVCardClient } from '../utils/vcardGenerator';
 
 interface LeadExchangeModalProps {
   isOpen: boolean;
@@ -263,17 +264,19 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
               Your details have been delivered to {profile?.full_name || 'the cardholder'}. You can now save their verified vCard directly to your phonebook:
             </p>
 
-            {onVCardDownload && (
-              <button
-                onClick={() => {
+            <button
+              onClick={() => {
+                if (onVCardDownload) {
                   onVCardDownload();
-                  onClose();
-                }}
-                className="mt-5 w-full py-3 rounded-full font-bold text-xs sm:text-sm bg-white text-neutral-950 hover:bg-neutral-100 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
-              >
-                <span>Save {profile?.full_name?.split(' ')[0] || 'Their'} Contact to Phone</span>
-              </button>
-            )}
+                } else if (profile) {
+                  downloadVCardClient(profile);
+                }
+                onClose();
+              }}
+              className="mt-5 w-full py-3 rounded-full font-bold text-xs sm:text-sm bg-white text-neutral-950 hover:bg-neutral-100 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+            >
+              <span>Save {profile?.full_name?.split(' ')[0] || 'Their'} Contact to Phone</span>
+            </button>
 
             <button
               onClick={onClose}

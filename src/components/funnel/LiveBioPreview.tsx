@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Wifi, UserCheck, Download, Share2, Globe, Sparkles } from 'lucide-react';
 import { SocialMediaIconBadge } from '../social/SocialMediaIconBadge';
+import { downloadVCardClient } from '../../utils/vcardGenerator';
 
 interface LiveBioPreviewProps {
   name: string;
@@ -32,6 +33,17 @@ export const LiveBioPreview: React.FC<LiveBioPreviewProps> = ({
 
   const handleSaveContact = () => {
     setVCardSaved(true);
+    downloadVCardClient({
+      full_name: name,
+      username: handle,
+      headline: title,
+      company: company,
+      bio: bio,
+      cover_image_url: avatarUrl,
+      phone_number: '+234 810 076 4154',
+      contact_email: 'hello@chipng.com',
+      address: 'Lekki Phase 1, Lagos, Nigeria'
+    });
     setTimeout(() => setVCardSaved(false), 3000);
   };
 

@@ -78,11 +78,11 @@
       "destination": "/api/cover"
     },
     {
-      "source": "/api/vcard/:username",
+      "source": "/:username.vcf",
       "destination": "/api"
     },
     {
-      "source": "/api/vcard",
+      "source": "/@:username.vcf",
       "destination": "/api"
     },
     {
@@ -96,38 +96,6 @@
     {
       "source": "/robots.txt",
       "destination": "/robots.txt"
-    },
-    {
-      "source": "/:username/vcard.vcf",
-      "destination": "/api"
-    },
-    {
-      "source": "/@:username/vcard.vcf",
-      "destination": "/api"
-    },
-    {
-      "source": "/:username.vcf",
-      "destination": "/api"
-    },
-    {
-      "source": "/@:username.vcf",
-      "destination": "/api"
-    },
-    {
-      "source": "/vcard.vcf",
-      "destination": "/api"
-    },
-    {
-      "source": "/vcard",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/:username/vcard",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/@:username/vcard",
-      "destination": "/index.html"
     },
     {
       "source": "/@:username",
