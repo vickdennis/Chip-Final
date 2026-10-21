@@ -20,6 +20,7 @@ import { PortfolioView } from './views/PortfolioView';
 import { COMMERCIAL_PAGES } from './data/commercialPagesData';
 import { supabase } from './supabaseClient';
 import { ToastContainer } from './components/Toast';
+import { extractUsernameFromPath } from './utils/usernameHelper';
 
 export type ViewState = 
   | 'landing' 
@@ -33,7 +34,7 @@ export type ViewState =
   | 'enterprise-dashboard' 
   | 'blog-directory' 
   | 'blog-article' 
-  | 'nfc-sales'
+  | 'nfc-sales' 
   | 'privacy-policy' 
   | 'terms-of-service'
   | 'shipping'
@@ -62,7 +63,10 @@ const RESERVED_CORE_ROUTES = new Set([
   'updates',
   'contact',
   'buy-card',
+  'buycard',
   'shop',
+  'pricing',
+  'faq',
   'privacy',
   'privacy-policy',
   'terms',
@@ -119,7 +123,7 @@ export default function App() {
     if (path === '/company' || path === '/about') return 'company';
     if (path === '/updates') return 'updates';
     if (path === '/contact') return 'contact';
-    if (path === '/buy-card') return 'nfc-sales';
+    if (path === '/buy-card' || path === '/buycard') return 'nfc-sales';
     if (path === '/shop') {
       setTimeout(() => {
         const el = document.getElementById('shop');
@@ -153,19 +157,7 @@ export default function App() {
       !COMMERCIAL_PAGES[cleanSegment] && 
       !path.startsWith('/blog/')
     ) {
-      try {
-        let username = decodeURIComponent(cleanSegment).trim();
-        if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
-        if (username.endsWith('.vcf')) username = username.replace(/\.vcf$/, '');
-        if (username.startsWith('@')) username = username.slice(1);
-        return username;
-      } catch (e) {
-        let username = cleanSegment.trim();
-        if (username.endsWith('/vcard')) username = username.replace(/\/vcard$/, '');
-        if (username.endsWith('.vcf')) username = username.replace(/\.vcf$/, '');
-        if (username.startsWith('@')) username = username.slice(1);
-        return username;
-      }
+      return extractUsernameFromPath(path);
     }
     return null;
   });
@@ -265,7 +257,7 @@ export default function App() {
     } else if (view === 'enterprise-dashboard') {
       window.history.pushState({}, '', '/enterprise');
     } else if (view === 'nfc-sales') {
-      window.history.pushState({}, '', '/buy-card');
+      window.history.pushState({}, '', '/buycard');
     } else if (view === 'privacy-policy') {
       window.history.pushState({}, '', '/privacy-policy');
     } else if (view === 'terms-of-service') {
@@ -291,6 +283,13 @@ export default function App() {
     } else if (view === 'commercial-landing' && slug) {
       window.history.pushState({}, '', `/${slug}`);
       setCommercialSlug(slug);
+    } else if (view === 'public-profile') {
+      const targetSlug = slug || publicUsername;
+      if (targetSlug) {
+        const clean = extractUsernameFromPath(targetSlug) || targetSlug;
+        window.history.pushState({}, '', `/@${clean}`);
+        setPublicUsername(clean);
+      }
     }
 
     setCurrentView(view);

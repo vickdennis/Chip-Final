@@ -163,14 +163,15 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
         // Wait for profile trigger to complete
         await new Promise(r => setTimeout(r, 1000));
         
-        // Update user profile to link to enterprise using the new user's session
-        await adminAuthClient.from('profiles').update({
+        // Update user profile to link to enterprise using the enterprise owner's session
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
           enterprise_id: enterprise.id,
           username: employeeForm.username || undefined,
           headline: employeeForm.headline || undefined,
           bio: employeeForm.bio || undefined
-        }).eq('id', data.user.id);
-        await adminAuthClient.auth.signOut();
+        });
+        await adminAuthClient.auth.signOut().catch(() => {});
         
         alert(`Employee ${employeeForm.full_name} created successfully!`);
         setIsCreatingEmployee(false);

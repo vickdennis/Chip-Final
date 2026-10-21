@@ -33,7 +33,7 @@ export const COLOR_PRESETS = [
   '#000000', '#ffffff', '#19192F', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'
 ];
 
-export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
+export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState, slug?: string) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [verificationMonths, setVerificationMonths] = useState(1);
   const [links, setLinks] = useState<any[]>([]);
@@ -540,10 +540,19 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         const { data: newProfile, error: insertError } = await supabase.from('profiles').insert(initialProfile).select().single();
         if (newProfile) {
           setProfile({ ...newProfile, email: user.email });
-        } else if (insertError && insertError.code === '23505') {
-          initialProfile.username = initialProfile.username + Math.floor(Math.random()*10000);
-          const { data: retryProfile } = await supabase.from('profiles').insert(initialProfile).select().single();
-          setProfile({ ...(retryProfile || initialProfile), email: user.email });
+        } else if (insertError) {
+          // Check if trigger handle_new_user already created the profile
+          const { data: existingProfile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+          if (existingProfile) {
+            setProfile({ ...existingProfile, email: user.email });
+            if (existingProfile.cover_image_url) setCoverUrl(existingProfile.cover_image_url);
+          } else if (insertError.code === '23505') {
+            initialProfile.username = initialProfile.username + Math.floor(Math.random()*10000);
+            const { data: retryProfile } = await supabase.from('profiles').upsert(initialProfile).select().single();
+            setProfile({ ...(retryProfile || initialProfile), email: user.email });
+          } else {
+            setProfile({ ...initialProfile, email: user.email });
+          }
         } else {
           setProfile({ ...initialProfile, email: user.email });
         }
@@ -1072,7 +1081,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <button
                     type="button"
-                    onClick={() => onNavigate('public-profile')}
+                    onClick={() => onNavigate('public-profile', profile?.username)}
                     className="w-full py-3.5 px-4 bg-white dark:bg-[#151821] text-neutral-900 dark:text-white font-semibold text-sm rounded-full border border-neutral-300 dark:border-white/20 hover:bg-neutral-50 dark:hover:bg-[#1c202d] transition-all text-center shadow-xs cursor-pointer"
                   >
                     Preview Bio

@@ -10,6 +10,7 @@
  */
 
 import { COMMERCIAL_PAGES } from '../data/commercialPagesData';
+import { extractUsernameFromPath } from './usernameHelper';
 import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo';
 import { 
   HOME_SCHEMA_JSON_LD, 
@@ -110,11 +111,40 @@ export async function renderUserProfileSsr(
   if (!cleanUsername) return null;
 
   try {
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('profiles')
       .select('*')
-      .ilike('username', cleanUsername)
+      .eq('username', cleanUsername)
       .maybeSingle();
+
+    if (!profile) {
+      const ilikeRes = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('username', cleanUsername)
+        .maybeSingle();
+      if (ilikeRes.data) profile = ilikeRes.data;
+    }
+
+    if (!profile) {
+      const { data: candidates } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(300);
+
+      if (candidates && candidates.length > 0) {
+        const targetClean = cleanUsername.toLowerCase().trim();
+        const targetAlpha = targetClean.replace(/[^a-z0-9]/g, '');
+        const found = candidates.find((p: any) => {
+          if (!p.username) return false;
+          const pClean = p.username.toLowerCase().trim();
+          const pAlpha = pClean.replace(/[^a-z0-9]/g, '');
+          return pClean === targetClean || (targetAlpha.length >= 3 && pAlpha === targetAlpha);
+        });
+        if (found) profile = found;
+      }
+    }
 
     if (!profile) return null;
 
@@ -849,7 +879,7 @@ export async function applyUniversalSsr(
   const RESERVED_ROUTES = [
     '/admin', '/enterprise', '/login', '/dashboard', '/api', '/blog',
     '/app', '/download', '/mobile', '/android',
-    '/company', '/about', '/updates', '/contact', '/buy-card', '/shop',
+    '/company', '/about', '/updates', '/contact', '/buy-card', '/buycard', '/shop',
     '/pricing', '/faq', '/shipping', '/refund-policy', '/privacy-policy',
     '/privacy', '/terms-of-service', '/terms', '/nfc-sales', '/portfolio'
   ];
@@ -858,13 +888,11 @@ export async function applyUniversalSsr(
 
   if (!isReserved && normalizedPath !== '/') {
     // Extract username (supports /@username, /username, /@username/vcard, /username/vcard, /p/username, /u/username)
-    let rawUsername = normalizedPath.replace(/^\//, '');
+    let rawUsername = extractUsernameFromPath(normalizedPath) || normalizedPath.replace(/^\//, '');
     try {
       rawUsername = decodeURIComponent(rawUsername);
     } catch (e) {}
-    if (rawUsername.startsWith('p/')) rawUsername = rawUsername.slice(2);
-    if (rawUsername.startsWith('u/')) rawUsername = rawUsername.slice(2);
-    if (rawUsername.startsWith('@')) rawUsername = rawUsername.slice(1);
+    while (rawUsername.startsWith('@')) rawUsername = rawUsername.slice(1);
     if (rawUsername.endsWith('/vcard')) rawUsername = rawUsername.replace(/\/vcard$/, '');
     if (rawUsername.endsWith('.vcf')) rawUsername = rawUsername.replace(/\.vcf$/, '');
     rawUsername = rawUsername.trim().toLowerCase();

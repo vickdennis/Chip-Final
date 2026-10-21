@@ -98,6 +98,22 @@
       "destination": "/robots.txt"
     },
     {
+      "source": "/buycard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/buy-card",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:username/vcard",
+      "destination": "/api"
+    },
+    {
+      "source": "/@:username/vcard",
+      "destination": "/api"
+    },
+    {
       "source": "/@:username",
       "destination": "/api?profile=@:username"
     },
@@ -110,7 +126,7 @@
       "destination": "/api?profile=:username"
     },
     {
-      "source": "/((?!api/|assets/|favicon|.*\\..*).*)",
+      "source": "/((?!api/|assets/|favicon|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|css|js|map|vcf|apk|xml|txt)).*)",
       "has": [
         {
           "type": "header",

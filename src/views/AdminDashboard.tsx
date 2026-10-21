@@ -405,9 +405,19 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             payload.username = currentUsername;
           }
           
-          const { error: innerError } = await adminAuthClient.from('profiles').update(payload).eq('id', data.user.id);
+          // Use the authenticated Super Admin supabase client with admin privileges to upsert profile data
+          let { error: innerError } = await supabase.from('profiles').upsert({
+            id: data.user.id,
+            ...payload
+          });
+
+          // Fallback to update if upsert encounters any constraint
+          if (innerError) {
+            const updateRes = await supabase.from('profiles').update(payload).eq('id', data.user.id);
+            innerError = updateRes.error;
+          }
           
-          await adminAuthClient.auth.signOut();
+          await adminAuthClient.auth.signOut().catch(() => {});
           
           if (innerError) {
              console.error('Failed to update profile for', currentEmail, innerError);

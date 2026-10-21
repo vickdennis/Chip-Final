@@ -122,12 +122,41 @@ const handleVCardServerless = async (req: Request, res: Response) => {
       .maybeSingle();
 
     if (!profile) {
+      const lowerRes = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', rawUsername.toLowerCase())
+        .maybeSingle();
+      profile = lowerRes.data;
+    }
+
+    if (!profile) {
       const ilikeRes = await supabase
         .from('profiles')
         .select('*')
         .ilike('username', rawUsername)
         .maybeSingle();
       profile = ilikeRes.data;
+    }
+
+    if (!profile) {
+      const { data: candidates } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(300);
+
+      if (candidates && candidates.length > 0) {
+        const targetClean = rawUsername.toLowerCase().trim();
+        const targetAlpha = targetClean.replace(/[^a-z0-9]/g, '');
+        const found = candidates.find((p: any) => {
+          if (!p.username) return false;
+          const pClean = p.username.toLowerCase().trim();
+          const pAlpha = pClean.replace(/[^a-z0-9]/g, '');
+          return pClean === targetClean || (targetAlpha.length >= 3 && pAlpha === targetAlpha);
+        });
+        if (found) profile = found;
+      }
     }
 
     if (!profile) {

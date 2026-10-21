@@ -282,11 +282,9 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/80 font-medium">
-                  {data.tier === 'plastic' || data.material?.includes('plastic')
-                    ? 'Smart PVC Card (UV Printed)'
-                    : basePrice === 50000
-                    ? 'NFC Smart Metal Card (Fiber-Laser Engraved)'
-                    : 'Custom Heavy Metal Edition (Bespoke Fiber Engraved)'}
+                  {data.material === 'plastic_black'
+                    ? 'Smart Black PVC Card (Custom UV Print)'
+                    : 'Smart White PVC Card (Custom Print)'}
                 </span>
                 <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
               </div>

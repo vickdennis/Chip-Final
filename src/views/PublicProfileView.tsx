@@ -15,6 +15,7 @@ import { toast } from '../components/Toast';
 import { recordProfileView, recordProfileClick as trackTelemetryClick } from '../utils/telemetryClient';
 import { Helmet } from 'react-helmet-async';
 import { downloadVCardClient } from '../utils/vcardGenerator';
+import { extractUsernameFromPath } from '../utils/usernameHelper';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -61,38 +62,77 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
       // Determine effective username from prop or window URL path
       let effectiveUsername = username;
       if (!effectiveUsername && typeof window !== 'undefined') {
-        const rawPath = window.location.pathname.replace(/\/$/, '');
-        const segment = rawPath.replace(/^\/+/, '').split('/')[0];
-        if (segment && !['login', 'dashboard', 'admin', 'enterprise', 'blog', 'buy-card', 'contact', 'about', 'company', 'updates'].includes(segment)) {
-          effectiveUsername = segment;
+        const extracted = extractUsernameFromPath(window.location.pathname);
+        if (extracted && !['login', 'dashboard', 'admin', 'enterprise', 'blog', 'buy-card', 'buycard', 'contact', 'about', 'company', 'updates', 'pricing', 'faq'].includes(extracted.toLowerCase())) {
+          effectiveUsername = extracted;
         }
       }
 
       if (effectiveUsername) {
-        let cleanUsername = decodeURIComponent(effectiveUsername).trim();
+        let cleanUsername = extractUsernameFromPath(effectiveUsername) || effectiveUsername.trim();
+        while (cleanUsername.startsWith('@')) cleanUsername = cleanUsername.slice(1);
         if (cleanUsername.endsWith('/vcard')) cleanUsername = cleanUsername.replace(/\/vcard$/, '');
-        if (cleanUsername.startsWith('@')) cleanUsername = cleanUsername.slice(1);
+        if (cleanUsername.endsWith('.vcf')) cleanUsername = cleanUsername.replace(/\.vcf$/, '');
+        cleanUsername = cleanUsername.trim();
 
-        console.log("Fetching profile for cleanUsername:", cleanUsername);
-        
-        // 1. Try exact match
-        let { data, error } = await supabase.from('profiles').select('*').eq('username', cleanUsername).maybeSingle();
-        
-        // 2. Try case-insensitive ilike match
+        // 1. Exact match on cleanUsername
+        let { data, error: dbError } = await supabase.from('profiles').select('*').eq('username', cleanUsername).maybeSingle();
+
+        // 2. Exact match on lowercase cleanUsername
         if (!data) {
-          const res = await supabase.from('profiles').select('*').ilike('username', cleanUsername).maybeSingle();
-          data = res.data;
-          error = res.error;
+          const lowerRes = await supabase.from('profiles').select('*').eq('username', cleanUsername.toLowerCase()).maybeSingle();
+          if (lowerRes.data) data = lowerRes.data;
         }
 
-        // 3. Try lookup across candidates in case of slight casing or spacing differences
+        // 3. Case-insensitive ilike match
         if (!data) {
-          const { data: allCandidates } = await supabase.from('profiles').select('*').limit(200);
-          if (allCandidates) {
-            const found = allCandidates.find(p => 
-              p.username && p.username.toLowerCase().trim() === cleanUsername.toLowerCase().trim()
-            );
+          const ilikeRes = await supabase.from('profiles').select('*').ilike('username', cleanUsername).maybeSingle();
+          if (ilikeRes.data) data = ilikeRes.data;
+        }
+
+        // 4. Case-insensitive ilike match on lowercase cleanUsername
+        if (!data) {
+          const ilikeLowerRes = await supabase.from('profiles').select('*').ilike('username', cleanUsername.toLowerCase()).maybeSingle();
+          if (ilikeLowerRes.data) data = ilikeLowerRes.data;
+        }
+
+        // 5. Resilient search across candidate list ordered by newest created_at desc (new users first)
+        if (!data) {
+          const { data: candidates } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(300);
+
+          if (candidates && candidates.length > 0) {
+            const targetClean = cleanUsername.toLowerCase().trim();
+            const targetAlpha = targetClean.replace(/[^a-z0-9]/g, '');
+            const found = candidates.find(p => {
+              if (!p.username) return false;
+              const pClean = p.username.toLowerCase().trim();
+              const pAlpha = pClean.replace(/[^a-z0-9]/g, '');
+              return pClean === targetClean || (targetAlpha.length >= 3 && pAlpha === targetAlpha);
+            });
             if (found) data = found;
+          }
+        }
+
+        // 6. If user is currently authenticated and previewing their own handle
+        if (!data) {
+          try {
+            const { data: authData } = await supabase.auth.getUser();
+            if (authData?.user) {
+              const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).maybeSingle();
+              if (myProfile) {
+                const myUserClean = (myProfile.username || '').toLowerCase().trim();
+                const targetClean = cleanUsername.toLowerCase().trim();
+                if (myUserClean === targetClean || authData.user.email?.toLowerCase().startsWith(targetClean)) {
+                  data = myProfile;
+                }
+              }
+            }
+          } catch (authErr) {
+            // non-fatal
           }
         }
 
