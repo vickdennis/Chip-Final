@@ -94,8 +94,18 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Price calculations
-  const basePrice = Number(product.price || 0);
+  // Price calculations: Black PVC with Custom UV Print is ₦35,000, White PVC with Custom Print is ₦30,000
+  const getProductBasePrice = () => {
+    if (selectedFinish === 'black') {
+      return 35000;
+    }
+    if (selectedFinish === 'white') {
+      return 30000;
+    }
+    return product.name.toLowerCase().includes('black') ? 35000 : 30000;
+  };
+
+  const basePrice = getProductBasePrice();
   const phoneTagPrice = includePhoneTag ? 7500 : 0;
   const totalPrice = basePrice + phoneTagPrice;
   const totalPriceKobo = totalPrice * 100;
@@ -181,7 +191,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
           name: customerName || engravedName,
           email: email.trim(),
           phone: whatsapp,
-          card_type: product.name,
+          card_type: selectedFinish === 'black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)',
           amount: totalPrice,
         }),
       }).catch(() => {});
@@ -274,7 +284,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
     const message = encodeURIComponent(
       `Hello CHIP NG Concierge, I just initiated a Direct Bank Transfer order on the homepage:\n\n` +
-      `*Product:* ${product.name}\n` +
+      `*Product:* ${selectedFinish === 'black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)'}\n` +
       `*Amount to Pay:* ₦${totalPrice.toLocaleString()}\n` +
       `*Destination Bank:* CHUKA VICTOR OKOYE (OPay: 611 287 2208)\n` +
       `*Name on Card:* ${engravedName || customerName}\n` +
@@ -461,65 +471,55 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
                 {/* Material / Finish Selector */}
                 <div className="space-y-2.5 pt-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
-                    Choose Surface Finish
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {isMetal || isDebit ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedFinish('obsidian')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                            selectedFinish === 'obsidian'
-                              ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white'
-                              : 'border-neutral-200 dark:border-white/10 hover:border-neutral-400'
-                          }`}
-                        >
-                          <span className="w-3.5 h-3.5 rounded-full bg-neutral-900 border border-neutral-600 shrink-0" />
-                          <span className="truncate">Matte Obsidian</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedFinish('gold')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                            selectedFinish === 'gold'
-                              ? 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                              : 'border-neutral-200 dark:border-white/10 hover:border-neutral-400'
-                          }`}
-                        >
-                          <span className="w-3.5 h-3.5 rounded-full bg-amber-400 border border-amber-600 shrink-0" />
-                          <span className="truncate">24K Mirror Gold</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedFinish('black')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                            selectedFinish === 'black'
-                              ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white'
-                              : 'border-neutral-200 dark:border-white/10 hover:border-neutral-400'
-                          }`}
-                        >
-                          <span className="w-3.5 h-3.5 rounded-full bg-neutral-950 shrink-0" />
-                          <span className="truncate">Matte Black PVC</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedFinish('white')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                            selectedFinish === 'white'
-                              ? 'border-neutral-950 bg-neutral-200 text-neutral-950 dark:bg-white dark:text-neutral-950'
-                              : 'border-neutral-200 dark:border-white/10 hover:border-neutral-400'
-                          }`}
-                        >
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
+                      Choose PVC Card Style
+                    </label>
+                    <span className="text-[11px] font-mono text-[#76BB08] font-bold">
+                      {selectedFinish === 'black' ? '₦35,000 (UV Print)' : '₦30,000 (Custom Print)'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFinish('black')}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col gap-1 transition-all cursor-pointer ${
+                        selectedFinish === 'black'
+                          ? 'border-[#76BB08] bg-[#76BB08]/15 text-neutral-950 dark:text-white shadow-sm ring-1 ring-[#76BB08]'
+                          : 'border-neutral-200 dark:border-white/10 hover:border-neutral-400 bg-neutral-50 dark:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-3.5 h-3.5 rounded-full bg-neutral-950 border border-neutral-700 shrink-0" />
+                          <span className="truncate">Black PVC</span>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-[#76BB08]">₦35,000</span>
+                      </div>
+                      <span className="text-[10px] text-neutral-500 dark:text-neutral-400 text-left font-normal">
+                        Tactile UV Print • VIP
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFinish('white')}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col gap-1 transition-all cursor-pointer ${
+                        selectedFinish === 'white'
+                          ? 'border-[#76BB08] bg-[#76BB08]/15 text-neutral-950 dark:text-white shadow-sm ring-1 ring-[#76BB08]'
+                          : 'border-neutral-200 dark:border-white/10 hover:border-neutral-400 bg-neutral-50 dark:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-1.5">
                           <span className="w-3.5 h-3.5 rounded-full bg-white border border-neutral-300 shrink-0" />
-                          <span className="truncate">Arctic White PVC</span>
-                        </button>
-                      </>
-                    )}
+                          <span className="truncate">White PVC</span>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-[#76BB08]">₦30,000</span>
+                      </div>
+                      <span className="text-[10px] text-neutral-500 dark:text-neutral-400 text-left font-normal">
+                        Crisp Full-Color Print
+                      </span>
+                    </button>
                   </div>
                 </div>
 

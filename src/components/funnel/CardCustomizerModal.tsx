@@ -96,15 +96,12 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
     }
   };
 
-  // Base price in NGN: Custom PVC Card: ₦30,000, NFC Smart Metal: ₦50,000, Metal Debit/Heavy: ₦100,000
+  // Base price in NGN: White PVC Card: ₦30,000, Black PVC Card (Custom UV Print): ₦35,000
   const getBasePrice = () => {
-    if (tier === 'plastic') {
-      return 30000;
+    if (material === 'plastic_black') {
+      return 35000;
     }
-    if (tier === 'metal') {
-      return 50000;
-    }
-    return 100000;
+    return 30000;
   };
 
   // Handle lead submission & discount claim
@@ -239,13 +236,13 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
 
             <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10 w-full text-center">
               <span className="text-xs text-white/70 block">
-                Selected Tier: <strong className="text-white uppercase">{tier}</strong>
+                Selected Card: <strong className="text-white uppercase">{material === 'plastic_black' ? 'Black PVC (Custom UV Print)' : 'White PVC (Custom Print)'}</strong>
               </span>
-              <span className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#B600A8] to-purple-400">
+              <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-100 to-[#76BB08]">
                 ₦{getBasePrice().toLocaleString()}
               </span>
               {discountUnlocked && (
-                <span className="text-xs text-emerald-400 block mt-0.5">
+                <span className="text-xs text-emerald-400 block mt-0.5 font-semibold">
                   ✓ 10% VIP Coupon Activated (-₦{(getBasePrice() * 0.1).toLocaleString()})
                 </span>
               )}
@@ -255,7 +252,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
           {/* Right Column: Multi-Step Interactive Form */}
           <div className="lg:col-span-7 flex flex-col">
             <AnimatePresence mode="wait">
-              {/* STEP 1: TIER & MATERIAL */}
+              {/* STEP 1: PVC CARD SELECTION */}
               {step === 1 && (
                 <motion.div
                   key="step1"
@@ -265,147 +262,85 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                   className="flex flex-col gap-4"
                 >
                   <div>
-                    <h3 className="text-lg font-bold text-white mb-1">Select Hardware Tier</h3>
-                    <p className="text-xs text-white/60">Choose the foundation for your physical NFC card.</p>
+                    <h3 className="text-lg font-bold text-white mb-1">Select Your NFC Smart PVC Card</h3>
+                    <p className="text-xs text-white/60">Built with embedded NXP NTAG216 chip. Sub-10ms response, zero app needed.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {[
                       {
-                        id: 'plastic',
-                        tier: 'plastic' as const,
-                        defaultMaterial: 'plastic_white' as CardMaterial,
-                        label: 'Smart PVC Card',
+                        id: 'plastic_white',
+                        material: 'plastic_white' as CardMaterial,
+                        label: 'White PVC Card',
+                        sublabel: 'Custom Print',
                         price: '₦30,000',
-                        badge: '5g Polymer',
-                        desc: 'Featherlight scratch-resistant PVC with embedded NTAG216 chip & dynamic QR code.',
+                        originalPrice: '₦45,000',
+                        badge: 'Clean Minimalist',
+                        desc: 'Sleek ceramic white polymer with full-bleed custom color print. Embedded NTAG216 chip & dynamic QR code.',
                       },
                       {
-                        id: 'metal',
-                        tier: 'metal' as const,
-                        defaultMaterial: 'metal_spacegray' as CardMaterial,
-                        label: 'NFC Smart Metal',
-                        price: '₦50,000',
-                        badge: '24g Steel',
-                        desc: 'Milled from solid 304 stainless steel with single-sided fiber laser etching & table clink.',
-                      },
-                      {
-                        id: 'debit',
-                        tier: 'debit' as const,
-                        defaultMaterial: 'metal_gold' as CardMaterial,
-                        label: 'Metal Debit / Luxury',
-                        price: '₦100,000',
-                        badge: '28g Alloy',
-                        desc: 'Deep CNC dual-sided fiber engraving. EMV debit transplant ready with bespoke concierge proof.',
+                        id: 'plastic_black',
+                        material: 'plastic_black' as CardMaterial,
+                        label: 'Black PVC Card',
+                        sublabel: 'Custom UV Print',
+                        price: '₦35,000',
+                        originalPrice: '₦50,000',
+                        badge: '★ Most Popular • VIP',
+                        desc: 'Industrial matte black polymer with tactile high-definition UV print. Scratch & waterproof with instant tap.',
                       },
                     ].map((t) => {
-                      const isSelected = tier === t.tier;
+                      const isSelected = material === t.material;
                       return (
                         <div
                           key={t.id}
                           onClick={() => {
-                            setTier(t.tier);
-                            if (t.tier === 'plastic') {
-                              if (material !== 'plastic_white' && material !== 'plastic_black') {
-                                setMaterial('plastic_white');
-                              }
-                            } else if (t.tier === 'metal') {
-                              setMaterial('metal_spacegray');
-                            } else {
-                              setMaterial('metal_gold');
-                            }
+                            setTier('plastic');
+                            setMaterial(t.material);
                           }}
-                          className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                             isSelected
-                              ? 'border-[#B600A8] bg-[#B600A8]/15 shadow-lg shadow-purple-950/40'
+                              ? 'border-[#76BB08] bg-[#76BB08]/15 shadow-lg shadow-emerald-950/40 scale-[1.01]'
                               : 'border-white/10 bg-white/5 hover:border-white/20'
                           }`}
                         >
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-full bg-white/10 text-white/80">
-                              {t.badge}
-                            </span>
-                            {isSelected && <CheckCircle2 className="w-4 h-4 text-[#B600A8]" />}
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold ${
+                                t.material === 'plastic_black'
+                                  ? 'bg-[#76BB08]/20 text-[#76BB08] border border-[#76BB08]/40'
+                                  : 'bg-white/10 text-white/80 border border-white/20'
+                              }`}>
+                                {t.badge}
+                              </span>
+                              {isSelected && <CheckCircle2 className="w-5 h-5 text-[#76BB08]" />}
+                            </div>
+                            <h4 className="font-extrabold text-base text-white mt-1 leading-tight">{t.label}</h4>
+                            <p className="text-xs font-semibold text-[#76BB08]">{t.sublabel}</p>
+                            
+                            <div className="flex items-baseline gap-2 mt-2">
+                              <span className="text-2xl font-black text-white">{t.price}</span>
+                              <span className="text-xs text-white/40 line-through">{t.originalPrice}</span>
+                            </div>
+                            
+                            <p className="text-xs text-white/70 mt-2 leading-relaxed">{t.desc}</p>
                           </div>
-                          <h4 className="font-bold text-xs sm:text-sm text-white mt-1.5 leading-tight">{t.label}</h4>
-                          <p className="text-sm sm:text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 mt-0.5">{t.price}</p>
-                          <p className="text-[10px] sm:text-[11px] text-white/60 mt-1 leading-snug">{t.desc}</p>
+
+                          <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/60">
+                            <span>Sub-10ms NTAG216</span>
+                            <span className="text-emerald-400 font-bold">24-48h Lagos Dispatch</span>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Material Finishes */}
-                  <div className="mt-2">
-                    <label className="text-xs font-bold text-white/70 uppercase tracking-wider block mb-2">
-                      {tier === 'plastic' ? 'Choose PVC Colorway' : 'Choose Metal Finish & Tone'}
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {tier === 'plastic' ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setMaterial('plastic_white')}
-                            className={`p-3 rounded-xl border text-left transition-all ${
-                              material === 'plastic_white'
-                                ? 'border-[#B600A8] bg-white/10 text-white'
-                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
-                            }`}
-                          >
-                            <span className="text-xs font-bold block">Glacier White</span>
-                            <span className="text-[10px] opacity-60 block">Pearl White UV Polymer</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setMaterial('plastic_black')}
-                            className={`p-3 rounded-xl border text-left transition-all ${
-                              material === 'plastic_black'
-                                ? 'border-[#B600A8] bg-white/10 text-white'
-                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
-                            }`}
-                          >
-                            <span className="text-xs font-bold block">Matte Obsidian</span>
-                            <span className="text-[10px] opacity-60 block">Stealth Black Finish</span>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setMaterial('metal_spacegray')}
-                            className={`p-3 rounded-xl border text-left transition-all ${
-                              material === 'metal_spacegray'
-                                ? 'border-[#B600A8] bg-white/10 text-white'
-                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
-                            }`}
-                          >
-                            <span className="text-xs font-bold block">Space Gray Steel</span>
-                            <span className="text-[10px] opacity-60 block">Brushed Aerospace Steel</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setMaterial('metal_gold')}
-                            className={`p-3 rounded-xl border text-left transition-all ${
-                              material === 'metal_gold'
-                                ? 'border-[#B600A8] bg-white/10 text-white'
-                                : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
-                            }`}
-                          >
-                            <span className="text-xs font-bold block">24K Matte Gold</span>
-                            <span className="text-[10px] opacity-60 block">Executive Gold PVD Plate</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="mt-4 w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-[#B600A8] to-[#7621B0] text-white hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-900/30"
+                    className="mt-4 w-full py-3.5 rounded-xl font-bold text-sm bg-[#76BB08] hover:bg-[#85d309] text-neutral-950 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#76BB08]/20 transition-all active:scale-[0.98]"
                   >
-                    <span>{tier === 'metal' ? 'Proceed to Laser Engraving Details' : 'Proceed to Card Printing Details'}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span>Proceed to Card Customization & Print Details</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </motion.div>
               )}

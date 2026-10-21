@@ -40,7 +40,7 @@ import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialM
 import { trackTikTokEvent } from '../utils/tiktokPixel';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
-import { ProductComparisonMatrix } from '../components/ProductComparisonMatrix';
+import { SocialProofToast } from '../components/funnel/SocialProofToast';
 
 // Lazy-load heavier checkout & customization modals to keep the initial page bundle lean
 const CardCustomizerModal = lazy(() =>
@@ -102,7 +102,7 @@ export default function NfcSalesView({
   const [utmCampaign, setUtmCampaign] = useState('');
 
   // 2. Interactive Preview State
-  const [heroMaterial, setHeroMaterial] = useState<CardMaterial>('metal_spacegray');
+  const [heroMaterial, setHeroMaterial] = useState<CardMaterial>('plastic_black');
   const [heroCustomName, setHeroCustomName] = useState('Victor Dennis');
   const [heroCustomTitle, setHeroCustomTitle] = useState('Managing Partner & Founder');
   const [heroCompany, setHeroCompany] = useState('Apex Ventures');
@@ -114,49 +114,19 @@ export default function NfcSalesView({
   const [showTapBanner, setShowTapBanner] = useState(false);
 
   const getMaterialPrice = (mat: CardMaterial) => {
-    switch (mat) {
-      case 'plastic_white':
-        return 30000;
-      case 'plastic_black':
-        return 35000;
-      case 'metal_spacegray':
-        return 50000;
-      case 'metal_gold':
-      default:
-        return 100000;
-    }
+    return mat === 'plastic_black' ? 35000 : 30000;
   };
 
   const getMaterialOriginalPrice = (mat: CardMaterial) => {
-    switch (mat) {
-      case 'plastic_white':
-      case 'plastic_black':
-        return 45000;
-      case 'metal_spacegray':
-        return 75000;
-      case 'metal_gold':
-      default:
-        return 150000;
-    }
+    return mat === 'plastic_black' ? 50000 : 45000;
   };
 
-  const getMaterialTier = (mat: CardMaterial): 'plastic' | 'metal' | 'debit' => {
-    if (mat === 'plastic_white' || mat === 'plastic_black') return 'plastic';
-    if (mat === 'metal_spacegray') return 'metal';
-    return 'debit';
+  const getMaterialTier = (_mat: CardMaterial): 'plastic' | 'metal' | 'debit' => {
+    return 'plastic';
   };
 
   const getMaterialLabel = (mat: CardMaterial) => {
-    switch (mat) {
-      case 'metal_gold':
-        return '24K Matte Gold';
-      case 'metal_spacegray':
-        return 'Space Gray Steel';
-      case 'plastic_black':
-        return 'Matte Obsidian';
-      case 'plastic_white':
-        return 'Glacier White';
-    }
+    return mat === 'plastic_black' ? 'Matte Obsidian UV (₦35,000)' : 'Glacier White (₦30,000)';
   };
 
   const handleSimulateTap = () => {
@@ -199,8 +169,8 @@ export default function NfcSalesView({
   // 3. Modals & Funnel State
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [selectedInitialTier, setSelectedInitialTier] = useState<'plastic' | 'metal' | 'debit'>('metal');
-  const [selectedInitialMaterial, setSelectedInitialMaterial] = useState<CardMaterial>('metal_spacegray');
+  const [selectedInitialTier, setSelectedInitialTier] = useState<'plastic' | 'metal' | 'debit'>('plastic');
+  const [selectedInitialMaterial, setSelectedInitialMaterial] = useState<CardMaterial>('plastic_black');
   const [customizationData, setCustomizationData] = useState<CardCustomizationData | null>(null);
 
   // 4. Scarcity & Urgency Timer (15 Minutes)
@@ -332,25 +302,18 @@ export default function NfcSalesView({
   const personaContent = getPersonaCopy();
 
   // Open Customizer for a specific tier and material
-  const handleOpenCustomizer = (tier: 'plastic' | 'metal' | 'debit' = 'metal', material?: CardMaterial) => {
-    setSelectedInitialTier(tier);
-    if (material) {
-      setSelectedInitialMaterial(material);
-    } else if (tier === 'plastic') {
-      setSelectedInitialMaterial('plastic_white');
-    } else if (tier === 'debit') {
-      setSelectedInitialMaterial('metal_gold');
-    } else {
-      setSelectedInitialMaterial('metal_spacegray');
-    }
+  const handleOpenCustomizer = (tier: 'plastic' | 'metal' | 'debit' = 'plastic', material?: CardMaterial) => {
+    setSelectedInitialTier('plastic');
+    const selectedMat = material || 'plastic_black';
+    setSelectedInitialMaterial(selectedMat);
 
-    // Track TikTok AddToCart event (₦30,000 for PVC, ₦50,000 for Metal, ₦100,000 for Heavy Metal/Debit)
-    const itemPrice = tier === 'plastic' ? 30000 : tier === 'metal' ? 50000 : 100000;
+    // Track TikTok AddToCart event (₦35,000 for Black UV PVC, ₦30,000 for White PVC)
+    const itemPrice = selectedMat === 'plastic_black' ? 35000 : 30000;
 
     trackTikTokEvent('AddToCart', {
       content_type: 'product',
-      content_name: `${tier === 'plastic' ? 'Custom PVC NFC Card' : tier === 'metal' ? 'NFC Smart Metal Card' : 'Metal Debit Card + Custom Design'} (${material || 'standard'})`,
-      content_id: tier,
+      content_name: selectedMat === 'plastic_black' ? 'NFC Smart Black PVC Card (Custom UV Print)' : 'NFC Smart White PVC Card (Custom Print)',
+      content_id: selectedMat,
       value: itemPrice,
       currency: 'NGN',
     });
@@ -508,7 +471,7 @@ export default function NfcSalesView({
                   </div>
 
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-500 dark:text-white/60">
-                    {heroMaterial.includes('metal') ? '28g Solid Steel • Laser Engraved' : 'Polymer PVC • Full-Color UV'}
+                    {heroMaterial === 'plastic_black' ? 'Tactile HD UV Print • Matte Obsidian' : 'Full-Color Edge-to-Edge Print • Ceramic White'}
                   </span>
                 </div>
 
@@ -610,39 +573,23 @@ export default function NfcSalesView({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {[
                       {
-                        id: 'metal_spacegray' as CardMaterial,
-                        label: 'Space Gray Steel',
-                        price: '₦100,000',
-                        weight: '28g Solid Steel',
-                        swatch: 'from-slate-500 via-slate-700 to-slate-900 border-slate-400',
-                        tag: 'Engraved',
-                      },
-                      {
-                        id: 'metal_gold' as CardMaterial,
-                        label: '24K Matte Gold',
-                        price: '₦100,000',
-                        weight: '28g Gold Plate',
-                        swatch: 'from-[#FFE082] via-[#FFB300] to-[#8D6E63] border-[#FFE082]',
-                        tag: 'Engraved',
-                      },
-                      {
                         id: 'plastic_black' as CardMaterial,
-                        label: 'Matte Obsidian PVC',
-                        price: '₦30,000',
-                        weight: '5g Matte PVC',
+                        label: 'Black PVC (UV Print)',
+                        price: '₦35,000',
+                        weight: 'Matte UV Polymer',
                         swatch: 'from-neutral-700 via-neutral-900 to-black border-neutral-600',
-                        tag: 'UV Printed',
+                        tag: '★ Best Seller • VIP',
                       },
                       {
                         id: 'plastic_white' as CardMaterial,
-                        label: 'Glacier White PVC',
+                        label: 'White PVC (Custom)',
                         price: '₦30,000',
-                        weight: '5g Pearl PVC',
+                        weight: 'Ceramic Polymer',
                         swatch: 'from-white via-slate-100 to-slate-300 border-white',
-                        tag: 'UV Printed',
+                        tag: 'Full Color Print',
                       },
                     ].map((item) => {
                       const isSelected = heroMaterial === item.id;
@@ -686,17 +633,17 @@ export default function NfcSalesView({
                   </div>
                 </div>
 
-                {/* Control 2: Real-time Engraving / Printing Inputs */}
+                {/* Control 2: Real-time Printing Inputs */}
                 <div>
                   <label className="block text-xs font-bold text-neutral-900 dark:text-white/90 uppercase tracking-wider font-mono mb-2.5">
-                    {heroMaterial.includes('metal') ? '2. Fiber-Laser Engrave Your Identity' : '2. Precision UV Print Your Identity'}
+                    2. Precision Print Your Card Identity
                   </label>
 
                   <div className="flex flex-col gap-2.5">
                     {/* Full Name */}
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] font-mono text-neutral-500 dark:text-white/60">
-                        {heroMaterial.includes('metal') ? 'Laser Engraved Name:' : 'UV Printed Name:'}
+                        Cardholder Name:
                       </span>
                       <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#76BB08] transition-colors">
                         <input
@@ -713,7 +660,7 @@ export default function NfcSalesView({
                     {/* Title / Role */}
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] font-mono text-neutral-500 dark:text-white/60">
-                        {heroMaterial.includes('metal') ? 'Engraved Executive Title / Role:' : 'Printed Title / Role:'}
+                        Title / Role:
                       </span>
                       <div className="flex items-center gap-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-neutral-950 dark:focus-within:border-[#76BB08] transition-colors">
                         <input
@@ -795,7 +742,7 @@ export default function NfcSalesView({
                   <p className="text-[11px] text-neutral-500 dark:text-white/50 text-center mt-2.5 flex items-center justify-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                     <span>
-                      {heroMaterial.includes('metal') ? 'Precision fiber-laser engraved' : 'Precision UV printed'} & dispatched within 24h • Insured delivery via DHL & GIG Logistics
+                      Precision UV printed & dispatched within 24–48h • Insured delivery via DHL & GIG Logistics
                     </span>
                   </p>
                 </div>
@@ -969,7 +916,7 @@ export default function NfcSalesView({
         </div>
       </section>
 
-      {/* ================= STAGE 4 & 5: STRATEGIC OFFER & TIERED PRICING ================= */}
+      {/* ================= STAGE 4 & 5: STRATEGIC OFFER & PVC PRICING ================= */}
       <section id="pricing" className="py-14 sm:py-20 md:py-28 px-4 sm:px-6 lg:px-8 relative z-10 max-w-7xl mx-auto content-auto w-full">
         
         {/* Scarcity Notice */}
@@ -977,43 +924,43 @@ export default function NfcSalesView({
           <div className="flex items-center gap-2">
             <Flame className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" />
             <span>
-              <strong>Lagos Production Hub:</strong> Only <strong>6 Metal blanks</strong> remaining in queue today.
+              <strong>Lagos Production Hub:</strong> Only <strong>8 Black PVC blanks</strong> remaining for same-day UV print dispatch.
             </span>
           </div>
           <span className="font-mono text-[10px] text-amber-700 dark:text-amber-300 font-bold uppercase bg-amber-500/20 px-3 py-1 rounded-full shrink-0">
-            Limited Queue
+            High Demand
           </span>
         </div>
 
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16 px-2 sm:px-0">
-          <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs mb-3 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-            <span className="w-2 h-2 rounded-full bg-[#76BB08]" />
-            Simple, Transparent Pricing
+          <div className="inline-flex items-center gap-2 bg-[#76BB08]/15 border border-[#76BB08]/30 rounded-full px-3.5 py-1.5 shadow-2xs mb-3 text-xs font-bold text-[#76BB08] uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-[#76BB08] animate-pulse" />
+            Direct Hardware Pricing
           </div>
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-[-0.035em] text-neutral-950 dark:text-white leading-tight">
-            Buy the hardware once. The core software is yours for life.
+            Buy the card once. The digital engine is yours for life.
           </h2>
           <p className="text-xs sm:text-base md:text-lg text-neutral-600 dark:text-neutral-300 font-normal leading-relaxed mt-2.5 sm:mt-3">
-            No monthly subscriptions required for core features. Includes lifetime access to CHIP Core + 3-months of CHIP Pro for free.
+            Zero monthly subscriptions required. Both cards feature genuine embedded NTAG216 high-frequency microchips, sub-10ms contactless response, dynamic QR backup, and lifetime cloud bio link hosting.
           </p>
         </div>
 
-        {/* Three-Tier Differentiated Product Showcase */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto items-stretch">
+        {/* 2-Card Percussive PVC Product Showcase */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto items-stretch">
           
-          {/* TIER 1: SMART PVC CARD (₦30,000) - STARTER UTILITY */}
-          <div className="p-5 sm:p-7 md:p-8 rounded-[28px] sm:rounded-[32px] bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 transition-all flex flex-col justify-between relative shadow-sm">
+          {/* TIER 1: WHITE PVC CARD (₦30,000) */}
+          <div className="p-6 sm:p-8 rounded-[28px] sm:rounded-[32px] bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 transition-all flex flex-col justify-between relative shadow-sm">
             <div>
               <div className="flex items-center justify-between gap-2 mb-4">
                 <span className="text-[11px] font-mono uppercase px-3 py-1 rounded-full bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-white/90 border border-neutral-200/60 dark:border-white/10 font-bold">
-                  Starter Utility • Speed
+                  Clean Minimalist • Full Color
                 </span>
-                <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold">5g Polymer PVC</span>
+                <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold">Ceramic White PVC</span>
               </div>
 
-              <h3 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white">Smart PVC Card</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white">White PVC Card (Custom Print)</h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed">
-                The smart, featherlight daily driver built for rapid networking. Replace endless paper stacks with an instant sub-10ms contactless tap.
+                Crisp, modern ceramic white satin finish with full-bleed custom color print. Embedded genuine NTAG216 chip, sub-10ms response, zero app needed.
               </p>
 
               <div className="flex items-baseline gap-3 my-5 sm:my-6 p-3.5 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
@@ -1026,19 +973,19 @@ export default function NfcSalesView({
 
               <div className="mb-6">
                 <span className="text-[11px] font-mono text-neutral-500 dark:text-white/50 uppercase tracking-wider block mb-3 font-semibold">
-                  Utility & Hardware Specifications:
+                  Hardware & Technology Specifications:
                 </span>
                 <ul className="flex flex-col gap-2.5 sm:gap-3 text-xs text-neutral-700 dark:text-white/80">
                   {[
-                    'Sub-10ms NTAG216 High-Speed Contactless Chip',
-                    '5g High-Density Scratch-Resistant Polymer PVC',
-                    'Full-Color HD Edge-to-Edge UV Cured Printing',
-                    'Instant vCard Download directly to Phonebook',
-                    'High-Contrast Dynamic Vector QR Backup',
-                    'Lifetime CHIP Core Cloud Hosting (₦0 Monthly Fee)',
+                    'Sub-10ms NXP NTAG216 High-Speed Contactless Chip',
+                    'Durable 5g Scratch-Resistant Ceramic White Polymer',
+                    'Full-Color Edge-to-Edge Custom Graphic & Logo Print',
+                    'Instant 1-Tap vCard Download straight to Phonebook',
+                    'High-Contrast Dynamic Vector QR Code Backup',
+                    'Lifetime CHIP Core Cloud Hosting (₦0 Monthly Fees)',
                     '3-Months Free CHIP Pro Telemetry & Lead Capture',
-                    'Standard Nationwide Dispatch (24–48h Delivery)',
-                    '12-Month Contactless Hardware Guarantee',
+                    'Fast 24–48h Dispatch from Lagos Workshop',
+                    '12-Month Hardware & Antenna Warranty',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
@@ -1056,117 +1003,58 @@ export default function NfcSalesView({
               <div className="w-8 h-8 rounded-full bg-[#76BB08] text-neutral-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                 <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
               </div>
-              <span>Get Smart PVC (₦30,000)</span>
+              <span>Order White Card (₦30,000)</span>
             </button>
           </div>
 
-          {/* TIER 2: NFC SMART METAL CARD (₦50,000) - PROFESSIONAL FIRST IMPRESSION */}
-          <div className="p-5 sm:p-7 md:p-8 rounded-[28px] sm:rounded-[32px] bg-neutral-900 text-white dark:bg-[#151821] border border-neutral-700 dark:border-white/10 hover:border-neutral-500 dark:hover:border-white/30 transition-all flex flex-col justify-between relative shadow-lg">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <span className="text-[11px] font-mono uppercase px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 font-bold">
-                  Professional Metal
-                </span>
-                <span className="text-xs font-mono text-neutral-300 font-bold">24g Solid Steel</span>
-              </div>
-
-              <h3 className="text-xl sm:text-2xl font-bold text-white">NFC Smart Metal</h3>
-              <p className="text-xs sm:text-sm text-neutral-300 mt-2 leading-relaxed">
-                Precision-milled 24g solid 304 stainless steel with single-sided fiber laser etching. Five times heavier than PVC with an undeniable metallic table presence.
-              </p>
-
-              <div className="flex items-baseline gap-3 my-5 sm:my-6 p-3.5 sm:p-4 rounded-2xl bg-white/[0.05] border border-white/10">
-                <span className="text-3xl sm:text-4xl font-black text-white">₦50,000</span>
-                <span className="text-neutral-400 line-through text-sm">₦75,000</span>
-                <span className="text-xs font-bold font-mono text-emerald-400 ml-auto px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  Save 33%
-                </span>
-              </div>
-
-              <div className="mb-6">
-                <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider block mb-3 font-semibold">
-                  Engineering & Performance Specs:
-                </span>
-                <ul className="flex flex-col gap-2.5 sm:gap-3 text-xs text-neutral-200">
-                  {[
-                    '24g Solid 304 Stainless Steel Core (Heavy Weight)',
-                    'Permanent High-Precision Fiber-Laser Front Etch',
-                    'Ferrite-Shielded Contactless NFC Antenna (<10ms)',
-                    'Brushed Space Gray & Obsidian Anodized Finishes',
-                    'Crisp Acoustic "Metallic Clink" on Meeting Tables',
-                    'Laser-Annealed Scratch-Proof Backside QR Code',
-                    'Lifetime CHIP Core Access + 3-Months CHIP Pro',
-                    'Priority 24h Lagos Workshop Fabrication Queue',
-                    '12-Month Full Hardware Replacement Warranty',
-                  ].map((feat, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span className={i === 0 || i === 1 ? 'font-bold text-white' : ''}>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleOpenCustomizer('metal', 'metal_spacegray')}
-              className="mt-4 group flex items-center justify-center gap-2.5 w-full py-3.5 pl-2 pr-5 rounded-full bg-white text-neutral-950 hover:bg-neutral-100 active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-bold text-xs sm:text-sm min-h-[44px]"
-            >
-              <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
-                <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
-              </div>
-              <span>Get Smart Metal (₦50,000)</span>
-            </button>
-          </div>
-
-          {/* TIER 3: CUSTOM HEAVY METAL EDITION (₦100,000) - BOARDROOM AUTHORITY */}
-          <div className="mt-4 md:mt-0 relative p-5 sm:p-7 md:p-8 rounded-[28px] sm:rounded-[32px] bg-neutral-950 text-white dark:bg-[#151821] border-2 border-[#76BB08] shadow-[0_10px_40px_rgba(118, 187, 8,0.18)] flex flex-col justify-between transform lg:-translate-y-2">
+          {/* TIER 2: BLACK PVC CARD (₦35,000) - VIP BESTSELLER */}
+          <div className="relative p-6 sm:p-8 rounded-[28px] sm:rounded-[32px] bg-neutral-950 text-white dark:bg-[#151821] border-2 border-[#76BB08] shadow-[0_10px_40px_rgba(118,187,8,0.18)] flex flex-col justify-between transform md:-translate-y-2">
             
             {/* Bestseller Badge */}
-            <div className="absolute -top-3.5 sm:-top-4 left-1/2 -translate-x-1/2 bg-[#76BB08] text-neutral-950 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
-              ★ Executive Bestseller • Boardroom Choice
+            <div className="absolute -top-3.5 sm:-top-4 left-1/2 -translate-x-1/2 bg-[#76BB08] text-neutral-950 px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
+              ★ Most Popular • VIP Choice
             </div>
 
             <div>
               <div className="flex items-center justify-between gap-2 mb-4">
                 <span className="text-[11px] font-mono uppercase px-3 py-1 rounded-full bg-[#76BB08]/20 text-[#76BB08] border border-[#76BB08]/40 font-bold">
-                  Bespoke Luxury • Authority
+                  Tactile UV Print • Executive
                 </span>
-                <span className="text-xs font-mono text-[#76BB08] font-bold">28g Aerospace Alloy</span>
+                <span className="text-xs font-mono text-[#76BB08] font-bold">Matte Black PVC</span>
               </div>
 
-              <h3 className="text-xl sm:text-2xl font-bold text-white">Custom Heavy Metal</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-white">Black PVC Card (Custom UV Print)</h3>
               <p className="text-xs sm:text-sm text-neutral-300 mt-2 leading-relaxed">
-                Ultra-dense 28g aerospace-grade alloy with deep CNC dual-sided fiber engraving. Signals undeniable prestige when closing eight-figure luxury contracts.
+                Industrial matte black polymer with tactile high-definition UV cured print. Embedded genuine NXP NTAG216 chip, sub-10ms response, zero app needed.
               </p>
 
               <div className="flex items-baseline gap-3 my-5 sm:my-6 p-3.5 sm:p-4 rounded-2xl bg-white/[0.05] border border-white/10">
-                <span className="text-3xl sm:text-4xl font-black text-white">₦100,000</span>
-                <span className="text-neutral-400 line-through text-sm">₦150,000</span>
+                <span className="text-3xl sm:text-4xl font-black text-white">₦35,000</span>
+                <span className="text-neutral-400 line-through text-sm">₦50,000</span>
                 <span className="text-xs font-bold font-mono text-[#76BB08] ml-auto px-2.5 py-1 rounded-full bg-[#76BB08]/15 border border-[#76BB08]/30">
-                  Save 33%
+                  Save 30%
                 </span>
               </div>
 
               <div className="mb-6">
                 <span className="text-[11px] font-mono text-neutral-300 uppercase tracking-wider block mb-3 font-semibold">
-                  Executive Craftsmanship Specs:
+                  Hardware & Technology Specifications:
                 </span>
                 <ul className="flex flex-col gap-2.5 sm:gap-3 text-xs text-white/90">
                   {[
-                    'Deep Dual-Sided CNC Fiber-Laser Relief Engraving',
-                    '28g Ultra-Dense Aerospace-Grade Stainless Alloy',
-                    '24K Matte Mirror Gold or Obsidian Black PVD Coating',
-                    'Tuned 360° Ceramic Radio-Frequency Induction Loop',
-                    'Optional Functional EMV Debit Chip Transplant Ready',
-                    '1-on-1 Bespoke Concierge Digital Designer Proof Review',
-                    'VIP Same-Day Lagos Bench Queue & Express Courier',
-                    '12 Months Free CHIP Pro Telemetry & Lead Capture',
-                    'Lifetime Indestructible Hardware & Engraving Warranty',
+                    'Sub-10ms NXP NTAG216 High-Speed Contactless Chip',
+                    'Industrial Matte Black Polymer with Stealth Finish',
+                    'Tactile 3D Embossed High-Definition UV Cured Print',
+                    'Instant 1-Tap vCard Download straight to Phonebook',
+                    'Laser-Sharp High-Contrast Dynamic QR Code Backup',
+                    'Lifetime CHIP Core Cloud Hosting (₦0 Monthly Fees)',
+                    '3-Months Free CHIP Pro Telemetry & Lead Capture',
+                    'Priority 24h Lagos Workshop Queue & Fast Dispatch',
+                    '12-Month Hardware & Antenna Warranty',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#76BB08] shrink-0 mt-0.5" />
-                      <span className={i < 3 ? 'font-bold text-white' : ''}>{feat}</span>
+                      <span className={i === 0 || i === 2 ? 'font-bold text-white' : ''}>{feat}</span>
                     </li>
                   ))}
                 </ul>
@@ -1174,30 +1062,17 @@ export default function NfcSalesView({
             </div>
 
             <button
-              onClick={() => handleOpenCustomizer('debit', 'metal_gold')}
-              className="mt-4 group flex items-center justify-center gap-2.5 w-full py-3.5 pl-2 pr-5 rounded-full bg-[#76BB08] text-neutral-950 hover:bg-[#bce42d] active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-extrabold text-xs sm:text-sm min-h-[44px]"
+              onClick={() => handleOpenCustomizer('plastic', 'plastic_black')}
+              className="mt-4 group flex items-center justify-center gap-2.5 w-full py-3.5 pl-2 pr-5 rounded-full bg-[#76BB08] text-neutral-950 hover:bg-[#86d409] active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer font-black text-xs sm:text-sm min-h-[44px]"
             >
               <div className="w-8 h-8 rounded-full bg-neutral-950 text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                 <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
               </div>
-              <span>Build Custom Metal Card (10% Off)</span>
+              <span>Order Black UV Card (₦35,000)</span>
             </button>
           </div>
 
         </div>
-
-        {/* Dropped-in Product Comparison Matrix Component */}
-        <ProductComparisonMatrix
-          onSelectTier={(tier) => {
-            if (tier === 'plastic') {
-              handleOpenCustomizer('plastic', 'plastic_white');
-            } else if (tier === 'metal') {
-              handleOpenCustomizer('metal', 'metal_spacegray');
-            } else {
-              handleOpenCustomizer('debit', 'metal_gold');
-            }
-          }}
-        />
       </section>
 
       {/* ================= FAQ & ASSURANCE ================= */}
@@ -1303,18 +1178,26 @@ export default function NfcSalesView({
             10% VIP Discount Active
           </span>
           <span className="text-xs font-bold text-neutral-950 dark:text-white truncate">
-            PVC ₦30k • Metal ₦50k–₦100k
+            White PVC ₦30k • Black UV ₦35k
           </span>
         </div>
 
         <button
-          onClick={() => handleOpenCustomizer('metal')}
+          onClick={() => handleOpenCustomizer('plastic', 'plastic_black')}
           onMouseEnter={preloadFunnelModals}
           className="px-5 py-2.5 rounded-full font-bold text-xs bg-neutral-950 text-white dark:bg-[#76BB08] dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-transform shadow-sm cursor-pointer whitespace-nowrap min-h-[42px] flex items-center justify-center shrink-0"
         >
-          <span>Customize Now</span>
+          <span>Order PVC Card</span>
         </button>
       </div>
+
+      {/* Live Purchase Social Proof Pop-up Notification */}
+      <SocialProofToast
+        onOrderClick={() => {
+          const el = document.getElementById('pricing');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
 
     </div>
   );

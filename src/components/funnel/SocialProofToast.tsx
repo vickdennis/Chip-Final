@@ -6,46 +6,51 @@ interface OrderItem {
   name: string;
   location: string;
   item: string;
+  price: string;
   timeAgo: string;
 }
 
 const RECENT_ORDERS: OrderItem[] = [
-  { name: 'Babatunde O.', location: 'Victoria Island, Lagos', item: 'Smart Metal (28g Gunmetal)', timeAgo: '3 mins ago' },
-  { name: 'Amina B.', location: 'Maitama, Abuja', item: '24K Matte Gold Edition', timeAgo: '7 mins ago' },
-  { name: 'Dr. Chidi E.', location: 'Lekki Phase 1, Lagos', item: 'Smart Metal + Laser Engraving', timeAgo: '12 mins ago' },
-  { name: 'Oluwaseun A.', location: 'GRA, Port Harcourt', item: 'Smart Plastic (Matte Black)', timeAgo: '18 mins ago' },
-  { name: 'Tolulope M.', location: 'Ikeja GRA, Lagos', item: 'Metal Debit Convert Edition', timeAgo: '24 mins ago' },
-  { name: 'Ibrahim K.', location: 'Central Business District, Abuja', item: 'Executive Smart Metal Bundle', timeAgo: '31 mins ago' },
+  { name: 'Babatunde O.', location: 'Victoria Island, Lagos', item: 'Black PVC Card (Custom UV Print)', price: '₦35,000', timeAgo: '2 mins ago' },
+  { name: 'Dr. Chidi E.', location: 'Lekki Phase 1, Lagos', item: 'White PVC Card (Custom Print)', price: '₦30,000', timeAgo: '5 mins ago' },
+  { name: 'Amina B.', location: 'Maitama, Abuja', item: 'Black PVC Card (Custom UV Print)', price: '₦35,000', timeAgo: '8 mins ago' },
+  { name: 'Oluwaseun A.', location: 'GRA, Port Harcourt', item: 'White PVC Card (Custom Print)', price: '₦30,000', timeAgo: '14 mins ago' },
+  { name: 'Tolulope M.', location: 'Ikeja GRA, Lagos', item: 'Black PVC Card (Custom UV Print)', price: '₦35,000', timeAgo: '19 mins ago' },
+  { name: 'Ibrahim K.', location: 'Central Business District, Abuja', item: 'Black PVC Card (Custom UV Print)', price: '₦35,000', timeAgo: '27 mins ago' },
+  { name: 'Kelechi N.', location: 'Asaba, Delta', item: 'White PVC Card (Custom Print)', price: '₦30,000', timeAgo: '33 mins ago' },
+  { name: 'Folake D.', location: 'Bodija, Ibadan', item: 'Black PVC Card (Custom UV Print)', price: '₦35,000', timeAgo: '41 mins ago' },
 ];
 
 interface SocialProofToastProps {
   remainingStock?: number;
   discountSecondsLeft?: number;
   hasDiscount?: boolean;
+  onOrderClick?: () => void;
 }
 
 export const SocialProofToast: React.FC<SocialProofToastProps> = ({
   remainingStock = 6,
   discountSecondsLeft,
   hasDiscount = false,
+  onOrderClick,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Show first toast after 4s
+    // Show first toast quickly after 2.5s
     const firstTimer = setTimeout(() => {
       setIsVisible(true);
-    }, 3500);
+    }, 2500);
 
-    // Rotate every 11 seconds
+    // Rotate every 9 seconds
     const interval = setInterval(() => {
       setIsVisible(false);
       setTimeout(() => {
         setCurrentIndex(prev => (prev + 1) % RECENT_ORDERS.length);
         setIsVisible(true);
-      }, 1000);
-    }, 12000);
+      }, 800);
+    }, 8500);
 
     return () => {
       clearTimeout(firstTimer);
@@ -64,34 +69,47 @@ export const SocialProofToast: React.FC<SocialProofToastProps> = ({
 
   return (
     <>
-      {/* Live Order Social Proof Toast (Bottom Left Desktop / Top Notification Mobile) */}
+      {/* Live Order Social Proof Toast (Bottom Left Desktop / Bottom-Center Mobile) */}
       <AnimatePresence>
         {isVisible && currentOrder && (
           <motion.div
-            initial={{ opacity: 0, y: 25, scale: 0.95 }}
+            initial={{ opacity: 0, y: 30, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.4 }}
-            className="fixed bottom-20 left-4 md:bottom-6 md:left-6 z-40 max-w-[340px] bg-[#12141A]/95 backdrop-blur-md border border-white/15 rounded-2xl p-3 shadow-2xl flex items-center gap-3 select-none pointer-events-none"
+            exit={{ opacity: 0, y: 20, scale: 0.92 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            onClick={() => {
+              if (onOrderClick) {
+                onOrderClick();
+              } else {
+                const el = document.getElementById('shop') || document.getElementById('pricing');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="fixed bottom-20 left-4 md:bottom-6 md:left-6 z-50 max-w-[360px] bg-[#0c0d12]/95 backdrop-blur-xl border border-white/15 hover:border-[#76BB08]/60 rounded-2xl p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex items-center gap-3.5 select-none cursor-pointer group transition-colors"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B600A8]/30 to-purple-800/20 border border-[#B600A8]/40 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5 text-[#B600A8]" />
+            {/* Visual Icon with Live Pulsing Green Glow */}
+            <div className="relative w-11 h-11 rounded-xl bg-[#76BB08]/15 border border-[#76BB08]/40 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+              <ShieldCheck className="w-5 h-5 text-[#76BB08]" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#76BB08] animate-ping" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#76BB08]" />
             </div>
 
-            <div className="flex flex-col text-left overflow-hidden">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-col text-left overflow-hidden min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-1 mb-0.5">
                 <span className="text-xs font-bold text-white truncate">
                   {currentOrder.name}
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                <span className="text-[10px] text-white/50">{currentOrder.timeAgo}</span>
+                <span className="text-[10px] font-mono text-emerald-400 font-semibold shrink-0">
+                  {currentOrder.timeAgo}
+                </span>
               </div>
-              <p className="text-[11px] text-white/70 truncate">
-                Purchased <span className="text-[#E0A3F8] font-medium">{currentOrder.item}</span>
+              <p className="text-[11px] text-neutral-300 truncate">
+                Purchased <strong className="text-white font-semibold">{currentOrder.item}</strong>
               </p>
-              <span className="text-[9px] font-mono text-white/40 truncate">
-                📍 {currentOrder.location}
-              </span>
+              <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-0.5">
+                <span className="truncate">📍 {currentOrder.location}</span>
+                <span className="font-mono text-[#76BB08] font-bold shrink-0">{currentOrder.price}</span>
+              </div>
             </div>
           </motion.div>
         )}

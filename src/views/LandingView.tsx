@@ -12,6 +12,7 @@ import { MakroTestimonials } from '../components/makro/MakroTestimonials';
 import { MakroFAQ } from '../components/makro/MakroFAQ';
 import { MakroCTA } from '../components/makro/MakroCTA';
 import { MakroFooter } from '../components/makro/MakroFooter';
+import { SocialProofToast } from '../components/funnel/SocialProofToast';
 
 interface LandingViewProps {
   onNavigate: (view: ViewState) => void;
@@ -90,6 +91,14 @@ export default function LandingView({
         {/* High-Conversion Bottom CTA Banner */}
         <MakroCTA
           onGetStarted={handleGetStarted}
+        />
+
+        {/* Live Purchase Social Proof Notification Pop-up */}
+        <SocialProofToast
+          onOrderClick={() => {
+            const el = document.getElementById('shop');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
         />
       </main>
 

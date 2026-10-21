@@ -36,20 +36,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const [bumpPhoneTag, setBumpPhoneTag] = useState(data?.orderBumps?.phoneTagSticker ?? false);
   const [bumpVipQueue, setBumpVipQueue] = useState(data?.orderBumps?.vipAnalyticsQueue ?? false);
 
-  // Base price calculation: Smart PVC is 30,000, NFC Smart Metal is 50,000, Custom Heavy Metal/Debit is 100,000
+  // Base price calculation: White PVC is ₦30,000, Black PVC (Custom UV Print) is ₦35,000
   const getBasePrice = () => {
-    if (data?.tier === 'plastic' || data?.material?.includes('plastic')) {
-      return 30000;
+    if (data?.material === 'plastic_black') {
+      return 35000;
     }
-    if (
-      data?.material === 'metal_gold' ||
-      (data?.tier as string) === 'heavy_metal' ||
-      (data?.tier as string) === 'debit'
-    ) {
-      return 100000;
-    }
-    // Default for NFC Smart Metal (metal_spacegray, or standard metal tier) is ₦50,000
-    return 50000;
+    return 30000;
   };
 
   const basePrice = getBasePrice();
@@ -74,7 +66,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           name: data.customerName || data.name,
           email: data.email?.trim() || 'customer@chipng.com',
           phone: data.whatsapp || '',
-          card_type: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
+          card_type: data.material === 'plastic_black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)',
           amount: totalAmountNgn,
         }),
       });

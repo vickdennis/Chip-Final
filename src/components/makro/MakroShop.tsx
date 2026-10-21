@@ -31,45 +31,17 @@ export interface ShopProduct {
 const FALLBACK_PRODUCTS: ShopProduct[] = [
   {
     id: '0ee82cbf-193f-4353-ae2b-1a1bd5827c2a',
-    name: 'NFC Smart Black Card (PVC)',
-    description: 'Ultra-durable matte black PVC finish with embedded high-frequency NFC chip. Scratch-resistant, waterproof, and activates instantly on all modern iPhones and Android devices.',
+    name: 'NFC Smart Black PVC Card (Custom UV Print)',
+    description: 'Industrial matte black polymer with tactile high-definition UV cured print. Embedded genuine NXP NTAG216 chip, sub-10ms response, zero app needed. Waterproof, scratch-resistant, lifetime cloud bio link with free updates.',
     price: 35000,
     image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.28640138450754493.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.7964022577458013.jpeg","https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=800&auto=format&fit=crop&q=80"]',
   },
   {
-    id: '498a254d-e6f3-409b-b18f-8771861911e0',
-    name: 'NFC Smart Metal Card',
-    description: 'Precision-weighted aerospace grade stainless steel with matte obsidian coating. Dual-loop ceramic antenna decoupled with micro-ferrite absorption for 360° tap resonance.',
-    price: 50000,
-    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.9650784343957072.jpeg","https://images.unsplash.com/photo-1621252179027-94459d278660?w=800&auto=format&fit=crop&q=80","https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80"]',
-  },
-  {
     id: '8d956503-24c6-4bc3-9337-81b1e543c8b3',
-    name: 'NFC Smart White Card (PVC)',
-    description: 'Minimalist ceramic white satin finish. Crisp, modern, and universally compatible. Seamlessly links to your dynamic bio link with unlimited lifetime taps.',
+    name: 'NFC Smart White PVC Card (Custom Print)',
+    description: 'Sleek ceramic white polymer with crisp full-bleed custom color print. Embedded genuine NXP NTAG216 chip, sub-10ms response, zero app needed. Dynamic vCard address book saving & bio link hosting.',
     price: 30000,
     image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6186616949802414.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6520971912746258.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.8693980018651898.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.9480990787847587.jpeg"]',
-  },
-  {
-    id: 'b5e19741-2b08-4122-8356-91b427b0c901',
-    name: 'NFC Smart Tags',
-    description: 'Compact 30mm 3D dome resin epoxy NFC tags with high-tack 3M adhesive. Sticks firmly to any phone case, laptop, reception counter, or table. Instant contactless profile launch.',
-    price: 8000,
-    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.45135496859203095.jpeg","https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6007388288544769.jpeg","https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=800&auto=format&fit=crop&q=80"]',
-  },
-  {
-    id: '302ad048-48a6-4906-9fef-cb820da8fc81',
-    name: 'Metal Debit Card + Custom Design',
-    description: 'Bespoke precision laser engraving of your logo, signature, or custom emblem on brushed gunmetal or gold-tinted titanium. Includes VIP link-in-bio badge.',
-    price: 80000,
-    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.39752302505154224.jpeg","https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&auto=format&fit=crop&q=80","https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80"]',
-  },
-  {
-    id: '7e57c7fa-becf-4a0a-a37f-7daf549dde5c',
-    name: 'Metal Debit Card + NFC',
-    description: 'The pinnacle executive statement. Pure dual-layer heavy metal casing with embedded contact chip & contactless NFC coil. Engineered for high-net-worth dealmakers.',
-    price: 100000,
-    image_url: '["https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.6698054703282286.jpeg","https://images.unsplash.com/photo-1621252179027-94459d278660?w=800&auto=format&fit=crop&q=80","https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80"]',
   },
 ];
 
@@ -107,7 +79,12 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
       if (error || !data || data.length === 0) {
         setProducts(FALLBACK_PRODUCTS);
       } else {
-        setProducts(data);
+        // Strictly filter to PVC cards (White ₦30k and Black UV ₦35k)
+        const pvcCards = data.filter((p: any) => {
+          const n = (p.name || '').toLowerCase();
+          return (n.includes('pvc') || n.includes('black') || n.includes('white')) && !n.includes('metal') && !n.includes('tag') && !n.includes('debit');
+        });
+        setProducts(pvcCards.length > 0 ? pvcCards : FALLBACK_PRODUCTS);
       }
     } catch (err) {
       setProducts(FALLBACK_PRODUCTS);
@@ -167,14 +144,11 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
 
   const filteredProducts = products.filter((p) => {
     const name = p.name.toLowerCase();
-    if (activeFilter === 'metal') {
-      return name.includes('metal');
+    if (activeFilter === 'black' as any) {
+      return name.includes('black');
     }
-    if (activeFilter === 'pvc') {
-      return name.includes('pvc') && !name.includes('tag');
-    }
-    if (activeFilter === 'tags') {
-      return name.includes('tag') || name.includes('disc') || name.includes('fob');
+    if (activeFilter === 'white' as any) {
+      return name.includes('white');
     }
     return true;
   });
@@ -186,75 +160,65 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-16">
           <div className="max-w-2xl space-y-4">
-            <div className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-full px-3.5 py-1.5 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#76BB08]"></span>
-              <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">
+            <div className="inline-flex items-center gap-2 bg-[#76BB08]/15 border border-[#76BB08]/30 rounded-full px-3.5 py-1.5 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#76BB08] animate-pulse"></span>
+              <span className="text-xs font-bold text-[#76BB08] uppercase tracking-wider">
                 Official Hardware & Smart Cards Store
               </span>
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-950 dark:text-white tracking-tight leading-tight">
-              Premium NFC Smart Cards & Tags.
+              Premium NFC Smart PVC Cards.
               <br />
               <span className="text-neutral-500 dark:text-neutral-400">
-                Crafted for zero-friction handshakes.
+                1-Tap to their phonebook. Guaranteed.
               </span>
             </h2>
 
             <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300">
-              One tap transfers your dynamic Link-in-Bio profile and verified vCard directly to their phone book. All cards and tags are programmed in our Lagos workshop and dispatched nationwide.
+              One contactless tap instantly transfers your digital link-in-bio and verified vCard straight into their iOS or Android address book. Choose our crisp Arctic White Card with custom print (₦30,000) or our flagship Stealth Black Card with tactile UV print (₦35,000).
             </p>
           </div>
 
-          {/* Filter Pills & Live Sync Indicator */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="inline-flex p-1 bg-neutral-200/70 dark:bg-neutral-800/80 rounded-full backdrop-blur-md self-start sm:self-auto flex-wrap">
+          {/* Filter Pills */}
+          <div className="flex items-center gap-3">
+            <div className="inline-flex p-1 bg-neutral-200/70 dark:bg-neutral-800/80 rounded-full backdrop-blur-md self-start sm:self-auto">
               <button
                 onClick={() => setActiveFilter('all')}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   activeFilter === 'all'
-                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                 }`}
               >
-                All Cards & Tags
+                All PVC Cards
               </button>
               <button
-                onClick={() => setActiveFilter('metal')}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  activeFilter === 'metal'
-                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                onClick={() => setActiveFilter('black' as any)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  (activeFilter as any) === 'black'
+                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                 }`}
               >
-                Metal Editions
+                Black UV (₦35k)
               </button>
               <button
-                onClick={() => setActiveFilter('pvc')}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  activeFilter === 'pvc'
-                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                onClick={() => setActiveFilter('white' as any)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  (activeFilter as any) === 'white'
+                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                 }`}
               >
-                Smart PVC
-              </button>
-              <button
-                onClick={() => setActiveFilter('tags')}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  activeFilter === 'tags'
-                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
-                }`}
-              >
-                Smart Tags
+                White Print (₦30k)
               </button>
             </div>
           </div>
         </div>
 
-        {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Product Cards Grid: High-Converting 2-Column PVC Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto gap-8">
           {filteredProducts.map((product) => {
             const mediaList = getProductMedia(product.image_url, product.name);
             const isTag = product.name.toLowerCase().includes('tag') || product.name.toLowerCase().includes('disc') || product.name.toLowerCase().includes('fob');
