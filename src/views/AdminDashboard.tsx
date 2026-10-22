@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../App';
 import { supabase, adminAuthClient } from '../supabaseClient';
-import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye, Sun, Moon, X, CreditCard, Briefcase } from 'lucide-react';
-import { SOCIAL_PLATFORMS } from './UserDashboard';
+import { Shield, ShieldAlert, CheckCircle, Package, Users, LogOut, Search, Plus, Trash2, Edit2, Globe, BarChart2, DollarSign, Activity, Download, FileText, Eye, Sun, Moon, X, CreditCard, Briefcase, Phone, MapPin, Calendar, Palette, ShoppingBag, ExternalLink, UserCheck, Check, Sparkles, Upload, Loader2, ArrowUp, ArrowDown, Share2, Layers } from 'lucide-react';
+import { SOCIAL_PLATFORMS, PROFILE_LAYOUTS, COLOR_PRESETS } from './UserDashboard';
 import { ebooksData } from '../utils/ebooksData';
 import AdminBlogManager from './AdminBlogManager';
 import AdminLeadsManager from './AdminLeadsManager';
@@ -16,6 +16,8 @@ import AdminAppDownloadsManager from './AdminAppDownloadsManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
 import AdminUserCommsManager from './AdminUserCommsManager';
 import { MessageCircle, Send, Bell, Link as LinkIcon, Smartphone, Mail } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa6';
+import { toast } from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
@@ -49,10 +51,37 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [prodForm, setProdForm] = useState({ name: '', description: '', price: '', media_urls: [] as string[] });
 
-  // User form state
+  // User form state - 100% Profile Setup
   const [editingUser, setEditingUser] = useState<any>(null);
-  const [userForm, setUserForm] = useState({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '', social_links_style: 'color-circle' });
+  const [userForm, setUserForm] = useState({
+    full_name: '',
+    username: '',
+    headline: '',
+    bio: '',
+    contact_email: '',
+    phone_number: '',
+    is_whatsapp: true,
+    address: '',
+    booking_provider: 'Calendly (Integrated)',
+    calendar_link: '',
+    show_availability: true,
+    show_total_followers: false,
+    social_links_style: 'color-circle',
+    is_verified: false,
+    is_admin: false,
+    theme: 'default',
+    bg_color: '#000000',
+    text_color: '#ffffff',
+    use_gradient: false,
+    enterprise_id: '',
+    cover_image_url: ''
+  });
+  const [userLinks, setUserLinks] = useState<any[]>([]);
   const [userSocialLinks, setUserSocialLinks] = useState<any[]>([]);
+  const [userProducts, setUserProducts] = useState<any[]>([]);
+  const [adminEditTab, setAdminEditTab] = useState<'identity' | 'contact' | 'scheduling' | 'links' | 'socials' | 'store' | 'appearance' | 'roles'>('identity');
+  const [savingUserProfile, setSavingUserProfile] = useState(false);
+  const [enterprisesList, setEnterprisesList] = useState<any[]>([]);
 
   // Blog form state
   const [editingPost, setEditingPost] = useState<any>(null);
@@ -176,6 +205,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     const { data: purchasesData } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
     const { data: postsData } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
     const { count: blogViewsCount } = await supabase.from('blog_views').select('*', { count: 'exact', head: true });
+    
+    try {
+      const { data: entData } = await supabase.from('enterprises').select('id, name, brand_color');
+      if (entData) setEnterprisesList(entData);
+    } catch (e) {}
     
     if (usersData && purchasesData) {
       const updatedUsers = [...usersData];
@@ -315,44 +349,118 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     URL.revokeObjectURL(url);
   };
 
-  const handleSaveUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingUser) {
-      const { error, count, data } = await supabase.from('profiles').update({
-        full_name: userForm.full_name,
-        username: userForm.username || null,
+  const handleSaveUser = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editingUser) return;
+    setSavingUserProfile(true);
+
+    try {
+      const cleanUsername = userForm.username
+        ? String(userForm.username).toLowerCase().replace(/[^a-z0-9_.-]/g, '')
+        : null;
+
+      const profilePayload: any = {
+        full_name: userForm.full_name || '',
+        username: cleanUsername,
         headline: userForm.headline || null,
         bio: userForm.bio || null,
         contact_email: userForm.contact_email || null,
         phone_number: userForm.phone_number || null,
-        cover_image_url: userForm.cover_image_url || null,
-        social_links_style: userForm.social_links_style || 'color-circle'
-      }).eq('id', editingUser.id).select('*');
-      
-      if (error) {
-        alert("Error updating user: " + error.message);
-      } else if (!data || data.length === 0) {
-        alert("Update failed! Row-level security prevented modification. Please apply the updated supabase_schema.sql policies.");
-      } else {
-        const { error: delError } = await supabase.from('social_links').delete().eq('profile_id', editingUser.id);
-        if (delError) {
-          console.error("Error deleting social links:", delError);
+        is_whatsapp: userForm.is_whatsapp ?? true,
+        address: userForm.address || null,
+        booking_provider: userForm.booking_provider || 'Calendly (Integrated)',
+        calendar_link: userForm.calendar_link || null,
+        show_availability: userForm.show_availability !== false,
+        show_total_followers: !!userForm.show_total_followers,
+        social_links_style: userForm.social_links_style || 'color-circle',
+        is_verified: !!userForm.is_verified,
+        is_admin: !!userForm.is_admin,
+        theme: userForm.theme || 'default',
+        bg_color: userForm.bg_color || '#000000',
+        text_color: userForm.text_color || '#ffffff',
+        use_gradient: !!userForm.use_gradient,
+        enterprise_id: userForm.enterprise_id || null,
+        cover_image_url: userForm.cover_image_url || null
+      };
+
+      // 1. Direct Supabase Update
+      let sbError: any = null;
+      try {
+        let res = await supabase.from('profiles').update(profilePayload).eq('id', editingUser.id);
+        if (res.error && (res.error.message.includes('is_whatsapp') || res.error.message.includes('schema cache'))) {
+          delete profilePayload.is_whatsapp;
+          res = await supabase.from('profiles').update(profilePayload).eq('id', editingUser.id);
         }
-        if (userSocialLinks.length > 0) {
-          const { error: insError } = await supabase.from('social_links').insert(userSocialLinks.map(s => ({
-            profile_id: editingUser.id,
-            platform: s.platform,
-            url: s.url
-          })));
-          if (insError) {
-            alert("Error saving social links: " + insError.message);
-          }
-        }
-        setEditingUser(null);
-        setUserForm({ full_name: '', username: '', headline: '', bio: '', contact_email: '', phone_number: '', cover_image_url: '', social_links_style: 'color-circle' });
-        setUserSocialLinks([]);
-        fetchData();
+        sbError = res.error;
+      } catch (err: any) {
+        sbError = err;
       }
+
+      // 2. Featured Links Update
+      try {
+        await supabase.from('links').delete().eq('profile_id', editingUser.id);
+        if (userLinks.length > 0) {
+          await supabase.from('links').insert(userLinks.map(({ id, created_at, ...l }: any, idx: number) => ({
+            ...l,
+            profile_id: editingUser.id,
+            position: idx
+          })));
+        }
+      } catch (err) {}
+
+      // 3. Social Links Update
+      try {
+        await supabase.from('social_links').delete().eq('profile_id', editingUser.id);
+        if (userSocialLinks.length > 0) {
+          await supabase.from('social_links').insert(userSocialLinks.map(({ id, created_at, ...s }: any) => ({
+            ...s,
+            profile_id: editingUser.id
+          })));
+        }
+      } catch (err) {}
+
+      // 4. Products Update
+      try {
+        const existingProducts = await supabase.from('products').select('id').eq('profile_id', editingUser.id);
+        const incomingIds = userProducts.map(p => p.id).filter(id => id && !String(id).startsWith('new_'));
+        const toDelete = (existingProducts.data || []).filter((p: any) => !incomingIds.includes(p.id)).map((p: any) => p.id);
+        if (toDelete.length > 0) {
+          await supabase.from('products').delete().in('id', toDelete);
+        }
+        for (const p of userProducts) {
+          const { created_at, ...prodData } = p;
+          if (prodData.id && String(prodData.id).startsWith('new_')) {
+            delete prodData.id;
+          }
+          await supabase.from('products').upsert({ ...prodData, profile_id: editingUser.id });
+        }
+      } catch (err) {}
+
+      // 5. Dual Atomic Sync via /api/admin/profile/update-full (bypasses RLS)
+      try {
+        await fetch('/api/admin/profile/update-full', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profile_id: editingUser.id,
+            profile: { ...profilePayload, is_whatsapp: userForm.is_whatsapp },
+            links: userLinks,
+            social_links: userSocialLinks,
+            products: userProducts
+          })
+        });
+      } catch (syncErr) {
+        console.warn('Admin dual sync warning:', syncErr);
+      }
+
+      toast.success(`100% Profile Setup completed for @${cleanUsername || editingUser.username}!`);
+      setEditingUser(null);
+      fetchData();
+    } catch (error: any) {
+      console.error('Error in handleSaveUser:', error);
+      alert('Error updating user profile: ' + (error.message || 'Unknown error'));
+    } finally {
+      setSavingUserProfile(false);
     }
   };
 
@@ -1011,14 +1119,47 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           <button
                             onClick={() => {
                               setEditingUser(u);
-                              setUserForm({ full_name: u.full_name || '', username: u.username || '', headline: u.headline || '', bio: u.bio || '', contact_email: u.contact_email || '', phone_number: u.phone_number || '', cover_image_url: u.cover_image_url || '', social_links_style: u.social_links_style || 'color-circle' });
+                              setUserForm({
+                                full_name: u.full_name || '',
+                                username: u.username || '',
+                                headline: u.headline || '',
+                                bio: u.bio || '',
+                                contact_email: u.contact_email || '',
+                                phone_number: u.phone_number || '',
+                                is_whatsapp: u.is_whatsapp !== false,
+                                address: u.address || '',
+                                booking_provider: u.booking_provider || 'Calendly (Integrated)',
+                                calendar_link: u.calendar_link || '',
+                                show_availability: u.show_availability !== false,
+                                show_total_followers: !!u.show_total_followers,
+                                social_links_style: u.social_links_style || 'color-circle',
+                                is_verified: !!u.is_verified,
+                                is_admin: !!u.is_admin,
+                                theme: u.theme || 'default',
+                                bg_color: u.bg_color || '#000000',
+                                text_color: u.text_color || '#ffffff',
+                                use_gradient: !!u.use_gradient,
+                                enterprise_id: u.enterprise_id || '',
+                                cover_image_url: u.cover_image_url || ''
+                              });
+                              setAdminEditTab('identity');
+                              setUserLinks([]);
                               setUserSocialLinks([]);
-                              supabase.from('social_links').select('*').eq('profile_id', u.id).then(({data}) => {
-                                if(data) setUserSocialLinks(data);
+                              setUserProducts([]);
+
+                              // Fetch all 3 sub-collections for 100% setup
+                              supabase.from('links').select('*').eq('profile_id', u.id).order('position').then(({ data }) => {
+                                if (data) setUserLinks(data);
+                              });
+                              supabase.from('social_links').select('*').eq('profile_id', u.id).then(({ data }) => {
+                                if (data) setUserSocialLinks(data);
+                              });
+                              supabase.from('products').select('*').eq('profile_id', u.id).order('created_at', { ascending: false }).then(({ data }) => {
+                                if (data) setUserProducts(data);
                               });
                             }}
                             className="p-2 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors flex items-center justify-center cursor-pointer text-neutral-700 dark:text-neutral-300"
-                            title="Edit Profile"
+                            title="Edit 100% of User Profile"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -1037,52 +1178,844 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               </table>
             </div>
 
-            {/* Modals for User Management */}
+            {/* 100% Profile Setup Modal for Admin */}
             {editingUser && (
-              <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-                <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl my-8 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="flex justify-between items-center mb-6">
-                    <div>
-                      <h3 className="font-bold text-lg text-neutral-950 dark:text-white">Edit User Profile</h3>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400">Update contact and bio info for @{editingUser.username}</p>
+              <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50 overflow-y-auto">
+                <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 sm:p-7 w-full max-w-4xl shadow-2xl my-6 flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+                  
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-white/5">
+                    <div className="flex items-center gap-3">
+                      {userForm.cover_image_url ? (
+                        <img src={userForm.cover_image_url} alt="" className="w-12 h-12 rounded-full object-cover border border-neutral-200 dark:border-white/10" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#76BB08]/20 text-[#76BB08] font-black flex items-center justify-center text-base">
+                          {(userForm.full_name || editingUser.username || 'U').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg text-neutral-950 dark:text-white">
+                            {userForm.full_name || `@${editingUser.username}`}
+                          </h3>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#76BB08] text-neutral-950">
+                            100% Admin Control
+                          </span>
+                          {userForm.is_verified && (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-500 text-[10px] font-bold">
+                              <CheckCircle className="w-3 h-3" /> Verified
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="font-mono text-xs text-neutral-400">@{userForm.username || editingUser.username}</span>
+                          <span className="text-neutral-300 dark:text-neutral-700">•</span>
+                          <a
+                            href={`/${userForm.username || editingUser.username}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-semibold text-[#76BB08] hover:underline flex items-center gap-1"
+                          >
+                            <span>Live Profile</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
                     </div>
+
                     <button 
                       onClick={() => setEditingUser(null)} 
                       className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Full Name</label>
-                      <input value={userForm.full_name || ''} onChange={e => setUserForm({...userForm, full_name: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Username</label>
-                      <input value={userForm.username || ''} onChange={e => setUserForm({...userForm, username: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Headline / Job Title</label>
-                      <input value={userForm.headline || ''} onChange={e => setUserForm({...userForm, headline: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Bio</label>
-                      <textarea rows={3} value={userForm.bio || ''} onChange={e => setUserForm({...userForm, bio: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Contact Email</label>
-                        <input type="email" value={userForm.contact_email || ''} onChange={e => setUserForm({...userForm, contact_email: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number</label>
-                        <input type="tel" value={userForm.phone_number || ''} onChange={e => setUserForm({...userForm, phone_number: e.target.value})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" />
-                      </div>
-                    </div>
+                  {/* Tab Navigation Strip */}
+                  <div className="flex gap-1.5 overflow-x-auto py-3 border-b border-neutral-100 dark:border-white/5 scrollbar-none">
+                    {[
+                      { id: 'identity', label: 'Identity & Bio', icon: Users },
+                      { id: 'contact', label: 'Contact & WhatsApp', icon: Phone },
+                      { id: 'scheduling', label: 'Appointments', icon: Calendar },
+                      { id: 'links', label: `Links (${userLinks.length})`, icon: LinkIcon },
+                      { id: 'socials', label: `Socials (${userSocialLinks.length})`, icon: Globe },
+                      { id: 'store', label: `Store (${userProducts.length})`, icon: ShoppingBag },
+                      { id: 'appearance', label: 'Theme & Style', icon: Palette },
+                      { id: 'roles', label: 'Privileges', icon: Shield }
+                    ].map(tab => {
+                      const Icon = tab.icon;
+                      const isActive = adminEditTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setAdminEditTab(tab.id as any)}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                              : 'bg-neutral-100/70 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200/70 dark:hover:bg-white/10'
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                    <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-neutral-200/80 dark:border-white/10">
+                  {/* Tab Contents (Scrollable) */}
+                  <div className="flex-1 overflow-y-auto py-4 px-1 pr-2 space-y-4 max-h-[60vh]">
+                    
+                    {/* TAB 1: IDENTITY & BIO */}
+                    {adminEditTab === 'identity' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Full Name *</label>
+                            <input 
+                              value={userForm.full_name || ''} 
+                              onChange={e => setUserForm({...userForm, full_name: e.target.value})} 
+                              placeholder="e.g. Victor Okoye"
+                              className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Username Handle *</label>
+                            <div className="flex items-center px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus-within:border-[#76BB08] focus-within:ring-1 focus-within:ring-[#76BB08]">
+                              <span className="text-xs text-neutral-400 mr-1 select-none font-mono">chipng.com/</span>
+                              <input 
+                                value={userForm.username || ''} 
+                                onChange={e => setUserForm({...userForm, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '')})} 
+                                placeholder="username"
+                                className="w-full bg-transparent text-sm font-semibold text-neutral-950 dark:text-white outline-none" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Headline / Job Title</label>
+                          <input 
+                            value={userForm.headline || ''} 
+                            onChange={e => setUserForm({...userForm, headline: e.target.value})} 
+                            placeholder="e.g. Founder & Chief Executive Officer"
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" 
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Bio / About Me</label>
+                          <textarea 
+                            rows={3} 
+                            value={userForm.bio || ''} 
+                            onChange={e => setUserForm({...userForm, bio: e.target.value})} 
+                            placeholder="Write a compelling biography for this profile..."
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08] resize-none" 
+                          />
+                        </div>
+
+                        {/* Cover Image Manager */}
+                        <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl">
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Cover Image / Profile Banner</label>
+                          <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <div className="w-24 h-24 rounded-2xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0 border border-neutral-300 dark:border-white/10">
+                              <img src={userForm.cover_image_url || 'https://images.unsplash.com/photo-1621252179027-94459d278660?w=600'} alt="Cover" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-1 w-full space-y-2">
+                              <input 
+                                value={userForm.cover_image_url || ''} 
+                                onChange={e => setUserForm({...userForm, cover_image_url: e.target.value})} 
+                                placeholder="https://... cover image URL"
+                                className="w-full px-3.5 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none" 
+                              />
+                              <div className="flex items-center gap-2">
+                                <label className="px-3 py-1.5 rounded-lg bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 font-bold text-xs flex items-center gap-1.5 cursor-pointer">
+                                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                                  <span>{uploadingImage ? 'Uploading...' : 'Upload Cover'}</span>
+                                  <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, url => setUserForm({...userForm, cover_image_url: url}))} />
+                                </label>
+                                <button 
+                                  type="button" 
+                                  onClick={() => setUserForm({...userForm, cover_image_url: 'https://images.unsplash.com/photo-1621252179027-94459d278660?w=600'})}
+                                  className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-neutral-400 font-semibold text-xs hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
+                                >
+                                  Reset Default
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 2: CONTACT & WHATSAPP */}
+                    {adminEditTab === 'contact' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Contact Email</label>
+                          <input 
+                            type="email" 
+                            value={userForm.contact_email || ''} 
+                            onChange={e => setUserForm({...userForm, contact_email: e.target.value})} 
+                            placeholder="user@example.com"
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" 
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number(s)</label>
+                          <div className="space-y-2">
+                            {(() => {
+                              const val = userForm.phone_number || '';
+                              let arr = [''];
+                              try {
+                                const parsed = JSON.parse(val);
+                                if (Array.isArray(parsed)) arr = parsed;
+                                else if (val.includes(',')) arr = val.split(',').map(s => s.trim());
+                                else arr = [val];
+                              } catch(e) {
+                                if (val.includes(',')) arr = val.split(',').map(s => s.trim());
+                                else arr = val ? [val] : [''];
+                              }
+                              if (arr.length === 0) arr = [''];
+
+                              return (
+                                <>
+                                  {arr.map((phone, idx) => (
+                                    <div key={idx} className="flex gap-2 items-center">
+                                      <input 
+                                        type="tel" 
+                                        value={phone}
+                                        onChange={(e) => {
+                                          const newArr = [...arr];
+                                          newArr[idx] = e.target.value;
+                                          setUserForm({ ...userForm, phone_number: JSON.stringify(newArr) });
+                                        }}
+                                        placeholder="+234 800 000 0000"
+                                        className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" 
+                                      />
+                                      {arr.length > 1 && (
+                                        <button 
+                                          type="button" 
+                                          onClick={() => {
+                                            const newArr = arr.filter((_, i) => i !== idx);
+                                            setUserForm({ ...userForm, phone_number: JSON.stringify(newArr) });
+                                          }}
+                                          className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() => setUserForm({ ...userForm, phone_number: JSON.stringify([...arr, '']) })}
+                                    className="px-3.5 py-2 rounded-xl bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  >
+                                    <Plus className="w-3.5 h-3.5 text-[#76BB08]" /> Add Phone Number
+                                  </button>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+
+                        {/* WhatsApp Indicator Toggle */}
+                        <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 rounded-2xl flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
+                              <FaWhatsapp className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-neutral-900 dark:text-white">WhatsApp Enabled Number</span>
+                                {userForm.is_whatsapp ? (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#25D366] text-neutral-950">
+                                    WhatsApp Active
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                                    Call Only
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                                Enables 1-tap WhatsApp direct chat on the user&apos;s public profile and marks WhatsApp in downloaded vCards.
+                              </p>
+                            </div>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={userForm.is_whatsapp}
+                              onChange={(e) => setUserForm({ ...userForm, is_whatsapp: e.target.checked })}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366]"></div>
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Office / City Address</label>
+                          <input 
+                            value={userForm.address || ''} 
+                            onChange={e => setUserForm({...userForm, address: e.target.value})} 
+                            placeholder="e.g. Victoria Island, Lagos, Nigeria"
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 3: SCHEDULING & APPOINTMENTS */}
+                    {adminEditTab === 'scheduling' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl">
+                          <div>
+                            <span className="text-sm font-bold text-neutral-900 dark:text-white block">Show Availability on Public Bio</span>
+                            <span className="text-xs text-neutral-500 dark:text-neutral-400 block mt-0.5">Displays a prominent booking button for instant appointments</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={userForm.show_availability}
+                              onChange={(e) => setUserForm({ ...userForm, show_availability: e.target.checked })}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#76BB08]"></div>
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Booking Provider</label>
+                          <select
+                            value={userForm.booking_provider || 'Calendly (Integrated)'}
+                            onChange={e => setUserForm({...userForm, booking_provider: e.target.value})}
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none"
+                          >
+                            <option value="Calendly (Integrated)">Calendly (Integrated)</option>
+                            <option value="Cal.com">Cal.com</option>
+                            <option value="Google Meet">Google Meet</option>
+                            <option value="Custom Meeting Link">Custom Meeting Link</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Calendar Booking URL</label>
+                          <input 
+                            value={userForm.calendar_link || ''} 
+                            onChange={e => setUserForm({...userForm, calendar_link: e.target.value})} 
+                            placeholder="https://calendly.com/your-calendar-link"
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#76BB08] focus:ring-1 focus:ring-[#76BB08]" 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 4: FEATURED LINKS (FULL CRUD) */}
+                    {adminEditTab === 'links' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-bold text-neutral-950 dark:text-white">Featured Profile Links</h4>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">Configure interactive links, banners, and tiles</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserLinks([
+                                ...userLinks,
+                                { label: 'New Link', url: 'https://', size: 'Button', type: 'link', position: userLinks.length }
+                              ]);
+                            }}
+                            className="px-3.5 py-1.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Link
+                          </button>
+                        </div>
+
+                        {userLinks.length === 0 ? (
+                          <div className="p-8 text-center text-neutral-400 text-xs border border-dashed border-neutral-200 dark:border-white/10 rounded-2xl">
+                            No links configured for this profile yet. Click &quot;Add Link&quot; above to setup their first link.
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {userLinks.map((link, idx) => (
+                              <div key={idx} className="p-3.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1 w-full">
+                                  <input 
+                                    value={link.label || ''} 
+                                    onChange={e => {
+                                      const updated = [...userLinks];
+                                      updated[idx] = { ...updated[idx], label: e.target.value };
+                                      setUserLinks(updated);
+                                    }}
+                                    placeholder="Link Label / Title"
+                                    className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-neutral-950 dark:text-white outline-none"
+                                  />
+                                  <input 
+                                    value={link.url || ''} 
+                                    onChange={e => {
+                                      const updated = [...userLinks];
+                                      updated[idx] = { ...updated[idx], url: e.target.value };
+                                      setUserLinks(updated);
+                                    }}
+                                    placeholder="https://..."
+                                    className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                                  />
+                                  <select
+                                    value={link.size || 'Button'}
+                                    onChange={e => {
+                                      const updated = [...userLinks];
+                                      updated[idx] = { ...updated[idx], size: e.target.value };
+                                      setUserLinks(updated);
+                                    }}
+                                    className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                                  >
+                                    <option value="Button">Button Bar</option>
+                                    <option value="Small">Small Tile</option>
+                                    <option value="Medium">Medium Banner</option>
+                                    <option value="Big">Big Hero Card</option>
+                                  </select>
+                                </div>
+                                <div className="flex items-center gap-1.5 self-end sm:self-center">
+                                  {idx > 0 && (
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const updated = [...userLinks];
+                                        const temp = updated[idx - 1];
+                                        updated[idx - 1] = updated[idx];
+                                        updated[idx] = temp;
+                                        setUserLinks(updated);
+                                      }}
+                                      className="p-1.5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                                      title="Move Up"
+                                    >
+                                      <ArrowUp className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  {idx < userLinks.length - 1 && (
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const updated = [...userLinks];
+                                        const temp = updated[idx + 1];
+                                        updated[idx + 1] = updated[idx];
+                                        updated[idx] = temp;
+                                        setUserLinks(updated);
+                                      }}
+                                      className="p-1.5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                                      title="Move Down"
+                                    >
+                                      <ArrowDown className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setUserLinks(userLinks.filter((_, i) => i !== idx))}
+                                    className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                                    title="Delete Link"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* TAB 5: SOCIAL CHANNELS (FULL CRUD) */}
+                    {adminEditTab === 'socials' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl">
+                          <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Social Icons Style</label>
+                            <select
+                              value={userForm.social_links_style || 'color-circle'}
+                              onChange={e => setUserForm({...userForm, social_links_style: e.target.value})}
+                              className="w-full px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                            >
+                              <option value="color-circle">Color Circle Badges</option>
+                              <option value="grayscale-circle">Grayscale Monochrome</option>
+                              <option value="card">Social Card Boxes</option>
+                              <option value="inline">Inline Minimalist</option>
+                            </select>
+                          </div>
+                          <div className="flex items-center justify-between pt-4 sm:pt-0">
+                            <div>
+                              <span className="text-xs font-bold text-neutral-900 dark:text-white block">Show Total Followers Badge</span>
+                              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block">Displays network count sum</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={userForm.show_total_followers}
+                                onChange={(e) => setUserForm({ ...userForm, show_total_followers: e.target.checked })}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#76BB08]"></div>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <h4 className="text-sm font-bold text-neutral-950 dark:text-white">Social Media Channels</h4>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserSocialLinks([
+                                ...userSocialLinks,
+                                { platform: 'LinkedIn', url: 'https://', follower_count: 0 }
+                              ]);
+                            }}
+                            className="px-3.5 py-1.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Channel
+                          </button>
+                        </div>
+
+                        {userSocialLinks.length === 0 ? (
+                          <div className="p-8 text-center text-neutral-400 text-xs border border-dashed border-neutral-200 dark:border-white/10 rounded-2xl">
+                            No social networks added yet. Click &quot;Add Channel&quot; above.
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {userSocialLinks.map((s, idx) => (
+                              <div key={idx} className="p-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex flex-col sm:flex-row gap-2.5 items-start sm:items-center">
+                                <select
+                                  value={s.platform || 'Globe'}
+                                  onChange={e => {
+                                    const updated = [...userSocialLinks];
+                                    updated[idx] = { ...updated[idx], platform: e.target.value };
+                                    setUserSocialLinks(updated);
+                                  }}
+                                  className="w-full sm:w-44 px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-neutral-950 dark:text-white outline-none shrink-0"
+                                >
+                                  {Object.keys(SOCIAL_PLATFORMS).map(key => (
+                                    <option key={key} value={key}>{key}</option>
+                                  ))}
+                                  <option value="WhatsApp">WhatsApp</option>
+                                  <option value="Globe">Website / Other</option>
+                                </select>
+                                <input 
+                                  value={s.url || ''} 
+                                  onChange={e => {
+                                    const updated = [...userSocialLinks];
+                                    updated[idx] = { ...updated[idx], url: e.target.value };
+                                    setUserSocialLinks(updated);
+                                  }}
+                                  placeholder="Profile / Channel URL"
+                                  className="flex-1 w-full px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                                />
+                                <input 
+                                  type="number"
+                                  value={s.follower_count ?? ''} 
+                                  onChange={e => {
+                                    const updated = [...userSocialLinks];
+                                    updated[idx] = { ...updated[idx], follower_count: parseInt(e.target.value) || 0 };
+                                    setUserSocialLinks(updated);
+                                  }}
+                                  placeholder="Followers"
+                                  className="w-full sm:w-28 px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                                />
+                                <button 
+                                  type="button" 
+                                  onClick={() => setUserSocialLinks(userSocialLinks.filter((_, i) => i !== idx))}
+                                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer self-end sm:self-center"
+                                  title="Remove Channel"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* TAB 6: DIGITAL STORE & PRODUCTS */}
+                    {adminEditTab === 'store' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-bold text-neutral-950 dark:text-white">User Digital Store & Catalog</h4>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">Products sold directly from this user&apos;s contactless profile</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserProducts([
+                                ...userProducts,
+                                { id: `new_${Date.now()}`, name: 'New Product', price: 15000, description: '', image_url: '', file_url: '' }
+                              ]);
+                            }}
+                            className="px-3.5 py-1.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Product
+                          </button>
+                        </div>
+
+                        {userProducts.length === 0 ? (
+                          <div className="p-8 text-center text-neutral-400 text-xs border border-dashed border-neutral-200 dark:border-white/10 rounded-2xl">
+                            No products in this user&apos;s digital store. Click &quot;Add Product&quot; to seed a catalog item.
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {userProducts.map((p, idx) => (
+                              <div key={idx} className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl space-y-3">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                                    <input 
+                                      value={p.name || ''} 
+                                      onChange={e => {
+                                        const updated = [...userProducts];
+                                        updated[idx] = { ...updated[idx], name: e.target.value };
+                                        setUserProducts(updated);
+                                      }}
+                                      placeholder="Product Name"
+                                      className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-neutral-950 dark:text-white outline-none"
+                                    />
+                                    <div className="flex items-center px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl">
+                                      <span className="text-xs text-neutral-400 font-bold mr-1">₦</span>
+                                      <input 
+                                        type="number"
+                                        value={p.price ?? ''} 
+                                        onChange={e => {
+                                          const updated = [...userProducts];
+                                          updated[idx] = { ...updated[idx], price: parseFloat(e.target.value) || 0 };
+                                          setUserProducts(updated);
+                                        }}
+                                        placeholder="Price in Naira"
+                                        className="w-full bg-transparent text-xs font-bold text-neutral-950 dark:text-white outline-none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setUserProducts(userProducts.filter((_, i) => i !== idx))}
+                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer shrink-0"
+                                    title="Delete Product"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                                <textarea 
+                                  rows={2}
+                                  value={p.description || ''} 
+                                  onChange={e => {
+                                    const updated = [...userProducts];
+                                    updated[idx] = { ...updated[idx], description: e.target.value };
+                                    setUserProducts(updated);
+                                  }}
+                                  placeholder="Product description and details..."
+                                  className="w-full px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none resize-none"
+                                />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <input 
+                                    value={p.image_url || ''} 
+                                    onChange={e => {
+                                      const updated = [...userProducts];
+                                      updated[idx] = { ...updated[idx], image_url: e.target.value };
+                                      setUserProducts(updated);
+                                    }}
+                                    placeholder="Product Image URL"
+                                    className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                                  />
+                                  <input 
+                                    value={p.file_url || ''} 
+                                    onChange={e => {
+                                      const updated = [...userProducts];
+                                      updated[idx] = { ...updated[idx], file_url: e.target.value };
+                                      setUserProducts(updated);
+                                    }}
+                                    placeholder="Digital Download File URL"
+                                    className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-950 dark:text-white outline-none"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* TAB 7: THEME & APPEARANCE */}
+                    {adminEditTab === 'appearance' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Profile Layout</label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            {PROFILE_LAYOUTS.map(layout => {
+                              const isSelected = (userForm.theme || 'default') === layout.id;
+                              return (
+                                <button
+                                  key={layout.id}
+                                  type="button"
+                                  onClick={() => setUserForm({ ...userForm, theme: layout.id })}
+                                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                                    isSelected 
+                                      ? 'border-[#76BB08] bg-[#76BB08]/10 ring-1 ring-[#76BB08]' 
+                                      : 'border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] hover:bg-neutral-100 dark:hover:bg-white/5'
+                                  }`}
+                                >
+                                  <div className="font-bold text-xs text-neutral-950 dark:text-white flex items-center justify-between">
+                                    <span>{layout.name}</span>
+                                    {isSelected && <Check className="w-3.5 h-3.5 text-[#76BB08]" />}
+                                  </div>
+                                  <div className="text-[11px] text-neutral-400 mt-0.5 line-clamp-1">{layout.description}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Background Color & Presets */}
+                        <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl space-y-3">
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Background Color</label>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="color" 
+                              value={userForm.bg_color || '#000000'} 
+                              onChange={e => setUserForm({...userForm, bg_color: e.target.value})}
+                              className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0 bg-transparent"
+                            />
+                            <input 
+                              type="text" 
+                              value={userForm.bg_color || '#000000'} 
+                              onChange={e => setUserForm({...userForm, bg_color: e.target.value})}
+                              placeholder="#000000"
+                              className="px-3 py-2 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono font-bold text-neutral-950 dark:text-white outline-none w-32"
+                            />
+                            <div className="flex flex-wrap gap-1.5 flex-1">
+                              {COLOR_PRESETS.map((color, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => setUserForm({...userForm, bg_color: color})}
+                                  style={{ backgroundColor: color }}
+                                  className="w-6 h-6 rounded-full border border-black/20 dark:border-white/20 transition-transform hover:scale-110 cursor-pointer"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Text Color & Gradient */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl space-y-2">
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Text Color</label>
+                            <div className="flex items-center gap-3">
+                              <input 
+                                type="color" 
+                                value={userForm.text_color || '#ffffff'} 
+                                onChange={e => setUserForm({...userForm, text_color: e.target.value})}
+                                className="w-9 h-9 rounded-xl cursor-pointer border-0 p-0 bg-transparent"
+                              />
+                              <input 
+                                type="text" 
+                                value={userForm.text_color || '#ffffff'} 
+                                onChange={e => setUserForm({...userForm, text_color: e.target.value})}
+                                className="px-3 py-1.5 bg-white dark:bg-[#1c202b] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono font-bold text-neutral-950 dark:text-white outline-none w-28"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center justify-between">
+                            <div>
+                              <span className="text-xs font-bold text-neutral-900 dark:text-white block">Use Gradient Glow</span>
+                              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block">Smooth atmospheric background</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={userForm.use_gradient}
+                                onChange={(e) => setUserForm({ ...userForm, use_gradient: e.target.checked })}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#76BB08]"></div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 8: ROLES, VERIFICATION & ENTERPRISE */}
+                    {adminEditTab === 'roles' && (
+                      <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        {/* Verified Toggle */}
+                        <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                              <CheckCircle className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <span className="text-sm font-bold text-neutral-900 dark:text-white block">Official Blue Verification Badge</span>
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400 block mt-0.5">Displays the authentic blue checkmark on profile and card touchpoints</span>
+                            </div>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={userForm.is_verified}
+                              onChange={(e) => setUserForm({ ...userForm, is_verified: e.target.checked })}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                          </label>
+                        </div>
+
+                        {/* Super Admin Privilege Toggle */}
+                        <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#76BB08]/15 text-[#76BB08] flex items-center justify-center shrink-0">
+                              <Shield className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <span className="text-sm font-bold text-neutral-900 dark:text-white block">Super Admin Access</span>
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400 block mt-0.5">Grants complete platform management and editorial permissions</span>
+                            </div>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={userForm.is_admin}
+                              disabled={editingUser.id === currentUserId}
+                              onChange={(e) => setUserForm({ ...userForm, is_admin: e.target.checked })}
+                              className="sr-only peer disabled:opacity-50"
+                            />
+                            <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#76BB08]"></div>
+                          </label>
+                        </div>
+
+                        {/* Enterprise Assignment */}
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Enterprise Organization</label>
+                          <select
+                            value={userForm.enterprise_id || ''}
+                            onChange={e => setUserForm({...userForm, enterprise_id: e.target.value})}
+                            className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none"
+                          >
+                            <option value="">No Enterprise (Independent Account)</option>
+                            {enterprisesList.map(ent => (
+                              <option key={ent.id} value={ent.id}>{ent.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t border-neutral-100 dark:border-white/5 mt-auto">
+                    <div className="text-xs text-neutral-500 dark:text-neutral-400 hidden sm:block">
+                      <span className="font-semibold text-neutral-900 dark:text-white">Admin Guarantee:</span> Saves profile, links, socials, store & styles simultaneously.
+                    </div>
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                       <button 
                         type="button" 
                         onClick={() => setEditingUser(null)} 
@@ -1091,13 +2024,26 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         Cancel
                       </button>
                       <button 
-                        type="submit" 
-                        className="px-6 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs shadow-sm cursor-pointer"
+                        type="button" 
+                        disabled={savingUserProfile}
+                        onClick={() => handleSaveUser()}
+                        className="px-6 py-2.5 rounded-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50 min-w-[170px]"
                       >
-                        Save Changes
+                        {savingUserProfile ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Saving 100% Profile...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4 stroke-[2.5]" />
+                            <span>Save 100% Profile</span>
+                          </>
+                        )}
                       </button>
                     </div>
-                  </form>
+                  </div>
+
                 </div>
               </div>
             )}

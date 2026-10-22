@@ -725,9 +725,152 @@ app.post('/api/lead', async (req: Request, res: Response) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+// Dedicated Contact Details Supabase Persistence Endpoint
+app.post('/api/profile/contact-details', async (req: Request, res: Response) => {
+  try {
+    const { profile_id, contact_email, phone_number, address, is_whatsapp } = req.body;
+    if (!profile_id) {
+      return res.status(400).json({ error: 'profile_id required' });
+    }
+
+    const supabase = getSupabase();
+    const updateData: any = {
+      contact_email: contact_email ? String(contact_email).trim() : null,
+      phone_number: phone_number ? String(phone_number).trim() : null,
+      address: address ? String(address).trim() : null
+    };
+    if (typeof is_whatsapp === 'boolean') {
+      updateData.is_whatsapp = is_whatsapp;
+    }
+
+    let { error: sbErr } = await supabase.from('profiles').update(updateData).eq('id', profile_id);
+
+    // Fallback if is_whatsapp column does not yet exist in PostgreSQL schema
+    if (sbErr && sbErr.message && (sbErr.message.includes('is_whatsapp') || sbErr.message.includes('schema cache'))) {
+      delete updateData.is_whatsapp;
+      const retry = await supabase.from('profiles').update(updateData).eq('id', profile_id);
+      sbErr = retry.error;
+    }
+
+    res.json({ success: true, supabase_error: sbErr?.message || null });
+  } catch (err: any) {
+    console.error('Profile contact details update error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// ================= Portfolio CMS API Endpoints (Vercel Serverless & Node) =================
+// 100% User Profile Admin Setup Endpoint
+app.post('/api/admin/profile/update-full', async (req: Request, res: Response) => {
+  try {
+    const { profile_id, profile, links, social_links, products } = req.body;
+    if (!profile_id) {
+      return res.status(400).json({ error: 'profile_id required' });
+    }
+
+    const supabase = getSupabase();
+
+    // 1. Update Profile Fields
+    if (profile && typeof profile === 'object') {
+      const cleanProfile: any = {
+        full_name: profile.full_name || null,
+        username: profile.username ? String(profile.username).toLowerCase().replace(/[^a-z0-9_.-]/g, '') : null,
+        headline: profile.headline || null,
+        bio: profile.bio || null,
+        cover_image_url: profile.cover_image_url || null,
+        contact_email: profile.contact_email || null,
+        phone_number: profile.phone_number || null,
+        address: profile.address || null,
+        booking_provider: profile.booking_provider || 'Calendly (Integrated)',
+        calendar_link: profile.calendar_link || null,
+        show_availability: profile.show_availability !== false,
+        show_total_followers: !!profile.show_total_followers,
+        social_links_style: profile.social_links_style || 'color-circle',
+        is_verified: !!profile.is_verified,
+        is_admin: !!profile.is_admin,
+        theme: profile.theme || 'default',
+        bg_color: profile.bg_color || '#000000',
+        text_color: profile.text_color || '#ffffff',
+        use_gradient: !!profile.use_gradient,
+        enterprise_id: profile.enterprise_id || null,
+        unlocked_themes: profile.unlocked_themes || []
+      };
+
+      if (typeof profile.is_whatsapp === 'boolean') {
+        cleanProfile.is_whatsapp = profile.is_whatsapp;
+      }
+
+      let { error: pErr } = await supabase.from('profiles').update(cleanProfile).eq('id', profile_id);
+      if (pErr && (pErr.message.includes('is_whatsapp') || pErr.message.includes('schema cache'))) {
+        delete cleanProfile.is_whatsapp;
+        const retry = await supabase.from('profiles').update(cleanProfile).eq('id', profile_id);
+        pErr = retry.error;
+      }
+      if (pErr) console.warn('[Admin Profile Update] Profile update warning:', pErr.message);
+    }
+
+    // 2. Sync Featured Links
+    if (Array.isArray(links)) {
+      await supabase.from('links').delete().eq('profile_id', profile_id);
+      if (links.length > 0) {
+        const linksToInsert = links.map((l: any, i: number) => ({
+          profile_id,
+          label: l.label || 'Link',
+          url: l.url || '#',
+          size: l.size || 'Button',
+          type: l.type || 'link',
+          position: i,
+          image_url: l.image_url || null,
+          use_link_icon: !!l.use_link_icon
+        }));
+        await supabase.from('links').insert(linksToInsert);
+      }
+    }
+
+    // 3. Sync Social Links
+    if (Array.isArray(social_links)) {
+      await supabase.from('social_links').delete().eq('profile_id', profile_id);
+      if (social_links.length > 0) {
+        const socialsToInsert = social_links.map((s: any) => ({
+          profile_id,
+          platform: s.platform || 'Globe',
+          url: s.url || '#',
+          follower_count: s.follower_count || 0
+        }));
+        await supabase.from('social_links').insert(socialsToInsert);
+      }
+    }
+
+    // 4. Sync Store Products
+    if (Array.isArray(products)) {
+      const existingProducts = await supabase.from('products').select('id').eq('profile_id', profile_id);
+      const incomingIds = products.map((p: any) => p.id).filter((id: any) => id && !String(id).startsWith('new_'));
+      const toDelete = (existingProducts.data || []).filter((p: any) => !incomingIds.includes(p.id)).map((p: any) => p.id);
+      if (toDelete.length > 0) {
+        await supabase.from('products').delete().in('id', toDelete);
+      }
+
+      for (const prod of products) {
+        const prodData: any = {
+          profile_id,
+          name: prod.name || 'Product',
+          description: prod.description || '',
+          price: Number(prod.price) || 0,
+          image_url: prod.image_url || null,
+          file_url: prod.file_url || null
+        };
+        if (prod.id && !String(prod.id).startsWith('new_')) {
+          prodData.id = prod.id;
+        }
+        await supabase.from('products').upsert(prodData);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('[Admin 100% Profile Setup Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 const DEFAULT_PORTFOLIO_PROFILE = {
   id: 1,
   name: 'Victor Okoye',

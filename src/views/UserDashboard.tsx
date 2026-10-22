@@ -7,7 +7,7 @@ import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check, Heart, ShoppingBag, Home } from 'lucide-react';
+import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check, Heart, ShoppingBag, Home, RotateCw, ZoomIn, ZoomOut, RefreshCw, Maximize2 } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -115,11 +115,19 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       // 1. Direct authenticated Supabase update
       let sbSuccess = false;
       try {
-        const { error } = await supabase.from('profiles').update({
+        const updatePayload: any = {
           contact_email: profile?.contact_email ? String(profile.contact_email).trim() : null,
           phone_number: profile?.phone_number ? String(profile.phone_number).trim() : null,
-          address: profile?.address ? String(profile.address).trim() : null
-        }).eq('id', targetId);
+          address: profile?.address ? String(profile.address).trim() : null,
+          is_whatsapp: profile?.is_whatsapp ?? true
+        };
+        let { error } = await supabase.from('profiles').update(updatePayload).eq('id', targetId);
+
+        if (error && (error.message.includes('is_whatsapp') || error.message.includes('schema cache'))) {
+          delete updatePayload.is_whatsapp;
+          const retry = await supabase.from('profiles').update(updatePayload).eq('id', targetId);
+          error = retry.error;
+        }
 
         if (!error) sbSuccess = true;
       } catch (err) {
@@ -136,7 +144,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             profile_id: targetId,
             contact_email: profile?.contact_email ? String(profile.contact_email).trim() : null,
             phone_number: profile?.phone_number ? String(profile.phone_number).trim() : null,
-            address: profile?.address ? String(profile.address).trim() : null
+            address: profile?.address ? String(profile.address).trim() : null,
+            is_whatsapp: profile?.is_whatsapp ?? true
           })
         });
         if (res.ok) apiSuccess = true;
@@ -456,11 +465,13 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     }
   }, [currentLink.url, currentLink.use_link_icon]);
 
-  // Crop state
+  // Crop & Resize state
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [aspectRatio, setAspectRatio] = useState<number | undefined>(16 / 9);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   useEffect(() => {
@@ -585,6 +596,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         cover_image_url: coverUrl,
         contact_email: profile.contact_email,
         phone_number: profile.phone_number,
+        is_whatsapp: profile.is_whatsapp ?? true,
         address: profile.address,
         booking_provider: profile.booking_provider,
         calendar_link: profile.calendar_link,
@@ -600,7 +612,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         unlocked_themes: profile.unlocked_themes
       }).then(res => res.error);
 
-      if (profileError && profileError.message.includes('schema cache')) {
+      if (profileError && (profileError.message.includes('schema cache') || profileError.message.includes('is_whatsapp'))) {
         const retryResult = await supabase.from('profiles').upsert({
           id: user.id,
           full_name: profile.full_name,
@@ -677,6 +689,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       const reader = new FileReader();
       reader.addEventListener('load', () => {
         setTempImageUrl(reader.result?.toString() || null);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setRotation(0);
+        setAspectRatio(16 / 9);
         setCropModalOpen(true);
       });
       reader.readAsDataURL(file);
@@ -691,7 +707,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       setUploading(true);
       setCropModalOpen(false);
       
-      const croppedImageFile = await getCroppedImg(tempImageUrl, croppedAreaPixels, 0);
+      const croppedImageFile = await getCroppedImg(tempImageUrl, croppedAreaPixels, rotation);
       if (!croppedImageFile) throw new Error("Could not crop the image.");
 
       const fileExt = 'jpeg';
@@ -706,6 +722,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
       const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
       setCoverUrl(data.publicUrl);
+      toast.success('Cover image resized and updated successfully!');
     } catch (error: any) {
       console.error('Error uploading image: ', error);
       alert('Error uploading image: ' + error.message);
@@ -1269,6 +1286,43 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             </button>
                           );
                         })()}
+                      </div>
+
+                      {/* WhatsApp Indicator Toggle */}
+                      <div className="mt-4 p-4 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start sm:items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
+                            <FaWhatsapp className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-neutral-900 dark:text-white">WhatsApp Enabled Number</span>
+                              {(profile.is_whatsapp ?? true) ? (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#25D366] text-neutral-950">
+                                  WhatsApp Active
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                                  Call Only
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                              {(profile.is_whatsapp ?? true)
+                                ? 'Enables 1-tap WhatsApp chat on your public bio and automatically registers as a WhatsApp contact in downloaded vCards.'
+                                : 'Visitors will see standard cellular phone call action instead of WhatsApp.'}
+                            </p>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0 self-end sm:self-center">
+                          <input
+                            type="checkbox"
+                            checked={profile.is_whatsapp ?? true}
+                            onChange={(e) => setProfile({ ...profile, is_whatsapp: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366]"></div>
+                        </label>
                       </div>
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -2091,36 +2145,158 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
       </div>
       {cropModalOpen && tempImageUrl && (
-        <div className="fixed inset-0 z-[100] bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111318] p-6 sm:p-8 rounded-3xl w-full max-w-3xl flex flex-col h-[80vh] border border-neutral-200/80 dark:border-white/10 shadow-2xl">
-            <h3 className="font-bold text-lg text-neutral-950 dark:text-white mb-4">Adjust & Crop Header Cover</h3>
-            <div className="relative flex-1 bg-neutral-900 rounded-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[100] bg-neutral-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white dark:bg-[#111318] p-5 sm:p-7 rounded-3xl w-full max-w-4xl flex flex-col max-h-[92vh] border border-neutral-200/80 dark:border-white/10 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-100 dark:border-white/5">
+              <div>
+                <h3 className="font-bold text-lg text-neutral-950 dark:text-white flex items-center gap-2">
+                  <span>Resize & Frame Cover Image</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#76BB08]/15 text-[#76BB08] border border-[#76BB08]/30">
+                    High Resolution
+                  </span>
+                </h3>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  Select your preferred aspect ratio, zoom level, and rotation for a pixel-perfect contactless profile header.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  setCropModalOpen(false);
+                  setTempImageUrl(null);
+                }}
+                className="p-2 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Aspect Ratio Selector Tabs */}
+            <div className="mb-3.5">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+                Aspect Ratio Presets
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: '16:9 Banner', value: 16 / 9, desc: 'Wide Header' },
+                  { label: '3:1 Panorama', value: 3 / 1, desc: 'Ultra-Wide' },
+                  { label: '4:3 Standard', value: 4 / 3, desc: 'Classic' },
+                  { label: '1:1 Square', value: 1, desc: 'Avatar / Tile' },
+                  { label: '4:5 Portrait', value: 4 / 5, desc: 'Mobile Full' },
+                  { label: 'Freeform', value: undefined, desc: 'Custom' }
+                ].map((item, idx) => {
+                  const isSelected = aspectRatio === item.value;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setAspectRatio(item.value)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isSelected 
+                          ? 'bg-[#76BB08] text-neutral-950 shadow-sm scale-102' 
+                          : 'bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Cropper Viewport */}
+            <div className="relative w-full h-[40vh] sm:h-[48vh] bg-neutral-950 rounded-2xl overflow-hidden shadow-inner border border-neutral-800/80">
               <Cropper
                 image={tempImageUrl}
                 crop={crop}
                 zoom={zoom}
-                aspect={16 / 9}
+                rotation={rotation}
+                aspect={aspectRatio}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
                 onZoomChange={setZoom}
               />
             </div>
-            <div className="flex items-center gap-4 mt-4">
-              <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Zoom</label>
-              <input
-                type="range"
-                value={zoom}
-                min={1}
-                max={3}
-                step={0.1}
-                aria-labelledby="Zoom"
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full accent-[#76BB08]"
-              />
+
+            {/* Live Dimensions and Control Strip */}
+            <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-white/5 flex flex-col gap-3">
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 w-14 shrink-0">
+                  Zoom
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setZoom(z => Math.max(1, Number((z - 0.2).toFixed(1))))}
+                  className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 flex items-center justify-center text-neutral-700 dark:text-neutral-200 cursor-pointer"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3.5}
+                  step={0.05}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="flex-1 accent-[#76BB08] cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setZoom(z => Math.min(3.5, Number((z + 0.2).toFixed(1))))}
+                  className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 flex items-center justify-center text-neutral-700 dark:text-neutral-200 cursor-pointer"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <span className="text-xs font-mono font-bold text-neutral-900 dark:text-white w-12 text-right">
+                  {zoom.toFixed(1)}x
+                </span>
+              </div>
+
+              {/* Secondary Controls Bar: Rotate, Reset, Live Dimension Badge */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRotation(r => (r + 90) % 360)}
+                    className="px-3.5 py-2 rounded-xl bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>Rotate 90° ({rotation}°)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCrop({ x: 0, y: 0 });
+                      setZoom(1);
+                      setRotation(0);
+                      setAspectRatio(16 / 9);
+                    }}
+                    className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-400 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Reset</span>
+                  </button>
+                </div>
+
+                {croppedAreaPixels && (
+                  <div className="flex items-center gap-2 text-xs font-mono text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-white/[0.03] px-3 py-1.5 rounded-xl border border-neutral-200/60 dark:border-white/5">
+                    <Maximize2 className="w-3.5 h-3.5 text-[#76BB08]" />
+                    <span>Resolution: {Math.round(croppedAreaPixels.width)} × {Math.round(croppedAreaPixels.height)} px</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex justify-end gap-3 mt-6">
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-3 mt-5 pt-3 border-t border-neutral-100 dark:border-white/5">
               <button
-                className="px-5 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-full font-bold text-xs hover:bg-neutral-100 dark:hover:bg-white/5 transition-all text-neutral-900 dark:text-white"
+                type="button"
+                className="px-5 py-2.5 border border-neutral-200/80 dark:border-white/10 rounded-full font-bold text-xs hover:bg-neutral-100 dark:hover:bg-white/5 transition-all text-neutral-900 dark:text-white cursor-pointer"
                 onClick={() => {
                   setCropModalOpen(false);
                   setTempImageUrl(null);
@@ -2129,11 +2305,22 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 Cancel
               </button>
               <button
-                className="px-6 py-2.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full font-bold text-xs flex items-center justify-center min-w-[110px] shadow-sm transition-all"
+                type="button"
+                className="px-6 py-2.5 bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 rounded-full font-bold text-xs flex items-center justify-center gap-2 min-w-[130px] shadow-sm transition-all cursor-pointer"
                 disabled={uploading}
                 onClick={handleCropSave}
               >
-                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply Crop'}
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Resizing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 stroke-[2.5]" />
+                    <span>Apply & Save Cover</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

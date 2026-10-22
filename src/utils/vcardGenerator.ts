@@ -15,6 +15,7 @@ export interface VCardProfileData {
   contact_email?: string | null;
   email?: string | null;
   phone_number?: string | null;
+  is_whatsapp?: boolean | null;
   address?: string | null;
   company?: string | null;
   enterprise?: {
@@ -216,6 +217,14 @@ export function generateVCardString(profile: VCardProfileData, options: VCardOpt
         lines.push(`URL;TYPE=${escapeVCardValue(link.platform || 'OTHER')}:${url}`);
       }
     });
+  }
+
+  // 8b. Dedicated WhatsApp Number integration for verified 1-tap messaging
+  if (profile.is_whatsapp !== false && phones.length > 0) {
+    const cleanDigits = phones[0].replace(/[^\d]/g, '');
+    if (cleanDigits && !lines.some(l => l.includes('type=WhatsApp'))) {
+      lines.push(`X-SOCIALPROFILE;type=WhatsApp:https://wa.me/${cleanDigits}`);
+    }
   }
 
   // 9. Photo Avatar

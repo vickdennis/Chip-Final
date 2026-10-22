@@ -802,19 +802,41 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 arr = arr.filter(Boolean);
                 if (arr.length === 0) return null;
 
-                return arr.map((phone, idx) => (
-                  <a key={idx} href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" onClick={() => recordClick('WhatsApp Connect', phone, 'whatsapp')} className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2`}>
-                    <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center">
-                      <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
-                        {phone}
-                      </span>
-                    </div>
-                    <div className="bg-[#8c8c8c] rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0" style={{ backgroundColor: enterpriseColor || '#8c8c8c' }}>
-                      <span className="text-current font-sans text-[16px] font-bold tracking-tight">WhatsApp connect</span>
-                      <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
-                    </div>
-                  </a>
-                ));
+                const isWhatsApp = profile.is_whatsapp !== false;
+
+                return arr.map((phone, idx) => {
+                  const cleanPhone = phone.replace(/[^0-9]/g, '');
+                  const telPhone = phone.replace(/[^0-9+]/g, '');
+                  const href = isWhatsApp ? `https://wa.me/${cleanPhone}` : `tel:${telPhone}`;
+                  const actionLabel = isWhatsApp ? 'WhatsApp connect' : 'Call direct';
+                  const clickType = isWhatsApp ? 'whatsapp' : 'phone_call';
+
+                  return (
+                    <a 
+                      key={idx} 
+                      href={href} 
+                      target={isWhatsApp ? '_blank' : undefined} 
+                      rel={isWhatsApp ? 'noopener noreferrer' : undefined} 
+                      onClick={() => recordClick(actionLabel, phone, clickType)} 
+                      className={`w-full ${cardBgClass} rounded-full p-1.5 flex items-center justify-between shadow-md hover:bg-gray-50 dark:hover:bg-black/60 transition-colors mt-2 group`}
+                    >
+                      <div className="pl-5 pr-2 flex-1 overflow-hidden flex items-center gap-2">
+                        {isWhatsApp ? (
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#25D366] shrink-0" title="WhatsApp Number" />
+                        ) : (
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" title="Direct Phone Line" />
+                        )}
+                        <span className="font-sans text-[19px] text-[#3b82f6] font-medium truncate" style={{ color: enterpriseColor || '#3b82f6' }}>
+                          {phone}
+                        </span>
+                      </div>
+                      <div className={`rounded-full py-1 pl-5 pr-1.5 flex items-center gap-3 shrink-0 ${isWhatsApp ? 'bg-[#25D366]/90 text-white' : 'bg-[#8c8c8c] text-white'}`} style={{ backgroundColor: enterpriseColor || undefined }}>
+                        <span className="text-current font-sans text-[16px] font-bold tracking-tight">{actionLabel}</span>
+                        <img src={profile?.cover_image_url || coverUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
+                      </div>
+                    </a>
+                  );
+                });
               })()}
             </div>
 
