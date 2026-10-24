@@ -1117,8 +1117,26 @@ app.get('/api/referrals/stats/:username', async (req: Request, res: Response) =>
 
     const clicks = serverlessReferralClicks.filter(c => c.referrer.toLowerCase() === username);
     const sales = serverlessReferralSales.filter(s => s.referrer.toLowerCase() === username);
-    const rewards = serverlessProRewards.filter(r => r.username.toLowerCase() === username);
-    const payout = serverlessPayoutSettings[username] || null;
+    let payout = serverlessPayoutSettings[username] || null;
+    if (!payout) {
+      try {
+        const supabase = getSupabase();
+        const { data: spPayout } = await supabase.from('user_payout_settings').select('bank_name, account_number, account_name, updated_at').eq('username', username).maybeSingle();
+        if (spPayout) {
+          payout = spPayout;
+        } else {
+          const { data: spProfile } = await supabase.from('profiles').select('payout_bank_name, payout_account_number, payout_account_name').eq('username', username).maybeSingle();
+          if (spProfile && (spProfile.payout_bank_name || spProfile.payout_account_number)) {
+            payout = {
+              bank_name: spProfile.payout_bank_name,
+              account_number: spProfile.payout_account_number,
+              account_name: spProfile.payout_account_name,
+              updated_at: new Date().toISOString()
+            };
+          }
+        }
+      } catch (e) {}
+    }
 
     const cardsSold = sales.length;
     const totalSalesVolume = sales.reduce((acc, r) => acc + (Number(r.card_amount) || 0), 0);
@@ -1214,7 +1232,7 @@ app.post('/api/referrals/record-sale', (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/referrals/payout-settings', (req: Request, res: Response) => {
+app.post('/api/referrals/payout-settings', async (req: Request, res: Response) => {
   try {
     const { username, bank_name, account_number, account_name } = req.body || {};
     if (!username || !bank_name || !account_number || !account_name) {
@@ -1233,6 +1251,25 @@ app.post('/api/referrals/payout-settings', (req: Request, res: Response) => {
       account_name: String(account_name).trim(),
       updated_at: new Date().toISOString()
     };
+
+    try {
+      const supabase = getSupabase();
+      await supabase.from('profiles').update({
+        payout_bank_name: String(bank_name).trim(),
+        payout_account_number: cleanNumber,
+        payout_account_name: String(account_name).trim()
+      }).eq('username', cleanUsername);
+
+      await supabase.from('user_payout_settings').upsert({
+        username: cleanUsername,
+        bank_name: String(bank_name).trim(),
+        account_number: cleanNumber,
+        account_name: String(account_name).trim(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'username' });
+    } catch (sbErr) {
+      console.warn('Serverless Supabase payout sync note:', sbErr);
+    }
 
     res.json({ success: true, payoutSettings: serverlessPayoutSettings[cleanUsername] });
   } catch (err: any) {

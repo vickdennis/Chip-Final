@@ -1360,7 +1360,26 @@ async function startServer() {
       const cardsTowardsNextProMonth = cardsSold % 3;
 
       // 4. Nigerian Bank Account payout settings
-      const payoutRow = db.prepare('SELECT bank_name, account_number, account_name, updated_at FROM user_payout_settings WHERE LOWER(username) = ?').get(username) as any;
+      let payoutRow = db.prepare('SELECT bank_name, account_number, account_name, updated_at FROM user_payout_settings WHERE LOWER(username) = ?').get(username) as any;
+      if (!payoutRow) {
+        try {
+          const supabase = getSupabase();
+          const { data: spPayout } = await supabase.from('user_payout_settings').select('bank_name, account_number, account_name, updated_at').eq('username', username).maybeSingle();
+          if (spPayout) {
+            payoutRow = spPayout;
+          } else {
+            const { data: spProfile } = await supabase.from('profiles').select('payout_bank_name, payout_account_number, payout_account_name').eq('username', username).maybeSingle();
+            if (spProfile && (spProfile.payout_bank_name || spProfile.payout_account_number)) {
+              payoutRow = {
+                bank_name: spProfile.payout_bank_name,
+                account_number: spProfile.payout_account_number,
+                account_name: spProfile.payout_account_name,
+                updated_at: new Date().toISOString()
+              };
+            }
+          }
+        } catch (e) {}
+      }
 
       res.json({
         success: true,
@@ -1448,7 +1467,7 @@ async function startServer() {
   });
 
   // POST /api/referrals/payout-settings - Save Nigerian Bank Account payout credentials
-  app.post('/api/referrals/payout-settings', (req, res) => {
+  app.post('/api/referrals/payout-settings', async (req, res) => {
     try {
       const { username, bank_name, account_number, account_name } = req.body || {};
       if (!username || !bank_name || !account_number || !account_name) {
@@ -1473,6 +1492,26 @@ async function startServer() {
           account_name = excluded.account_name,
           updated_at = CURRENT_TIMESTAMP
       `).run(cleanUsername, cleanBank, cleanNumber, cleanName);
+
+      // Multi-layer Supabase sync for PostgreSQL persistence
+      try {
+        const supabase = getSupabase();
+        await supabase.from('profiles').update({
+          payout_bank_name: cleanBank,
+          payout_account_number: cleanNumber,
+          payout_account_name: cleanName
+        }).eq('username', cleanUsername);
+
+        await supabase.from('user_payout_settings').upsert({
+          username: cleanUsername,
+          bank_name: cleanBank,
+          account_number: cleanNumber,
+          account_name: cleanName,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'username' });
+      } catch (sbErr) {
+        console.warn('Supabase payout sync warning:', sbErr);
+      }
 
       res.json({
         success: true,

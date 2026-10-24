@@ -514,3 +514,90 @@ CREATE POLICY "Cardholders can delete own profile leads" ON public.leads FOR DEL
   OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
 );
 
+-- ================= The Incentive: Referral & Nigerian Bank Payout Schema =================
+-- Add bank payout columns to profiles table
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payout_bank_name TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payout_account_number TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payout_account_name TEXT;
+
+-- Dedicated User Payout Settings Table
+CREATE TABLE IF NOT EXISTS public.user_payout_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT UNIQUE NOT NULL,
+  bank_name TEXT NOT NULL,
+  account_number TEXT NOT NULL,
+  account_name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.user_payout_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read payout settings" ON public.user_payout_settings;
+CREATE POLICY "Anyone can read payout settings" ON public.user_payout_settings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can insert payout settings" ON public.user_payout_settings;
+CREATE POLICY "Anyone can insert payout settings" ON public.user_payout_settings FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anyone can update payout settings" ON public.user_payout_settings;
+CREATE POLICY "Anyone can update payout settings" ON public.user_payout_settings FOR UPDATE USING (true);
+
+-- Referral Clicks Table
+CREATE TABLE IF NOT EXISTS public.referral_clicks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  referrer TEXT NOT NULL,
+  ip TEXT,
+  user_agent TEXT,
+  source TEXT DEFAULT 'link',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.referral_clicks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can insert referral clicks" ON public.referral_clicks;
+CREATE POLICY "Anyone can insert referral clicks" ON public.referral_clicks FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anyone can view referral clicks" ON public.referral_clicks;
+CREATE POLICY "Anyone can view referral clicks" ON public.referral_clicks FOR SELECT USING (true);
+
+-- Referral Sales Table (15% Cash Commission per card sold)
+CREATE TABLE IF NOT EXISTS public.referral_sales (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  referrer TEXT NOT NULL,
+  buyer_name TEXT,
+  buyer_email TEXT,
+  card_type TEXT NOT NULL,
+  card_amount NUMERIC NOT NULL,
+  commission_rate NUMERIC DEFAULT 0.15,
+  commission_amount NUMERIC NOT NULL,
+  payment_reference TEXT UNIQUE NOT NULL,
+  payout_status TEXT DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.referral_sales ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read referral sales" ON public.referral_sales;
+CREATE POLICY "Anyone can read referral sales" ON public.referral_sales FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can insert referral sales" ON public.referral_sales;
+CREATE POLICY "Anyone can insert referral sales" ON public.referral_sales FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anyone can update referral sales" ON public.referral_sales;
+CREATE POLICY "Anyone can update referral sales" ON public.referral_sales FOR UPDATE USING (true);
+
+-- User Pro SaaS Rewards Milestone Table (3 Cards = 1 Free Pro Month)
+CREATE TABLE IF NOT EXISTS public.user_pro_rewards (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  username TEXT NOT NULL,
+  months_granted INTEGER DEFAULT 1,
+  milestone_tier INTEGER NOT NULL,
+  claimed_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.user_pro_rewards ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read pro rewards" ON public.user_pro_rewards;
+CREATE POLICY "Anyone can read pro rewards" ON public.user_pro_rewards FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can insert pro rewards" ON public.user_pro_rewards;
+CREATE POLICY "Anyone can insert pro rewards" ON public.user_pro_rewards FOR INSERT WITH CHECK (true);
+
