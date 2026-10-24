@@ -95,6 +95,28 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  // Global Referral & Affiliate Attribution Capture
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref') || urlParams.get('aff') || urlParams.get('referrer') || urlParams.get('referral');
+        if (ref && typeof ref === 'string') {
+          const cleanRef = ref.trim().replace(/^@/, '').toLowerCase();
+          if (cleanRef && cleanRef.length >= 2 && !['undefined', 'null'].includes(cleanRef)) {
+            localStorage.setItem('chipng_referrer', cleanRef);
+            document.cookie = `chipng_referrer=${encodeURIComponent(cleanRef)}; max-age=${60 * 60 * 24 * 30}; path=/; SameSite=Lax`;
+            fetch('/api/referrals/record-click', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ referrer: cleanRef, source: urlParams.get('source') || 'link' })
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch (e) {}
+  }, []);
+
   const [commercialSlug, setCommercialSlug] = useState<string | null>(() => {
     const rawPath = window.location.pathname.replace(/^\/|\/$/g, "");
     if (COMMERCIAL_PAGES[rawPath]) {

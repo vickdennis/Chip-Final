@@ -1099,6 +1099,193 @@ app.delete('/api/portfolio/project/:id', (req: Request, res: Response) => {
   }
 });
 
+// ================= The Incentive: Referral & Affiliate Serverless Endpoints =================
+let serverlessReferralClicks: { referrer: string; ip?: string; source?: string; created_at: string }[] = [];
+let serverlessReferralSales: any[] = [];
+let serverlessPayoutSettings: Record<string, { bank_name: string; account_number: string; account_name: string; updated_at: string }> = {};
+let serverlessProRewards: { username: string; months_granted: number; milestone_tier: number; claimed_at: string }[] = [];
+
+app.get('/api/referrals/stats/:username', async (req: Request, res: Response) => {
+  try {
+    let rawUsername = req.params.username || '';
+    try { rawUsername = decodeURIComponent(rawUsername); } catch (e) {}
+    const username = rawUsername.trim().replace(/^@/, '').toLowerCase();
+
+    if (!username) {
+      return res.status(400).json({ error: 'Username required' });
+    }
+
+    const clicks = serverlessReferralClicks.filter(c => c.referrer.toLowerCase() === username);
+    const sales = serverlessReferralSales.filter(s => s.referrer.toLowerCase() === username);
+    const rewards = serverlessProRewards.filter(r => r.username.toLowerCase() === username);
+    const payout = serverlessPayoutSettings[username] || null;
+
+    const cardsSold = sales.length;
+    const totalSalesVolume = sales.reduce((acc, r) => acc + (Number(r.card_amount) || 0), 0);
+    const totalCashEarned = sales.reduce((acc, r) => acc + (Number(r.commission_amount) || 0), 0);
+    const pendingPayout = sales.filter(r => r.payout_status !== 'paid').reduce((acc, r) => acc + (Number(r.commission_amount) || 0), 0);
+    const paidPayout = sales.filter(r => r.payout_status === 'paid').reduce((acc, r) => acc + (Number(r.commission_amount) || 0), 0);
+
+    const freeProMonthsEarned = Math.floor(cardsSold / 3);
+    const freeProMonthsClaimed = rewards.reduce((acc, r) => acc + (Number(r.months_granted) || 1), 0);
+    const unclaimedProMonths = Math.max(0, freeProMonthsEarned - freeProMonthsClaimed);
+    const cardsTowardsNextProMonth = cardsSold % 3;
+
+    res.json({
+      success: true,
+      username,
+      referralUrl: `https://chipng.com/?ref=${username}`,
+      buyCardUrl: `https://chipng.com/buy-card?ref=${username}`,
+      totalClicks: clicks.length,
+      cardsSold,
+      totalSalesVolume,
+      totalCashEarned,
+      commissionRate: 0.15,
+      pendingPayout,
+      paidPayout,
+      freeProMonthsEarned,
+      freeProMonthsClaimed,
+      unclaimedProMonths,
+      cardsTowardsNextProMonth,
+      cardsRemainingForNextPro: 3 - cardsTowardsNextProMonth,
+      payoutSettings: payout,
+      recentSales: sales.slice(0, 50),
+      rewardsHistory: rewards
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/referrals/record-click', (req: Request, res: Response) => {
+  try {
+    const { referrer, source = 'link' } = req.body || {};
+    if (!referrer || typeof referrer !== 'string') {
+      return res.status(400).json({ error: 'Referrer required' });
+    }
+    const cleanReferrer = referrer.trim().replace(/^@/, '').toLowerCase();
+    serverlessReferralClicks.push({
+      referrer: cleanReferrer,
+      ip: (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '',
+      source,
+      created_at: new Date().toISOString()
+    });
+    res.json({ success: true, referrer: cleanReferrer });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/referrals/record-sale', (req: Request, res: Response) => {
+  try {
+    const { referrer, buyer_name, buyer_email, card_type, card_amount, payment_reference } = req.body || {};
+    if (!referrer || !payment_reference || !card_amount) {
+      return res.status(400).json({ error: 'Referrer, payment_reference, and card_amount are required' });
+    }
+    const cleanReferrer = String(referrer).trim().replace(/^@/, '').toLowerCase();
+    const numAmount = Number(card_amount) || 0;
+    const commissionRate = 0.15;
+    const commissionAmount = Math.round(numAmount * commissionRate);
+
+    const existingIdx = serverlessReferralSales.findIndex(s => s.payment_reference === payment_reference);
+    const saleRecord = {
+      id: Date.now(),
+      referrer: cleanReferrer,
+      buyer_name: buyer_name || 'Customer',
+      buyer_email: buyer_email || '',
+      card_type: card_type || 'NFC Smart Card',
+      card_amount: numAmount,
+      commission_rate: commissionRate,
+      commission_amount: commissionAmount,
+      payment_reference,
+      payout_status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    if (existingIdx >= 0) {
+      serverlessReferralSales[existingIdx] = { ...serverlessReferralSales[existingIdx], ...saleRecord };
+    } else {
+      serverlessReferralSales.unshift(saleRecord);
+    }
+
+    res.json({ success: true, referrer: cleanReferrer, commission_amount: commissionAmount, commission_rate: 0.15 });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/referrals/payout-settings', (req: Request, res: Response) => {
+  try {
+    const { username, bank_name, account_number, account_name } = req.body || {};
+    if (!username || !bank_name || !account_number || !account_name) {
+      return res.status(400).json({ error: 'All fields required' });
+    }
+    const cleanUsername = String(username).trim().replace(/^@/, '').toLowerCase();
+    const cleanNumber = String(account_number).trim().replace(/[^0-9]/g, '');
+
+    if (cleanNumber.length !== 10) {
+      return res.status(400).json({ error: 'Nigerian NUBAN account number must be exactly 10 digits' });
+    }
+
+    serverlessPayoutSettings[cleanUsername] = {
+      bank_name: String(bank_name).trim(),
+      account_number: cleanNumber,
+      account_name: String(account_name).trim(),
+      updated_at: new Date().toISOString()
+    };
+
+    res.json({ success: true, payoutSettings: serverlessPayoutSettings[cleanUsername] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/referrals/claim-pro-month', async (req: Request, res: Response) => {
+  try {
+    const { username } = req.body || {};
+    if (!username) return res.status(400).json({ error: 'Username required' });
+    const cleanUsername = String(username).trim().replace(/^@/, '').toLowerCase();
+
+    const sales = serverlessReferralSales.filter(s => s.referrer.toLowerCase() === cleanUsername);
+    const rewards = serverlessProRewards.filter(r => r.username.toLowerCase() === cleanUsername);
+
+    const cardsSold = sales.length;
+    const earnedMonths = Math.floor(cardsSold / 3);
+    const claimedMonths = rewards.reduce((acc, r) => acc + (Number(r.months_granted) || 1), 0);
+    const unclaimed = Math.max(0, earnedMonths - claimedMonths);
+
+    if (unclaimed < 1) {
+      return res.status(400).json({
+        error: 'No unclaimed Pro SaaS months available. You need 3 physical card referrals to unlock a free Pro month.',
+        cardsSold
+      });
+    }
+
+    const nextTier = (claimedMonths + 1) * 3;
+    serverlessProRewards.push({
+      username: cleanUsername,
+      months_granted: 1,
+      milestone_tier: nextTier,
+      claimed_at: new Date().toISOString()
+    });
+
+    try {
+      const supabase = getSupabase();
+      await supabase.from('profiles').update({ is_verified: true }).eq('username', cleanUsername);
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      message: 'Congratulations! 1 Month of CHIP Pro SaaS has been unlocked and activated on your account.',
+      claimedTier: nextTier,
+      remainingUnclaimed: unclaimed - 1,
+      cardsSold
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 404 Catch-All
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Endpoint not found', path: req.url });

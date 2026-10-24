@@ -1088,10 +1088,42 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         {/* Footer at the bottom of the page */}
         <footer className="w-full bg-gray-50 dark:bg-black/40 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-6 py-5 flex flex-col items-center justify-center gap-3 z-10 shrink-0 mt-auto">
-           <button onClick={() => { if(onNavigate) { onNavigate('landing'); } else { window.location.href='/'; } }} className={`bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-full font-mono text-[13px] font-bold shadow-md hover:bg-white/30 transition-colors mb-2`}>
-             CREATE YOURS
-           </button>
-           <a href="https://chipng.com" className="opacity-80 hover:opacity-100 transition-opacity flex items-center gap-2">
+           <div className="flex flex-col sm:flex-row items-center gap-2.5 mb-2">
+             <button 
+               onClick={() => {
+                 if (profile?.username) {
+                   try {
+                     localStorage.setItem('chipng_referrer', profile.username);
+                     document.cookie = `chipng_referrer=${encodeURIComponent(profile.username)}; max-age=${60 * 60 * 24 * 30}; path=/; SameSite=Lax`;
+                   } catch(e) {}
+                 }
+                 const refQuery = profile?.username ? `?ref=${encodeURIComponent(profile.username)}` : '';
+                 window.location.href = `/buy-card${refQuery}`;
+               }}
+               className="bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 px-6 py-2.5 rounded-full font-mono text-[12px] font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+             >
+               <span>GET YOUR NFC CARD</span>
+             </button>
+             <button 
+               onClick={() => {
+                 if (profile?.username) {
+                   try {
+                     localStorage.setItem('chipng_referrer', profile.username);
+                     document.cookie = `chipng_referrer=${encodeURIComponent(profile.username)}; max-age=${60 * 60 * 24 * 30}; path=/; SameSite=Lax`;
+                   } catch(e) {}
+                 }
+                 if (onNavigate) {
+                   onNavigate('landing');
+                 } else {
+                   window.location.href = `/${profile?.username ? `?ref=${encodeURIComponent(profile.username)}` : ''}`;
+                 }
+               }} 
+               className="bg-neutral-200/80 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 text-neutral-900 dark:text-white px-5 py-2.5 rounded-full font-mono text-[12px] font-bold shadow-sm transition-colors cursor-pointer"
+             >
+               CREATE YOUR BIO
+             </button>
+           </div>
+           <a href={`https://chipng.com${profile?.username ? `?ref=${encodeURIComponent(profile.username)}` : ''}`} className="opacity-80 hover:opacity-100 transition-opacity flex items-center gap-2">
              <span className="font-mono text-[10px] uppercase font-semibold text-neutral-500 dark:text-neutral-400">Powered by</span>
              <BrandLogo size="xs" />
            </a>

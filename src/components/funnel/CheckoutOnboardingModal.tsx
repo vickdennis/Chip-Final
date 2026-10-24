@@ -68,6 +68,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           phone: data.whatsapp || '',
           card_type: data.material === 'plastic_black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)',
           amount: totalAmountNgn,
+          referrer: (typeof window !== 'undefined' ? (localStorage.getItem('chipng_referrer') || '') : '') || undefined,
         }),
       });
 

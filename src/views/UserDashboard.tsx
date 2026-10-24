@@ -7,7 +7,7 @@ import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import { QRCodeSVG } from 'qrcode.react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
-import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check, Heart, ShoppingBag, Home, RotateCw, ZoomIn, ZoomOut, RefreshCw, Maximize2 } from 'lucide-react';
+import { Bell, Save, CreditCard, Eye, UserCircle, Upload, Trash2, Link, GripVertical, Plus, Globe, AtSign, Rss, Calendar, QrCode, Download, Settings, Loader2, MapPin, Phone, Mail, Share, Shield, Activity, Wallet, Camera, AlertTriangle, X, SmartphoneNfc , LogOut, Pencil, User, Users, UserCheck, Check, Heart, ShoppingBag, Home, RotateCw, ZoomIn, ZoomOut, RefreshCw, Maximize2, Gift, Coins, Award, Sparkles, Percent, ArrowUpRight, Landmark, CheckCircle, Copy } from 'lucide-react';
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram, FaFacebook, FaYoutube, FaTwitch, FaTiktok, FaSnapchat, FaPinterest, FaReddit, FaDiscord, FaSlack, FaTelegram, FaWhatsapp, FaWeixin, FaLine, FaMedium, FaDribbble, FaBehance, FaFigma, FaDev, FaProductHunt, FaStackOverflow, FaGitlab, FaBitbucket, FaSpotify, FaSoundcloud, FaPatreon, FaPaypal } from 'react-icons/fa6';
 import { SiBuymeacoffee, SiSubstack, SiApplemusic, SiVenmo } from 'react-icons/si';
 
@@ -46,8 +46,156 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [checkoutAddress, setCheckoutAddress] = useState("");
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'leads' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc' | 'buy-nfc' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'leads' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc' | 'buy-nfc' | 'referrals' | 'settings'>('profile');
   const [leadsStats, setLeadsStats] = useState<{ total: number; newCount: number; convertedCount: number }>({ total: 0, newCount: 0, convertedCount: 0 });
+
+  // --- The Incentive: Referral & Affiliate State ---
+  const [referralStats, setReferralStats] = useState<any>({
+    totalClicks: 0,
+    cardsSold: 0,
+    totalSalesVolume: 0,
+    totalCashEarned: 0,
+    commissionRate: 0.15,
+    pendingPayout: 0,
+    paidPayout: 0,
+    freeProMonthsEarned: 0,
+    freeProMonthsClaimed: 0,
+    unclaimedProMonths: 0,
+    cardsTowardsNextProMonth: 0,
+    cardsRemainingForNextPro: 3,
+    payoutSettings: null,
+    recentSales: [],
+    rewardsHistory: []
+  });
+  const [loadingReferrals, setLoadingReferrals] = useState(false);
+  const [claimingReward, setClaimingReward] = useState(false);
+  const [savingPayout, setSavingPayout] = useState(false);
+  const [payoutBankName, setPayoutBankName] = useState('Guaranty Trust Bank (GTBank)');
+  const [payoutAccountNumber, setPayoutAccountNumber] = useState('');
+  const [payoutAccountName, setPayoutAccountName] = useState('');
+  const [referralCopied, setReferralCopied] = useState(false);
+  const [directCardCopied, setDirectCardCopied] = useState(false);
+
+  const fetchReferralStats = async () => {
+    if (!profile?.username) return;
+    try {
+      setLoadingReferrals(true);
+      const res = await fetch(`/api/referrals/stats/${encodeURIComponent(profile.username)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setReferralStats(data);
+        if (data.payoutSettings) {
+          if (data.payoutSettings.bank_name) setPayoutBankName(data.payoutSettings.bank_name);
+          if (data.payoutSettings.account_number) setPayoutAccountNumber(data.payoutSettings.account_number);
+          if (data.payoutSettings.account_name) setPayoutAccountName(data.payoutSettings.account_name);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load referral stats:', e);
+    } finally {
+      setLoadingReferrals(false);
+    }
+  };
+
+  useEffect(() => {
+    if (profile?.username) {
+      fetchReferralStats();
+    }
+  }, [profile?.username]);
+
+  const handleClaimProMonth = async () => {
+    if (!profile?.username) return;
+    setClaimingReward(true);
+    try {
+      const res = await fetch('/api/referrals/claim-pro-month', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: profile.username })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || '🎉 1 Free Pro Month claimed and activated successfully!');
+        setProfile((prev: any) => ({ ...prev, is_verified: true }));
+        fetchReferralStats();
+      } else {
+        toast.error(data.error || 'Unable to claim reward at this time.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error claiming Pro reward');
+    } finally {
+      setClaimingReward(false);
+    }
+  };
+
+  const handleSavePayoutSettings = async () => {
+    if (!profile?.username) return;
+    if (!payoutBankName || !payoutAccountNumber || !payoutAccountName) {
+      toast.error('Please fill in bank name, account number, and account name.');
+      return;
+    }
+    if (payoutAccountNumber.replace(/\D/g, '').length !== 10) {
+      toast.error('Nigerian NUBAN account number must be exactly 10 digits.');
+      return;
+    }
+    setSavingPayout(true);
+    try {
+      const res = await fetch('/api/referrals/payout-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: profile.username,
+          bank_name: payoutBankName,
+          account_number: payoutAccountNumber.replace(/\D/g, ''),
+          account_name: payoutAccountName
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Nigerian bank payout account saved successfully!');
+        fetchReferralStats();
+      } else {
+        toast.error(data.error || 'Failed to save payout settings');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Network error saving payout settings');
+    } finally {
+      setSavingPayout(false);
+    }
+  };
+
+  const downloadReferralQrCodePng = () => {
+    try {
+      const svg = document.getElementById('referral-qr-svg') as unknown as SVGGraphicsElement | null;
+      if (!svg) {
+        toast.error('QR code element not found.');
+        return;
+      }
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      canvas.width = 600;
+      canvas.height = 600;
+
+      img.onload = () => {
+        if (!ctx) return;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 40, 40, 520, 520);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `CHIP_NG_Referral_QR_${profile.username || 'card'}.png`;
+        downloadLink.href = pngFile;
+        downloadLink.click();
+        toast.success('High-resolution Referral QR code downloaded!');
+      };
+
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    } catch (err: any) {
+      console.error('QR download error:', err);
+      toast.error('Could not download QR code image.');
+    }
+  };
 
   const fetchLeadsStats = async () => {
     if (!profile?.id) return;
@@ -1025,10 +1173,25 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           meta: {
                             product_id: selectedNfcCard.id,
                             delivery_address: checkoutAddress,
+                            referrer: (typeof window !== 'undefined' ? localStorage.getItem('chipng_referrer') : null) || undefined,
                           },
                           onSuccess: async (response: any) => {
                             const ref = response?.tx_ref || response?.transaction_id || txRef;
                             try {
+                              // Verify on server to attribute 15% cash commission if referred
+                              fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(ref)}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  name: checkoutName,
+                                  email: profile.contact_email || profile.email || 'customer@chipng.com',
+                                  phone: checkoutPhone,
+                                  card_type: selectedNfcCard.name,
+                                  amount: priceTotal,
+                                  referrer: (typeof window !== 'undefined' ? localStorage.getItem('chipng_referrer') : null) || undefined,
+                                })
+                              }).catch(() => {});
+
                               await supabase.from('purchases').insert({
                                 product_id: selectedNfcCard.id,
                                 seller_id: null,
@@ -1069,8 +1232,613 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
             </div>
           </div>
+        ) : profile && activeTab === 'referrals' ? (
+          <div className="flex flex-col gap-6 animate-in fade-in duration-200">
+            
+            {/* The Incentive Hero Header */}
+            <section className="bg-gradient-to-br from-neutral-950 via-[#13161f] to-neutral-950 border border-neutral-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-[#76BB08]/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#76BB08]/20 text-[#76BB08] border border-[#76BB08]/40 text-[11px] font-extrabold uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5" /> The Incentive • Affiliate Hub
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-neutral-300 text-[11px] font-bold">
+                    15% Instant Cash Commission
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
+                    3 Cards = 1 Free Pro Month
+                  </span>
+                </div>
+
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                    Earn 15% Cash on Every Card Sold & Free Pro Months
+                  </h2>
+                  <p className="text-sm text-neutral-300 mt-2 leading-relaxed max-w-2xl">
+                    Share your unique link or custom QR code. Whenever anyone buys a contactless NFC card through your referral, you earn an instant 15% cash payout (₦4,500 – ₦15,000 NGN) deposited into your Nigerian bank account. Every 3 cards sold also awards you 1 Free Month of CHIP Pro SaaS!
+                  </p>
+                </div>
+
+                {/* Quick Share Buttons */}
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Get your contactless smart business card on CHIP NG! 1-tap contact sharing with zero app needed: https://chipng.com/?ref=${profile.username}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-neutral-950 font-bold text-xs transition-all shadow-sm cursor-pointer"
+                  >
+                    <FaWhatsapp className="w-4 h-4" />
+                    <span>Share on WhatsApp</span>
+                  </a>
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Upgrade to the fastest networking tool in Africa. Tap to connect with zero app needed on @chipng_nfc:`)}&url=${encodeURIComponent(`https://chipng.com/?ref=${profile.username}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs border border-white/15 transition-all"
+                  >
+                    <FaXTwitter className="w-3.5 h-3.5" />
+                    <span>Share on X</span>
+                  </a>
+                  <a
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://chipng.com/?ref=${profile.username}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold text-xs transition-all"
+                  >
+                    <FaLinkedin className="w-3.5 h-3.5" />
+                    <span>LinkedIn</span>
+                  </a>
+                  <a
+                    href={`https://t.me/share/url?url=${encodeURIComponent(`https://chipng.com/?ref=${profile.username}`)}&text=${encodeURIComponent(`Check out CHIP NG NFC Smart Business Cards:`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#229ED9] hover:bg-[#1e8bc0] text-white font-bold text-xs transition-all"
+                  >
+                    <FaTelegram className="w-3.5 h-3.5" />
+                    <span>Telegram</span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            {/* Unique Referral Link & Custom QR Code Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column: Unique Link & Commission Calculator */}
+              <div className="lg:col-span-7 flex flex-col gap-6">
+                
+                {/* Unique Link Card */}
+                <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-7 flex flex-col gap-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight flex items-center gap-2">
+                        <Link className="w-4 h-4 text-[#76BB08]" /> Your Unique Referral Link
+                      </h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        Cookies track referred purchases for 30 days
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] text-[10px] font-mono font-bold">
+                      15% Active
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                      Standard Homepage Referral Link
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-4 py-3 bg-neutral-50 dark:bg-[#161922] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-800 dark:text-neutral-200 truncate select-all">
+                        {`https://chipng.com/?ref=${profile.username || 'username'}`}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const link = `https://chipng.com/?ref=${profile.username || ''}`;
+                          navigator.clipboard.writeText(link);
+                          setReferralCopied(true);
+                          toast.success('Referral link copied to clipboard!');
+                          setTimeout(() => setReferralCopied(false), 2000);
+                        }}
+                        className="px-4 py-3 rounded-xl bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+                      >
+                        {referralCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        <span>{referralCopied ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                      Direct Card Order Funnel Link
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-4 py-3 bg-neutral-50 dark:bg-[#161922] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-800 dark:text-neutral-200 truncate select-all">
+                        {`https://chipng.com/buy-card?ref=${profile.username || 'username'}`}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const link = `https://chipng.com/buy-card?ref=${profile.username || ''}`;
+                          navigator.clipboard.writeText(link);
+                          setDirectCardCopied(true);
+                          toast.success('Direct card order link copied!');
+                          setTimeout(() => setDirectCardCopied(false), 2000);
+                        }}
+                        className="px-4 py-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-900 dark:text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                      >
+                        {directCardCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        <span>{directCardCopied ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Commission Rate Breakdown */}
+                  <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-white/[0.02] border border-neutral-200/60 dark:border-white/5 flex flex-col gap-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                      Your Cash Earnings per Card:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
+                        <div className="text-[10px] text-neutral-400">White PVC (₦30k)</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦4,500</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
+                        <div className="text-[10px] text-neutral-400">Black PVC (₦35k)</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦5,250</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
+                        <div className="text-[10px] text-neutral-400">Smart Metal (₦50k)</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦7,500</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
+                        <div className="text-[10px] text-neutral-400">Debit Card (₦100k)</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦15,000</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* Right Column: High-Res Branded QR Code */}
+              <div className="lg:col-span-5 flex flex-col">
+                <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-7 flex flex-col items-center text-center gap-4 h-full justify-between">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
+                      <QrCode className="w-3.5 h-3.5" /> High-Res Referral QR
+                    </span>
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">
+                      Custom Referral QR Code
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                      Print this QR code on flyers, badges, or display at networking events.
+                    </p>
+                  </div>
+
+                  {/* QR Box with white backing & frame */}
+                  <div className="p-4 bg-white rounded-2xl shadow-md border-2 border-[#76BB08]/30 flex items-center justify-center relative group">
+                    <QRCodeSVG
+                      id="referral-qr-svg"
+                      level="H"
+                      value={`https://chipng.com/buy-card?ref=${profile.username || 'username'}&source=qr`}
+                      size={180}
+                      marginSize={2}
+                      fgColor="#000000"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-full">
+                    <button
+                      type="button"
+                      onClick={downloadReferralQrCodePng}
+                      className="w-full py-3 px-4 rounded-xl bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download QR Code (.PNG)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = `https://chipng.com/buy-card?ref=${profile.username || 'username'}&source=qr`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('QR Destination URL copied!');
+                      }}
+                      className="w-full py-2.5 px-4 rounded-xl border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 font-semibold text-xs hover:bg-neutral-50 dark:hover:bg-white/5 transition-all"
+                    >
+                      Copy QR Destination Link
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            {/* 4 Performance Metric Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Cards Sold</span>
+                  <ShoppingBag className="w-4 h-4 text-[#76BB08]" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
+                    {referralStats.cardsSold}
+                  </div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">
+                    ₦{referralStats.totalSalesVolume.toLocaleString()} gross sales
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">15% Cash Earned</span>
+                  <Coins className="w-4 h-4 text-amber-500" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
+                    ₦{referralStats.totalCashEarned.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                    ₦{referralStats.pendingPayout.toLocaleString()} pending payout
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Free Pro Months</span>
+                  <Award className="w-4 h-4 text-purple-500" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
+                    {referralStats.freeProMonthsEarned}
+                  </div>
+                  <div className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold mt-1">
+                    {referralStats.unclaimedProMonths > 0 ? `${referralStats.unclaimedProMonths} ready to claim!` : '3 cards per month'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Link & QR Clicks</span>
+                  <Activity className="w-4 h-4 text-blue-500" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
+                    {referralStats.totalClicks}
+                  </div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">
+                    Sub-10ms redirect telemetry
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pro SaaS Milestone Progress Tracker */}
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-7 flex flex-col gap-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse" />
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">
+                      Free Pro SaaS Milestone Tracker
+                    </h3>
+                  </div>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    Sell 3 NFC cards through your profile link to earn 1 Free Month of CHIP Pro SaaS (includes custom domains, deep analytics, and premium bio themes).
+                  </p>
+                </div>
+                <div className="px-3.5 py-1.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold text-xs self-start sm:self-auto">
+                  {referralStats.cardsTowardsNextProMonth} of 3 Cards Sold
+                </div>
+              </div>
+
+              {/* Visual Progress Bar */}
+              <div className="flex flex-col gap-2">
+                <div className="w-full h-4 bg-neutral-100 dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-neutral-200/60 dark:border-white/5">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#76BB08] to-purple-600 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, Math.max(10, (referralStats.cardsTowardsNextProMonth / 3) * 100))}%` }}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-[11px] text-neutral-500 font-medium px-1">
+                  <span>0 Cards</span>
+                  <span>1 Card Sold</span>
+                  <span>2 Cards Sold</span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400">🎉 3 Cards = 1 Free Pro Month</span>
+                </div>
+              </div>
+
+              {/* Claim Action or Milestone Countdown */}
+              {referralStats.unclaimedProMonths > 0 ? (
+                <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0">
+                      🎁
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-neutral-950 dark:text-white">
+                        {referralStats.unclaimedProMonths} Free Pro Month{referralStats.unclaimedProMonths > 1 ? 's' : ''} Ready to Claim!
+                      </div>
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                        Milestone reached! Click below to activate your free month instantly.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClaimProMonth}
+                    disabled={claimingReward}
+                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    {claimingReward ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    <span>{claimingReward ? 'Activating...' : 'Claim 1 Free Pro Month'}</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-white/[0.02] p-3.5 rounded-xl border border-neutral-200/60 dark:border-white/5 flex items-center justify-between">
+                  <span>
+                    ⚡ You need <strong className="text-neutral-900 dark:text-white">{3 - referralStats.cardsTowardsNextProMonth} more card sale{3 - referralStats.cardsTowardsNextProMonth > 1 ? 's' : ''}</strong> to unlock your next Free Pro Month.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const link = `https://chipng.com/buy-card?ref=${profile.username || ''}`;
+                      navigator.clipboard.writeText(link);
+                      toast.success('Link copied! Share it with friends or clients.');
+                    }}
+                    className="text-xs font-bold text-[#76BB08] hover:underline cursor-pointer"
+                  >
+                    Share Link Now →
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* Nigerian Bank Account Payout Settings Form */}
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-7 flex flex-col gap-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight flex items-center gap-2">
+                    <Landmark className="w-4 h-4 text-[#76BB08]" /> Nigerian Bank Payout Account
+                  </h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    Your 15% cash commissions are transferred directly to your bank account
+                  </p>
+                </div>
+                {referralStats.payoutSettings ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
+                    <CheckCircle className="w-3 h-3" /> Payout Active
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold">
+                    Setup Required
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                    Bank Name
+                  </label>
+                  <select
+                    value={payoutBankName}
+                    onChange={(e) => setPayoutBankName(e.target.value)}
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/50"
+                  >
+                    {[
+                      'Guaranty Trust Bank (GTBank)',
+                      'Access Bank',
+                      'Zenith Bank',
+                      'Kuda Bank',
+                      'OPay (Paycom)',
+                      'PalmPay',
+                      'First Bank of Nigeria',
+                      'United Bank for Africa (UBA)',
+                      'Stanbic IBTC Bank',
+                      'Moniepoint Microfinance Bank',
+                      'Sterling Bank',
+                      'Fidelity Bank',
+                      'Wema Bank (ALAT)',
+                      'Union Bank of Nigeria',
+                      'FCMB (First City Monument Bank)',
+                      'Standard Chartered Bank',
+                      'Jaiz Bank'
+                    ].map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                    10-Digit NUBAN Account Number
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    value={payoutAccountNumber}
+                    onChange={(e) => setPayoutAccountNumber(e.target.value.replace(/\D/g, ''))}
+                    placeholder="0123456789"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                    Account Holder Name
+                  </label>
+                  <input
+                    type="text"
+                    value={payoutAccountName}
+                    onChange={(e) => setPayoutAccountName(e.target.value)}
+                    placeholder="e.g. Victor Dennis Okoye"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#76BB08]/50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  ⚡ Automatic payout cycles run every Friday for all verified referrals.
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSavePayoutSettings}
+                  disabled={savingPayout}
+                  className="px-6 py-2.5 rounded-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs transition-all shadow-sm cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  {savingPayout ? 'Saving...' : 'Save Payout Details'}
+                </button>
+              </div>
+            </section>
+
+            {/* Referral Sales Ledger History */}
+            <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">
+                    Referral Sales & Commission Ledger
+                  </h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    Real-time log of physical cards purchased via your profile link
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchReferralStats}
+                  className="p-2 rounded-xl border border-neutral-200/80 dark:border-white/10 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                  title="Refresh stats"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingReferrals ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {referralStats.recentSales && referralStats.recentSales.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-neutral-200/80 dark:border-white/10 text-neutral-400 uppercase font-semibold text-[10px] tracking-wider">
+                          <th className="pb-3">Date</th>
+                          <th className="pb-3">Buyer</th>
+                          <th className="pb-3">Card Model</th>
+                          <th className="pb-3">Card Amount</th>
+                          <th className="pb-3">Your 15% Commission</th>
+                          <th className="pb-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
+                        {referralStats.recentSales.map((sale: any) => (
+                          <tr key={sale.id || sale.payment_reference} className="hover:bg-neutral-50/50 dark:hover:bg-white/[0.02]">
+                            <td className="py-3.5 text-neutral-500 font-mono">
+                              {sale.created_at ? new Date(sale.created_at).toLocaleDateString() : 'Recent'}
+                            </td>
+                            <td className="py-3.5 font-semibold text-neutral-900 dark:text-white">
+                              {sale.buyer_name || 'Anonymous Buyer'}
+                            </td>
+                            <td className="py-3.5 text-neutral-600 dark:text-neutral-300">
+                              {sale.card_type}
+                            </td>
+                            <td className="py-3.5 font-mono text-neutral-800 dark:text-neutral-200">
+                              ₦{Number(sale.card_amount).toLocaleString()}
+                            </td>
+                            <td className="py-3.5 font-bold font-mono text-[#76BB08]">
+                              +₦{Number(sale.commission_amount).toLocaleString()}
+                            </td>
+                            <td className="py-3.5">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                sale.payout_status === 'paid'
+                                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                              }`}>
+                                {sale.payout_status || 'Pending'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 flex flex-col items-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-[#76BB08]/10 text-[#76BB08] flex items-center justify-center">
+                      <Gift className="w-7 h-7" />
+                    </div>
+                    <div className="font-bold text-neutral-900 dark:text-white text-base">
+                      No referral card sales recorded yet
+                    </div>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm leading-relaxed">
+                      Copy your referral link above or share your custom QR code on WhatsApp Status, Instagram, and LinkedIn. As soon as someone orders a card, your 15% cash commission shows up here!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const link = `https://chipng.com/?ref=${profile.username || ''}`;
+                        navigator.clipboard.writeText(link);
+                        toast.success('Referral link copied to clipboard!');
+                      }}
+                      className="mt-2 px-5 py-2.5 rounded-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs shadow-sm cursor-pointer"
+                    >
+                      Copy Referral Link Now
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+
+          </div>
         ) : profile && activeTab === 'profile' ? (
           <div className="flex flex-col gap-6">
+
+            {/* The Incentive Teaser Widget */}
+            <div className="bg-gradient-to-r from-neutral-900 via-neutral-950 to-[#121b06] border border-[#76BB08]/30 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
+              <div className="flex items-start gap-3.5">
+                <div className="p-3 rounded-2xl bg-[#76BB08] text-neutral-950 shrink-0 shadow-sm">
+                  <Gift className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider bg-[#76BB08]/20 text-[#76BB08] px-2.5 py-0.5 rounded-full border border-[#76BB08]/30">
+                      The Incentive
+                    </span>
+                    <span className="text-xs font-semibold text-neutral-300">
+                      15% Cash Commission per Card
+                    </span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-white mt-1">
+                    Refer Friends & Earn Cash or Free Pro Months
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5 max-w-md leading-relaxed">
+                    Earn ₦4,500 – ₦15,000 NGN per physical card sold through your link. Every 3 card buyers also unlocks 1 Free Pro Month!
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const link = `https://chipng.com/?ref=${profile.username || ''}`;
+                    navigator.clipboard.writeText(link);
+                    toast.success('Referral link copied to clipboard!');
+                  }}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 transition-all cursor-pointer"
+                >
+                  Copy Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('referrals')}
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-full bg-[#76BB08] hover:bg-[#66a307] text-neutral-950 font-bold text-xs transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Open Hub</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
             
             {/* Customize Your Public Profile Card - Exactly matches IMG_2957.jpeg */}
             <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-8 flex flex-col gap-6">
@@ -2526,6 +3294,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               id: 'nfc', 
               label: 'NFC Cards', 
               icon: ShoppingBag 
+            },
+            { 
+              id: 'referrals', 
+              label: 'Incentive', 
+              icon: Gift,
+              badge: referralStats.unclaimedProMonths > 0 ? referralStats.unclaimedProMonths : undefined
             },
             { 
               id: 'settings', 

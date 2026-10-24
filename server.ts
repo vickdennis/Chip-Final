@@ -244,6 +244,48 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS referral_clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    referrer TEXT NOT NULL,
+    ip TEXT,
+    user_agent TEXT,
+    source TEXT DEFAULT 'link',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_rc_referrer ON referral_clicks(referrer);
+
+  CREATE TABLE IF NOT EXISTS referral_sales (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    referrer TEXT NOT NULL,
+    buyer_name TEXT,
+    buyer_email TEXT,
+    card_type TEXT NOT NULL,
+    card_amount INTEGER NOT NULL,
+    commission_rate REAL DEFAULT 0.15,
+    commission_amount INTEGER NOT NULL,
+    payment_reference TEXT NOT NULL UNIQUE,
+    payout_status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_rs_referrer ON referral_sales(referrer);
+
+  CREATE TABLE IF NOT EXISTS user_payout_settings (
+    username TEXT PRIMARY KEY,
+    bank_name TEXT NOT NULL,
+    account_number TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS user_pro_rewards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    months_granted INTEGER DEFAULT 1,
+    milestone_tier INTEGER NOT NULL,
+    claimed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_upr_username ON user_pro_rewards(username);
+
   CREATE TABLE IF NOT EXISTS portfolio_profile (
     id INTEGER PRIMARY KEY DEFAULT 1,
     name TEXT NOT NULL DEFAULT 'Victor Okoye',
@@ -1244,6 +1286,24 @@ async function startServer() {
           } catch (emailErr) {
             console.warn('Order confirmation email skipped:', emailErr);
           }
+
+          // Attribute Referral Incentive: 15% cash commission per physical card sold
+          const rawReferrer = verificationData?.metadata?.referrer || orderPayload.referrer || orderPayload.ref || null;
+          if (rawReferrer && typeof rawReferrer === 'string' && rawReferrer.trim()) {
+            const cleanReferrer = rawReferrer.trim().replace(/^@/, '').toLowerCase();
+            const commissionRate = 0.15; // 15% cash commission
+            const commissionAmount = Math.round(amountInNaira * commissionRate);
+            try {
+              db.prepare(`
+                INSERT OR IGNORE INTO referral_sales 
+                  (referrer, buyer_name, buyer_email, card_type, card_amount, commission_rate, commission_amount, payment_reference, payout_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+              `).run(cleanReferrer, name, email, cardType, amountInNaira, commissionRate, commissionAmount, reference);
+              console.log(`[Referral Incentive] Credited 15% cash commission (₦${commissionAmount}) to @${cleanReferrer} for sale ref: ${reference}`);
+            } catch (refErr) {
+              console.warn('[Referral Attribution Warning]', refErr);
+            }
+          }
         }
 
         res.json({
@@ -1265,6 +1325,224 @@ async function startServer() {
   app.post('/api/flutterwave/verify/:id', verifyFlutterwaveHandler);
   app.post('/api/flutterwave/verify-ref/:tx_ref', verifyFlutterwaveHandler);
   app.post('/api/paystack/verify/:reference', verifyFlutterwaveHandler);
+
+  // ================= The Incentive: Referral & Affiliate Endpoints =================
+  // GET /api/referrals/stats/:username - Comprehensive metrics, milestone tracker, and sales history
+  app.get('/api/referrals/stats/:username', async (req, res) => {
+    try {
+      let rawUsername = req.params.username || '';
+      try {
+        rawUsername = decodeURIComponent(rawUsername);
+      } catch (e) {}
+      const username = rawUsername.trim().replace(/^@/, '').toLowerCase();
+
+      if (!username) {
+        return res.status(400).json({ error: 'Username required' });
+      }
+
+      // 1. Total referral link / QR clicks
+      const clicksRow = db.prepare('SELECT COUNT(*) as c FROM referral_clicks WHERE LOWER(referrer) = ?').get(username) as any;
+      const totalClicks = clicksRow?.c || 0;
+
+      // 2. Total card sales and 15% cash earnings
+      const salesRows = db.prepare('SELECT * FROM referral_sales WHERE LOWER(referrer) = ? ORDER BY created_at DESC').all(username) as any[];
+      const cardsSold = salesRows.length;
+      const totalSalesVolume = salesRows.reduce((acc, r) => acc + (Number(r.card_amount) || 0), 0);
+      const totalCashEarned = salesRows.reduce((acc, r) => acc + (Number(r.commission_amount) || 0), 0);
+      const pendingPayout = salesRows.filter(r => r.payout_status !== 'paid').reduce((acc, r) => acc + (Number(r.commission_amount) || 0), 0);
+      const paidPayout = salesRows.filter(r => r.payout_status === 'paid').reduce((acc, r) => acc + (Number(r.commission_amount) || 0), 0);
+
+      // 3. Pro SaaS Months Milestone: 1 Free Pro Month per 3 cards sold
+      const freeProMonthsEarned = Math.floor(cardsSold / 3);
+      const rewardsRows = db.prepare('SELECT * FROM user_pro_rewards WHERE LOWER(username) = ? ORDER BY claimed_at DESC').all(username) as any[];
+      const freeProMonthsClaimed = rewardsRows.reduce((acc, r) => acc + (Number(r.months_granted) || 1), 0);
+      const unclaimedProMonths = Math.max(0, freeProMonthsEarned - freeProMonthsClaimed);
+      const cardsTowardsNextProMonth = cardsSold % 3;
+
+      // 4. Nigerian Bank Account payout settings
+      const payoutRow = db.prepare('SELECT bank_name, account_number, account_name, updated_at FROM user_payout_settings WHERE LOWER(username) = ?').get(username) as any;
+
+      res.json({
+        success: true,
+        username,
+        referralUrl: `https://chipng.com/?ref=${username}`,
+        buyCardUrl: `https://chipng.com/buy-card?ref=${username}`,
+        totalClicks,
+        cardsSold,
+        totalSalesVolume,
+        totalCashEarned,
+        commissionRate: 0.15,
+        pendingPayout,
+        paidPayout,
+        freeProMonthsEarned,
+        freeProMonthsClaimed,
+        unclaimedProMonths,
+        cardsTowardsNextProMonth,
+        cardsRemainingForNextPro: 3 - cardsTowardsNextProMonth,
+        payoutSettings: payoutRow || null,
+        recentSales: salesRows.slice(0, 50),
+        rewardsHistory: rewardsRows
+      });
+    } catch (err: any) {
+      console.error('Error fetching referral stats:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/referrals/record-click - Telemetry for unique referral clicks & QR code scans
+  app.post('/api/referrals/record-click', (req, res) => {
+    try {
+      const { referrer, source = 'link' } = req.body || {};
+      if (!referrer || typeof referrer !== 'string') {
+        return res.status(400).json({ error: 'Referrer required' });
+      }
+      const cleanReferrer = referrer.trim().replace(/^@/, '').toLowerCase();
+      const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '';
+      const ua = req.headers['user-agent'] || '';
+
+      db.prepare(`
+        INSERT INTO referral_clicks (referrer, ip, user_agent, source)
+        VALUES (?, ?, ?, ?)
+      `).run(cleanReferrer, String(ip).slice(0, 45), String(ua).slice(0, 200), source);
+
+      res.json({ success: true, referrer: cleanReferrer });
+    } catch (err: any) {
+      console.error('Record referral click error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/referrals/record-sale - Attribute a card sale to referrer with 15% cash commission
+  app.post('/api/referrals/record-sale', (req, res) => {
+    try {
+      const { referrer, buyer_name, buyer_email, card_type, card_amount, payment_reference } = req.body || {};
+      if (!referrer || !payment_reference || !card_amount) {
+        return res.status(400).json({ error: 'Referrer, payment_reference, and card_amount are required' });
+      }
+
+      const cleanReferrer = String(referrer).trim().replace(/^@/, '').toLowerCase();
+      const numAmount = Number(card_amount) || 0;
+      const commissionRate = 0.15; // 15% cash commission
+      const commissionAmount = Math.round(numAmount * commissionRate);
+
+      const stmt = db.prepare(`
+        INSERT INTO referral_sales 
+          (referrer, buyer_name, buyer_email, card_type, card_amount, commission_rate, commission_amount, payment_reference, payout_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        ON CONFLICT(payment_reference) DO UPDATE SET 
+          card_amount = excluded.card_amount,
+          commission_amount = excluded.commission_amount
+      `);
+      stmt.run(cleanReferrer, buyer_name || 'Customer', buyer_email || '', card_type || 'NFC Smart Card', numAmount, commissionRate, commissionAmount, payment_reference);
+
+      res.json({
+        success: true,
+        referrer: cleanReferrer,
+        commission_amount: commissionAmount,
+        commission_rate: 0.15
+      });
+    } catch (err: any) {
+      console.error('Record referral sale error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/referrals/payout-settings - Save Nigerian Bank Account payout credentials
+  app.post('/api/referrals/payout-settings', (req, res) => {
+    try {
+      const { username, bank_name, account_number, account_name } = req.body || {};
+      if (!username || !bank_name || !account_number || !account_name) {
+        return res.status(400).json({ error: 'Username, bank_name, account_number, and account_name are all required' });
+      }
+
+      const cleanUsername = String(username).trim().replace(/^@/, '').toLowerCase();
+      const cleanBank = String(bank_name).trim();
+      const cleanNumber = String(account_number).trim().replace(/[^0-9]/g, '');
+      const cleanName = String(account_name).trim();
+
+      if (cleanNumber.length !== 10) {
+        return res.status(400).json({ error: 'Nigerian NUBAN account number must be exactly 10 digits' });
+      }
+
+      db.prepare(`
+        INSERT INTO user_payout_settings (username, bank_name, account_number, account_name, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(username) DO UPDATE SET
+          bank_name = excluded.bank_name,
+          account_number = excluded.account_number,
+          account_name = excluded.account_name,
+          updated_at = CURRENT_TIMESTAMP
+      `).run(cleanUsername, cleanBank, cleanNumber, cleanName);
+
+      res.json({
+        success: true,
+        message: 'Nigerian bank payout details saved successfully',
+        payoutSettings: {
+          username: cleanUsername,
+          bank_name: cleanBank,
+          account_number: cleanNumber,
+          account_name: cleanName
+        }
+      });
+    } catch (err: any) {
+      console.error('Save payout settings error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/referrals/claim-pro-month - 1-Click Pro SaaS Reward Activation (1 month per 3 cards sold)
+  app.post('/api/referrals/claim-pro-month', async (req, res) => {
+    try {
+      const { username } = req.body || {};
+      if (!username) {
+        return res.status(400).json({ error: 'Username required' });
+      }
+      const cleanUsername = String(username).trim().replace(/^@/, '').toLowerCase();
+
+      // Check sales & claimed counts
+      const salesCountRow = db.prepare('SELECT COUNT(*) as c FROM referral_sales WHERE LOWER(referrer) = ?').get(cleanUsername) as any;
+      const cardsSold = salesCountRow?.c || 0;
+      const earnedMonths = Math.floor(cardsSold / 3);
+
+      const claimedCountRow = db.prepare('SELECT SUM(months_granted) as s FROM user_pro_rewards WHERE LOWER(username) = ?').get(cleanUsername) as any;
+      const claimedMonths = claimedCountRow?.s || 0;
+
+      const unclaimed = Math.max(0, earnedMonths - claimedMonths);
+      if (unclaimed < 1) {
+        return res.status(400).json({
+          error: 'No unclaimed Pro SaaS months available. You need 3 physical card referrals to unlock a free Pro month.',
+          cardsSold,
+          cardsTowardsNextProMonth: cardsSold % 3,
+          cardsRemainingForNextPro: 3 - (cardsSold % 3)
+        });
+      }
+
+      const nextTierMilestone = (claimedMonths + 1) * 3;
+      db.prepare(`
+        INSERT INTO user_pro_rewards (username, months_granted, milestone_tier)
+        VALUES (?, 1, ?)
+      `).run(cleanUsername, nextTierMilestone);
+
+      // Upgrade/extend Pro status in Supabase profiles
+      try {
+        const supabase = getSupabase();
+        await supabase.from('profiles').update({ is_verified: true }).eq('username', cleanUsername);
+      } catch (sbErr) {
+        console.warn('Supabase Pro status update warning:', sbErr);
+      }
+
+      res.json({
+        success: true,
+        message: 'Congratulations! 1 Month of CHIP Pro SaaS has been unlocked and activated on your account.',
+        claimedTier: nextTierMilestone,
+        remainingUnclaimed: unclaimed - 1,
+        cardsSold
+      });
+    } catch (err: any) {
+      console.error('Claim pro month error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   app.get('/api/products', (req, res) => {
     try {
