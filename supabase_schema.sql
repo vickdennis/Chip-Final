@@ -560,7 +560,7 @@ CREATE POLICY "Anyone can insert referral clicks" ON public.referral_clicks FOR 
 DROP POLICY IF EXISTS "Anyone can view referral clicks" ON public.referral_clicks;
 CREATE POLICY "Anyone can view referral clicks" ON public.referral_clicks FOR SELECT USING (true);
 
--- Referral Sales Table (15% Cash Commission per card sold)
+-- Referral Sales Table (10% Cash Commission per card sold)
 CREATE TABLE IF NOT EXISTS public.referral_sales (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   referrer TEXT NOT NULL,
@@ -568,7 +568,7 @@ CREATE TABLE IF NOT EXISTS public.referral_sales (
   buyer_email TEXT,
   card_type TEXT NOT NULL,
   card_amount NUMERIC NOT NULL,
-  commission_rate NUMERIC DEFAULT 0.15,
+  commission_rate NUMERIC DEFAULT 0.10,
   commission_amount NUMERIC NOT NULL,
   payment_reference TEXT UNIQUE NOT NULL,
   payout_status TEXT DEFAULT 'pending',

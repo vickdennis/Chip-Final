@@ -55,7 +55,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
     cardsSold: 0,
     totalSalesVolume: 0,
     totalCashEarned: 0,
-    commissionRate: 0.15,
+    commissionRate: 0.10,
     pendingPayout: 0,
     paidPayout: 0,
     freeProMonthsEarned: 0,
@@ -77,8 +77,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [directCardCopied, setDirectCardCopied] = useState(false);
 
   const fetchReferralStats = async () => {
-    const activeUsername = profile?.username || '';
-    if (!activeUsername && !profile?.id) return;
+    const activeUsername = (profile?.username || '').trim().replace(/^@/, '').toLowerCase();
+    const activeUserId = profile?.id || '';
+    if (!activeUsername && !activeUserId) return;
     try {
       setLoadingReferrals(true);
       let data: any = null;
@@ -98,13 +99,15 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       if (!payout) {
         // 1. Try Supabase user_payout_settings table
         try {
-          const { data: spPayout } = await supabase
-            .from('user_payout_settings')
-            .select('bank_name, account_number, account_name, updated_at')
-            .or(`username.eq.${activeUsername},user_id.eq.${profile?.id || ''}`)
-            .maybeSingle();
-          if (spPayout && spPayout.account_number) {
-            payout = spPayout;
+          if (activeUsername) {
+            const { data: spPayout } = await supabase
+              .from('user_payout_settings')
+              .select('bank_name, account_number, account_name, updated_at')
+              .eq('username', activeUsername)
+              .maybeSingle();
+            if (spPayout && spPayout.account_number) {
+              payout = spPayout;
+            }
           }
         } catch (e) {}
 
@@ -120,15 +123,48 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         // 3. Try LocalStorage
         if (!payout && typeof window !== 'undefined') {
           try {
-            const cached = localStorage.getItem(`chipng_payout_${activeUsername || profile?.id}`);
+            const cached = localStorage.getItem(`chipng_payout_${activeUsername || activeUserId}`);
             if (cached) payout = JSON.parse(cached);
           } catch (e) {}
         }
       }
 
+      const defaultStats = {
+        totalClicks: 0,
+        cardsSold: 0,
+        totalSalesVolume: 0,
+        totalCashEarned: 0,
+        commissionRate: 0.10,
+        pendingPayout: 0,
+        paidPayout: 0,
+        freeProMonthsEarned: 0,
+        freeProMonthsClaimed: 0,
+        unclaimedProMonths: 0,
+        cardsTowardsNextProMonth: 0,
+        cardsRemainingForNextPro: 3,
+        payoutSettings: null,
+        recentSales: [],
+        rewardsHistory: []
+      };
+
       const merged = {
+        ...defaultStats,
         ...(data || {}),
         username: activeUsername || data?.username || '',
+        totalClicks: Number(data?.totalClicks ?? 0),
+        cardsSold: Number(data?.cardsSold ?? 0),
+        totalSalesVolume: Number(data?.totalSalesVolume ?? 0),
+        totalCashEarned: Number(data?.totalCashEarned ?? 0),
+        commissionRate: 0.10,
+        pendingPayout: Number(data?.pendingPayout ?? 0),
+        paidPayout: Number(data?.paidPayout ?? 0),
+        freeProMonthsEarned: Number(data?.freeProMonthsEarned ?? 0),
+        freeProMonthsClaimed: Number(data?.freeProMonthsClaimed ?? 0),
+        unclaimedProMonths: Number(data?.unclaimedProMonths ?? 0),
+        cardsTowardsNextProMonth: Number(data?.cardsTowardsNextProMonth ?? (Number(data?.cardsSold ?? 0) % 3)),
+        cardsRemainingForNextPro: Number(data?.cardsRemainingForNextPro ?? (3 - (Number(data?.cardsSold ?? 0) % 3))),
+        recentSales: Array.isArray(data?.recentSales) ? data.recentSales : [],
+        rewardsHistory: Array.isArray(data?.rewardsHistory) ? data.rewardsHistory : [],
         payoutSettings: payout || data?.payoutSettings || null
       };
 
@@ -1156,6 +1192,49 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           )}
         </div>
 
+        {/* Top Sticky/Scrollable Tab Bar */}
+        <div className="mb-6 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 border-b border-neutral-200/80 dark:border-white/10">
+          {[
+            { id: 'profile', label: 'Overview', icon: Home },
+            { id: 'referrals', label: 'Incentive (10%)', icon: Gift, highlight: true, badge: (referralStats?.unclaimedProMonths || 0) > 0 ? `${referralStats.unclaimedProMonths} Free Pro` : '10% Cash' },
+            { id: 'social', label: 'Socials & Links', icon: Heart },
+            { id: 'leads', label: '2-Way Leads', icon: UserCheck, badge: leadsStats.newCount > 0 ? String(leadsStats.newCount) : undefined },
+            { id: 'nfc', label: 'Order Cards', icon: ShoppingBag },
+            { id: 'analytics', label: 'Analytics', icon: Activity },
+            { id: 'settings', label: 'Settings', icon: Settings },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
+                    : tab.highlight
+                    ? 'bg-[#76BB08]/15 text-[#76BB08] hover:bg-[#76BB08]/25 border border-[#76BB08]/30'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5'
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${isActive ? '' : tab.highlight ? 'text-[#76BB08]' : ''}`} />
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${
+                    isActive
+                      ? 'bg-neutral-800 text-neutral-100 dark:bg-neutral-200 dark:text-neutral-900'
+                      : tab.highlight
+                      ? 'bg-[#76BB08] text-neutral-950'
+                      : 'bg-amber-400 text-neutral-950'
+                  }`}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -1373,7 +1452,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <Sparkles className="w-3.5 h-3.5" /> The Incentive • Affiliate Hub
                   </span>
                   <span className="px-3 py-1 rounded-full bg-white/10 text-neutral-300 text-[11px] font-bold">
-                    15% Instant Cash Commission
+                    10% Instant Cash Commission
                   </span>
                   <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
                     3 Cards = 1 Free Pro Month
@@ -1382,17 +1461,17 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
                 <div>
                   <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                    Earn 15% Cash on Every Card Sold & Free Pro Months
+                    Earn 10% Cash on Every Card Sold & Free Pro Months
                   </h2>
                   <p className="text-sm text-neutral-300 mt-2 leading-relaxed max-w-2xl">
-                    Share your unique link or custom QR code. Whenever anyone buys a contactless NFC card through your referral, you earn an instant 15% cash payout (₦4,500 – ₦15,000 NGN) deposited into your Nigerian bank account. Every 3 cards sold also awards you 1 Free Month of CHIP Pro SaaS!
+                    Share your unique link or custom QR code. Whenever anyone buys a contactless NFC card through your referral, you earn an instant 10% cash payout (₦3,000 – ₦10,000 NGN) deposited into your Nigerian bank account. Every 3 cards sold also awards you 1 Free Month of CHIP Pro SaaS!
                   </p>
                 </div>
 
                 {/* Quick Share Buttons */}
                 <div className="flex flex-wrap items-center gap-2 pt-2">
                   <a
-                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Get your contactless smart business card on CHIP NG! 1-tap contact sharing with zero app needed: https://chipng.com/?ref=${profile.username}`)}`}
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Get your contactless smart business card on CHIP NG! 1-tap contact sharing with zero app needed: https://chipng.com/?ref=${profile?.username || ''}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-neutral-950 font-bold text-xs transition-all shadow-sm cursor-pointer"
@@ -1401,7 +1480,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <span>Share on WhatsApp</span>
                   </a>
                   <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Upgrade to the fastest networking tool in Africa. Tap to connect with zero app needed on @chipng_nfc:`)}&url=${encodeURIComponent(`https://chipng.com/?ref=${profile.username}`)}`}
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Upgrade to the fastest networking tool in Africa. Tap to connect with zero app needed on @chipng_nfc:`)}&url=${encodeURIComponent(`https://chipng.com/?ref=${profile?.username || ''}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs border border-white/15 transition-all"
@@ -1410,7 +1489,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <span>Share on X</span>
                   </a>
                   <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://chipng.com/?ref=${profile.username}`)}`}
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://chipng.com/?ref=${profile?.username || ''}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold text-xs transition-all"
@@ -1419,7 +1498,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <span>LinkedIn</span>
                   </a>
                   <a
-                    href={`https://t.me/share/url?url=${encodeURIComponent(`https://chipng.com/?ref=${profile.username}`)}&text=${encodeURIComponent(`Check out CHIP NG NFC Smart Business Cards:`)}`}
+                    href={`https://t.me/share/url?url=${encodeURIComponent(`https://chipng.com/?ref=${profile?.username || ''}`)}&text=${encodeURIComponent(`Check out CHIP NG NFC Smart Business Cards:`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#229ED9] hover:bg-[#1e8bc0] text-white font-bold text-xs transition-all"
@@ -1449,7 +1528,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       </p>
                     </div>
                     <span className="px-2.5 py-1 rounded-full bg-[#76BB08]/15 text-[#76BB08] text-[10px] font-mono font-bold">
-                      15% Active
+                      10% Active
                     </span>
                   </div>
 
@@ -1459,12 +1538,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     </label>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 px-4 py-3 bg-neutral-50 dark:bg-[#161922] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-800 dark:text-neutral-200 truncate select-all">
-                        {`https://chipng.com/?ref=${profile.username || 'username'}`}
+                        {`https://chipng.com/?ref=${profile?.username || 'username'}`}
                       </div>
                       <button
                         type="button"
                         onClick={() => {
-                          const link = `https://chipng.com/?ref=${profile.username || ''}`;
+                          const link = `https://chipng.com/?ref=${profile?.username || ''}`;
                           navigator.clipboard.writeText(link);
                           setReferralCopied(true);
                           toast.success('Referral link copied to clipboard!');
@@ -1484,12 +1563,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     </label>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 px-4 py-3 bg-neutral-50 dark:bg-[#161922] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-800 dark:text-neutral-200 truncate select-all">
-                        {`https://chipng.com/buy-card?ref=${profile.username || 'username'}`}
+                        {`https://chipng.com/buy-card?ref=${profile?.username || 'username'}`}
                       </div>
                       <button
                         type="button"
                         onClick={() => {
-                          const link = `https://chipng.com/buy-card?ref=${profile.username || ''}`;
+                          const link = `https://chipng.com/buy-card?ref=${profile?.username || ''}`;
                           navigator.clipboard.writeText(link);
                           setDirectCardCopied(true);
                           toast.success('Direct card order link copied!');
@@ -1506,24 +1585,24 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   {/* Commission Rate Breakdown */}
                   <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-white/[0.02] border border-neutral-200/60 dark:border-white/5 flex flex-col gap-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                      Your Cash Earnings per Card:
+                      Your 10% Cash Earnings per Card:
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                       <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
                         <div className="text-[10px] text-neutral-400">White PVC (₦30k)</div>
-                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦4,500</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦3,000</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
                         <div className="text-[10px] text-neutral-400">Black PVC (₦35k)</div>
-                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦5,250</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦3,500</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
                         <div className="text-[10px] text-neutral-400">Smart Metal (₦50k)</div>
-                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦7,500</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦5,000</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-white dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
                         <div className="text-[10px] text-neutral-400">Debit Card (₦100k)</div>
-                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦15,000</div>
+                        <div className="text-xs font-extrabold text-[#76BB08] mt-0.5">+₦10,000</div>
                       </div>
                     </div>
                   </div>
@@ -1550,7 +1629,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <QRCodeSVG
                       id="referral-qr-svg"
                       level="H"
-                      value={`https://chipng.com/buy-card?ref=${profile.username || 'username'}&source=qr`}
+                      value={`https://chipng.com/buy-card?ref=${profile?.username || 'username'}&source=qr`}
                       size={180}
                       marginSize={2}
                       fgColor="#000000"
@@ -1569,7 +1648,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <button
                       type="button"
                       onClick={() => {
-                        const url = `https://chipng.com/buy-card?ref=${profile.username || 'username'}&source=qr`;
+                        const url = `https://chipng.com/buy-card?ref=${profile?.username || 'username'}&source=qr`;
                         navigator.clipboard.writeText(url);
                         toast.success('QR Destination URL copied!');
                       }}
@@ -1591,25 +1670,25 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
                 <div>
                   <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
-                    {referralStats.cardsSold}
+                    {Number(referralStats?.cardsSold || 0)}
                   </div>
                   <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">
-                    ₦{referralStats.totalSalesVolume.toLocaleString()} gross sales
+                    ₦{Number(referralStats?.totalSalesVolume || 0).toLocaleString()} gross sales
                   </div>
                 </div>
               </div>
 
               <div className="p-5 rounded-3xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider">15% Cash Earned</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider">10% Cash Earned</span>
                   <Coins className="w-4 h-4 text-amber-500" />
                 </div>
                 <div>
                   <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
-                    ₦{referralStats.totalCashEarned.toLocaleString()}
+                    ₦{Number(referralStats?.totalCashEarned || 0).toLocaleString()}
                   </div>
                   <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
-                    ₦{referralStats.pendingPayout.toLocaleString()} pending payout
+                    ₦{Number(referralStats?.pendingPayout || 0).toLocaleString()} pending payout
                   </div>
                 </div>
               </div>
@@ -1621,10 +1700,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
                 <div>
                   <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
-                    {referralStats.freeProMonthsEarned}
+                    {Number(referralStats?.freeProMonthsEarned || 0)}
                   </div>
                   <div className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold mt-1">
-                    {referralStats.unclaimedProMonths > 0 ? `${referralStats.unclaimedProMonths} ready to claim!` : '3 cards per month'}
+                    {(Number(referralStats?.unclaimedProMonths || 0)) > 0 ? `${referralStats.unclaimedProMonths} ready to claim!` : '3 cards per month'}
                   </div>
                 </div>
               </div>
@@ -1636,7 +1715,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 </div>
                 <div>
                   <div className="text-3xl font-extrabold text-neutral-950 dark:text-white">
-                    {referralStats.totalClicks}
+                    {Number(referralStats?.totalClicks || 0)}
                   </div>
                   <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">
                     Sub-10ms redirect telemetry
@@ -1660,7 +1739,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   </p>
                 </div>
                 <div className="px-3.5 py-1.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold text-xs self-start sm:self-auto">
-                  {referralStats.cardsTowardsNextProMonth} of 3 Cards Sold
+                  {Number(referralStats?.cardsTowardsNextProMonth || 0)} of 3 Cards Sold
                 </div>
               </div>
 
@@ -1669,7 +1748,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <div className="w-full h-4 bg-neutral-100 dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-neutral-200/60 dark:border-white/5">
                   <div
                     className="h-full bg-gradient-to-r from-[#76BB08] to-purple-600 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.max(10, (referralStats.cardsTowardsNextProMonth / 3) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.max(10, ((Number(referralStats?.cardsTowardsNextProMonth || 0)) / 3) * 100))}%` }}
                   />
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-neutral-500 font-medium px-1">
@@ -1681,7 +1760,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               </div>
 
               {/* Claim Action or Milestone Countdown */}
-              {referralStats.unclaimedProMonths > 0 ? (
+              {(Number(referralStats?.unclaimedProMonths || 0)) > 0 ? (
                 <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0">
@@ -1689,7 +1768,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     </div>
                     <div>
                       <div className="text-sm font-bold text-neutral-950 dark:text-white">
-                        {referralStats.unclaimedProMonths} Free Pro Month{referralStats.unclaimedProMonths > 1 ? 's' : ''} Ready to Claim!
+                        {Number(referralStats?.unclaimedProMonths || 0)} Free Pro Month{(Number(referralStats?.unclaimedProMonths || 0)) > 1 ? 's' : ''} Ready to Claim!
                       </div>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400">
                         Milestone reached! Click below to activate your free month instantly.
@@ -1709,12 +1788,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
               ) : (
                 <div className="text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-white/[0.02] p-3.5 rounded-xl border border-neutral-200/60 dark:border-white/5 flex items-center justify-between">
                   <span>
-                    ⚡ You need <strong className="text-neutral-900 dark:text-white">{3 - referralStats.cardsTowardsNextProMonth} more card sale{3 - referralStats.cardsTowardsNextProMonth > 1 ? 's' : ''}</strong> to unlock your next Free Pro Month.
+                    ⚡ You need <strong className="text-neutral-900 dark:text-white">{3 - (Number(referralStats?.cardsTowardsNextProMonth || 0))} more card sale{3 - (Number(referralStats?.cardsTowardsNextProMonth || 0)) > 1 ? 's' : ''}</strong> to unlock your next Free Pro Month.
                   </span>
                   <button
                     type="button"
                     onClick={() => {
-                      const link = `https://chipng.com/buy-card?ref=${profile.username || ''}`;
+                      const link = `https://chipng.com/buy-card?ref=${profile?.username || ''}`;
                       navigator.clipboard.writeText(link);
                       toast.success('Link copied! Share it with friends or clients.');
                     }}
@@ -1734,7 +1813,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     <Landmark className="w-4 h-4 text-[#76BB08]" /> Nigerian Bank Payout Account
                   </h3>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                    Your 15% cash commissions are transferred directly to your bank account
+                    Your 10% cash commissions are transferred directly to your bank account
                   </p>
                 </div>
                 {referralStats.payoutSettings ? (
@@ -1856,7 +1935,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           <th className="pb-3">Buyer</th>
                           <th className="pb-3">Card Model</th>
                           <th className="pb-3">Card Amount</th>
-                          <th className="pb-3">Your 15% Commission</th>
+                          <th className="pb-3">Your 10% Commission</th>
                           <th className="pb-3">Status</th>
                         </tr>
                       </thead>
@@ -1901,12 +1980,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       No referral card sales recorded yet
                     </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm leading-relaxed">
-                      Copy your referral link above or share your custom QR code on WhatsApp Status, Instagram, and LinkedIn. As soon as someone orders a card, your 15% cash commission shows up here!
+                      Copy your referral link above or share your custom QR code on WhatsApp Status, Instagram, and LinkedIn. As soon as someone orders a card, your 10% cash commission shows up here!
                     </p>
                     <button
                       type="button"
                       onClick={() => {
-                        const link = `https://chipng.com/?ref=${profile.username || ''}`;
+                        const link = `https://chipng.com/?ref=${profile?.username || ''}`;
                         navigator.clipboard.writeText(link);
                         toast.success('Referral link copied to clipboard!');
                       }}
@@ -1935,14 +2014,14 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       The Incentive
                     </span>
                     <span className="text-xs font-semibold text-neutral-300">
-                      15% Cash Commission per Card
+                      10% Cash Commission per Card
                     </span>
                   </div>
                   <h3 className="text-base font-extrabold text-white mt-1">
                     Refer Friends & Earn Cash or Free Pro Months
                   </h3>
                   <p className="text-xs text-neutral-400 mt-0.5 max-w-md leading-relaxed">
-                    Earn ₦4,500 – ₦15,000 NGN per physical card sold through your link. Every 3 card buyers also unlocks 1 Free Pro Month!
+                    Earn ₦3,000 – ₦10,000 NGN per physical card sold through your link. Every 3 card buyers also unlocks 1 Free Pro Month!
                   </p>
                 </div>
               </div>
@@ -1950,7 +2029,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <button
                   type="button"
                   onClick={() => {
-                    const link = `https://chipng.com/?ref=${profile.username || ''}`;
+                    const link = `https://chipng.com/?ref=${profile?.username || ''}`;
                     navigator.clipboard.writeText(link);
                     toast.success('Referral link copied to clipboard!');
                   }}
@@ -3426,9 +3505,9 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             },
             { 
               id: 'referrals', 
-              label: 'Incentive', 
+              label: 'Incentive (10%)', 
               icon: Gift,
-              badge: referralStats.unclaimedProMonths > 0 ? referralStats.unclaimedProMonths : undefined
+              badge: (referralStats?.unclaimedProMonths || 0) > 0 ? referralStats.unclaimedProMonths : undefined
             },
             { 
               id: 'settings', 

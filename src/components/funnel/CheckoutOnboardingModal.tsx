@@ -45,10 +45,9 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   };
 
   const basePrice = getBasePrice();
-  const discountAmount = data?.appliedDiscount ? Math.round(basePrice * 0.1) : 0;
   const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
   const vipQueuePrice = bumpVipQueue ? 5000 : 0;
-  const totalAmountNgn = basePrice - discountAmount + phoneTagPrice + vipQueuePrice;
+  const totalAmountNgn = basePrice + phoneTagPrice + vipQueuePrice;
   if (!isOpen) return null;
 
   const handleFlutterwaveSuccess = async (reference: any) => {
@@ -289,15 +288,6 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                 </span>
                 <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
               </div>
-
-              {data.appliedDiscount && (
-                <div className="flex justify-between items-center text-sm text-emerald-400">
-                  <span className="flex items-center gap-1">
-                    <span>VIP Courtesy Coupon (10% OFF)</span>
-                  </span>
-                  <span className="font-bold">-₦{discountAmount.toLocaleString()}</span>
-                </div>
-              )}
 
               {/* Transparent Pricing Trust Box (CHIP Core + 3-Months Pro Free) */}
               <div className="p-3.5 rounded-2xl bg-[#76BB08]/10 border border-[#76BB08]/30 flex flex-col gap-1.5 my-1 text-left">

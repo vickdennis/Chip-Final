@@ -1158,7 +1158,7 @@ app.get('/api/referrals/stats/:username', async (req: Request, res: Response) =>
       cardsSold,
       totalSalesVolume,
       totalCashEarned,
-      commissionRate: 0.15,
+      commissionRate: 0.10,
       pendingPayout,
       paidPayout,
       freeProMonthsEarned,
@@ -1202,7 +1202,7 @@ app.post('/api/referrals/record-sale', (req: Request, res: Response) => {
     }
     const cleanReferrer = String(referrer).trim().replace(/^@/, '').toLowerCase();
     const numAmount = Number(card_amount) || 0;
-    const commissionRate = 0.15;
+    const commissionRate = 0.10;
     const commissionAmount = Math.round(numAmount * commissionRate);
 
     const existingIdx = serverlessReferralSales.findIndex(s => s.payment_reference === payment_reference);
@@ -1226,7 +1226,7 @@ app.post('/api/referrals/record-sale', (req: Request, res: Response) => {
       serverlessReferralSales.unshift(saleRecord);
     }
 
-    res.json({ success: true, referrer: cleanReferrer, commission_amount: commissionAmount, commission_rate: 0.15 });
+    res.json({ success: true, referrer: cleanReferrer, commission_amount: commissionAmount, commission_rate: 0.10 });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

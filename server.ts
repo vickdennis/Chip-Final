@@ -261,7 +261,7 @@ db.exec(`
     buyer_email TEXT,
     card_type TEXT NOT NULL,
     card_amount INTEGER NOT NULL,
-    commission_rate REAL DEFAULT 0.15,
+    commission_rate REAL DEFAULT 0.10,
     commission_amount INTEGER NOT NULL,
     payment_reference TEXT NOT NULL UNIQUE,
     payout_status TEXT DEFAULT 'pending',
@@ -1287,11 +1287,11 @@ async function startServer() {
             console.warn('Order confirmation email skipped:', emailErr);
           }
 
-          // Attribute Referral Incentive: 15% cash commission per physical card sold
+          // Attribute Referral Incentive: 10% cash commission per physical card sold
           const rawReferrer = verificationData?.metadata?.referrer || orderPayload.referrer || orderPayload.ref || null;
           if (rawReferrer && typeof rawReferrer === 'string' && rawReferrer.trim()) {
             const cleanReferrer = rawReferrer.trim().replace(/^@/, '').toLowerCase();
-            const commissionRate = 0.15; // 15% cash commission
+            const commissionRate = 0.10; // 10% cash commission
             const commissionAmount = Math.round(amountInNaira * commissionRate);
             try {
               db.prepare(`
@@ -1299,7 +1299,7 @@ async function startServer() {
                   (referrer, buyer_name, buyer_email, card_type, card_amount, commission_rate, commission_amount, payment_reference, payout_status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
               `).run(cleanReferrer, name, email, cardType, amountInNaira, commissionRate, commissionAmount, reference);
-              console.log(`[Referral Incentive] Credited 15% cash commission (₦${commissionAmount}) to @${cleanReferrer} for sale ref: ${reference}`);
+              console.log(`[Referral Incentive] Credited 10% cash commission (₦${commissionAmount}) to @${cleanReferrer} for sale ref: ${reference}`);
             } catch (refErr) {
               console.warn('[Referral Attribution Warning]', refErr);
             }
@@ -1344,7 +1344,7 @@ async function startServer() {
       const clicksRow = db.prepare('SELECT COUNT(*) as c FROM referral_clicks WHERE LOWER(referrer) = ?').get(username) as any;
       const totalClicks = clicksRow?.c || 0;
 
-      // 2. Total card sales and 15% cash earnings
+      // 2. Total card sales and 10% cash earnings
       const salesRows = db.prepare('SELECT * FROM referral_sales WHERE LOWER(referrer) = ? ORDER BY created_at DESC').all(username) as any[];
       const cardsSold = salesRows.length;
       const totalSalesVolume = salesRows.reduce((acc, r) => acc + (Number(r.card_amount) || 0), 0);
@@ -1390,7 +1390,7 @@ async function startServer() {
         cardsSold,
         totalSalesVolume,
         totalCashEarned,
-        commissionRate: 0.15,
+        commissionRate: 0.10,
         pendingPayout,
         paidPayout,
         freeProMonthsEarned,
@@ -1431,7 +1431,7 @@ async function startServer() {
     }
   });
 
-  // POST /api/referrals/record-sale - Attribute a card sale to referrer with 15% cash commission
+  // POST /api/referrals/record-sale - Attribute a card sale to referrer with 10% cash commission
   app.post('/api/referrals/record-sale', (req, res) => {
     try {
       const { referrer, buyer_name, buyer_email, card_type, card_amount, payment_reference } = req.body || {};
@@ -1441,7 +1441,7 @@ async function startServer() {
 
       const cleanReferrer = String(referrer).trim().replace(/^@/, '').toLowerCase();
       const numAmount = Number(card_amount) || 0;
-      const commissionRate = 0.15; // 15% cash commission
+      const commissionRate = 0.10; // 10% cash commission
       const commissionAmount = Math.round(numAmount * commissionRate);
 
       const stmt = db.prepare(`
@@ -1458,7 +1458,7 @@ async function startServer() {
         success: true,
         referrer: cleanReferrer,
         commission_amount: commissionAmount,
-        commission_rate: 0.15
+        commission_rate: 0.10
       });
     } catch (err: any) {
       console.error('Record referral sale error:', err);

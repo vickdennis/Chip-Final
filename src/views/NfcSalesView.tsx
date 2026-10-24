@@ -712,19 +712,16 @@ export default function NfcSalesView({
                 <div className="pt-2 border-t border-neutral-200/60 dark:border-white/10">
                   <div className="flex items-baseline justify-between mb-3">
                     <div>
-                      <span className="text-[10px] font-mono text-neutral-500 dark:text-white/50 block">Investment Price</span>
+                      <span className="text-[10px] font-mono text-neutral-500 dark:text-white/50 block">Standard Price</span>
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-neutral-950 dark:text-white">
                           ₦{getMaterialPrice(heroMaterial).toLocaleString()}
                         </span>
-                        <span className="text-xs text-neutral-400 dark:text-white/40 line-through">
-                          ₦{getMaterialOriginalPrice(heroMaterial).toLocaleString()}
-                        </span>
                       </div>
                     </div>
 
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold">
-                      10% VIP Coupon Applied
+                    <span className="px-2.5 py-1 rounded-full bg-[#76BB08]/15 border border-[#76BB08]/30 text-[#76BB08] text-[10px] font-mono font-bold">
+                      Zero App Required
                     </span>
                   </div>
 
@@ -1175,7 +1172,7 @@ export default function NfcSalesView({
         <div className="flex flex-col min-w-0">
           <span className="text-[11px] font-mono text-[#76BB08] dark:text-[#76BB08] font-bold flex items-center gap-1 truncate">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            10% VIP Discount Active
+            Sub-10ms NFC Tap • NTAG216
           </span>
           <span className="text-xs font-bold text-neutral-950 dark:text-white truncate">
             White PVC ₦30k • Black UV ₦35k

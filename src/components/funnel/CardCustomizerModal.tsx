@@ -122,7 +122,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
       customerName: fullName || cardName,
       email,
       whatsapp,
-      appliedDiscount: true,
+      appliedDiscount: false,
       orderBumps: {
         phoneTagSticker: bumpPhoneTag,
         vipAnalyticsQueue: bumpVipQueue,
@@ -241,11 +241,6 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
               <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-100 to-[#76BB08]">
                 ₦{getBasePrice().toLocaleString()}
               </span>
-              {discountUnlocked && (
-                <span className="text-xs text-emerald-400 block mt-0.5 font-semibold">
-                  ✓ 10% VIP Coupon Activated (-₦{(getBasePrice() * 0.1).toLocaleString()})
-                </span>
-              )}
             </div>
           </div>
 
@@ -319,7 +314,6 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                             
                             <div className="flex items-baseline gap-2 mt-2">
                               <span className="text-2xl font-black text-white">{t.price}</span>
-                              <span className="text-xs text-white/40 line-through">{t.originalPrice}</span>
                             </div>
                             
                             <p className="text-xs text-white/70 mt-2 leading-relaxed">{t.desc}</p>
@@ -455,15 +449,15 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold mb-1 border border-amber-500/30">
-                        <Tag className="w-3.5 h-3.5" />
-                        <span>Instant 10% Reservation Discount</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#76BB08]/20 text-[#76BB08] text-xs font-bold mb-1 border border-[#76BB08]/30">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Reserve Custom Order</span>
                       </div>
                       <h3 className="text-xl font-bold text-white">
                         {tier === 'metal' ? 'Reserve Your Custom Engraving' : 'Reserve Your Custom Printing'}
                       </h3>
                       <p className="text-xs text-white/60">
-                        Save your custom card build so it won't be lost. Unlocks 10% off your checkout today.
+                        Save your custom card build and contact details to proceed directly to checkout.
                       </p>
                     </div>
                     <button
