@@ -1554,13 +1554,51 @@ app.get('/api/admin/resend/status', async (req: Request, res: Response) => {
   }
 });
 
+// --- Robust Email Error Normalization & Sanitization Helpers ---
+const activeBulkDispatches = new Map<string, number>();
+
+function sanitizeClientSecrets(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/re_[a-zA-Z0-9_\-]{20,}/g, 're_***')
+    .replace(/bearer\s+[a-zA-Z0-9_\-\.]{15,}/gi, 'Bearer ***')
+    .replace(/(?:password|pass|secret)\s*[:=]\s*["']?[^"',\s]+["']?/gi, 'password=***');
+}
+
+function extractSafeErrorMessage(err: unknown, fallback: string = 'An unknown error occurred'): string {
+  if (!err) return fallback;
+  if (typeof err === 'string') return sanitizeClientSecrets(err.trim() || fallback);
+  if (typeof err === 'object') {
+    const obj = err as Record<string, any>;
+    if (typeof obj.message === 'string' && obj.message && obj.message !== '[object Object]') {
+      return sanitizeClientSecrets(obj.message);
+    }
+    if (typeof obj.error === 'string' && obj.error && obj.error !== '[object Object]') {
+      return sanitizeClientSecrets(obj.error);
+    }
+    if (obj.error && typeof obj.error === 'object') {
+      const nested = extractSafeErrorMessage(obj.error, '');
+      if (nested) return sanitizeClientSecrets(nested);
+    }
+    if (typeof obj.details === 'string' && obj.details) return sanitizeClientSecrets(obj.details);
+    if (typeof obj.statusText === 'string' && obj.statusText) return sanitizeClientSecrets(obj.statusText);
+    if (typeof obj.response?.data?.message === 'string') return sanitizeClientSecrets(obj.response.data.message);
+    if (typeof obj.response?.data?.error === 'string') return sanitizeClientSecrets(obj.response.data.error);
+    try {
+      const jsonStr = JSON.stringify(err);
+      if (jsonStr && jsonStr !== '{}') return sanitizeClientSecrets(jsonStr.slice(0, 300));
+    } catch (e) {}
+  }
+  return fallback;
+}
+
 // --- Admin Resend Test Email Dispatch ---
 app.post('/api/admin/resend/test', async (req: Request, res: Response) => {
   try {
     const { testEmail, resendApiKey, senderName = 'CHIP NG', senderEmail = 'support@chipng.com' } = req.body || {};
 
-    if (!testEmail || !testEmail.includes('@')) {
-      return res.status(400).json({ error: 'Valid testEmail is required' });
+    if (!testEmail || !String(testEmail).includes('@')) {
+      return res.status(400).json({ success: false, code: 'INVALID_RECIPIENT', error: 'Valid test recipient email address is required' });
     }
 
     let key = (resendApiKey || process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || '').trim();
@@ -1574,13 +1612,14 @@ app.post('/api/admin/resend/test', async (req: Request, res: Response) => {
     if (!key) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Resend API key is not configured. Please configure it in Supabase admin_integration_settings or set RESEND_API_KEY environment variable.' 
+        code: 'RESEND_KEY_MISSING',
+        error: 'Resend API key is not configured. Please set RESEND_API_KEY in server environment or configure it in Supabase admin_integration_settings.' 
       });
     }
 
     const resend = new Resend(key);
-    const testSubject = `CHIPNG Resend Test Dispatch • ${new Date().toLocaleTimeString()}`;
-    const testBody = `Hello!\n\nThis is a verified test email sent via Resend API from your CHIPNG Super Admin Dashboard.\n\nYour eco-friendly contactless smart cards email infrastructure is connected and operational.`;
+    const testSubject = `CHIP NG Test Dispatch • ${new Date().toLocaleTimeString()}`;
+    const testBody = `Hello!\n\nThis is a verified test email sent via Resend API from your CHIP NG Super Admin Dashboard.\n\nYour eco-friendly contactless smart cards email infrastructure is connected and operational.`;
 
     const cleanName = (senderName || 'CHIP NG').trim();
     let cleanEmail = (senderEmail || 'support@chipng.com').trim();
@@ -1592,6 +1631,8 @@ app.post('/api/admin/resend/test', async (req: Request, res: Response) => {
       cleanEmail = `${cleanEmail}@chipng.com`;
     }
 
+    console.log(`[Single Test Dispatch Serverless] to=${testEmail.trim()}, sender="${cleanName} <${cleanEmail}>"`);
+
     const { data, error } = await resend.emails.send({
       from: `${cleanName} <${cleanEmail}>`,
       to: [testEmail.trim()],
@@ -1601,7 +1642,8 @@ app.post('/api/admin/resend/test', async (req: Request, res: Response) => {
     });
 
     if (error) {
-      return res.status(400).json({ success: false, error: error.message });
+      console.warn('[Resend Test API Error Serverless]', error);
+      return res.status(400).json({ success: false, code: 'RESEND_REJECTED', error: error.message || 'Resend rejected test dispatch' });
     }
 
     res.json({
@@ -1613,7 +1655,8 @@ app.post('/api/admin/resend/test', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error('[Serverless Resend Test Error]', err);
-    res.status(500).json({ error: err.message });
+    const safeMsg = extractSafeErrorMessage(err, 'Failed to dispatch test email');
+    res.status(500).json({ success: false, code: 'INTERNAL_ERROR', error: safeMsg });
   }
 });
 
@@ -1632,6 +1675,22 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
       campaignTitle = `Bulk Outreach – ${new Date().toLocaleDateString('en-GB')}`
     } = req.body || {};
 
+    if (!Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        code: 'EMPTY_RECIPIENTS', 
+        message: 'Recipients array is required and cannot be empty' 
+      });
+    }
+
+    if (recipients.length > 500) {
+      return res.status(400).json({
+        success: false,
+        code: 'BATCH_TOO_LARGE',
+        message: 'Bulk batch size exceeds maximum of 500 recipients per dispatch'
+      });
+    }
+
     const cleanSenderName = (senderName || 'CHIP NG').trim();
     let cleanSenderEmail = (senderEmail || 'support@chipng.com').trim();
     if (cleanSenderEmail === 'support.chipng.com' || cleanSenderEmail === 'chipng.com') {
@@ -1647,9 +1706,19 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
     const effectiveSenderEmail = isPublicFreeMail ? 'support@chipng.com' : cleanSenderEmail;
     const effectiveReplyTo = replyTo ? String(replyTo).trim() : (isPublicFreeMail ? cleanSenderEmail : 'support@chipng.com');
 
-    if (!Array.isArray(recipients) || recipients.length === 0) {
-      return res.status(400).json({ error: 'Recipients array is required and cannot be empty' });
+    // Duplicate-Send Debounce Protection (prevents double-click duplicate blasts)
+    const duplicateKey = `${cleanSenderEmail}_${recipients.length}_${(subjectTemplate || '').slice(0, 30)}`;
+    const now = Date.now();
+    const lastSent = activeBulkDispatches.get(duplicateKey);
+    if (lastSent && (now - lastSent) < 10000) {
+      return res.status(429).json({
+        success: false,
+        code: 'DUPLICATE_DISPATCH_IN_PROGRESS',
+        message: 'A bulk dispatch for this campaign is already in progress. Please wait a few moments before retrying.'
+      });
     }
+    activeBulkDispatches.set(duplicateKey, now);
+    setTimeout(() => activeBulkDispatches.delete(duplicateKey), 30000);
 
     let activeResendKey = (resendApiKey || process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || '').trim();
     if (!activeResendKey) {
@@ -1695,11 +1764,9 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
       if (transporter) {
         effectiveEngine = 'smtp';
       } else if (activeResendKey) {
-        console.log('[Bulk Dispatch] SMTP not configured in environment; automatically routing via active Supabase Resend API');
         effectiveEngine = 'resend';
-        engineNotice = 'SMTP not configured; routed seamlessly via verified Supabase Resend API.';
+        engineNotice = 'SMTP not configured in server environment; routed seamlessly via verified Supabase Resend API.';
       } else {
-        console.log('[Bulk Dispatch] Neither SMTP nor Resend configured; processing in sandbox simulation');
         effectiveEngine = 'simulated';
         engineNotice = 'SMTP not configured; processed in safe sandbox simulation mode.';
       }
@@ -1716,10 +1783,13 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
       }
     }
 
+    // Always initialize Resend instance if key is available so fallback works
     let resendInstance: Resend | null = null;
-    if (effectiveEngine === 'resend' && activeResendKey) {
+    if (activeResendKey) {
       resendInstance = new Resend(activeResendKey);
     }
+
+    console.log(`[Bulk Dispatch Serverless Start] provider=${provider}, resolvedEngine=${effectiveEngine}, recipients=${recipients.length}, sender="${cleanSenderName} <${effectiveSenderEmail}>"`);
 
     const deliveryLogs: Array<{
       email: string;
@@ -1762,7 +1832,7 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
       const email = (r.email || '').trim().toLowerCase();
       const phone = (r.phone || '').trim();
 
-      if (!email || !email.includes('@')) {
+      if (!email || !email.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         failedCount++;
         deliveryLogs.push({
           email: email || 'none',
@@ -1770,7 +1840,7 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
           status: 'failed',
           provider: effectiveEngine,
           personalizedSubject: '',
-          error: 'Invalid email address',
+          error: 'Invalid recipient email address format',
           timestamp: new Date().toISOString()
         });
         continue;
@@ -1850,10 +1920,10 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
               }
             });
           } else if (batchRes.error) {
-            console.warn('[Resend Batch Warning]', batchRes.error.message);
+            console.warn('[Resend Batch Warning Serverless]', batchRes.error.message);
           }
         } catch (batchErr: any) {
-          console.warn('[Resend Batch Exception]', batchErr.message);
+          console.warn('[Resend Batch Exception Serverless]', batchErr.message);
         }
 
         // Step 2: Handle any unsent items via individual dispatch & SMTP fallback
@@ -1862,6 +1932,102 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
           let itemDelivered = false;
           let lastErr = 'Resend request failed';
 
+          try {
+            const singleRes = await resendInstance.emails.send({
+              from: `${cleanSenderName} <${effectiveSenderEmail}>`,
+              to: [item.email],
+              subject: item.personalizedSubject,
+              text: item.personalizedBody,
+              html: item.html,
+              replyTo: effectiveReplyTo
+            });
+
+            if (singleRes.data?.id) {
+              itemDelivered = true;
+              sentCount++;
+              deliveryLogs.push({
+                email: item.email,
+                name: item.rawName,
+                status: 'sent',
+                provider: 'resend',
+                messageId: singleRes.data.id,
+                personalizedSubject: item.personalizedSubject,
+                timestamp: new Date().toISOString()
+              });
+            } else {
+              lastErr = singleRes.error?.message || 'Resend rejected single dispatch';
+            }
+          } catch (singleErr: any) {
+            lastErr = extractSafeErrorMessage(singleErr, 'Resend request failed');
+          }
+
+          // Step 3: SMTP fallback if configured
+          if (!itemDelivered && transporter) {
+            try {
+              const info = await transporter.sendMail({
+                from: `"${senderName}" <${senderEmail || smtpUser}>`,
+                to: item.email,
+                subject: item.personalizedSubject,
+                text: item.personalizedBody,
+                html: item.html
+              });
+              itemDelivered = true;
+              sentCount++;
+              deliveryLogs.push({
+                email: item.email,
+                name: item.rawName,
+                status: 'sent',
+                provider: 'smtp_fallback',
+                messageId: info.messageId,
+                personalizedSubject: item.personalizedSubject,
+                timestamp: new Date().toISOString()
+              });
+            } catch (smtpErr: any) {
+              lastErr = `SMTP fallback failed: ${extractSafeErrorMessage(smtpErr, 'SMTP dispatch error')}`;
+            }
+          }
+
+          // Exactly one failed record if both failed
+          if (!itemDelivered) {
+            failedCount++;
+            deliveryLogs.push({
+              email: item.email,
+              name: item.rawName,
+              status: 'failed',
+              provider: 'resend',
+              personalizedSubject: item.personalizedSubject,
+              error: lastErr,
+              timestamp: new Date().toISOString()
+            });
+          }
+
+          await new Promise(r => setTimeout(r, 40));
+        }
+      }
+    } else if (effectiveEngine === 'smtp' && transporter) {
+      // Direct SMTP delivery with Resend fallback
+      for (const item of validItems) {
+        try {
+          const info = await transporter.sendMail({
+            from: `"${senderName}" <${senderEmail || smtpUser}>`,
+            to: item.email,
+            subject: item.personalizedSubject,
+            text: item.personalizedBody,
+            html: item.html
+          });
+          sentCount++;
+          deliveryLogs.push({
+            email: item.email,
+            name: item.rawName,
+            status: 'sent',
+            provider: 'smtp',
+            messageId: info.messageId,
+            personalizedSubject: item.personalizedSubject,
+            timestamp: new Date().toISOString()
+          });
+        } catch (sendErr: any) {
+          let resendRecovered = false;
+          if (resendInstance) {
             try {
               const singleRes = await resendInstance.emails.send({
                 from: `${cleanSenderName} <${effectiveSenderEmail}>`,
@@ -1871,148 +2037,55 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
                 html: item.html,
                 replyTo: effectiveReplyTo
               });
-
               if (singleRes.data?.id) {
-                itemDelivered = true;
+                resendRecovered = true;
                 sentCount++;
                 deliveryLogs.push({
                   email: item.email,
                   name: item.rawName,
                   status: 'sent',
-                  provider: 'resend',
+                  provider: 'resend_fallback',
                   messageId: singleRes.data.id,
                   personalizedSubject: item.personalizedSubject,
                   timestamp: new Date().toISOString()
                 });
-              } else {
-                lastErr = singleRes.error?.message || 'Resend rejected single dispatch';
               }
-            } catch (singleErr: any) {
-              lastErr = singleErr.message || 'Resend request failed';
-            }
-
-            // Step 3: SMTP fallback if configured
-            if (!itemDelivered && transporter) {
-              try {
-                const info = await transporter.sendMail({
-                  from: `"${senderName}" <${senderEmail || smtpUser}>`,
-                  to: item.email,
-                  subject: item.personalizedSubject,
-                  text: item.personalizedBody,
-                  html: item.html
-                });
-                itemDelivered = true;
-                sentCount++;
-                deliveryLogs.push({
-                  email: item.email,
-                  name: item.rawName,
-                  status: 'sent',
-                  provider: 'smtp_fallback',
-                  messageId: info.messageId,
-                  personalizedSubject: item.personalizedSubject,
-                  timestamp: new Date().toISOString()
-                });
-              } catch (smtpErr: any) {
-                lastErr = `SMTP fallback failed: ${smtpErr.message}`;
-              }
-            }
-
-            // Exactly one failed record if both failed
-            if (!itemDelivered) {
-              failedCount++;
-              deliveryLogs.push({
-                email: item.email,
-                name: item.rawName,
-                status: 'failed',
-                provider: 'resend',
-                personalizedSubject: item.personalizedSubject,
-                error: lastErr,
-                timestamp: new Date().toISOString()
-              });
-            }
-
-            await new Promise(r => setTimeout(r, 40));
+            } catch (e) {}
           }
-        }
-      } else if (effectiveEngine === 'smtp' && transporter) {
-        // Direct SMTP delivery with Resend fallback
-        for (const item of validItems) {
-          try {
-            const info = await transporter.sendMail({
-              from: `"${senderName}" <${senderEmail || smtpUser}>`,
-              to: item.email,
-              subject: item.personalizedSubject,
-              text: item.personalizedBody,
-              html: item.html
-            });
-            sentCount++;
+
+          if (!resendRecovered) {
+            failedCount++;
             deliveryLogs.push({
               email: item.email,
               name: item.rawName,
-              status: 'sent',
+              status: 'failed',
               provider: 'smtp',
-              messageId: info.messageId,
               personalizedSubject: item.personalizedSubject,
+              error: extractSafeErrorMessage(sendErr, 'SMTP delivery failed'),
               timestamp: new Date().toISOString()
             });
-          } catch (sendErr: any) {
-            let resendRecovered = false;
-            if (resendInstance) {
-              try {
-                const singleRes = await resendInstance.emails.send({
-                  from: `${cleanSenderName} <${effectiveSenderEmail}>`,
-                  to: [item.email],
-                  subject: item.personalizedSubject,
-                  text: item.personalizedBody,
-                  html: item.html,
-                  replyTo: effectiveReplyTo
-                });
-                if (singleRes.data?.id) {
-                  resendRecovered = true;
-                  sentCount++;
-                  deliveryLogs.push({
-                    email: item.email,
-                    name: item.rawName,
-                    status: 'sent',
-                    provider: 'resend_fallback',
-                    messageId: singleRes.data.id,
-                    personalizedSubject: item.personalizedSubject,
-                    timestamp: new Date().toISOString()
-                  });
-                }
-              } catch (e) {}
-            }
-
-            if (!resendRecovered) {
-              failedCount++;
-              deliveryLogs.push({
-                email: item.email,
-                name: item.rawName,
-                status: 'failed',
-                provider: 'smtp',
-                personalizedSubject: item.personalizedSubject,
-                error: sendErr.message,
-                timestamp: new Date().toISOString()
-              });
-            }
           }
-          await new Promise(r => setTimeout(r, 40));
         }
-      } else {
-        // Simulated sandbox delivery
-        for (const item of validItems) {
-          sentCount++;
-          deliveryLogs.push({
-            email: item.email,
-            name: item.rawName,
-            status: 'simulated',
-            provider: 'simulated',
-            personalizedSubject: item.personalizedSubject,
-            timestamp: new Date().toISOString()
-          });
-        }
+        await new Promise(r => setTimeout(r, 40));
       }
+    } else {
+      // Simulated sandbox delivery
+      for (const item of validItems) {
+        sentCount++;
+        deliveryLogs.push({
+          email: item.email,
+          name: item.rawName,
+          status: 'simulated',
+          provider: 'simulated',
+          personalizedSubject: item.personalizedSubject,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
 
+    console.log(`[Bulk Dispatch Serverless Finished] sent=${sentCount}, failed=${failedCount}, total=${recipients.length}, engine=${effectiveEngine}`);
+
+    // Persist to Supabase if tables exist
     let campaignId: string | null = null;
     try {
       const supabase = getSupabase();
@@ -2051,8 +2124,29 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
       console.warn('[Supabase Serverless Campaign Persistence Warning]', dbErr?.message);
     }
 
-    res.json({
-      success: true,
+    const isCompleteSuccess = sentCount > 0 && failedCount === 0;
+    const isPartialSuccess = sentCount > 0 && failedCount > 0;
+    const isAllFailed = sentCount === 0;
+
+    const firstError = deliveryLogs.find(l => l.status === 'failed')?.error || 'Email dispatch failed';
+    const humanMessage = isCompleteSuccess
+      ? `Successfully delivered all ${sentCount} emails via ${effectiveEngine.toUpperCase()}`
+      : isPartialSuccess
+        ? `Partially dispatched ${sentCount} of ${recipients.length} emails (${failedCount} failed: ${firstError})`
+        : `Failed to dispatch emails: ${firstError}`;
+
+    const responseCode = isCompleteSuccess
+      ? 'DISPATCH_SUCCESS'
+      : isPartialSuccess
+        ? 'PARTIAL_SUCCESS'
+        : 'DISPATCH_FAILED';
+
+    res.status(isAllFailed ? 400 : 200).json({
+      success: !isAllFailed,
+      partial: isPartialSuccess,
+      code: responseCode,
+      message: humanMessage,
+      details: firstError,
       provider: effectiveEngine,
       notice: engineNotice,
       resendConnected: Boolean(activeResendKey),
@@ -2060,11 +2154,21 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
       sentCount,
       failedCount,
       campaignId,
-      logs: deliveryLogs
+      logs: deliveryLogs,
+      results: deliveryLogs
     });
   } catch (err: any) {
     console.error('[Serverless Bulk Email Error]', err);
-    res.status(500).json({ error: err.message });
+    const safeMsg = extractSafeErrorMessage(err, 'Server encountered an unexpected error during bulk email dispatch');
+    res.status(500).json({ 
+      success: false,
+      code: 'INTERNAL_ERROR',
+      message: safeMsg,
+      details: safeMsg,
+      sentCount: 0,
+      failedCount: Array.isArray(req.body?.recipients) ? req.body.recipients.length : 1,
+      logs: [] 
+    });
   }
 });
 

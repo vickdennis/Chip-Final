@@ -342,6 +342,31 @@ https://chipng.com`
     }
     return clean;
   };
+
+  const formatClientErrorMessage = (err: any): string => {
+    if (!err) return 'An unexpected error occurred';
+    if (typeof err === 'string' && err !== '[object Object]') return err;
+    if (typeof err === 'object') {
+      if (typeof err.message === 'string' && err.message && err.message !== '[object Object]') {
+        return err.message;
+      }
+      if (typeof err.details === 'string' && err.details && err.details !== '[object Object]') {
+        return err.details;
+      }
+      if (typeof err.error === 'string' && err.error && err.error !== '[object Object]') {
+        return err.error;
+      }
+      if (err.error && typeof err.error === 'object') {
+        const nested = formatClientErrorMessage(err.error);
+        if (nested && nested !== '[object Object]') return nested;
+      }
+      try {
+        const s = JSON.stringify(err);
+        if (s && s !== '{}') return s.slice(0, 200);
+      } catch (e) {}
+    }
+    return String(err) === '[object Object]' ? 'Unknown error during dispatch' : String(err);
+  };
   const [emailPreviewIndex, setEmailPreviewIndex] = useState(0);
   const [isSendingBulkEmails, setIsSendingBulkEmails] = useState(false);
   const [bulkEmailProgress, setBulkEmailProgress] = useState({ sent: 0, total: 0 });
@@ -945,16 +970,16 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
       }
 
       if (!res.ok || !json.success) {
-        const testErr = typeof json?.error === 'string' 
+        const testErr = json?.message || json?.details || (typeof json?.error === 'string' 
           ? json.error 
-          : (json?.error?.message || json?.message || (json?.error ? JSON.stringify(json.error) : `Failed to dispatch test email (${res.status})`));
+          : (json?.error?.message || (json?.error ? JSON.stringify(json.error) : `Failed to dispatch test email (${res.status})`)));
         throw new Error(testErr);
       }
 
       toast.success(`Verified test email delivered via Resend! ID: ${json.messageId || 'Success'}`);
       setShowTestModal(false);
     } catch (err: any) {
-      const msg = err?.message && err.message !== '[object Object]' ? err.message : (typeof err === 'string' ? err : 'Unknown error during test dispatch');
+      const msg = formatClientErrorMessage(err);
       toast.error(`Resend Test Error: ${msg}`);
     } finally {
       setIsTestingResend(false);
@@ -1057,22 +1082,25 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
         throw new Error(cleanMsg || `Server responded with status ${res.status}`);
       }
 
-      if (!res.ok || json.error) {
-        const errorMsg = typeof json?.error === 'string' 
-          ? json.error 
-          : (json?.error?.message || json?.message || (json?.error ? JSON.stringify(json.error) : `Server rejected bulk email request (${res.status})`));
+      // Always populate delivery logs from response if available so admin can inspect failures
+      if (Array.isArray(json?.logs) && json.logs.length > 0) {
+        setBulkEmailLogs(json.logs);
+      } else if (Array.isArray(json?.results) && json.results.length > 0) {
+        setBulkEmailLogs(json.results);
+      }
+
+      if (typeof json?.sentCount === 'number') {
+        setBulkEmailProgress({ sent: json.sentCount, total: emailRecipients.length });
+      }
+
+      if (!res.ok || json.success === false) {
+        const errorMsg = json?.message || json?.details || (typeof json?.error === 'string' ? json.error : json?.error?.message) || `Server rejected bulk email request (${res.status})`;
         throw new Error(errorMsg);
       }
 
-      setBulkEmailLogs(json.logs || []);
-      setBulkEmailProgress({ sent: json.sentCount || 0, total: emailRecipients.length });
-      
-      if (json.sentCount === 0 && json.failedCount > 0) {
-        const firstErr = json.logs?.find((l: any) => l.status === 'failed')?.error || 'Email dispatch failed';
-        toast.error(`Email delivery failed: ${firstErr}`);
-      } else if (json.sentCount > 0 && json.failedCount > 0) {
-        toast.success(`Dispatched ${json.sentCount} emails (${json.failedCount} failed)`);
-      } else if (json.provider === 'resend') {
+      if (json.sentCount > 0 && json.failedCount > 0) {
+        toast.warning(`Partially dispatched ${json.sentCount} emails (${json.failedCount} failed. Check report below).`);
+      } else if (json.provider === 'resend' || json.provider === 'resend_fallback') {
         const note = json.notice ? ` (${json.notice})` : '';
         toast.success(`Dispatched ${json.sentCount} personalized emails via Resend API (Supabase linked)${note}!`);
       } else if (json.provider === 'smtp' || json.provider === 'smtp_fallback') {
@@ -1081,9 +1109,7 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
         toast.success(`Processed ${json.sentCount} personalized emails in Sandbox mode`);
       }
     } catch (err: any) {
-      const msg = err?.message && err.message !== '[object Object]' 
-        ? err.message 
-        : (typeof err === 'string' ? err : (err?.error ? JSON.stringify(err.error) : 'Failed to dispatch bulk emails'));
+      const msg = formatClientErrorMessage(err);
       toast.error('Failed to dispatch bulk emails: ' + msg);
     } finally {
       setIsSendingBulkEmails(false);
@@ -2218,6 +2244,27 @@ Tolu Alabi (tolu@creativehub.africa, 07055443322)`
                   {new Date().toLocaleTimeString()}
                 </span>
               </div>
+
+              {bulkEmailLogs.some(l => l.status === 'failed') && (
+                <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-semibold">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>
+                      {bulkEmailLogs.filter(l => l.status === 'failed').length} recipient(s) failed delivery: {bulkEmailLogs.find(l => l.status === 'failed')?.error || 'Rejection'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const failed = bulkEmailLogs.filter(l => l.status === 'failed').map(l => `${l.name} <${l.email}>: ${l.error}`).join('\n');
+                      handleCopyText(failed, 'failed_logs', 'Copied failed recipients log!');
+                    }}
+                    className="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 dark:text-rose-300 rounded-lg text-[11px] font-bold shrink-0 cursor-pointer transition-colors"
+                  >
+                    Copy Error Log
+                  </button>
+                </div>
+              )}
 
               <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10 max-h-72 overflow-y-auto">
                 <table className="w-full text-left border-collapse text-xs">

@@ -1179,13 +1179,51 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
+  // --- Robust Email Error Normalization & Sanitization Helpers ---
+  const activeBulkDispatches = new Map<string, number>();
+
+  function sanitizeClientSecrets(text: string): string {
+    if (!text) return '';
+    return text
+      .replace(/re_[a-zA-Z0-9_\-]{20,}/g, 're_***')
+      .replace(/bearer\s+[a-zA-Z0-9_\-\.]{15,}/gi, 'Bearer ***')
+      .replace(/(?:password|pass|secret)\s*[:=]\s*["']?[^"',\s]+["']?/gi, 'password=***');
+  }
+
+  function extractSafeErrorMessage(err: unknown, fallback: string = 'An unknown error occurred'): string {
+    if (!err) return fallback;
+    if (typeof err === 'string') return sanitizeClientSecrets(err.trim() || fallback);
+    if (typeof err === 'object') {
+      const obj = err as Record<string, any>;
+      if (typeof obj.message === 'string' && obj.message && obj.message !== '[object Object]') {
+        return sanitizeClientSecrets(obj.message);
+      }
+      if (typeof obj.error === 'string' && obj.error && obj.error !== '[object Object]') {
+        return sanitizeClientSecrets(obj.error);
+      }
+      if (obj.error && typeof obj.error === 'object') {
+        const nested = extractSafeErrorMessage(obj.error, '');
+        if (nested) return sanitizeClientSecrets(nested);
+      }
+      if (typeof obj.details === 'string' && obj.details) return sanitizeClientSecrets(obj.details);
+      if (typeof obj.statusText === 'string' && obj.statusText) return sanitizeClientSecrets(obj.statusText);
+      if (typeof obj.response?.data?.message === 'string') return sanitizeClientSecrets(obj.response.data.message);
+      if (typeof obj.response?.data?.error === 'string') return sanitizeClientSecrets(obj.response.data.error);
+      try {
+        const jsonStr = JSON.stringify(err);
+        if (jsonStr && jsonStr !== '{}') return sanitizeClientSecrets(jsonStr.slice(0, 300));
+      } catch (e) {}
+    }
+    return fallback;
+  }
+
   // --- Admin Resend Test Email Dispatch ---
   app.post('/api/admin/resend/test', async (req, res) => {
     try {
       const { testEmail, resendApiKey, senderName = 'CHIP NG', senderEmail = 'support@chipng.com' } = req.body || {};
 
-      if (!testEmail || !testEmail.includes('@')) {
-        return res.status(400).json({ error: 'Valid testEmail is required' });
+      if (!testEmail || !String(testEmail).includes('@')) {
+        return res.status(400).json({ success: false, code: 'INVALID_RECIPIENT', error: 'Valid test recipient email address is required' });
       }
 
       let key = (resendApiKey || process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || '').trim();
@@ -1199,13 +1237,14 @@ Return ONLY valid JSON matching this structure:
       if (!key) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Resend API key is not configured. Please set RESEND_API_KEY in environment or configure it in Supabase admin_integration_settings.' 
+          code: 'RESEND_KEY_MISSING',
+          error: 'Resend API key is not configured. Please set RESEND_API_KEY in server environment or configure it in Supabase admin_integration_settings.' 
         });
       }
 
       const resend = new Resend(key);
-      const testSubject = `CHIPNG Resend Test Dispatch • ${new Date().toLocaleTimeString()}`;
-      const testBody = `Hello!\n\nThis is a verified test email sent via Resend API from your CHIPNG Super Admin Dashboard.\n\nYour eco-friendly contactless smart cards email infrastructure is connected and operational.`;
+      const testSubject = `CHIP NG Test Dispatch • ${new Date().toLocaleTimeString()}`;
+      const testBody = `Hello!\n\nThis is a verified test email sent via Resend API from your CHIP NG Super Admin Dashboard.\n\nYour eco-friendly contactless smart cards email infrastructure is connected and operational.`;
 
       const cleanName = (senderName || 'CHIP NG').trim();
       let cleanEmail = (senderEmail || 'support@chipng.com').trim();
@@ -1217,6 +1256,8 @@ Return ONLY valid JSON matching this structure:
         cleanEmail = `${cleanEmail}@chipng.com`;
       }
 
+      console.log(`[Single Test Dispatch] to=${testEmail.trim()}, sender="${cleanName} <${cleanEmail}>"`);
+
       const { data, error } = await resend.emails.send({
         from: `${cleanName} <${cleanEmail}>`,
         to: [testEmail.trim()],
@@ -1226,7 +1267,8 @@ Return ONLY valid JSON matching this structure:
       });
 
       if (error) {
-        return res.status(400).json({ success: false, error: error.message });
+        console.warn('[Resend Test API Error]', error);
+        return res.status(400).json({ success: false, code: 'RESEND_REJECTED', error: error.message || 'Resend rejected test dispatch' });
       }
 
       res.json({
@@ -1238,7 +1280,8 @@ Return ONLY valid JSON matching this structure:
       });
     } catch (err: any) {
       console.error('[Admin Resend Test Error]', err);
-      res.status(500).json({ error: err.message });
+      const safeMsg = extractSafeErrorMessage(err, 'Failed to dispatch test email');
+      res.status(500).json({ success: false, code: 'INTERNAL_ERROR', error: safeMsg });
     }
   });
 
@@ -1257,6 +1300,22 @@ Return ONLY valid JSON matching this structure:
         campaignTitle = `Bulk Outreach – ${new Date().toLocaleDateString('en-GB')}`
       } = req.body || {};
 
+      if (!Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          code: 'EMPTY_RECIPIENTS', 
+          message: 'Recipients array is required and cannot be empty' 
+        });
+      }
+
+      if (recipients.length > 500) {
+        return res.status(400).json({
+          success: false,
+          code: 'BATCH_TOO_LARGE',
+          message: 'Bulk batch size exceeds maximum of 500 recipients per dispatch'
+        });
+      }
+
       const cleanSenderName = (senderName || 'CHIP NG').trim();
       let cleanSenderEmail = (senderEmail || 'support@chipng.com').trim();
       if (cleanSenderEmail === 'support.chipng.com' || cleanSenderEmail === 'chipng.com') {
@@ -1272,9 +1331,19 @@ Return ONLY valid JSON matching this structure:
       const effectiveSenderEmail = isPublicFreeMail ? 'support@chipng.com' : cleanSenderEmail;
       const effectiveReplyTo = replyTo ? String(replyTo).trim() : (isPublicFreeMail ? cleanSenderEmail : 'support@chipng.com');
 
-      if (!Array.isArray(recipients) || recipients.length === 0) {
-        return res.status(400).json({ error: 'Recipients array is required and cannot be empty' });
+      // Duplicate-Send Debounce Protection (prevents double-click duplicate blasts)
+      const duplicateKey = `${cleanSenderEmail}_${recipients.length}_${(subjectTemplate || '').slice(0, 30)}`;
+      const now = Date.now();
+      const lastSent = activeBulkDispatches.get(duplicateKey);
+      if (lastSent && (now - lastSent) < 10000) {
+        return res.status(429).json({
+          success: false,
+          code: 'DUPLICATE_DISPATCH_IN_PROGRESS',
+          message: 'A bulk dispatch for this campaign is already in progress. Please wait a few moments before retrying.'
+        });
       }
+      activeBulkDispatches.set(duplicateKey, now);
+      setTimeout(() => activeBulkDispatches.delete(duplicateKey), 30000);
 
       // Check Resend Key (Request override -> Vercel Env -> Supabase table)
       let activeResendKey = (resendApiKey || process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || '').trim();
@@ -1304,7 +1373,7 @@ Return ONLY valid JSON matching this structure:
 
       res.setHeader('Content-Type', 'application/json');
 
-      // Select effective engine with intelligent fallback (Resend linked via Supabase is prioritized)
+      // Select effective engine with intelligent fallback
       let effectiveEngine: 'resend' | 'smtp' | 'simulated' = 'simulated';
       let engineNotice: string | null = null;
 
@@ -1322,11 +1391,9 @@ Return ONLY valid JSON matching this structure:
         if (transporter) {
           effectiveEngine = 'smtp';
         } else if (activeResendKey) {
-          console.log('[Bulk Dispatch] SMTP not configured in environment; automatically routing via active Supabase Resend API');
           effectiveEngine = 'resend';
-          engineNotice = 'SMTP not configured; routed seamlessly via verified Supabase Resend API.';
+          engineNotice = 'SMTP not configured in server environment; routed seamlessly via verified Supabase Resend API.';
         } else {
-          console.log('[Bulk Dispatch] Neither SMTP nor Resend configured; processing in sandbox simulation');
           effectiveEngine = 'simulated';
           engineNotice = 'SMTP not configured; processed in safe sandbox simulation mode.';
         }
@@ -1343,10 +1410,13 @@ Return ONLY valid JSON matching this structure:
         }
       }
 
+      // Always initialize Resend instance if key is available so fallback works
       let resendInstance: Resend | null = null;
-      if (effectiveEngine === 'resend' && activeResendKey) {
+      if (activeResendKey) {
         resendInstance = new Resend(activeResendKey);
       }
+
+      console.log(`[Bulk Dispatch Start] provider=${provider}, resolvedEngine=${effectiveEngine}, recipients=${recipients.length}, sender="${cleanSenderName} <${effectiveSenderEmail}>"`);
 
       const deliveryLogs: Array<{
         email: string;
@@ -1389,7 +1459,7 @@ Return ONLY valid JSON matching this structure:
         const email = (r.email || '').trim().toLowerCase();
         const phone = (r.phone || '').trim();
 
-        if (!email || !email.includes('@')) {
+        if (!email || !email.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           failedCount++;
           deliveryLogs.push({
             email: email || 'none',
@@ -1397,7 +1467,7 @@ Return ONLY valid JSON matching this structure:
             status: 'failed',
             provider: effectiveEngine,
             personalizedSubject: '',
-            error: 'Invalid email address',
+            error: 'Invalid recipient email address format',
             timestamp: new Date().toISOString()
           });
           continue;
@@ -1515,7 +1585,7 @@ Return ONLY valid JSON matching this structure:
                 lastErr = singleRes.error?.message || 'Resend rejected single dispatch';
               }
             } catch (singleErr: any) {
-              lastErr = singleErr.message || 'Resend request failed';
+              lastErr = extractSafeErrorMessage(singleErr, 'Resend request failed');
             }
 
             // Step 3: SMTP fallback if configured
@@ -1540,7 +1610,7 @@ Return ONLY valid JSON matching this structure:
                   timestamp: new Date().toISOString()
                 });
               } catch (smtpErr: any) {
-                lastErr = `SMTP fallback failed: ${smtpErr.message}`;
+                lastErr = `SMTP fallback failed: ${extractSafeErrorMessage(smtpErr, 'SMTP dispatch error')}`;
               }
             }
 
@@ -1618,7 +1688,7 @@ Return ONLY valid JSON matching this structure:
                 status: 'failed',
                 provider: 'smtp',
                 personalizedSubject: item.personalizedSubject,
-                error: sendErr.message,
+                error: extractSafeErrorMessage(sendErr, 'SMTP delivery failed'),
                 timestamp: new Date().toISOString()
               });
             }
@@ -1639,6 +1709,8 @@ Return ONLY valid JSON matching this structure:
           });
         }
       }
+
+      console.log(`[Bulk Dispatch Finished] sent=${sentCount}, failed=${failedCount}, total=${recipients.length}, engine=${effectiveEngine}`);
 
       // Persist to Supabase if tables exist
       let campaignId: string | null = null;
@@ -1679,8 +1751,29 @@ Return ONLY valid JSON matching this structure:
         console.warn('[Supabase Campaign Persistence Warning]', dbErr?.message);
       }
 
-      res.json({
-        success: true,
+      const isCompleteSuccess = sentCount > 0 && failedCount === 0;
+      const isPartialSuccess = sentCount > 0 && failedCount > 0;
+      const isAllFailed = sentCount === 0;
+
+      const firstError = deliveryLogs.find(l => l.status === 'failed')?.error || 'Email dispatch failed';
+      const humanMessage = isCompleteSuccess
+        ? `Successfully delivered all ${sentCount} emails via ${effectiveEngine.toUpperCase()}`
+        : isPartialSuccess
+          ? `Partially dispatched ${sentCount} of ${recipients.length} emails (${failedCount} failed: ${firstError})`
+          : `Failed to dispatch emails: ${firstError}`;
+
+      const responseCode = isCompleteSuccess
+        ? 'DISPATCH_SUCCESS'
+        : isPartialSuccess
+          ? 'PARTIAL_SUCCESS'
+          : 'DISPATCH_FAILED';
+
+      res.status(isAllFailed ? 400 : 200).json({
+        success: !isAllFailed,
+        partial: isPartialSuccess,
+        code: responseCode,
+        message: humanMessage,
+        details: firstError,
         provider: effectiveEngine,
         notice: engineNotice,
         resendConnected: Boolean(activeResendKey),
@@ -1688,11 +1781,21 @@ Return ONLY valid JSON matching this structure:
         sentCount,
         failedCount,
         campaignId,
-        logs: deliveryLogs
+        logs: deliveryLogs,
+        results: deliveryLogs
       });
     } catch (err: any) {
       console.error('[Admin Bulk Email Error]', err);
-      res.status(500).json({ error: err.message });
+      const safeMsg = extractSafeErrorMessage(err, 'Server encountered an unexpected error during bulk email dispatch');
+      res.status(500).json({
+        success: false,
+        code: 'INTERNAL_ERROR',
+        message: safeMsg,
+        details: safeMsg,
+        sentCount: 0,
+        failedCount: Array.isArray(req.body?.recipients) ? req.body.recipients.length : 1,
+        logs: []
+      });
     }
   });
 
