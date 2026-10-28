@@ -1,0 +1,6 @@
+{
+  "name": "CHIP NG",
+  "description": "A full SaaS link in bio platform featuring customizable themes, analytics, social media integration, and checkout modules optimized for mobile devices.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

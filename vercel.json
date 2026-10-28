@@ -1,0 +1,132 @@
+{
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/review",
+      "destination": "https://g.page/r/CZGM0zQdEiY7EAE/review",
+      "permanent": false
+    },
+    {
+      "source": "/reviews",
+      "destination": "https://g.page/r/CZGM0zQdEiY7EAE/review",
+      "permanent": false
+    },
+    {
+      "source": "/drop-review",
+      "destination": "https://g.page/r/CZGM0zQdEiY7EAE/review",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/cover/:username",
+      "destination": "/api/cover/:username"
+    },
+    {
+      "source": "/api/cover",
+      "destination": "/api/cover"
+    },
+    {
+      "source": "/:username.vcf",
+      "destination": "/api"
+    },
+    {
+      "source": "/@:username.vcf",
+      "destination": "/api"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
+      "source": "/buycard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/buy-card",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:username/vcard",
+      "destination": "/api"
+    },
+    {
+      "source": "/@:username/vcard",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api/|assets/|favicon|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|css|js|map|vcf|apk|xml|txt)).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawler|spider|whatsapp|facebookexternalhit|facebot|twitterbot|slackbot|telegrambot|linkedinbot|discordbot|applebot|googlebot|bingbot|baiduspider|yandexbot|skypeuripreview|pinterest|preview|flipboard|tumblr|bitly|vkshare|meta-externalagent).*"
+        }
+      ],
+      "destination": "/api?ssrPath=$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
