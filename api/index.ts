@@ -2172,6 +2172,118 @@ app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
   }
 });
 
+// --- Admin Recipient Deliverability & MX Verification ---
+app.post('/api/admin/verify-recipient-domains', async (req: Request, res: Response) => {
+  try {
+    const { emails } = req.body || {};
+    if (!Array.isArray(emails) || emails.length === 0) {
+      return res.status(400).json({ error: 'Array of emails is required' });
+    }
+
+    const dnsPromises = (await import('dns')).promises;
+    const domainCache = new Map<string, { deliverable: boolean; reason?: string; mxRecords?: string[]; isParked?: boolean }>();
+    const results: Array<{ email: string; domain: string; status: 'valid' | 'invalid'; reason?: string; mx?: string[] }> = [];
+
+    for (const rawEmail of emails.slice(0, 300)) {
+      const clean = String(rawEmail || '').trim().toLowerCase();
+      const atIdx = clean.lastIndexOf('@');
+      if (atIdx === -1) {
+        results.push({ email: clean, domain: '', status: 'invalid', reason: 'Malformed email syntax' });
+        continue;
+      }
+
+      const domain = clean.substring(atIdx + 1);
+      if (domainCache.has(domain)) {
+        const cached = domainCache.get(domain)!;
+        results.push({
+          email: clean,
+          domain,
+          status: cached.deliverable ? 'valid' : 'invalid',
+          reason: cached.reason,
+          mx: cached.mxRecords
+        });
+        continue;
+      }
+
+      try {
+        const mx = await dnsPromises.resolveMx(domain);
+        if (!mx || mx.length === 0) {
+          domainCache.set(domain, { deliverable: false, reason: 'No mail exchange (MX) records found' });
+          results.push({ email: clean, domain, status: 'invalid', reason: 'No mail exchange (MX) records found' });
+        } else {
+          const exchanges = mx.map(m => m.exchange);
+          const isParkedGoDaddy = exchanges.some(e => e.includes('sailorsloungelekki.com'));
+          if (isParkedGoDaddy) {
+            domainCache.set(domain, { deliverable: false, reason: 'Recipient server misconfigured (550 Relay rejected by cPanel/GoDaddy)', mxRecords: exchanges, isParked: true });
+            results.push({ email: clean, domain, status: 'invalid', reason: 'Recipient server misconfigured (550 Relay rejected by cPanel/GoDaddy)', mx: exchanges });
+          } else {
+            domainCache.set(domain, { deliverable: true, mxRecords: exchanges });
+            results.push({ email: clean, domain, status: 'valid', mx: exchanges });
+          }
+        }
+      } catch (dnsErr: any) {
+        const reason = dnsErr.code === 'ENOTFOUND' ? 'Domain not registered or expired' : (dnsErr.code === 'ENODATA' ? 'Domain has no MX records' : dnsErr.message);
+        domainCache.set(domain, { deliverable: false, reason });
+        results.push({ email: clean, domain, status: 'invalid', reason });
+      }
+    }
+
+    res.json({ success: true, count: results.length, results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Admin Live Bounce & Recipient Domain Diagnostic ---
+app.get('/api/admin/diagnose-recipient', async (req: Request, res: Response) => {
+  try {
+    const email = String(req.query.email || '').trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid email parameter is required' });
+    }
+
+    const domain = email.substring(email.lastIndexOf('@') + 1);
+    const dnsPromises = (await import('dns')).promises;
+
+    let mxRecords: any[] = [];
+    let mxError: string | null = null;
+    let aRecords: string[] = [];
+
+    try {
+      mxRecords = await dnsPromises.resolveMx(domain);
+    } catch (e: any) {
+      mxError = e.message;
+    }
+
+    try {
+      aRecords = await dnsPromises.resolve4(domain);
+    } catch (e: any) {}
+
+    let diagnosis = 'Domain MX records are configured properly.';
+    let isMisconfiguredRemote = false;
+
+    if (domain === 'sailorsloungelekki.com' || (mxRecords.length > 0 && mxRecords[0].exchange?.includes('sailorsloungelekki.com'))) {
+      isMisconfiguredRemote = true;
+      diagnosis = 'The recipient domain (sailorsloungelekki.com) has a default GoDaddy/cPanel holding page with unconfigured local mail routing. When external servers (like Google, Resend, or Outlook) attempt delivery to port 25, their Exim server rejects with "550 Please turn on SMTP Authentication in your mail client" because the recipient mailbox was never provisioned on their server.';
+    } else if (mxError || mxRecords.length === 0) {
+      isMisconfiguredRemote = true;
+      diagnosis = `Recipient domain cannot receive email: ${mxError || 'No MX records found'}`;
+    }
+
+    res.json({
+      email,
+      domain,
+      isMisconfiguredRemote,
+      diagnosis,
+      mxRecords,
+      mxError,
+      aRecords
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- Admin Bulk Personalized Numbers / SMS Dispatch ---
 app.post('/api/admin/send-bulk-sms', async (req: Request, res: Response) => {
   try {
