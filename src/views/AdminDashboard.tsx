@@ -15,7 +15,7 @@ import AdminPixelManager from './AdminPixelManager';
 import AdminAppDownloadsManager from './AdminAppDownloadsManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
 import AdminUserCommsManager from './AdminUserCommsManager';
-import { MessageCircle, Send, Bell, Link as LinkIcon, Smartphone, Mail } from 'lucide-react';
+import { MessageCircle, MessageSquare, Send, Bell, Link as LinkIcon, Smartphone, Mail } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { toast } from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';

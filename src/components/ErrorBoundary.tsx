@@ -49,13 +49,24 @@ export default class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            <button
-              onClick={this.handleReload}
-              className="w-full py-3 px-6 rounded-full bg-neutral-950 text-white dark:bg-[#16a34a] dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Reload CHIP NG</span>
-            </button>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                onClick={this.handleReload}
+                className="w-full py-3 px-6 rounded-full bg-neutral-950 text-white dark:bg-[#16a34a] dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Reload CHIP NG</span>
+              </button>
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: undefined });
+                  window.location.href = '/dashboard';
+                }}
+                className="w-full py-2.5 px-6 rounded-full border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 text-xs font-bold hover:bg-neutral-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+              >
+                Return to Dashboard
+              </button>
+            </div>
           </div>
         </div>
       );
