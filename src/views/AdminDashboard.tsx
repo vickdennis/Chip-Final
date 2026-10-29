@@ -770,7 +770,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
               { id: 'analytics', label: 'Analytics', icon: BarChart2 },
               { id: 'downloads', label: 'App Downloads', icon: Smartphone },
               { id: 'users', label: 'Users', icon: Users },
-              { id: 'comms', label: 'Contact Extractor & Bulk', icon: Mail },
+              { id: 'comms', label: 'Contact Extractor & Outreach', icon: MessageSquare },
               { id: 'products', label: 'Shop', icon: Package },
               { id: 'blog', label: 'Blog', icon: FileText },
               { id: 'leads', label: 'Inquiries & Leads', icon: MessageCircle },
@@ -1047,9 +1047,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 <button 
                   onClick={() => setActiveTab('comms')}
                   className="px-4 py-2 border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-full font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-xs cursor-pointer text-neutral-800 dark:text-neutral-200 whitespace-nowrap"
-                  title="Open User Communications & Bulk Messaging"
+                  title="Open Contact Extractor & Outreach"
                 >
-                  <Mail className="w-4 h-4 text-[#16a34a]" /> Bulk Outreach
+                  <MessageSquare className="w-4 h-4 text-[#16a34a]" /> Direct Outreach
                 </button>
                 <button 
                   onClick={() => setCreatingUser(true)}
