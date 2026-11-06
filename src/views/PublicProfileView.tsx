@@ -16,6 +16,7 @@ import { recordProfileView, recordProfileClick as trackTelemetryClick } from '..
 import { Helmet } from 'react-helmet-async';
 import { downloadVCardClient } from '../utils/vcardGenerator';
 import { extractUsernameFromPath } from '../utils/usernameHelper';
+import { formatToInternationalE164 } from '../utils/countryData';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
   const [profile, setProfile] = useState<any>(null);
@@ -805,8 +806,9 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                 const isWhatsApp = profile.is_whatsapp !== false;
 
                 return arr.map((phone, idx) => {
-                  const cleanPhone = phone.replace(/[^0-9]/g, '');
-                  const telPhone = phone.replace(/[^0-9+]/g, '');
+                  const e164 = formatToInternationalE164(phone, '+234');
+                  const cleanPhone = e164.replace(/\D/g, '');
+                  const telPhone = e164;
                   const href = isWhatsApp ? `https://wa.me/${cleanPhone}` : `tel:${telPhone}`;
                   const actionLabel = isWhatsApp ? 'WhatsApp connect' : 'Call direct';
                   const clickType = isWhatsApp ? 'whatsapp' : 'phone_call';

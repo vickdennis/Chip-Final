@@ -24,6 +24,8 @@ import {
 import { toast } from './Toast';
 import { supabase } from '../supabaseClient';
 import { downloadVCardClient } from '../utils/vcardGenerator';
+import InternationalPhoneInput from './InternationalPhoneInput';
+import { formatToInternationalE164 } from '../utils/countryData';
 
 export interface UserLead {
   id: number | string;
@@ -46,13 +48,8 @@ interface ProfileLeadsManagerProps {
 
 export function formatWhatsAppForLink(phone?: string): string {
   if (!phone) return '';
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '234' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('234') && cleaned.length === 10) {
-    cleaned = '234' + cleaned;
-  }
-  return cleaned;
+  const formatted = formatToInternationalE164(phone, '+234');
+  return formatted.replace(/\D/g, '');
 }
 
 export function downloadLeadVCard(lead: UserLead) {
@@ -823,12 +820,10 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-1.5">
                     WhatsApp / Phone
                   </label>
-                  <input
-                    type="tel"
+                  <InternationalPhoneInput
                     value={newWhatsapp}
-                    onChange={(e) => setNewWhatsapp(e.target.value)}
-                    placeholder="e.g. 0803 123 4567"
-                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm text-neutral-950 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#16a34a]"
+                    onChange={setNewWhatsapp}
+                    placeholder="e.g. 803 123 4567 or 7911 123456"
                   />
                 </div>
 

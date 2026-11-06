@@ -17,6 +17,7 @@ import { ProfileLeadsManager } from '../components/ProfileLeadsManager';
 import { toast } from '../components/Toast';
 import { SocialMediaIconBadge, SOCIAL_PLATFORMS_CONFIG } from '../components/social/SocialMediaIconBadge';
 import { downloadVCardClient } from '../utils/vcardGenerator';
+import InternationalPhoneInput from '../components/InternationalPhoneInput';
 
 export const SOCIAL_PLATFORMS = SOCIAL_PLATFORMS_CONFIG;
 
@@ -2347,17 +2348,17 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
 
                           return arr.map((phone, idx) => (
                             <div key={idx} className="flex gap-2 items-center">
-                              <input 
-                                type="tel" 
-                                value={phone}
-                                onChange={(e) => {
-                                  const newArr = [...arr];
-                                  newArr[idx] = e.target.value;
-                                  setProfile({ ...profile, phone_number: JSON.stringify(newArr) });
-                                }}
-                                placeholder="+234 800 000 0000"
-                                className="w-full px-4 py-3 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:border-[#16a34a] focus:ring-2 focus:ring-[#16a34a]/50 outline-none transition-all text-sm font-medium text-neutral-900 dark:text-white"
-                              />
+                              <div className="flex-1 min-w-0">
+                                <InternationalPhoneInput
+                                  value={phone}
+                                  onChange={(newPhone) => {
+                                    const newArr = [...arr];
+                                    newArr[idx] = newPhone;
+                                    setProfile({ ...profile, phone_number: JSON.stringify(newArr) });
+                                  }}
+                                  placeholder="e.g. 800 000 0000 or 7911 123456"
+                                />
+                              </div>
                               {arr.length > 1 && (
                                 <button
                                   type="button"
@@ -2365,7 +2366,8 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                     const newArr = arr.filter((_, i) => i !== idx);
                                     setProfile({ ...profile, phone_number: JSON.stringify(newArr) });
                                   }}
-                                  className="w-11 h-11 shrink-0 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors"
+                                  className="w-10 h-10 shrink-0 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors cursor-pointer"
+                                  title="Remove phone number"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>

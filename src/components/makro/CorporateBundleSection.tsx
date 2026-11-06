@@ -25,6 +25,7 @@ import { ViewState } from '../../App';
 import { openFlutterwavePayment } from '../../utils/flutterwaveClient';
 import { toast } from '../Toast';
 import BrandLogo from '../BrandLogo';
+import InternationalPhoneInput from '../InternationalPhoneInput';
 
 interface CorporateBundleSectionProps {
   onNavigate?: (view: ViewState) => void;
@@ -573,16 +574,14 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
-                    WhatsApp Phone Number *
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5 flex items-center justify-between">
+                    <span>WhatsApp Phone Number *</span>
+                    <span className="text-[10px] text-emerald-500 font-medium normal-case">All Countries</span>
                   </label>
-                  <input
-                    required
-                    type="tel"
+                  <InternationalPhoneInput
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="0802 345 6789"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                    onChange={setPhone}
+                    placeholder="e.g. 802 345 6789 or 7911 123456"
                   />
                 </div>
               </div>
@@ -751,13 +750,11 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                     <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
                       Phone Number *
                     </label>
-                    <input
-                      required
-                      type="tel"
+                    <InternationalPhoneInput
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="0803 123 4567"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                      onChange={setPhone}
+                      required
+                      placeholder="e.g. 803 123 4567 or 7911 123456"
                     />
                   </div>
                 </div>

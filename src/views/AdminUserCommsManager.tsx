@@ -38,6 +38,7 @@ import {
 import { FaWhatsapp } from 'react-icons/fa6';
 import { toast } from '../components/Toast';
 import { supabase } from '../supabaseClient';
+import InternationalPhoneInput from '../components/InternationalPhoneInput';
 import { 
   ExtractedContact, 
   extractContactsFromFile, 
@@ -564,7 +565,7 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
       return;
     }
 
-    const headers = ['Full Name', 'First Name', 'Email Address', 'Phone Number', 'Normalized Phone (234)', 'Source', 'Notes'];
+    const headers = ['Full Name', 'First Name', 'Email Address', 'Phone Number', 'Normalized Phone (E.164)', 'Source', 'Notes'];
     const rows = list.map(c => [
       `"${c.name.replace(/"/g, '""')}"`,
       `"${extractFirstName(c.name).replace(/"/g, '""')}"`,
@@ -822,7 +823,7 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
                   Universal Contact Ingestion &amp; Extractor
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl leading-relaxed">
-                  Upload spreadsheets, business card photos, raw Word documents, or paste unformatted text. Our system parses phone numbers (normalized with Nigerian +234 prefixes), email addresses, and full names automatically.
+                  Upload spreadsheets, business card photos, raw Word documents, or paste unformatted text. Our system parses phone numbers (normalized with international country codes and E.164 standards), email addresses, and full names automatically.
                 </p>
               </div>
 
@@ -912,7 +913,7 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
 
                 <div className="flex items-center justify-between pt-3">
                   <span className="text-[11px] text-neutral-500">
-                    Instant Nigerian phone normalization (+234)
+                    Worldwide phone normalization (all country codes)
                   </span>
                   <button
                     type="button"
@@ -1630,12 +1631,10 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-500 mb-1">Phone / WhatsApp Number *</label>
-                <input
-                  type="tel"
-                  placeholder="e.g. 08123456789 or +2348123456789"
+                <InternationalPhoneInput
                   value={newContactForm.phone}
-                  onChange={(e) => setNewContactForm({ ...newContactForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-[#151821] border border-neutral-200 dark:border-white/10 rounded-xl text-xs font-semibold text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                  onChange={(val) => setNewContactForm({ ...newContactForm, phone: val })}
+                  placeholder="e.g. 812 345 6789 or 7911 123456"
                 />
               </div>
 

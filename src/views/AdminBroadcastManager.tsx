@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Send, Filter, FileText, MessageCircle, AlertCircle, PhoneForwarded, CheckCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../components/Toast';
+import { getInternationalWhatsAppUrl } from '../utils/countryData';
 
 export default function AdminBroadcastManager() {
   const [sendType, setSendType] = useState<'post' | 'custom'>('post');
@@ -95,10 +96,7 @@ export default function AdminBroadcastManager() {
 
   const getWhatsAppUrl = (lead: any) => {
     const message = generateMessage(lead.name, true);
-    const encoded = encodeURIComponent(message);
-    let phone = lead.whatsapp.replace(/[^0-9]/g, '');
-    if (phone.startsWith('0')) phone = '234' + phone.slice(1);
-    return `https://wa.me/${phone}?text=${encoded}`;
+    return getInternationalWhatsAppUrl(lead.whatsapp || '', message);
   };
 
   const handleMarkSent = async (lead: any) => {

@@ -3,6 +3,7 @@ import { X, CheckCircle2, ArrowRight, User, Phone, Mail, Building2, MessageSquar
 import { toast } from './Toast';
 import { supabase } from '../supabaseClient';
 import { downloadVCardClient } from '../utils/vcardGenerator';
+import InternationalPhoneInput from './InternationalPhoneInput';
 
 interface LeadExchangeModalProps {
   isOpen: boolean;
@@ -170,16 +171,12 @@ export const LeadExchangeModal: React.FC<LeadExchangeModalProps> = ({
                 <label className="block text-[11px] font-bold text-white/70 uppercase mb-1">
                   WhatsApp / Phone Number *
                 </label>
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#16a34a] transition-colors">
-                  <Phone className="w-4 h-4 text-white/40 shrink-0" />
-                  <input
-                    type="tel"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="+234 810 000 0000"
-                    className="w-full bg-transparent text-base sm:text-xs text-white placeholder-white/30 focus:outline-none"
-                  />
-                </div>
+                <InternationalPhoneInput
+                  value={whatsapp}
+                  onChange={setWhatsapp}
+                  required
+                  placeholder="e.g. 810 000 0000 or 7911 123456"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

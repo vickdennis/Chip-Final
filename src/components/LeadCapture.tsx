@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { MessageCircle, CheckCircle } from 'lucide-react';
+import InternationalPhoneInput from './InternationalPhoneInput';
+import { formatToInternationalE164 } from '../utils/countryData';
+
+export function formatWhatsAppNumber(phone: string) {
+  return formatToInternationalE164(phone, '+234');
+}
 
 interface LeadFormProps {
   postSlug: string;
   postTitle: string;
   source: 'inline' | 'sticky';
   onSuccess?: () => void;
-}
-
-export function formatWhatsAppNumber(phone: string) {
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '234' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('234')) {
-    cleaned = '234' + cleaned;
-  }
-  return '+' + cleaned;
 }
 
 export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormProps) {
@@ -112,14 +108,14 @@ export function LeadForm({ postSlug, postTitle, source, onSuccess }: LeadFormPro
           value={formData.name}
           onChange={e => setFormData({...formData, name: e.target.value})}
         />
-        <input 
-          type="tel" 
-          placeholder="WhatsApp (080...)" 
-          required 
-          className="w-full px-4 py-2 bg-[#050505] border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"
-          value={formData.whatsapp}
-          onChange={e => setFormData({...formData, whatsapp: e.target.value})}
-        />
+        <div className="w-full">
+          <InternationalPhoneInput
+            value={formData.whatsapp}
+            onChange={(val) => setFormData({ ...formData, whatsapp: val })}
+            required
+            placeholder="e.g. 800 000 0000 or 7911 123456"
+          />
+        </div>
         {source === 'inline' && (
           <select 
             className="w-full px-4 py-2 bg-[#050505] border border-gray-200 dark:border-gray-800 rounded-lg text-sm outline-none focus:border-[#25D366] transition-colors"

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Card3DRotator, CardMaterial } from './Card3DRotator';
 import { Sparkles, CheckCircle2, Shield, ArrowRight, ArrowLeft, Tag, Lock, HelpCircle } from 'lucide-react';
+import InternationalPhoneInput from '../InternationalPhoneInput';
 
 export interface CardCustomizationData {
   tier: 'plastic' | 'metal' | 'debit';
@@ -489,13 +490,11 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                         <label className="block text-xs font-bold text-white/70 uppercase mb-1">
                           WhatsApp Phone Number
                         </label>
-                        <input
-                          type="tel"
-                          required
+                        <InternationalPhoneInput
                           value={whatsapp}
-                          onChange={(e) => setWhatsapp(e.target.value)}
-                          placeholder="+234 810 000 0000"
-                          className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-[#B600A8] focus:outline-none text-base sm:text-sm"
+                          onChange={setWhatsapp}
+                          required
+                          placeholder="e.g. 810 000 0000 or 7911 123456"
                         />
                       </div>
                       <div>

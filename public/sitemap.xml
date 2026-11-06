@@ -439,6 +439,18 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://www.chipng.com/@vick</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.chipng.com/vick/vcard</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://www.chipng.com/@nwekeogonna48</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>

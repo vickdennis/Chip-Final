@@ -29,18 +29,29 @@ export function generateUUID(): string {
   });
 }
 
-export function normalizePhoneNumber(raw: string): string {
+export function normalizePhoneNumber(raw: string, defaultCountryCode: string = '234'): string {
   if (!raw) return '';
-  let cleaned = String(raw).trim().replace(/[^0-9+]/g, '');
-  if (cleaned.startsWith('+')) {
-    cleaned = cleaned.substring(1);
+  const trimmed = String(raw).trim();
+
+  // If already starts with '+', keep the exact international dialing code
+  if (trimmed.startsWith('+')) {
+    return trimmed.replace(/[^0-9]/g, '');
   }
-  // Nigerian format normalization
-  if (cleaned.startsWith('0') && cleaned.length === 11) {
-    cleaned = '234' + cleaned.slice(1);
-  } else if (!cleaned.startsWith('234') && cleaned.length === 10 && /^[789][01]/.test(cleaned)) {
-    cleaned = '234' + cleaned;
+
+  // If starts with '00' (international direct prefix)
+  if (trimmed.startsWith('00')) {
+    return trimmed.slice(2).replace(/[^0-9]/g, '');
   }
+
+  let cleaned = trimmed.replace(/[^0-9]/g, '');
+  if (!cleaned) return '';
+
+  // Local trunk prefix (e.g. 080... in NG or 07... in UK)
+  if (cleaned.startsWith('0') && cleaned.length >= 10 && cleaned.length <= 11) {
+    const cleanDefault = defaultCountryCode.replace(/[^0-9]/g, '');
+    cleaned = cleanDefault + cleaned.slice(1);
+  }
+
   return cleaned;
 }
 
@@ -52,7 +63,7 @@ export function isValidEmail(email: string): boolean {
 export function isValidPhone(phone: string): boolean {
   if (!phone) return false;
   const digits = phone.replace(/[^0-9]/g, '');
-  return digits.length >= 10 && digits.length <= 15;
+  return digits.length >= 7 && digits.length <= 15;
 }
 
 export function extractFirstName(fullName: string): string {

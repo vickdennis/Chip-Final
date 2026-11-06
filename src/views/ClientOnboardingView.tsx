@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../components/Toast';
+import InternationalPhoneInput from '../components/InternationalPhoneInput';
+import { getInternationalWhatsAppUrl } from '../utils/countryData';
 
 interface ClientOnboardingViewProps {
   onNavigate?: (view: any) => void;
@@ -101,8 +103,13 @@ export default function ClientOnboardingView({ onNavigate }: ClientOnboardingVie
       const finalUsername = cleanUsername.toLowerCase().trim();
       const generatedPassword = 'Chip_' + Math.random().toString(36).substring(2, 8) + '!';
 
+      const rawWa = (whatsapp.trim() || phone.trim());
+      const waUrl = rawWa 
+        ? (rawWa.startsWith('http') ? rawWa : getInternationalWhatsAppUrl(rawWa))
+        : null;
+
       const socialsList = [
-        whatsapp ? { platform: 'whatsapp', url: whatsapp.startsWith('http') ? whatsapp : `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}` } : null,
+        waUrl ? { platform: 'whatsapp', url: waUrl } : null,
         linkedin ? { platform: 'linkedin', url: linkedin.startsWith('http') ? linkedin : `https://linkedin.com/in/${linkedin}` } : null,
         instagram ? { platform: 'instagram', url: instagram.startsWith('http') ? instagram : `https://instagram.com/${instagram.replace('@', '')}` } : null,
         twitter ? { platform: 'twitter', url: twitter.startsWith('http') ? twitter : `https://x.com/${twitter.replace('@', '')}` } : null,
@@ -392,15 +399,14 @@ export default function ClientOnboardingView({ onNavigate }: ClientOnboardingVie
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                      Phone Number (WhatsApp Direct)
+                    <label className="block text-xs font-semibold text-neutral-300 mb-1.5 flex items-center justify-between">
+                      <span>Mobile Number (All Countries)</span>
+                      <span className="text-[10px] text-emerald-400 font-medium">WhatsApp Enabled</span>
                     </label>
-                    <input
-                      type="tel"
+                    <InternationalPhoneInput
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
-                      placeholder="e.g. +234 803 123 4567"
-                      className="w-full px-4 py-2.5 bg-neutral-900/90 border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      onChange={setPhone}
+                      placeholder="e.g. 803 123 4567 or 7911 123456"
                     />
                   </div>
 
@@ -412,7 +418,7 @@ export default function ClientOnboardingView({ onNavigate }: ClientOnboardingVie
                       type="text"
                       value={address}
                       onChange={e => setAddress(e.target.value)}
-                      placeholder="e.g. Victoria Island, Lagos, Nigeria"
+                      placeholder="e.g. London, UK / New York, USA / Lagos, Nigeria"
                       className="w-full px-4 py-2.5 bg-neutral-900/90 border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
@@ -484,7 +490,7 @@ export default function ClientOnboardingView({ onNavigate }: ClientOnboardingVie
                       type="text"
                       value={whatsapp}
                       onChange={e => setWhatsapp(e.target.value)}
-                      placeholder="+234..."
+                      placeholder="e.g. +1 555 123 4567, +44 7911..., or +234..."
                       className="w-full px-4 py-2.5 bg-neutral-900/90 border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-emerald-500"
                     />
                   </div>

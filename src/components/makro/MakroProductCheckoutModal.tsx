@@ -22,6 +22,7 @@ import { ShopProduct } from './MakroShop';
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import { toast } from '../Toast';
 import { FLUTTERWAVE_PUBLIC_KEY, openFlutterwavePayment } from '../../utils/flutterwaveClient';
+import InternationalPhoneInput from '../InternationalPhoneInput';
 
 interface MakroProductCheckoutModalProps {
   isOpen: boolean;
@@ -652,14 +653,12 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
                     <div>
                       <label className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1 block">
-                        WhatsApp Phone Number *
+                        WhatsApp Phone Number (All Countries) *
                       </label>
-                      <input
-                        type="tel"
-                        placeholder="+234 810 000 0000"
+                      <InternationalPhoneInput
                         value={whatsapp}
-                        onChange={(e) => setWhatsapp(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#16a34a]"
+                        onChange={setWhatsapp}
+                        placeholder="e.g. 810 000 0000 or 7911 123456"
                       />
                     </div>
 

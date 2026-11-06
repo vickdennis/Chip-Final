@@ -22,6 +22,7 @@ import { FaWhatsapp } from 'react-icons/fa6';
 import { toast } from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';
 import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge';
+import InternationalPhoneInput from '../components/InternationalPhoneInput';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -2027,17 +2028,17 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 <>
                                   {arr.map((phone, idx) => (
                                     <div key={idx} className="flex gap-2 items-center">
-                                      <input 
-                                        type="tel" 
-                                        value={phone}
-                                        onChange={(e) => {
-                                          const newArr = [...arr];
-                                          newArr[idx] = e.target.value;
-                                          setUserForm({ ...userForm, phone_number: JSON.stringify(newArr) });
-                                        }}
-                                        placeholder="+234 800 000 0000"
-                                        className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]" 
-                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <InternationalPhoneInput
+                                          value={phone}
+                                          onChange={(newPhone) => {
+                                            const newArr = [...arr];
+                                            newArr[idx] = newPhone;
+                                            setUserForm({ ...userForm, phone_number: JSON.stringify(newArr) });
+                                          }}
+                                          placeholder="e.g. 800 000 0000 or 7911 123456"
+                                        />
+                                      </div>
                                       {arr.length > 1 && (
                                         <button 
                                           type="button" 
@@ -2045,7 +2046,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                             const newArr = arr.filter((_, i) => i !== idx);
                                             setUserForm({ ...userForm, phone_number: JSON.stringify(newArr) });
                                           }}
-                                          className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
+                                          className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors shrink-0 cursor-pointer"
+                                          title="Remove phone number"
                                         >
                                           <Trash2 className="w-4 h-4" />
                                         </button>
@@ -2742,8 +2744,15 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         <input value={newUserForm.username} onChange={e => setNewUserForm({...newUserForm, username: e.target.value})} placeholder="Optional handle" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]" />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Phone Number</label>
-                        <input type="tel" value={newUserForm.phone_number} onChange={e => setNewUserForm({...newUserForm, phone_number: e.target.value})} placeholder="+234..." className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]" />
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5 flex items-center justify-between">
+                          <span>Phone Number</span>
+                          <span className="text-[10px] text-emerald-500 font-medium">All Countries</span>
+                        </label>
+                        <InternationalPhoneInput
+                          value={newUserForm.phone_number}
+                          onChange={phone => setNewUserForm({ ...newUserForm, phone_number: phone })}
+                          placeholder="e.g. 800 000 0000 or 7911 123456"
+                        />
                       </div>
                     </div>
 
