@@ -3074,7 +3074,166 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  // Secure Server-Side Flutterwave Transaction Verification
+  // ================= Location & Multi-Currency FX Engine =================
+  const FALLBACK_NGN_RATES: Record<string, number> = {
+    NGN: 1,
+    USD: 0.000645,
+    GBP: 0.000505,
+    EUR: 0.000595,
+    CAD: 0.000893,
+    AUD: 0.00099,
+    GHS: 0.0096,
+    KES: 0.0833,
+    ZAR: 0.0116,
+    AED: 0.00237,
+    RWF: 0.89,
+    UGX: 2.38,
+    TZS: 1.72,
+    XOF: 0.39,
+    XAF: 0.39,
+    ZMW: 0.0175,
+    EGP: 0.0318,
+    INR: 0.0546,
+    SAR: 0.00242,
+    QAR: 0.00235,
+    CHF: 0.000568,
+    JPY: 0.098,
+    CNY: 0.00465,
+    SGD: 0.00086,
+    BRL: 0.0037,
+    MXN: 0.0129,
+  };
+
+  const COUNTRY_CURRENCY_LOOKUP: Record<string, string> = {
+    NG: 'NGN', US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', NZ: 'AUD',
+    GH: 'GHS', KE: 'KES', ZA: 'ZAR', AE: 'AED', RW: 'RWF', UG: 'UGX',
+    TZ: 'TZS', ZM: 'ZMW', EG: 'EGP', IN: 'INR', SA: 'SAR', QA: 'QAR',
+    CH: 'CHF', JP: 'JPY', CN: 'CNY', SG: 'SGD', BR: 'BRL', MX: 'MXN',
+    DE: 'EUR', FR: 'EUR', IT: 'EUR', ES: 'EUR', NL: 'EUR', BE: 'EUR',
+    AT: 'EUR', IE: 'EUR', PT: 'EUR', FI: 'EUR', GR: 'EUR',
+    SN: 'XOF', CI: 'XOF', BJ: 'XOF', TG: 'XOF',
+    CM: 'XAF', GA: 'XAF',
+  };
+
+  let cachedFxRates: Record<string, number> = { ...FALLBACK_NGN_RATES };
+  let cachedFxTimestamp = 0;
+
+  async function getLiveNgnRates(): Promise<{ rates: Record<string, number>; source: string }> {
+    const SIX_HOURS = 6 * 60 * 60 * 1000;
+    if (Date.now() - cachedFxTimestamp < SIX_HOURS && Object.keys(cachedFxRates).length > 5) {
+      return { rates: cachedFxRates, source: 'cache' };
+    }
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3500);
+      const resp = await fetch('https://open.er-api.com/v6/latest/NGN', { signal: controller.signal });
+      clearTimeout(timeout);
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json?.rates && json.rates.USD) {
+          cachedFxRates = { ...FALLBACK_NGN_RATES, ...json.rates, NGN: 1 };
+          cachedFxTimestamp = Date.now();
+          return { rates: cachedFxRates, source: 'live' };
+        }
+      }
+    } catch (e) {
+      // keep cached/fallback rates
+    }
+    return { rates: cachedFxRates, source: 'fallback' };
+  }
+
+  app.get('/api/geo-currency', async (req, res) => {
+    try {
+      const [{ rates, source }] = await Promise.all([getLiveNgnRates()]);
+
+      // 1. Check edge/CDN country headers first (Cloudflare, Cloud Run, Vercel, AppEngine)
+      let countryCode =
+        (req.headers['cf-ipcountry'] as string) ||
+        (req.headers['x-vercel-ip-country'] as string) ||
+        (req.headers['x-appengine-country'] as string) ||
+        '';
+      countryCode = countryCode.trim().toUpperCase();
+      if (countryCode === 'XX' || countryCode === 'T1') countryCode = '';
+
+      let countryName = '';
+      let city = (req.headers['x-vercel-ip-city'] as string) || (req.headers['x-appengine-city'] as string) || '';
+      let currency = countryCode ? (COUNTRY_CURRENCY_LOOKUP[countryCode] || 'USD') : '';
+
+      // 2. If no edge geo header, extract visitor IP and look up IP location
+      if (!countryCode) {
+        const rawFwd = (req.headers['x-forwarded-for'] as string) || '';
+        const clientIp = (
+          (req.headers['cf-connecting-ip'] as string) ||
+          rawFwd.split(',')[0] ||
+          (req.headers['x-real-ip'] as string) ||
+          req.socket?.remoteAddress ||
+          ''
+        ).trim().replace(/^::ffff:/, '');
+
+        const isPrivateIp =
+          !clientIp ||
+          clientIp === '127.0.0.1' ||
+          clientIp === '::1' ||
+          clientIp.startsWith('10.') ||
+          clientIp.startsWith('192.168.') ||
+          clientIp.startsWith('172.16.') ||
+          clientIp.startsWith('172.17.');
+
+        if (!isPrivateIp) {
+          try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 2500);
+            const geoResp = await fetch(`https://ipapi.co/${encodeURIComponent(clientIp)}/json/`, {
+              signal: controller.signal,
+              headers: { 'User-Agent': 'CHIPNG/1.0' }
+            });
+            clearTimeout(timeout);
+            if (geoResp.ok) {
+              const geo = await geoResp.json();
+              if (geo && !geo.error && geo.country_code) {
+                countryCode = String(geo.country_code).toUpperCase();
+                countryName = geo.country_name || '';
+                city = geo.city || city;
+                currency = (geo.currency && String(geo.currency).toUpperCase()) || COUNTRY_CURRENCY_LOOKUP[countryCode] || 'USD';
+              }
+            }
+          } catch (geoErr) {
+            // fallback cleanly below
+          }
+        }
+      }
+
+      // 3. Fallback via Accept-Language header if still unresolved
+      if (!countryCode) {
+        const acceptLang = String(req.headers['accept-language'] || '');
+        const match = acceptLang.match(/[a-z]{2}-([A-Z]{2})/);
+        if (match && match[1]) {
+          countryCode = match[1].toUpperCase();
+          currency = COUNTRY_CURRENCY_LOOKUP[countryCode] || 'USD';
+        }
+      }
+
+      res.json({
+        countryCode: countryCode || null,
+        countryName: countryName || null,
+        city: city || null,
+        currency: currency || null,
+        rates,
+        rateSource: source,
+      });
+    } catch (err: any) {
+      res.json({
+        countryCode: null,
+        countryName: null,
+        city: null,
+        currency: null,
+        rates: FALLBACK_NGN_RATES,
+        rateSource: 'fallback',
+      });
+    }
+  });
+
+  // Secure Server-Side Flutterwave Transaction Verification (Multi-Currency Aware)
   const verifyFlutterwaveHandler = async (req: any, res: any) => {
     try {
       const reference = req.params.reference || req.params.tx_ref || req.params.id;
@@ -3119,12 +3278,31 @@ Return ONLY valid JSON matching this structure:
 
       if (isVerified) {
         const orderPayload = req.body || {};
-        const rawAmount = Number(verificationData?.amount || orderPayload.amount || 0);
-        // Normalize amount: Flutterwave returns Naira directly (e.g. 35000, 50000); if kobo passed (> 500,000), convert to Naira
-        const amountInNaira = rawAmount > 500000 ? Math.round(rawAmount / 100) : Math.round(rawAmount);
+        const paidCurrency = String(
+          verificationData?.currency || orderPayload.currency || 'NGN'
+        ).toUpperCase();
+        const paidAmount = Number(
+          verificationData?.amount || orderPayload.paid_amount || orderPayload.amount || 0
+        );
+
+        // Compute normalized NGN equivalent for reporting & commissions
+        let amountInNaira = Number(orderPayload.amount_ngn || 0);
+        if (!amountInNaira) {
+          if (paidCurrency === 'NGN') {
+            amountInNaira = Math.round(paidAmount);
+          } else {
+            const { rates } = await getLiveNgnRates();
+            const rate = rates[paidCurrency] || FALLBACK_NGN_RATES[paidCurrency] || FALLBACK_NGN_RATES.USD;
+            amountInNaira = rate > 0 ? Math.round(paidAmount / rate) : Math.round(paidAmount * 1550);
+          }
+        }
+
         const email = verificationData?.customer?.email || orderPayload.email || '';
         const name = verificationData?.metadata?.name || orderPayload.name || 'Customer';
-        const cardType = verificationData?.metadata?.card_tier || orderPayload.card_type || 'Custom NFC Card';
+        const baseCardType = verificationData?.metadata?.card_tier || orderPayload.card_type || 'Custom NFC Card';
+        const cardType = paidCurrency !== 'NGN'
+          ? `${baseCardType} [Paid ${paidAmount.toLocaleString()} ${paidCurrency}]`
+          : baseCardType;
         const phone = verificationData?.metadata?.phone || orderPayload.phone || '';
 
         // Check for duplicate reference
@@ -3167,11 +3345,14 @@ Return ONLY valid JSON matching this structure:
               },
             });
             if (process.env.SMTP_USER) {
+              const formattedPayment = paidCurrency === 'NGN'
+                ? `₦${amountInNaira.toLocaleString()} NGN`
+                : `${paidAmount.toLocaleString()} ${paidCurrency} (~₦${amountInNaira.toLocaleString()} NGN)`;
               await transporter.sendMail({
                 from: `"CHIP NG Orders" <${process.env.SMTP_USER}>`,
                 to: 'vickthor.dennis@gmail.com',
-                subject: `[CONFIRMED ORDER] ₦${amountInNaira.toLocaleString()} - ${cardType} (${name})`,
-                text: `Verified CHIP NG Order Received:\n\nReference: ${reference}\nCustomer: ${name} (${email})\nPhone/WhatsApp: ${phone}\nCard Type: ${cardType}\nAmount: ₦${amountInNaira.toLocaleString()}\n\nStatus: Paid & Verified.`
+                subject: `[CONFIRMED ORDER] ${formattedPayment} - ${cardType} (${name})`,
+                text: `Verified CHIP NG Order Received:\n\nReference: ${reference}\nCustomer: ${name} (${email})\nPhone/WhatsApp: ${phone}\nCard Type: ${cardType}\nPaid: ${formattedPayment}\nDelivery Country: ${orderPayload.country || 'Nigeria'}\nDelivery Address: ${orderPayload.delivery_address || 'See dashboard'}\n\nStatus: Paid & Verified.`
               });
             }
           } catch (emailErr) {

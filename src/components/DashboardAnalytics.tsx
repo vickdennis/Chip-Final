@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from '../supabaseClient';
 import { getProfileTelemetry, subscribeToTelemetry, TelemetryData } from '../utils/telemetryClient';
+import { useCurrency } from '../context/CurrencyContext';
 
 type AnalyticsData = TelemetryData;
 
@@ -34,6 +35,7 @@ export default function DashboardAnalytics({
   onUpgrade: () => void; 
   profileViews?: number;
 }) {
+  const { formatNgn } = useCurrency();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -249,7 +251,7 @@ export default function DashboardAnalytics({
               className="py-3 px-6 rounded-2xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-bold text-xs flex items-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md"
             >
               <Crown className="w-4 h-4 text-amber-500" />
-              <span>Upgrade to CHIP Pro (₦4,999/mo)</span>
+              <span>Upgrade to CHIP Pro ({formatNgn(4999)}/mo)</span>
             </button>
           </div>
         )}

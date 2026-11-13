@@ -20,6 +20,10 @@ import { downloadVCardClient } from '../utils/vcardGenerator';
 import InternationalPhoneInput from '../components/InternationalPhoneInput';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import IntroVideoManager from '../components/IntroVideoManager';
+import { useCurrency } from '../context/CurrencyContext';
+import { formatCurrencyAmount, getInternationalShippingNgn } from '../utils/currency';
+import { WORLD_COUNTRIES } from '../utils/countryData';
+import { CurrencySelector } from '../components/CurrencySelector';
 
 export const SOCIAL_PLATFORMS = SOCIAL_PLATFORMS_CONFIG;
 
@@ -38,6 +42,7 @@ export const COLOR_PRESETS = [
 ];
 
 export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState, slug?: string) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
+  const { countryCode, formatNgn, getCheckout } = useCurrency();
   const [profile, setProfile] = useState<any>(null);
   const [verificationMonths, setVerificationMonths] = useState(1);
   const [links, setLinks] = useState<any[]>([]);
@@ -47,6 +52,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [selectedNfcCard, setSelectedNfcCard] = useState<any>(null);
   const [checkoutName, setCheckoutName] = useState("");
   const [checkoutPhone, setCheckoutPhone] = useState("");
+  const [checkoutCountry, setCheckoutCountry] = useState(countryCode || "NG");
   const [checkoutAddress, setCheckoutAddress] = useState("");
   const [sales, setSales] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState(0);
@@ -1540,12 +1546,15 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             <div className="xl:col-span-12 flex flex-col gap-8">
               <section className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl shadow-sm overflow-hidden flex flex-col">
-                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex justify-between items-center bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div className="border-b border-neutral-100 dark:border-white/5 p-6 flex flex-wrap justify-between items-center gap-3 bg-neutral-50/50 dark:bg-white/[0.02]">
                   <div>
                     <h3 className="font-bold text-base text-neutral-950 dark:text-white tracking-tight">Order NFC Smart Card</h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Direct factory dispatch with 1-tap contact sync</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Direct factory dispatch worldwide with 1-tap contact sync</p>
                   </div>
-                  <SmartphoneNfc className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" />
+                  <div className="flex items-center gap-2.5">
+                    <CurrencySelector compact />
+                    <SmartphoneNfc className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" />
+                  </div>
                 </div>
                 <div className="p-6 sm:p-8 flex flex-col gap-6">
                   <div>
@@ -1560,12 +1569,16 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     >
                       <option value="">-- Choose an NFC Card Model --</option>
                       {shopProducts.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} - ₦{Number(p.price).toLocaleString()}</option>
+                        <option key={p.id} value={p.id}>{p.name} - {formatNgn(Number(p.price))}</option>
                       ))}
                     </select>
                   </div>
                   
-                  {selectedNfcCard && (
+                  {selectedNfcCard && (() => {
+                    const cardSubtotalNgn = Number(selectedNfcCard.price || 0) + 200;
+                    const shippingFeeNgn = getInternationalShippingNgn(checkoutCountry, Number(selectedNfcCard.price || 0));
+                    const totalCardOrderNgn = cardSubtotalNgn + shippingFeeNgn;
+                    return (
                     <div className="flex gap-4 items-center bg-neutral-50 dark:bg-[#151821] p-5 rounded-2xl border border-neutral-200/80 dark:border-white/10">
                       {selectedNfcCard.image_url ? (
                         <img src={selectedNfcCard.image_url.startsWith('[') ? JSON.parse(selectedNfcCard.image_url)[0] : selectedNfcCard.image_url} alt={selectedNfcCard.name} className="w-24 h-24 object-cover rounded-xl" />
@@ -1582,13 +1595,16 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         </div>
                         <h4 className="font-bold text-base text-neutral-950 dark:text-white">{selectedNfcCard.name}</h4>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2 line-clamp-1">{selectedNfcCard.description}</p>
-                        <div className="flex items-baseline gap-3">
-                          <span className="font-extrabold text-lg text-neutral-950 dark:text-white">₦{(Number(selectedNfcCard.price) + 200).toLocaleString()}</span>
-                          <span className="text-xs text-neutral-400">(incl. ₦200 dispatch insurance)</span>
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <span className="font-extrabold text-lg text-neutral-950 dark:text-white">{formatNgn(totalCardOrderNgn)}</span>
+                          <span className="text-xs text-neutral-400">
+                            (incl. {formatNgn(200)} insurance{shippingFeeNgn > 0 ? ` + ${formatNgn(shippingFeeNgn)} DHL Worldwide` : ''})
+                          </span>
                         </div>
                       </div>
                     </div>
-                  )}
+                    );
+                  })()}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1607,18 +1623,31 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         type="tel" 
                         value={checkoutPhone} 
                         onChange={e => setCheckoutPhone(e.target.value)}
-                        placeholder="08012345678"
+                        placeholder="+234 801 234 5678 / +44 7911 123456"
                         className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#16a34a]/60 focus:border-[#16a34a] text-sm font-medium"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Delivery Address (State, City & Street)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Delivery Country</label>
+                    <select
+                      value={checkoutCountry}
+                      onChange={e => setCheckoutCountry(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#16a34a]/60 focus:border-[#16a34a] text-sm font-medium"
+                    >
+                      {WORLD_COUNTRIES.map((c) => (
+                        <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">Delivery Address (Street, City, State/Postal Code)</label>
                     <textarea 
                       value={checkoutAddress} 
                       onChange={e => setCheckoutAddress(e.target.value)}
-                      placeholder="Enter full physical address for dispatch"
+                      placeholder="Enter full physical address for DHL / GIG dispatch"
                       rows={3}
                       className="w-full px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#16a34a]/60 focus:border-[#16a34a] text-sm font-medium resize-none"
                     />
@@ -1648,28 +1677,33 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         return;
                       }
                       const txRef = `SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-                      const priceTotal = Number(selectedNfcCard?.price || 0) + 200;
+                      const countryObj = WORLD_COUNTRIES.find(c => c.code === checkoutCountry) || WORLD_COUNTRIES[0];
+                      const shippingFeeNgn = getInternationalShippingNgn(checkoutCountry, Number(selectedNfcCard?.price || 0));
+                      const totalNgn = Number(selectedNfcCard?.price || 0) + 200 + shippingFeeNgn;
+                      const cardCheckout = getCheckout(totalNgn);
                       try {
                         await openFlutterwavePayment({
                           txRef,
-                          amount: priceTotal,
-                          currency: 'NGN',
+                          amount: cardCheckout.checkoutAmount,
+                          currency: cardCheckout.checkoutCurrency,
                           customer: {
                             email: profile.contact_email || profile.email || 'user@example.com',
                             name: checkoutName,
                             phone_number: checkoutPhone,
                           },
                           title: `CHIP NG — ${selectedNfcCard.name}`,
-                          description: `NFC Smart Card Order for ${checkoutName}`,
+                          description: `NFC Smart Card Order for ${checkoutName} (${countryObj.name})`,
                           meta: {
                             product_id: selectedNfcCard.id,
-                            delivery_address: checkoutAddress,
+                            delivery_country: countryObj.name,
+                            delivery_address: `${checkoutAddress}, ${countryObj.name}`,
+                            base_ngn_total: totalNgn,
                             referrer: (typeof window !== 'undefined' ? localStorage.getItem('chipng_referrer') : null) || undefined,
                           },
                           onSuccess: async (response: any) => {
                             const ref = response?.tx_ref || response?.transaction_id || txRef;
                             try {
-                              // Verify on server to attribute 15% cash commission if referred
+                              // Verify on server to attribute 10% cash commission if referred
                               fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(ref)}`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -1678,7 +1712,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                   email: profile.contact_email || profile.email || 'customer@chipng.com',
                                   phone: checkoutPhone,
                                   card_type: selectedNfcCard.name,
-                                  amount: priceTotal,
+                                  amount: cardCheckout.checkoutAmount,
+                                  paid_amount: cardCheckout.checkoutAmount,
+                                  currency: cardCheckout.checkoutCurrency,
+                                  amount_ngn: totalNgn,
+                                  country: countryObj.name,
+                                  delivery_address: `${checkoutAddress}, ${countryObj.name}`,
                                   referrer: (typeof window !== 'undefined' ? localStorage.getItem('chipng_referrer') : null) || undefined,
                                 })
                               }).catch(() => {});
@@ -1695,7 +1734,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               });
                               alert('Payment complete! We will process your NFC card order shortly.');
                               
-                              const message = `*New NFC Card Order from ${checkoutName} (${checkoutPhone})*\n\n*Item:* ${selectedNfcCard.name} (₦${Number(selectedNfcCard.price).toLocaleString()})\n*Delivery Address:* ${checkoutAddress}\n*Reference:* ${ref}`;
+                              const message = `*New NFC Card Order from ${checkoutName} (${checkoutPhone})*\n\n*Item:* ${selectedNfcCard.name} (${formatCurrencyAmount(cardCheckout.checkoutAmount, cardCheckout.checkoutCurrency)})\n*Delivery Country:* ${countryObj.name}\n*Delivery Address:* ${checkoutAddress}\n*Reference:* ${ref}`;
                               const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
                               window.open(waUrl, '_blank');
                               
@@ -2636,7 +2675,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#16a34a] text-white">Active</span>
                           )}
                         </div>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Build trust with a verified badge next to your handle for ₦3,000/month</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Build trust with a verified badge next to your handle for {formatNgn(3000)}/month</p>
                       </div>
                       <div className="flex items-center gap-3">
                         {!profile.is_verified && (
@@ -2645,10 +2684,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             onChange={(e) => setVerificationMonths(Number(e.target.value))}
                             className="px-3.5 py-2.5 bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl focus:outline-none font-semibold text-xs text-neutral-900 dark:text-white"
                           >
-                            <option value={1}>1 Month (₦3,000)</option>
-                            <option value={3}>3 Months (₦9,000)</option>
-                            <option value={6}>6 Months (₦18,000)</option>
-                            <option value={12}>12 Months (₦36,000)</option>
+                            <option value={1}>1 Month ({formatNgn(3000)})</option>
+                            <option value={3}>3 Months ({formatNgn(9000)})</option>
+                            <option value={6}>6 Months ({formatNgn(18000)})</option>
+                            <option value={12}>12 Months ({formatNgn(36000)})</option>
                           </select>
                         )}
                         {profile.is_verified ? (
@@ -2668,11 +2707,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                             onClick={async () => {
                               const txRef = 'VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase();
                               const verifyAmount = 3000 * verificationMonths;
+                              const verifyCheckout = getCheckout(verifyAmount);
                               try {
                                 await openFlutterwavePayment({
                                   txRef,
-                                  amount: verifyAmount,
-                                  currency: 'NGN',
+                                  amount: verifyCheckout.checkoutAmount,
+                                  currency: verifyCheckout.checkoutCurrency,
                                   customer: {
                                     email: profile.contact_email || profile.email || 'user@example.com',
                                     name: profile.name || 'User',

@@ -26,6 +26,10 @@ import { openFlutterwavePayment } from '../../utils/flutterwaveClient';
 import { toast } from '../Toast';
 import BrandLogo from '../BrandLogo';
 import InternationalPhoneInput from '../InternationalPhoneInput';
+import { useCurrency } from '../../context/CurrencyContext';
+import { WORLD_COUNTRIES } from '../../utils/countryData';
+import { formatCurrencyAmount } from '../../utils/currency';
+import { CurrencySelector } from '../CurrencySelector';
 
 interface CorporateBundleSectionProps {
   onNavigate?: (view: ViewState) => void;
@@ -45,13 +49,17 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
 
+  const { currency, countryCode, formatNgn, getCheckout } = useCurrency();
+
   // Customer & Company Form State
   const [companyName, setCompanyName] = useState('');
   const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [deliveryCountry, setDeliveryCountry] = useState<string>(countryCode || 'NG');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [cityState, setCityState] = useState('Lagos (Express 24-48h Delivery)');
+  const [internationalCity, setInternationalCity] = useState('');
   const [ceoCardName, setCeoCardName] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -62,6 +70,10 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
   const BUNDLE_PRICE = 300000;
   const REGULAR_PRICE = 385000;
   const SAVINGS = REGULAR_PRICE - BUNDLE_PRICE;
+  const checkout = getCheckout(BUNDLE_PRICE);
+  const formattedCheckoutPay = formatCurrencyAmount(checkout.checkoutAmount, checkout.checkoutCurrency);
+  const deliveryCountryObj = WORLD_COUNTRIES.find((c) => c.code === deliveryCountry) || WORLD_COUNTRIES[0];
+  const isNigeriaDelivery = deliveryCountry === 'NG';
 
   const handleStartCheckout = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -70,12 +82,16 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
       return;
     }
 
+    const resolvedLocation = isNigeriaDelivery
+      ? `${cityState}, Nigeria`
+      : `${internationalCity || 'Worldwide'}, ${deliveryCountryObj.name}`;
+
     setIsPaying(true);
     openFlutterwavePayment({
-      amount: BUNDLE_PRICE,
-      currency: 'NGN',
+      amount: checkout.checkoutAmount,
+      currency: checkout.checkoutCurrency,
       title: 'CHIP NG Corporate Bundle (10 PVC + 1 Free CEO Metal)',
-      description: `Corporate Fleet Bundle for ${companyName} (10 PVC + 1 Free CEO Metal Card)`,
+      description: `Corporate Fleet Bundle for ${companyName} (${resolvedLocation})`,
       customer: {
         email: email.trim(),
         name: contactName.trim(),
@@ -87,9 +103,28 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
         pvcFinish,
         ceoFinish,
         ceoCardName: ceoCardName || contactName,
-        deliveryAddress: `${deliveryAddress}, ${cityState}`
+        deliveryAddress: `${deliveryAddress}, ${resolvedLocation}`,
+        deliveryCountry: deliveryCountryObj.name,
+        baseNgnTotal: BUNDLE_PRICE,
       },
-      onSuccess: (res) => {
+      onSuccess: async (res) => {
+        const refString = res?.tx_ref || res?.transaction_id || `CORP-${Date.now()}`;
+        await fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(refString)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: contactName.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            card_type: `Corporate Fleet Bundle (10 PVC + 1 CEO Metal - ${companyName})`,
+            amount: checkout.checkoutAmount,
+            paid_amount: checkout.checkoutAmount,
+            currency: checkout.checkoutCurrency,
+            amount_ngn: BUNDLE_PRICE,
+            country: deliveryCountryObj.name,
+            delivery_address: `${deliveryAddress}, ${resolvedLocation}`,
+          }),
+        }).catch(() => {});
         setIsPaying(false);
         setIsCheckoutOpen(false);
         toast.success(`Payment verified! Reference: ${res.transaction_id || res.tx_ref}. Our executive onboarding concierge will reach out via WhatsApp immediately.`);
@@ -112,7 +147,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
   };
 
   const getWhatsAppConciergeUrl = () => {
-    const text = `Hi CHIP NG! 👋\n\nI want to order the *Corporate Fleet Bundle (10 PVC + 1 Free CEO Metal for ₦300,000)* for my organization.\n\n*Company Name:* ${companyName || '[My Company]'}\n*Contact Person:* ${contactName || '[My Name]'}\n*Selected PVC Finish:* ${pvcFinish === 'split' ? '5 Black + 5 White' : pvcFinish === 'black' ? '10 Matte Black' : '10 Ceramic White'}\n*Selected CEO Metal Finish:* ${ceoFinish.toUpperCase()}\n\nPlease send us the invoice details and artwork specifications.`;
+    const text = `Hi CHIP NG! 👋\n\nI want to order the *Corporate Fleet Bundle (10 PVC + 1 Free CEO Metal for ${formatNgn(BUNDLE_PRICE)})* for my organization.\n\n*Company Name:* ${companyName || '[My Company]'}\n*Contact Person:* ${contactName || '[My Name]'}\n*Selected PVC Finish:* ${pvcFinish === 'split' ? '5 Black + 5 White' : pvcFinish === 'black' ? '10 Matte Black' : '10 Ceramic White'}\n*Selected CEO Metal Finish:* ${ceoFinish.toUpperCase()}\n\nPlease send us the invoice details and artwork specifications.`;
     return `https://wa.me/2348100764154?text=${encodeURIComponent(text)}`;
   };
 
@@ -151,7 +186,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 <Building2 className="w-3.5 h-3.5 text-[#16a34a]" /> 11 Smart Cards Total
               </span>
               <span className="text-xs font-mono font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900/50">
-                SAVE ₦{SAVINGS.toLocaleString()}
+                SAVE {formatNgn(SAVINGS)}
               </span>
             </div>
 
@@ -190,7 +225,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                     {ceoCardName || 'CHIEF EXECUTIVE OFFICER'}
                   </div>
                   <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                    Laser-Engraved Aerospace Steel &bull; ₦50,000 Value
+                    Laser-Engraved Aerospace Steel &bull; {formatNgn(50000)} Value
                   </div>
                 </div>
                 <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between pt-2 border-t border-white/10 text-[9px] font-mono text-neutral-400">
@@ -281,12 +316,12 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
               {/* Pricing Display */}
               <div className="flex items-baseline justify-between border-b border-neutral-100 dark:border-white/5 pb-6">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-neutral-950 dark:text-white tracking-tight">
-                      ₦{BUNDLE_PRICE.toLocaleString()}
+                      {formatNgn(BUNDLE_PRICE)}
                     </span>
                     <span className="text-lg sm:text-xl text-neutral-400 line-through font-medium">
-                      ₦{REGULAR_PRICE.toLocaleString()}
+                      {formatNgn(REGULAR_PRICE)}
                     </span>
                   </div>
                   <span className="text-xs text-neutral-500 mt-1 block">
@@ -309,11 +344,11 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 <div className="space-y-2.5">
                   {[
                     { title: '10x Smart NFC PVC Cards (Matte Black or White)', desc: 'Genuine NXP NTAG216 chip, waterproof, scratch-resistant, custom laser engraved with employee name & company logo.' },
-                    { title: '1x Heavyweight Executive CEO Metal Card (FREE — ₦50k value)', desc: 'Precision-weighted aerospace grade stainless steel with matte obsidian or gold coating for the CEO / Managing Director.' },
+                    { title: `1x Heavyweight Executive CEO Metal Card (FREE — ${formatNgn(50000, { compact: true })} value)`, desc: 'Precision-weighted aerospace grade stainless steel with matte obsidian or gold coating for the CEO / Managing Director.' },
                     { title: 'Centralized Team Fleet Management Dashboard', desc: 'One central master login to reassign cards, update social/contact details, and track networking analytics across the entire firm.' },
                     { title: '2-Way Contact Exchange & Lead Capture Form', desc: 'Clients can tap and instantly send their name, phone, and inquiry back to your team.' },
                     { title: 'Free Corporate Vector Logo Engraving', desc: 'Upload your high-res company emblem for the metal card.' },
-                    { title: 'Priority 24-48h Express Shipping Across Nigeria', desc: 'Free door-to-door insured delivery to your office in Lagos, Abuja, Port Harcourt, and other states.' }
+                    { title: 'Priority Worldwide DHL Express Shipping (Free)', desc: 'Free door-to-door insured delivery across Nigeria (24-48h) and international offices worldwide (3-6 days).' }
                   ].map((feat, i) => (
                     <div key={i} className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-full bg-[#16a34a]/20 text-[#16a34a] flex items-center justify-center shrink-0 mt-0.5">
@@ -339,7 +374,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                   className="w-full py-4 px-6 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-[#16a34a]/20 transition-all cursor-pointer hover:scale-[1.01]"
                 >
                   <CreditCard className="w-5 h-5 text-neutral-950" />
-                  <span>Claim Corporate Bundle (₦300k)</span>
+                  <span>Claim Corporate Bundle ({formatNgn(BUNDLE_PRICE, { compact: true })})</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
 
@@ -401,7 +436,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
               <ul className="text-xs sm:text-sm space-y-3 text-neutral-600 dark:text-neutral-400">
                 <li className="flex items-start gap-2.5">
                   <span className="w-4 h-4 rounded-full bg-rose-500/15 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">&times;</span>
-                  <span>₦50,000 to ₦75,000 per employee per year in recurrent card printing.</span>
+                  <span>{formatNgn(50000)} to {formatNgn(75000)} per employee per year in recurrent card printing.</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="w-4 h-4 rounded-full bg-rose-500/15 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">&times;</span>
@@ -413,7 +448,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 </li>
               </ul>
               <div className="pt-3 border-t border-neutral-200 dark:border-white/5 font-mono text-xs text-neutral-500">
-                10 Employees &bull; 2-Year Cost: <strong>₦1,200,000+</strong>
+                10 Employees &bull; 2-Year Cost: <strong>{formatNgn(1200000)}+</strong>
               </div>
             </div>
 
@@ -426,7 +461,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
               <ul className="text-xs sm:text-sm space-y-3 text-neutral-800 dark:text-neutral-200">
                 <li className="flex items-start gap-2.5">
                   <Check className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
-                  <span><strong>₦300,000 Flat One-Time Investment</strong> for 10 Team Cards + 1 Free CEO Metal.</span>
+                  <span><strong>{formatNgn(BUNDLE_PRICE)} Flat One-Time Investment</strong> for 10 Team Cards + 1 Free CEO Metal.</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Check className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
@@ -438,8 +473,8 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 </li>
               </ul>
               <div className="pt-3 border-t border-[#16a34a]/20 font-mono text-xs text-neutral-900 dark:text-white flex items-center justify-between">
-                <span>10 Employees &bull; 2-Year Cost: <strong>₦300,000</strong></span>
-                <span className="font-bold text-[#16a34a]">Net Savings: ₦900k+</span>
+                <span>10 Employees &bull; 2-Year Cost: <strong>{formatNgn(BUNDLE_PRICE)}</strong></span>
+                <span className="font-bold text-[#16a34a]">Net Savings: {formatNgn(900000, { compact: true })}+</span>
               </div>
             </div>
           </div>
@@ -490,7 +525,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 onClick={() => setIsCheckoutOpen(true)}
                 className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white font-extrabold text-sm shadow-md transition-all cursor-pointer"
               >
-                Claim Bundle for ₦300,000
+                Claim Bundle for {formatNgn(BUNDLE_PRICE)}
               </button>
               <a
                 href={getWhatsAppConciergeUrl()}
@@ -518,15 +553,18 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                   Corporate Fleet Order Configuration
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  10x PVC Cards + 1x Free CEO Metal Card &bull; ₦300,000
+                  10x PVC Cards + 1x Free CEO Metal Card &bull; {formatNgn(BUNDLE_PRICE)}
                 </p>
               </div>
-              <button
-                onClick={() => setIsCheckoutOpen(false)}
-                className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <CurrencySelector compact />
+                <button
+                  onClick={() => setIsCheckoutOpen(false)}
+                  className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleStartCheckout} className="space-y-4">
@@ -602,36 +640,64 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
-                    Delivery State *
+                    Delivery Country *
                   </label>
                   <select
-                    value={cityState}
-                    onChange={(e) => setCityState(e.target.value)}
+                    value={deliveryCountry}
+                    onChange={(e) => setDeliveryCountry(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
                   >
-                    <option value="Lagos (Express 24-48h Delivery)">Lagos (Express 24-48h Delivery)</option>
-                    <option value="Abuja FCT (Priority Express)">Abuja FCT (Priority Express)</option>
-                    <option value="Rivers (Port Harcourt)">Rivers (Port Harcourt)</option>
-                    <option value="Oyo (Ibadan)">Oyo (Ibadan)</option>
-                    <option value="Ogun (Abeokuta)">Ogun (Abeokuta)</option>
-                    <option value="Delta (Asaba / Warri)">Delta (Asaba / Warri)</option>
-                    <option value="Edo (Benin City)">Edo (Benin City)</option>
-                    <option value="Other Nigerian State">Other Nigerian State (2-4 Days)</option>
+                    {WORLD_COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
-                    Office Street Address *
+                    {isNigeriaDelivery ? 'Delivery State *' : 'City & Postal Code *'}
                   </label>
-                  <input
-                    required
-                    type="text"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Floor 4, Adeola Odeku St, VI"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
-                  />
+                  {isNigeriaDelivery ? (
+                    <select
+                      value={cityState}
+                      onChange={(e) => setCityState(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                    >
+                      <option value="Lagos (Express 24-48h Delivery)">Lagos (Express 24-48h Delivery)</option>
+                      <option value="Abuja FCT (Priority Express)">Abuja FCT (Priority Express)</option>
+                      <option value="Rivers (Port Harcourt)">Rivers (Port Harcourt)</option>
+                      <option value="Oyo (Ibadan)">Oyo (Ibadan)</option>
+                      <option value="Ogun (Abeokuta)">Ogun (Abeokuta)</option>
+                      <option value="Delta (Asaba / Warri)">Delta (Asaba / Warri)</option>
+                      <option value="Edo (Benin City)">Edo (Benin City)</option>
+                      <option value="Other Nigerian State">Other Nigerian State (2-4 Days)</option>
+                    </select>
+                  ) : (
+                    <input
+                      required
+                      type="text"
+                      value={internationalCity}
+                      onChange={(e) => setInternationalCity(e.target.value)}
+                      placeholder="e.g. London E14 5AB / Toronto ON"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                    />
+                  )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
+                  Office Street Address *
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  placeholder={isNigeriaDelivery ? 'Floor 4, Adeola Odeku St, VI' : 'Floor 12, 30 St Mary Axe'}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 text-xs sm:text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                />
               </div>
 
               {/* Order Summary Box */}
@@ -642,15 +708,18 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 </div>
                 <div className="flex justify-between text-xs text-neutral-500">
                   <span>1x Free Executive CEO Metal Card:</span>
-                  <span className="text-[#16a34a] font-bold">{ceoFinish.toUpperCase()} (₦0.00)</span>
+                  <span className="text-[#16a34a] font-bold">{ceoFinish.toUpperCase()} ({formatNgn(0)})</span>
                 </div>
                 <div className="flex justify-between text-xs text-neutral-500">
-                  <span>Priority Insured Delivery:</span>
-                  <span className="text-emerald-500 font-bold">FREE NATIONWIDE</span>
+                  <span>Priority Insured Delivery ({deliveryCountryObj.name}):</span>
+                  <span className="text-emerald-500 font-bold">FREE DHL WORLDWIDE</span>
                 </div>
                 <div className="flex justify-between text-sm font-extrabold text-neutral-950 dark:text-white pt-2 border-t border-neutral-200 dark:border-white/5">
                   <span>Total Amount Due:</span>
-                  <span className="text-[#16a34a]">₦300,000</span>
+                  <span className="text-[#16a34a]">
+                    {formatNgn(BUNDLE_PRICE)}
+                    {checkout.isFallbackToUsd ? ` (${formattedCheckoutPay})` : ''}
+                  </span>
                 </div>
               </div>
 
@@ -660,7 +729,7 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                 className="w-full py-3.5 px-6 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
               >
                 <Lock className="w-4 h-4 text-neutral-950" />
-                <span>{isPaying ? 'Connecting Payment...' : 'Proceed to Instant Pay (₦300,000)'}</span>
+                <span>{isPaying ? 'Connecting Payment...' : `Proceed to Instant Pay (${formattedCheckoutPay})`}</span>
               </button>
             </form>
           </div>
@@ -782,15 +851,15 @@ export const CorporateBundleSection: React.FC<CorporateBundleSectionProps> = ({
                   <div className="pt-2 border-t border-neutral-200 dark:border-white/10 space-y-1">
                     <div className="flex justify-between">
                       <span>10x NFC Smart PVC Cards</span>
-                      <span>₦300,000.00</span>
+                      <span>{formatNgn(BUNDLE_PRICE)}</span>
                     </div>
                     <div className="flex justify-between text-[#16a34a]">
                       <span>1x Executive CEO Metal Card (Promo)</span>
-                      <span>₦0.00</span>
+                      <span>{formatNgn(0)}</span>
                     </div>
                     <div className="flex justify-between font-bold text-sm pt-2 border-t border-neutral-200 dark:border-white/10 text-neutral-950 dark:text-white">
                       <span>Total Amount Due:</span>
-                      <span className="text-[#16a34a]">₦300,000.00</span>
+                      <span className="text-[#16a34a]">{formatNgn(BUNDLE_PRICE)}</span>
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-white dark:bg-black/40 border border-neutral-200/60 dark:border-white/5 space-y-1 mt-3">

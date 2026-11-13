@@ -5,6 +5,10 @@ import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, B
 import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import { DhlLogisticsLogo, GigLogisticsLogo, LogisticsTrustBanner } from './LogisticsLogos';
 import { FLUTTERWAVE_PUBLIC_KEY, openFlutterwavePayment } from '../../utils/flutterwaveClient';
+import { useCurrency } from '../../context/CurrencyContext';
+import { WORLD_COUNTRIES } from '../../utils/countryData';
+import { formatCurrencyAmount, getInternationalShippingNgn } from '../../utils/currency';
+import { CurrencySelector } from '../CurrencySelector';
 
 interface CheckoutOnboardingModalProps {
   isOpen: boolean;
@@ -19,11 +23,32 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   data,
   onNavigate,
 }) => {
+  const { currency, countryCode, formatNgn, getCheckout } = useCurrency();
+
   const [paymentMethod, setPaymentMethod] = useState<'flutterwave' | 'transfer'>('flutterwave');
   const [copiedBank, setCopiedBank] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // Delivery destination state (supports both Nigeria & worldwide shipping)
+  const [deliveryCountry, setDeliveryCountry] = useState<string>(countryCode || 'NG');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+
+  useEffect(() => {
+    if (countryCode && deliveryCountry === 'NG' && countryCode !== 'NG') {
+      setDeliveryCountry(countryCode);
+    }
+  }, [countryCode]);
+
+  useEffect(() => {
+    if ((currency !== 'NGN' || deliveryCountry !== 'NG') && paymentMethod === 'transfer') {
+      setPaymentMethod('flutterwave');
+    }
+  }, [currency, deliveryCountry, paymentMethod]);
+
+  const deliveryCountryObj = WORLD_COUNTRIES.find((c) => c.code === deliveryCountry) || WORLD_COUNTRIES[0];
+  const isNigeriaDelivery = deliveryCountry === 'NG';
 
   // Onboarding profile setup state
   const [profileBio, setProfileBio] = useState('Connecting leaders and creators with next-generation NFC technology.');
@@ -47,7 +72,11 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const basePrice = getBasePrice();
   const phoneTagPrice = bumpPhoneTag ? 7500 : 0;
   const vipQueuePrice = bumpVipQueue ? 5000 : 0;
-  const totalAmountNgn = basePrice + phoneTagPrice + vipQueuePrice;
+  const subtotalNgn = basePrice + phoneTagPrice + vipQueuePrice;
+  const shippingNgn = getInternationalShippingNgn(deliveryCountry, subtotalNgn);
+  const totalAmountNgn = subtotalNgn + shippingNgn;
+  const checkout = getCheckout(totalAmountNgn);
+  const formattedCheckoutPay = formatCurrencyAmount(checkout.checkoutAmount, checkout.checkoutCurrency);
   if (!isOpen) return null;
 
   const handleFlutterwaveSuccess = async (reference: any) => {
@@ -58,6 +87,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
 
     try {
       // Secure Server-Side Flutterwave Verification and Order Persistence
+      const resolvedLocation = deliveryAddress.trim()
+        ? `${deliveryAddress.trim()}, ${deliveryCountryObj.name}`
+        : deliveryCountryObj.name;
+
       const verifyRes = await fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(refString)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,7 +99,12 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           email: data.email?.trim() || 'customer@chipng.com',
           phone: data.whatsapp || '',
           card_type: data.material === 'plastic_black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)',
-          amount: totalAmountNgn,
+          amount: checkout.checkoutAmount,
+          paid_amount: checkout.checkoutAmount,
+          currency: checkout.checkoutCurrency,
+          amount_ngn: totalAmountNgn,
+          country: deliveryCountryObj.name,
+          delivery_address: resolvedLocation,
           referrer: (typeof window !== 'undefined' ? (localStorage.getItem('chipng_referrer') || '') : '') || undefined,
         }),
       });
@@ -85,6 +123,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
           funnel_stage: 'converted',
           order_bumps: [bumpPhoneTag ? 'phone_tag_sticker' : null, bumpVipQueue ? 'vip_analytics_queue' : null].filter(Boolean),
           estimated_amount: totalAmountNgn,
+          delivery_address: resolvedLocation,
         }),
       });
 
@@ -94,8 +133,8 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
         content_id: data.tier,
         quantity: 1,
-        value: totalAmountNgn,
-        currency: 'NGN',
+        value: checkout.checkoutAmount,
+        currency: checkout.checkoutCurrency,
       });
     } catch (err) {
       console.error('Failed to register converted sale:', err);
@@ -124,6 +163,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
 
   // Dedicated robust Flutterwave payment launcher
   const triggerFlutterwave = async () => {
+    if (!deliveryAddress.trim()) {
+      setPaymentError(`Please enter your street / city delivery address in ${deliveryCountryObj.name}.`);
+      return;
+    }
     setPaymentError(null);
     setIsProcessing(true);
 
@@ -133,22 +176,25 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
     try {
       await openFlutterwavePayment({
         txRef,
-        amount: totalAmountNgn,
-        currency: 'NGN',
+        amount: checkout.checkoutAmount,
+        currency: checkout.checkoutCurrency,
         customer: {
           email: customerEmail,
           phone_number: data.whatsapp || '',
           name: data.customerName || data.name || 'Valued Customer',
         },
         title: `CHIP NG — ${data.tier === 'plastic' ? 'Custom Smart PVC Card' : 'Laser-Engraved Metal Card'}`,
-        description: `CHIP NG Contactless Card (${data.material})`,
+        description: `CHIP NG Contactless Card (${data.material}) — Ship to ${deliveryCountryObj.name}`,
         meta: {
           card_tier: data.tier === 'plastic' ? 'Custom PVC Card (UV Printed)' : 'Custom Metal Card (Fiber-Laser Engraved)',
           surface_name: data.name,
           surface_title: data.title,
           handle: data.handle,
-          bump_phone_tag: bumpPhoneTag ? 'Yes (₦7,500)' : 'No',
-          bump_vip_queue: bumpVipQueue ? 'Yes (₦5,000)' : 'No',
+          delivery_country: deliveryCountryObj.name,
+          delivery_address: `${deliveryAddress}, ${deliveryCountryObj.name}`,
+          bump_phone_tag: bumpPhoneTag ? 'Yes' : 'No',
+          bump_vip_queue: bumpVipQueue ? 'Yes' : 'No',
+          base_ngn_total: totalAmountNgn,
         },
         onSuccess: (res: any) => {
           setIsProcessing(false);
@@ -162,7 +208,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
     } catch (err: any) {
       console.error('Flutterwave popup error:', err);
       setIsProcessing(false);
-      setPaymentError(err?.message || 'Unable to open Flutterwave payment modal. You can choose Direct Bank Transfer below.');
+      setPaymentError(err?.message || 'Unable to open Flutterwave payment modal. Please try again.');
     }
   };
 
@@ -266,16 +312,51 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         {/* ================= STAGE 6A: CHECKOUT INTERFACE ================= */}
         {!paymentSuccess ? (
           <div className="flex flex-col gap-5">
-            <div>
-              <span className="text-[11px] font-mono uppercase tracking-widest text-[#B600A8] font-bold">
-                Stage 6 • Frictionless Checkout
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white mt-0.5">
-                Complete Your Custom Card Order
-              </h2>
-              <p className="text-xs sm:text-sm text-white/60 mt-1">
-                {data.tier === 'metal' ? 'Custom laser-engraved' : 'Custom UV printed'} for <strong className="text-white">{data.name}</strong> • Nationwide insured delivery included.
-              </p>
+            <div className="pr-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#B600A8] font-bold">
+                  Stage 6 • Frictionless Checkout
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white mt-0.5">
+                  Complete Your Custom Card Order
+                </h2>
+                <p className="text-xs sm:text-sm text-white/60 mt-1">
+                  {data.tier === 'metal' ? 'Custom laser-engraved' : 'Custom UV printed'} for <strong className="text-white">{data.name}</strong> • Insured worldwide DHL & GIG delivery.
+                </p>
+              </div>
+              <CurrencySelector compact />
+            </div>
+
+            {/* Shipping Destination Inputs */}
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
+                  Delivery Country *
+                </label>
+                <select
+                  value={deliveryCountry}
+                  onChange={(e) => setDeliveryCountry(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#181B24] border border-white/15 text-xs font-medium text-white outline-none focus:border-[#B600A8]"
+                >
+                  {WORLD_COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
+                  Street, City & Postal Address *
+                </label>
+                <input
+                  type="text"
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  placeholder={isNigeriaDelivery ? 'e.g. 15 Admiralty Way, Lekki Phase 1, Lagos' : 'e.g. 221B Baker St, London NW1 6XE'}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/15 text-xs font-medium text-white placeholder-white/30 outline-none focus:border-[#B600A8]"
+                />
+              </div>
             </div>
 
             {/* Itemized Price Breakdown Table */}
@@ -286,7 +367,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     ? 'Smart Black PVC Card (Custom UV Print)'
                     : 'Smart White PVC Card (Custom Print)'}
                 </span>
-                <span className="font-semibold text-white">₦{basePrice.toLocaleString()}</span>
+                <span className="font-semibold text-white">{formatNgn(basePrice)}</span>
               </div>
 
               {/* Transparent Pricing Trust Box (CHIP Core + 3-Months Pro Free) */}
@@ -319,7 +400,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <span className="text-[10px] text-white/50 block">Stick to phone case. Works when wallet is in bag.</span>
                   </div>
                 </label>
-                <span className="font-mono text-amber-300 font-semibold">+{bumpPhoneTag ? '₦7,500' : '₦0'}</span>
+                <span className="font-mono text-amber-300 font-semibold">+{bumpPhoneTag ? formatNgn(7500) : formatNgn(0)}</span>
               </div>
 
               {/* Order Bump 2 Toggle */}
@@ -336,15 +417,19 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <span className="text-[10px] text-white/50 block">Expedited 24h dispatch + click heatmaps & lead tracking</span>
                   </div>
                 </label>
-                <span className="font-mono text-amber-300 font-semibold">+{bumpVipQueue ? '₦5,000' : '₦0'}</span>
+                <span className="font-mono text-amber-300 font-semibold">+{bumpVipQueue ? formatNgn(5000) : formatNgn(0)}</span>
               </div>
 
               {/* Delivery with DHL & GIG Logistics */}
               <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
                 <div className="flex justify-between items-center text-xs text-white/70">
-                  <span className="font-medium">Insured Nationwide Delivery (DHL & GIG Logistics)</span>
+                  <span className="font-medium">
+                    {isNigeriaDelivery
+                      ? 'Insured Nationwide Delivery (DHL & GIG Logistics)'
+                      : `DHL Express Worldwide (${deliveryCountryObj.name})`}
+                  </span>
                   <span className="text-emerald-400 font-bold font-mono uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    Free
+                    {shippingNgn === 0 ? 'Free' : formatNgn(shippingNgn)}
                   </span>
                 </div>
 
@@ -353,17 +438,26 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <span className="text-[10px] font-mono text-white/50 uppercase">Carriers:</span>
                     <div className="flex items-center gap-2">
                       <DhlLogisticsLogo className="h-6" />
-                      <GigLogisticsLogo className="h-6" />
+                      {isNigeriaDelivery && <GigLogisticsLogo className="h-6" />}
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono text-emerald-400 font-bold">Lagos &bull; Nationwide</span>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                    {isNigeriaDelivery ? 'Lagos • Nationwide' : `3–6 Days to ${deliveryCountryObj.code}`}
+                  </span>
                 </div>
               </div>
 
               <div className="pt-3 border-t border-white/15 flex justify-between items-baseline">
-                <span className="text-base font-bold text-white">Total Payable</span>
+                <div>
+                  <span className="text-base font-bold text-white block">Total Payable</span>
+                  {checkout.isFallbackToUsd && (
+                    <span className="text-[10px] font-mono text-white/50">
+                      Settled at checkout as {formattedCheckoutPay} USD
+                    </span>
+                  )}
+                </div>
                 <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-[#B600A8]">
-                  ₦{totalAmountNgn.toLocaleString()}
+                  {formatNgn(totalAmountNgn)}
                 </span>
               </div>
             </div>
@@ -371,10 +465,10 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
             {/* Payment Method Selector */}
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold text-white/70 uppercase tracking-wider">
-                Select Preferred Payment Method
+                Select Preferred Payment Method ({checkout.checkoutCurrency})
               </span>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid gap-3 ${isNigeriaDelivery && currency === 'NGN' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -388,24 +482,30 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   }`}
                 >
                   <CreditCard className="w-4 h-4 text-[#B600A8]" />
-                  <span>Flutterwave (Card / USSD / Apple Pay)</span>
+                  <span>
+                    {currency === 'NGN'
+                      ? 'Flutterwave (Card / USSD / Apple Pay)'
+                      : `Pay in ${checkout.checkoutCurrency} (Visa / Mastercard / Apple Pay / Google Pay)`}
+                  </span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaymentError(null);
-                    setPaymentMethod('transfer');
-                  }}
-                  className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
-                    paymentMethod === 'transfer'
-                      ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
-                      : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
-                  }`}
-                >
-                  <Building2 className="w-4 h-4 text-emerald-400" />
-                  <span>Direct Bank Transfer</span>
-                </button>
+                {isNigeriaDelivery && currency === 'NGN' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaymentError(null);
+                      setPaymentMethod('transfer');
+                    }}
+                    className={`p-3.5 rounded-2xl border flex items-center justify-center gap-2 text-sm font-bold transition-all cursor-pointer ${
+                      paymentMethod === 'transfer'
+                        ? 'border-[#B600A8] bg-[#B600A8]/15 text-white shadow-md'
+                        : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4 text-emerald-400" />
+                    <span>Direct Bank Transfer (NGN Only)</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -418,13 +518,15 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                     <div className="flex-1">
                       <p className="font-semibold text-amber-300 mb-1">Flutterwave Notice</p>
                       <p className="leading-relaxed opacity-90">{paymentError}</p>
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('transfer')}
-                        className="mt-2 text-xs font-bold text-white underline underline-offset-2 hover:text-amber-300"
-                      >
-                        Switch to Direct Bank Transfer →
-                      </button>
+                      {isNigeriaDelivery && currency === 'NGN' && (
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('transfer')}
+                          className="mt-2 text-xs font-bold text-white underline underline-offset-2 hover:text-amber-300"
+                        >
+                          Switch to Direct Bank Transfer →
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -443,7 +545,7 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      <span>Pay ₦{totalAmountNgn.toLocaleString()} with Flutterwave</span>
+                      <span>Pay {formattedCheckoutPay} with Flutterwave</span>
                     </>
                   )}
                 </button>

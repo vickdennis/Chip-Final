@@ -7,8 +7,13 @@ import {
 } from 'lucide-react';
 import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import BrandLogo from '../components/BrandLogo';
+import { useCurrency } from '../context/CurrencyContext';
+import { formatCurrencyAmount } from '../utils/currency';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
+  const { currency, formatNgn, getCheckout } = useCurrency();
+  const enterpriseCheckout = getCheckout(99000);
+  const seatsCheckout = getCheckout(25000);
   const [loading, setLoading] = useState(true);
   const [enterprise, setEnterprise] = useState<any>(null);
   const [employees, setEmployees] = useState<any[]>([]);
@@ -243,7 +248,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
             <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" /> <span className="text-sm font-medium">20+ NFC Cards & Bio Seats included</span></div>
             <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" /> <span className="text-sm font-medium">Centralized Brand & Logo Control</span></div>
             <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" /> <span className="text-sm font-medium">Team-wide Tap Telemetry & Conversion Tracking</span></div>
-            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" /> <span className="text-sm font-medium">Single Consolidated Monthly Invoice in ₦</span></div>
+            <div className="flex items-center gap-2.5"><Check className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" /> <span className="text-sm font-medium">Single Consolidated Monthly Invoice in {currency}</span></div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -260,14 +265,14 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                 try {
                   await openFlutterwavePayment({
                     txRef,
-                    amount: 99000,
-                    currency: 'NGN',
+                    amount: enterpriseCheckout.checkoutAmount,
+                    currency: enterpriseCheckout.checkoutCurrency,
                     customer: {
                       email: profile?.contact_email || profile?.email || 'admin@example.com',
                       name: profile?.name || 'Enterprise Admin',
                     },
                     title: 'CHIP NG — Enterprise Fleet Plan',
-                    description: 'Enterprise Organization Fleet Subscription (₦99,000/mo)',
+                    description: `Enterprise Organization Fleet Subscription (${formatCurrencyAmount(enterpriseCheckout.checkoutAmount, enterpriseCheckout.checkoutCurrency)}/mo)`,
                     onSuccess: handleCreateEnterpriseSuccess,
                   });
                 } catch (err: any) {
@@ -276,7 +281,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
               }}
               className="flex-1 py-3.5 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
             >
-              Subscribe (₦99,000/mo)
+              Subscribe ({formatNgn(99000)}/mo)
             </button>
           </div>
         </div>
@@ -541,7 +546,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                  <div className="flex items-center justify-between border-b border-neutral-100 dark:border-white/5 pb-6">
                    <div>
                      <div className="font-bold text-lg mb-0.5">Enterprise Fleet Tier</div>
-                     <div className="text-xs text-neutral-500 dark:text-neutral-400 uppercase">Billed Monthly (₦99,000.00)</div>
+                     <div className="text-xs text-neutral-500 dark:text-neutral-400 uppercase">Billed Monthly ({formatNgn(99000)})</div>
                    </div>
                    <span className="px-3 py-1 bg-[#16a34a] text-white text-xs font-bold rounded-full">Active</span>
                  </div>
@@ -564,8 +569,8 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                        try {
                          await openFlutterwavePayment({
                            txRef,
-                           amount: 25000,
-                           currency: 'NGN',
+                           amount: seatsCheckout.checkoutAmount,
+                           currency: seatsCheckout.checkoutCurrency,
                            customer: {
                              email: profile?.contact_email || profile?.email || 'user@example.com',
                              name: profile?.name || 'Enterprise Admin',
@@ -590,7 +595,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                      }}
                      className="w-full py-3 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer"
                    >
-                     Purchase Additional Seats (₦25,000 / 10 seats)
+                     Purchase Additional Seats ({formatCurrencyAmount(seatsCheckout.checkoutAmount, seatsCheckout.checkoutCurrency)} / 10 seats)
                    </button>
                  </div>
               </div>

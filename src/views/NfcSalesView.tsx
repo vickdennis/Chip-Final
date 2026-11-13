@@ -41,6 +41,7 @@ import { trackTikTokEvent } from '../utils/tiktokPixel';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
+import { useCurrency } from '../context/CurrencyContext';
 
 // Lazy-load heavier checkout & customization modals to keep the initial page bundle lean
 const CardCustomizerModal = lazy(() =>
@@ -113,6 +114,8 @@ export default function NfcSalesView({
   const [isSimulatingTap, setIsSimulatingTap] = useState(false);
   const [showTapBanner, setShowTapBanner] = useState(false);
 
+  const { formatNgn, getCheckout } = useCurrency();
+
   const getMaterialPrice = (mat: CardMaterial) => {
     return mat === 'plastic_black' ? 35000 : 30000;
   };
@@ -126,18 +129,21 @@ export default function NfcSalesView({
   };
 
   const getMaterialLabel = (mat: CardMaterial) => {
-    return mat === 'plastic_black' ? 'Matte Obsidian UV (₦35,000)' : 'Glacier White (₦30,000)';
+    return mat === 'plastic_black'
+      ? `Matte Obsidian UV (${formatNgn(35000)})`
+      : `Glacier White (${formatNgn(30000)})`;
   };
 
   const handleSimulateTap = () => {
     setIsSimulatingTap(true);
     setShowTapBanner(true);
+    const tapCheckout = getCheckout(getMaterialPrice(heroMaterial));
     trackTikTokEvent('ViewContent', {
       content_type: 'product_interaction',
       content_name: 'Simulate NFC Tap Demo',
       content_id: heroMaterial,
-      value: getMaterialPrice(heroMaterial),
-      currency: 'NGN',
+      value: tapCheckout.checkoutAmount,
+      currency: tapCheckout.checkoutCurrency,
     });
 
     setTimeout(() => {
@@ -152,6 +158,7 @@ export default function NfcSalesView({
   const handleOrderHeroCard = () => {
     const tier = getMaterialTier(heroMaterial);
     const price = getMaterialPrice(heroMaterial);
+    const orderCheckout = getCheckout(price);
     setSelectedInitialTier(tier);
     setSelectedInitialMaterial(heroMaterial);
 
@@ -159,8 +166,8 @@ export default function NfcSalesView({
       content_type: 'product',
       content_name: `${tier.toUpperCase()} NFC Card (${heroMaterial})`,
       content_id: tier,
-      value: price,
-      currency: 'NGN',
+      value: orderCheckout.checkoutAmount,
+      currency: orderCheckout.checkoutCurrency,
     });
 
     setIsCustomizerOpen(true);
@@ -188,12 +195,13 @@ export default function NfcSalesView({
 
   // Parse UTM parameters on mount & track TikTok ViewContent
   useEffect(() => {
+    const viewCheckout = getCheckout(50000);
     trackTikTokEvent('ViewContent', {
       content_type: 'product',
       content_name: 'CHIP Smart NFC Cards & Digital Profiles',
       content_category: 'Smart Hardware',
-      value: 50000,
-      currency: 'NGN',
+      value: viewCheckout.checkoutAmount,
+      currency: viewCheckout.checkoutCurrency,
     });
 
     try {
@@ -309,13 +317,14 @@ export default function NfcSalesView({
 
     // Track TikTok AddToCart event (₦35,000 for Black UV PVC, ₦30,000 for White PVC)
     const itemPrice = selectedMat === 'plastic_black' ? 35000 : 30000;
+    const cartCheckout = getCheckout(itemPrice);
 
     trackTikTokEvent('AddToCart', {
       content_type: 'product',
       content_name: selectedMat === 'plastic_black' ? 'NFC Smart Black PVC Card (Custom UV Print)' : 'NFC Smart White PVC Card (Custom Print)',
       content_id: selectedMat,
-      value: itemPrice,
-      currency: 'NGN',
+      value: cartCheckout.checkoutAmount,
+      currency: cartCheckout.checkoutCurrency,
     });
 
     setIsCustomizerOpen(true);
@@ -578,7 +587,7 @@ export default function NfcSalesView({
                       {
                         id: 'plastic_black' as CardMaterial,
                         label: 'Black PVC (UV Print)',
-                        price: '₦35,000',
+                        price: formatNgn(35000),
                         weight: 'Matte UV Polymer',
                         swatch: 'from-neutral-700 via-neutral-900 to-black border-neutral-600',
                         tag: '★ Best Seller • VIP',
@@ -586,7 +595,7 @@ export default function NfcSalesView({
                       {
                         id: 'plastic_white' as CardMaterial,
                         label: 'White PVC (Custom)',
-                        price: '₦30,000',
+                        price: formatNgn(30000),
                         weight: 'Ceramic Polymer',
                         swatch: 'from-white via-slate-100 to-slate-300 border-white',
                         tag: 'Full Color Print',
@@ -715,7 +724,7 @@ export default function NfcSalesView({
                       <span className="text-[10px] font-mono text-neutral-500 dark:text-white/50 block">Standard Price</span>
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-neutral-950 dark:text-white">
-                          ₦{getMaterialPrice(heroMaterial).toLocaleString()}
+                          {formatNgn(getMaterialPrice(heroMaterial))}
                         </span>
                       </div>
                     </div>
@@ -961,8 +970,8 @@ export default function NfcSalesView({
               </p>
 
               <div className="flex items-baseline gap-3 my-5 sm:my-6 p-3.5 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5">
-                <span className="text-3xl sm:text-4xl font-black text-neutral-950 dark:text-white">₦30,000</span>
-                <span className="text-neutral-400 dark:text-white/40 line-through text-sm">₦45,000</span>
+                <span className="text-3xl sm:text-4xl font-black text-neutral-950 dark:text-white">{formatNgn(30000)}</span>
+                <span className="text-neutral-400 dark:text-white/40 line-through text-sm">{formatNgn(45000)}</span>
                 <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 ml-auto px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                   Save 33%
                 </span>
@@ -979,9 +988,9 @@ export default function NfcSalesView({
                     'Full-Color Edge-to-Edge Custom Graphic & Logo Print',
                     'Instant 1-Tap vCard Download straight to Phonebook',
                     'High-Contrast Dynamic Vector QR Code Backup',
-                    'Lifetime CHIP Core Cloud Hosting (₦0 Monthly Fees)',
+                    `Lifetime CHIP Core Cloud Hosting (${formatNgn(0)} Monthly Fees)`,
                     '3-Months Free CHIP Pro Telemetry & Lead Capture',
-                    'Fast 24–48h Dispatch from Lagos Workshop',
+                    'Global Express Dispatch (24-48h Nigeria, 3-6d Worldwide)',
                     '12-Month Hardware & Antenna Warranty',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2">
@@ -1000,7 +1009,7 @@ export default function NfcSalesView({
               <div className="w-8 h-8 rounded-full bg-[#16a34a] text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                 <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
               </div>
-              <span>Order White Card (₦30,000)</span>
+              <span>Order White Card ({formatNgn(30000)})</span>
             </button>
           </div>
 
@@ -1026,8 +1035,8 @@ export default function NfcSalesView({
               </p>
 
               <div className="flex items-baseline gap-3 my-5 sm:my-6 p-3.5 sm:p-4 rounded-2xl bg-white/[0.05] border border-white/10">
-                <span className="text-3xl sm:text-4xl font-black text-white">₦35,000</span>
-                <span className="text-neutral-400 line-through text-sm">₦50,000</span>
+                <span className="text-3xl sm:text-4xl font-black text-white">{formatNgn(35000)}</span>
+                <span className="text-neutral-400 line-through text-sm">{formatNgn(50000)}</span>
                 <span className="text-xs font-bold font-mono text-[#16a34a] ml-auto px-2.5 py-1 rounded-full bg-[#16a34a]/15 border border-[#16a34a]/30">
                   Save 30%
                 </span>
@@ -1044,9 +1053,9 @@ export default function NfcSalesView({
                     'Tactile 3D Embossed High-Definition UV Cured Print',
                     'Instant 1-Tap vCard Download straight to Phonebook',
                     'Laser-Sharp High-Contrast Dynamic QR Code Backup',
-                    'Lifetime CHIP Core Cloud Hosting (₦0 Monthly Fees)',
+                    `Lifetime CHIP Core Cloud Hosting (${formatNgn(0)} Monthly Fees)`,
                     '3-Months Free CHIP Pro Telemetry & Lead Capture',
-                    'Priority 24h Lagos Workshop Queue & Fast Dispatch',
+                    'Global Express Dispatch (24-48h Nigeria, 3-6d Worldwide)',
                     '12-Month Hardware & Antenna Warranty',
                   ].map((feat, i) => (
                     <li key={i} className="flex items-start gap-2">
@@ -1065,7 +1074,7 @@ export default function NfcSalesView({
               <div className="w-8 h-8 rounded-full bg-neutral-950 text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
                 <ArrowRight className="w-3.5 h-3.5 -rotate-45 group-hover:rotate-0 transition-transform duration-200 stroke-[2.5]" />
               </div>
-              <span>Order Black UV Card (₦35,000)</span>
+              <span>Order Black UV Card ({formatNgn(35000)})</span>
             </button>
           </div>
 
@@ -1175,7 +1184,7 @@ export default function NfcSalesView({
             Sub-10ms NFC Tap • NTAG216
           </span>
           <span className="text-xs font-bold text-neutral-950 dark:text-white truncate">
-            White PVC ₦30k • Black UV ₦35k
+            White PVC {formatNgn(30000, { compact: true })} • Black UV {formatNgn(35000, { compact: true })}
           </span>
         </div>
 

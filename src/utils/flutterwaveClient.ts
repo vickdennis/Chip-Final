@@ -2,6 +2,7 @@
  * CHIP NG - Official Flutterwave Payment Client Utility
  * Handles modern inline Flutterwave checkouts across all customer touchpoints.
  */
+import { getFlutterwavePaymentOptions } from './currency';
 
 export const FLUTTERWAVE_PUBLIC_KEY =
   (import.meta as any).env.VITE_FLWPUBK ||
@@ -10,7 +11,7 @@ export const FLUTTERWAVE_PUBLIC_KEY =
 
 export interface FlutterwaveCheckoutOptions {
   txRef?: string;
-  amount: number; // in NGN
+  amount: number; // in checkout currency
   currency?: string;
   customer: {
     email: string;
@@ -56,6 +57,8 @@ export async function ensureFlutterwaveScript(): Promise<boolean> {
  */
 export async function openFlutterwavePayment(options: FlutterwaveCheckoutOptions): Promise<void> {
   const tx_ref = options.txRef || `CHIP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const activeCurrency = (options.currency || 'NGN').toUpperCase();
+  const paymentOptions = getFlutterwavePaymentOptions(activeCurrency);
   await ensureFlutterwaveScript();
 
   if (typeof (window as any).FlutterwaveCheckout === 'function') {
@@ -63,8 +66,8 @@ export async function openFlutterwavePayment(options: FlutterwaveCheckoutOptions
       public_key: FLUTTERWAVE_PUBLIC_KEY,
       tx_ref,
       amount: options.amount,
-      currency: options.currency || 'NGN',
-      payment_options: 'card,banktransfer,ussd',
+      currency: activeCurrency,
+      payment_options: paymentOptions,
       customer: {
         email: options.customer.email.trim() || 'customer@chipng.com',
         phone_number: options.customer.phone_number || '',
@@ -75,9 +78,12 @@ export async function openFlutterwavePayment(options: FlutterwaveCheckoutOptions
         description: options.description || 'Secure contactless NFC card checkout',
         logo: 'https://www.chipng.com/chipng_exact_tile.png',
       },
-      meta: options.meta || {},
+      meta: {
+        ...(options.meta || {}),
+        checkout_currency: activeCurrency,
+      },
       callback: (data: any) => {
-        options.onSuccess(data || { tx_ref, status: 'successful' });
+        options.onSuccess(data || { tx_ref, status: 'successful', currency: activeCurrency, amount: options.amount });
       },
       onclose: () => {
         if (options.onClose) options.onClose();

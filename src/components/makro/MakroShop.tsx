@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { MakroProductCheckoutModal } from './MakroProductCheckoutModal';
 import { ProductImageSlider } from './ProductImageSlider';
+import { useCurrency } from '../../context/CurrencyContext';
+import { CurrencySelector } from '../CurrencySelector';
 
 export interface ShopProduct {
   id: string;
@@ -78,6 +80,7 @@ interface MakroShopProps {
 }
 
 export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
+  const { formatNgn, currency, countryName, isInternational } = useCurrency();
   const [products, setProducts] = useState<ShopProduct[]>(FALLBACK_PRODUCTS);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'metal' | 'pvc' | 'tags'>('all');
@@ -203,12 +206,18 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
             </h2>
 
             <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300">
-              One tap transfers your dynamic Link-in-Bio profile and verified vCard directly to their phone book. All cards and tags are programmed in our Lagos workshop and dispatched nationwide.
+              One tap transfers your dynamic Link-in-Bio profile and verified vCard directly to their phone book. All cards and tags are programmed in our Lagos workshop and dispatched {isInternational ? 'worldwide via DHL Express' : 'nationwide'}.
             </p>
           </div>
 
-          {/* Filter Pills & Category Switcher */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* Filter Pills & Currency/Location Switcher */}
+          <div className="flex flex-col sm:items-end gap-3">
+            <div className="flex items-center gap-2 self-start sm:self-end">
+              <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                {countryName ? `${countryName} •` : ''} Local Currency:
+              </span>
+              <CurrencySelector />
+            </div>
             <div className="inline-flex p-1 bg-neutral-200/70 dark:bg-neutral-800/80 rounded-full backdrop-blur-md self-start sm:self-auto flex-wrap">
               <button
                 onClick={() => setActiveFilter('all')}
@@ -312,15 +321,20 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                     </div>
                   </div>
 
-                  {/* Price & Purchase Action in ₦ (Naira) */}
+                  {/* Price & Purchase Action in Visitor Local Currency */}
                   <div className="pt-5 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-neutral-400 uppercase font-mono tracking-wider block">
-                        Official Price
+                        Official Price ({currency})
                       </span>
                       <span className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white font-mono tracking-tight tabular-nums">
-                        ₦{Number(product.price || 0).toLocaleString()}
+                        {formatNgn(Number(product.price || 0))}
                       </span>
+                      {currency !== 'NGN' && (
+                        <span className="block text-[10px] font-mono text-neutral-400 mt-0.5">
+                          ≈ ₦{Number(product.price || 0).toLocaleString()} NGN
+                        </span>
+                      )}
                     </div>
 
                     <button
@@ -362,7 +376,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                 </div>
                 <h4 className="text-xl font-extrabold text-neutral-950 dark:text-white">CHIP Core</h4>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold font-mono text-neutral-950 dark:text-white">₦0</span>
+                  <span className="text-3xl font-extrabold font-mono text-neutral-950 dark:text-white">{formatNgn(0)}</span>
                   <span className="text-xs text-neutral-500 font-medium">/month (No monthly subscriptions required)</span>
                 </div>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2 mb-6">
@@ -409,7 +423,7 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
                 </div>
                 <h4 className="text-xl font-extrabold text-white">CHIP Pro Dashboard</h4>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold font-mono text-[#16a34a]">₦3,000</span>
+                  <span className="text-3xl font-extrabold font-mono text-[#16a34a]">{formatNgn(3000)}</span>
                   <span className="text-xs text-white/70 font-medium">/month (First 3 months 100% FREE with any card)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-2 mb-6">
@@ -450,8 +464,8 @@ export const MakroShop: React.FC<MakroShopProps> = ({ onNavigate }) => {
               <Truck className="w-5 h-5 text-[#16a34a] dark:text-[#16a34a]" />
             </div>
             <div>
-              <div className="text-xs font-bold text-neutral-900 dark:text-white">Fast Nationwide Delivery</div>
-              <div className="text-[11px] text-neutral-500">24-48h dispatch from Lagos workshop</div>
+              <div className="text-xs font-bold text-neutral-900 dark:text-white">Fast Nationwide & Global Delivery</div>
+              <div className="text-[11px] text-neutral-500">24-48h Nigeria • 3-5 day DHL Worldwide</div>
             </div>
           </div>
 

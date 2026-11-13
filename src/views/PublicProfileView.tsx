@@ -19,8 +19,11 @@ import { extractUsernameFromPath } from '../utils/usernameHelper';
 import { formatToInternationalE164 } from '../utils/countryData';
 import IntroVideoInterstitial from '../components/IntroVideoInterstitial';
 import UniversalVideoPlayer from '../components/UniversalVideoPlayer';
+import { useCurrency } from '../context/CurrencyContext';
+import { formatCurrencyAmount } from '../utils/currency';
 
 export default function PublicProfileView({ onNavigate, username, autoDownloadVCard }: { onNavigate?: (view: ViewState) => void, username?: string | null, autoDownloadVCard?: boolean }) {
+  const { formatNgn, getCheckout } = useCurrency();
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
@@ -1107,14 +1110,18 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
             ) : (
               <div className="w-full flex flex-col gap-4">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-widest opacity-60 mb-1 px-1">Digital Products</span>
-                {products.map((p) => (
+                {products.map((p) => {
+                  const baseNgn = Number(p.price) || 0;
+                  const totalNgn = baseNgn + 200;
+                  const prodCheckout = getCheckout(totalNgn);
+                  return (
                   <div key={p.id} className={`${cardBgClass} ${cardBorderClass} border rounded-xl p-4 flex flex-col sm:flex-row gap-4 text-left`}>
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-lg shrink-0" />}
                     <div className="flex flex-col flex-1">
                       <span className="font-sans font-bold text-current text-[16px] leading-tight mb-1">{p.name}</span>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`font-mono text-[12px] font-bold text-current ${cardBgClass} px-2 py-1 rounded-xl self-start leading-none`}>₦{Number(p.price).toLocaleString()}</span>
-                        <span className="text-[10px] opacity-50">+ ₦200 fee</span>
+                        <span className={`font-mono text-[12px] font-bold text-current ${cardBgClass} px-2 py-1 rounded-xl self-start leading-none`}>{formatNgn(baseNgn)}</span>
+                        <span className="text-[10px] opacity-50">+ {formatNgn(200)} fee</span>
                       </div>
                       <p className="text-[13px] opacity-60 mb-4 flex-1 line-clamp-3">{p.description}</p>
                       <button
@@ -1122,11 +1129,10 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                         onClick={async () => {
                           try {
                             const txRef = `PROD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-                            const priceTotal = Number(p.price) + 200;
                             await openFlutterwavePayment({
                               txRef,
-                              amount: priceTotal,
-                              currency: 'NGN',
+                              amount: prodCheckout.checkoutAmount,
+                              currency: prodCheckout.checkoutCurrency,
                               customer: {
                                 email: profile?.contact_email || profile?.email || 'guest@chipng.com',
                                 name: profile?.name || 'Customer',
@@ -1136,6 +1142,7 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                               meta: {
                                 product_id: p.id,
                                 seller_id: p.profile_id,
+                                base_ngn_price: baseNgn,
                               },
                               onSuccess: async (response: any) => {
                                 const ref = response?.tx_ref || response?.transaction_id || txRef;
@@ -1144,9 +1151,9 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                                     product_id: p.id,
                                     seller_id: p.profile_id,
                                     buyer_email: 'guest@chipng.com',
-                                    amount: p.price,
-                                    platform_fee: p.price * 0.05,
-                                    net_earnings: p.price * 0.95,
+                                    amount: baseNgn,
+                                    platform_fee: baseNgn * 0.05,
+                                    net_earnings: baseNgn * 0.95,
                                     reference: ref,
                                     status: 'success'
                                   });
@@ -1174,11 +1181,12 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
                         }}
                         className={`w-full ${cardBgClass} text-current hover:bg-gray-200 transition-colors font-mono text-[12px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 mt-auto cursor-pointer`}
                       >
-                        Buy Now • ₦{(Number(p.price) + 200).toLocaleString()}
+                        Buy Now • {formatCurrencyAmount(prodCheckout.checkoutAmount, prodCheckout.checkoutCurrency)}
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

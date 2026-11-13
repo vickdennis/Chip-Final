@@ -4,6 +4,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { CorporateBundleSection } from '../components/makro/CorporateBundleSection';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { ShieldCheck, ArrowLeft, Building2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface CorporateBundleViewProps {
   onNavigate: (view: ViewState) => void;
@@ -18,6 +19,7 @@ export const CorporateBundleView: React.FC<CorporateBundleViewProps> = ({
   toggleDarkMode,
   session,
 }) => {
+  const { formatNgn } = useCurrency();
   useEffect(() => {
     // Scroll to top on page mount
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -53,7 +55,7 @@ export const CorporateBundleView: React.FC<CorporateBundleViewProps> = ({
               </span>
               <span className="hidden sm:inline text-neutral-400">•</span>
               <span className="hidden sm:inline text-neutral-600 dark:text-neutral-400">
-                10 PVC + 1 Free CEO Metal (₦300,000)
+                10 PVC + 1 Free CEO Metal ({formatNgn(300000)})
               </span>
             </div>
           </div>

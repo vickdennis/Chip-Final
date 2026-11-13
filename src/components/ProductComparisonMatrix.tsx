@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Check, Minus, Zap, Sparkles, ArrowRight, LayoutGrid, Table } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface ProductComparisonMatrixProps {
   onSelectTier?: (tier: 'plastic' | 'metal' | 'heavy_metal') => void;
@@ -8,6 +9,7 @@ interface ProductComparisonMatrixProps {
 export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = ({
   onSelectTier,
 }) => {
+  const { formatNgn } = useCurrency();
   const [activeMobileTier, setActiveMobileTier] = useState<'plastic' | 'metal' | 'heavy_metal'>('metal');
   const [mobileViewMode, setMobileViewMode] = useState<'card' | 'table'>('card');
 
@@ -65,7 +67,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
         {
           feature: 'Optional EMV Debit Transplant',
           pvc: false,
-          metal: 'Available (+₦15,000 add-on)',
+          metal: `Available (+${formatNgn(15000)} add-on)`,
           customMetal: 'Fully compatible & supported',
         },
       ],
@@ -98,9 +100,9 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
       rows: [
         {
           feature: 'CHIP Core Software',
-          pvc: 'Lifetime access (₦0/month)',
-          metal: 'Lifetime access (₦0/month)',
-          customMetal: 'Lifetime access (₦0/month)',
+          pvc: `Lifetime access (${formatNgn(0)}/month)`,
+          metal: `Lifetime access (${formatNgn(0)}/month)`,
+          customMetal: `Lifetime access (${formatNgn(0)}/month)`,
         },
         {
           feature: 'CHIP Pro Trial',
@@ -128,25 +130,25 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
     plastic: {
       id: 'plastic' as const,
       name: 'Smart PVC',
-      price: '₦30,000',
+      price: formatNgn(30000),
       badge: 'Starter Utility',
       desc: 'Featherlight, waterproof daily driver for modern networking.',
-      btnLabel: 'Select Smart PVC (₦30,000)',
+      btnLabel: `Select Smart PVC (${formatNgn(30000)})`,
       btnStyle: 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950',
     },
     metal: {
       id: 'metal' as const,
       name: 'Smart Metal',
-      price: '₦50,000',
+      price: formatNgn(50000),
       badge: 'Professional First Impression',
       desc: '24g solid 304 stainless steel with fiber-laser precision.',
-      btnLabel: 'Select Smart Metal (₦50,000)',
+      btnLabel: `Select Smart Metal (${formatNgn(50000)})`,
       btnStyle: 'bg-neutral-900 hover:bg-black text-white dark:bg-white dark:text-neutral-950',
     },
     heavy_metal: {
       id: 'heavy_metal' as const,
       name: 'Custom Heavy Metal',
-      price: '₦100,000',
+      price: formatNgn(100000),
       badge: '★ Executive Bestseller',
       desc: '28g aerospace alloy with deep CNC dual-sided engraving.',
       btnLabel: 'Select Heavy Metal (10% Off)',
@@ -355,7 +357,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                     Smart PVC
                   </div>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-xl sm:text-2xl font-black font-mono text-neutral-950 dark:text-white">₦30,000</span>
+                    <span className="text-xl sm:text-2xl font-black font-mono text-neutral-950 dark:text-white">{formatNgn(30000)}</span>
                     <span className="text-xs text-neutral-400 font-medium">one-time</span>
                   </div>
                   <p className="text-[11px] text-neutral-500 mt-1 leading-snug">
@@ -380,7 +382,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                     Smart Metal
                   </div>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-xl sm:text-2xl font-black font-mono text-neutral-950 dark:text-white">₦50,000</span>
+                    <span className="text-xl sm:text-2xl font-black font-mono text-neutral-950 dark:text-white">{formatNgn(50000)}</span>
                     <span className="text-xs text-neutral-400 font-medium">one-time</span>
                   </div>
                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
@@ -408,7 +410,7 @@ export const ProductComparisonMatrix: React.FC<ProductComparisonMatrixProps> = (
                     Custom Heavy Metal
                   </div>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-xl sm:text-2xl font-black font-mono text-neutral-950 dark:text-white">₦100,000</span>
+                    <span className="text-xl sm:text-2xl font-black font-mono text-neutral-950 dark:text-white">{formatNgn(100000)}</span>
                     <span className="text-xs text-neutral-500 font-medium">one-time</span>
                   </div>
                   <p className="text-[11px] text-neutral-600 dark:text-neutral-300 mt-1 leading-snug">

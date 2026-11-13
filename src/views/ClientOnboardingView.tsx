@@ -22,6 +22,7 @@ import { supabase } from '../supabaseClient';
 import { toast } from '../components/Toast';
 import InternationalPhoneInput from '../components/InternationalPhoneInput';
 import { getInternationalWhatsAppUrl } from '../utils/countryData';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface ClientOnboardingViewProps {
   onNavigate?: (view: any) => void;
@@ -31,34 +32,36 @@ const CARD_TIERS = [
   {
     id: 'pvc-black',
     name: 'NFC Smart Black PVC Card',
-    price: '₦35,000',
+    priceNgn: 35000,
     description: 'Ultra-durable matte black polymer with embedded NTAG216 high-speed chip (<10ms response).',
     color: 'from-neutral-900 to-neutral-800 border-neutral-700 text-white'
   },
   {
     id: 'pvc-white',
     name: 'NFC Smart White PVC Card',
-    price: '₦30,000',
+    priceNgn: 30000,
     description: 'Clean minimalist white finish, waterproof, zero app required for client taps.',
     color: 'from-neutral-100 to-white border-neutral-300 text-neutral-900'
   },
   {
     id: 'metal-matte',
     name: 'NFC Smart Metal Card (Executive)',
-    price: '₦50,000',
+    priceNgn: 50000,
     description: 'Solid surgical-grade stainless steel with luxury matte coating and dual NFC + QR.',
     color: 'from-zinc-900 via-neutral-800 to-stone-900 border-emerald-500/40 text-emerald-400'
   },
   {
     id: 'metal-debit-custom',
     name: 'Custom Metal Debit Card + Laser Engraving',
-    price: '₦80,000 - ₦100,000',
+    priceMinNgn: 80000,
+    priceMaxNgn: 100000,
     description: 'Handcrafted bespoke metal card with precision laser engraving of your signature or corporate brand.',
     color: 'from-amber-950 via-neutral-900 to-black border-amber-500/40 text-amber-300'
   }
 ];
 
 export default function ClientOnboardingView({ onNavigate }: ClientOnboardingViewProps) {
+  const { formatNgn } = useCurrency();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [desiredUsername, setDesiredUsername] = useState('');
@@ -481,7 +484,11 @@ export default function ClientOnboardingView({ onNavigate }: ClientOnboardingVie
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-xs sm:text-sm text-white">{tier.name}</span>
-                          <span className="font-extrabold text-xs text-emerald-400">{tier.price}</span>
+                          <span className="font-extrabold text-xs text-emerald-400">
+                            {tier.priceMinNgn && tier.priceMaxNgn
+                              ? `${formatNgn(tier.priceMinNgn)} - ${formatNgn(tier.priceMaxNgn)}`
+                              : formatNgn(tier.priceNgn || 0)}
+                          </span>
                         </div>
                         <p className="text-[11px] text-neutral-400 leading-relaxed">{tier.description}</p>
                       </div>

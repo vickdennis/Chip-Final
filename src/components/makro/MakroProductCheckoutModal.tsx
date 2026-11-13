@@ -23,6 +23,10 @@ import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import { toast } from '../Toast';
 import { FLUTTERWAVE_PUBLIC_KEY, openFlutterwavePayment } from '../../utils/flutterwaveClient';
 import InternationalPhoneInput from '../InternationalPhoneInput';
+import { useCurrency } from '../../context/CurrencyContext';
+import { WORLD_COUNTRIES } from '../../utils/countryData';
+import { formatCurrencyAmount, getInternationalShippingNgn } from '../../utils/currency';
+import { CurrencySelector } from '../CurrencySelector';
 
 interface MakroProductCheckoutModalProps {
   isOpen: boolean;
@@ -80,12 +84,16 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
   const [engravedTitle, setEngravedTitle] = useState('');
   const [handle, setHandle] = useState('');
 
+  const { currency, countryCode, formatNgn, getCheckout } = useCurrency();
+
   // Delivery & Customer Contact Info
   const [customerName, setCustomerName] = useState('');
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [deliveryCountry, setDeliveryCountry] = useState<string>(countryCode || 'NG');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [selectedState, setSelectedState] = useState('Lagos (Express 24-48h Delivery)');
+  const [internationalRegion, setInternationalRegion] = useState('');
 
   // Add-ons & Payment options
   const [includePhoneTag, setIncludePhoneTag] = useState(false);
@@ -95,7 +103,24 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Price calculations supporting all homepage products
+  // Keep delivery country synced if IP detection finishes while modal hasn't been touched
+  useEffect(() => {
+    if (countryCode && deliveryCountry === 'NG' && countryCode !== 'NG') {
+      setDeliveryCountry(countryCode);
+    }
+  }, [countryCode]);
+
+  // If user switches to non-NGN currency or non-Nigeria destination, prioritize Flutterwave international cards/Apple Pay
+  useEffect(() => {
+    if ((currency !== 'NGN' || deliveryCountry !== 'NG') && paymentMethod === 'transfer') {
+      setPaymentMethod('flutterwave');
+    }
+  }, [currency, deliveryCountry, paymentMethod]);
+
+  const deliveryCountryObj = WORLD_COUNTRIES.find((c) => c.code === deliveryCountry) || WORLD_COUNTRIES[0];
+  const isNigeriaDelivery = deliveryCountry === 'NG';
+
+  // Price calculations supporting all homepage products (stored canonically in NGN)
   const getProductBasePrice = () => {
     const isTag = product.name.toLowerCase().includes('tag') || product.name.toLowerCase().includes('disc');
     if (isTag) {
@@ -112,8 +137,11 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
   const basePrice = getProductBasePrice();
   const phoneTagPrice = includePhoneTag ? 7500 : 0;
-  const totalPrice = basePrice + phoneTagPrice;
-  const totalPriceKobo = totalPrice * 100;
+  const subtotalNgn = basePrice + phoneTagPrice;
+  const shippingNgn = getInternationalShippingNgn(deliveryCountry, subtotalNgn);
+  const totalPrice = subtotalNgn + shippingNgn;
+  const checkout = getCheckout(totalPrice);
+  const formattedTotalPay = formatCurrencyAmount(checkout.checkoutAmount, checkout.checkoutCurrency);
 
   // Sync default finish when product changes
   useEffect(() => {
@@ -130,11 +158,11 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
         content_name: product.name,
         content_id: product.id,
         quantity: 1,
-        value: totalPrice,
-        currency: 'NGN',
+        value: checkout.checkoutAmount,
+        currency: checkout.checkoutCurrency,
       });
     }
-  }, [isOpen, product, totalPrice]);
+  }, [isOpen, product, checkout.checkoutAmount, checkout.checkoutCurrency]);
 
   // Handle ESC key press
   useEffect(() => {
@@ -161,6 +189,10 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
 
   if (!isOpen) return null;
 
+  const resolvedDeliveryDestination = isNigeriaDelivery
+    ? `${selectedState}, Nigeria`
+    : `${internationalRegion ? `${internationalRegion}, ` : ''}${deliveryCountryObj.name}`;
+
   const validateForm = () => {
     if (!customerName.trim()) {
       setErrorMessage('Please enter your full name for delivery.');
@@ -172,6 +204,10 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
     }
     if (!whatsapp.trim() || whatsapp.trim().length < 8) {
       setErrorMessage('Please enter a valid WhatsApp phone number for courier updates.');
+      return false;
+    }
+    if (!isNigeriaDelivery && !internationalRegion.trim()) {
+      setErrorMessage('Please enter your city, state/province, and postal code for international DHL delivery.');
       return false;
     }
     if (!deliveryAddress.trim()) {
@@ -197,7 +233,12 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
           email: email.trim(),
           phone: whatsapp,
           card_type: isMetal || isDebit ? `${product.name} (${selectedFinish === 'gold' ? '24K Gold' : 'Matte Obsidian'})` : (selectedFinish === 'black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)'),
-          amount: totalPrice,
+          amount: checkout.checkoutAmount,
+          paid_amount: checkout.checkoutAmount,
+          currency: checkout.checkoutCurrency,
+          amount_ngn: totalPrice,
+          country: deliveryCountryObj.name,
+          delivery_address: `${deliveryAddress}, ${resolvedDeliveryDestination}`,
         }),
       }).catch(() => {});
 
@@ -212,7 +253,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
           funnel_stage: 'converted',
           order_bumps: includePhoneTag ? ['phone_tag_sticker'] : [],
           estimated_amount: totalPrice,
-          delivery_address: `${deliveryAddress}, ${selectedState}`,
+          delivery_address: `${deliveryAddress}, ${resolvedDeliveryDestination}`,
         }),
       }).catch(() => {});
 
@@ -222,8 +263,8 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
         content_name: product.name,
         content_id: product.id,
         quantity: 1,
-        value: totalPrice,
-        currency: 'NGN',
+        value: checkout.checkoutAmount,
+        currency: checkout.checkoutCurrency,
       });
 
       toast.success('Payment verified! Your custom NFC card has entered production.');
@@ -245,21 +286,23 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
     try {
       await openFlutterwavePayment({
         txRef,
-        amount: totalPrice,
-        currency: 'NGN',
+        amount: checkout.checkoutAmount,
+        currency: checkout.checkoutCurrency,
         customer: {
           email: email.trim(),
           name: customerName,
           phone_number: whatsapp,
         },
         title: `CHIP NG — ${product.name}`,
-        description: `Custom Laser Engraved NFC Card (${selectedState})`,
+        description: `Custom Laser Engraved NFC Card (Ship to: ${resolvedDeliveryDestination})`,
         meta: {
           product_name: product.name,
           engraved_name: engravedName || customerName,
           engraved_title: engravedTitle,
-          delivery_address: `${deliveryAddress}, ${selectedState}`,
-          phone_tag_addon: includePhoneTag ? 'Yes (+₦7,500)' : 'No',
+          delivery_address: `${deliveryAddress}, ${resolvedDeliveryDestination}`,
+          delivery_country: deliveryCountryObj.name,
+          phone_tag_addon: includePhoneTag ? 'Yes' : 'No',
+          base_ngn_total: totalPrice,
         },
         onSuccess: (res: any) => {
           setIsProcessing(false);
@@ -273,7 +316,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
     } catch (err: any) {
       setIsProcessing(false);
       console.error('Flutterwave launch error:', err);
-      setErrorMessage(err.message || 'Failed to open Flutterwave gateway. Please try again or use Bank Transfer.');
+      setErrorMessage(err.message || 'Failed to open Flutterwave gateway. Please try again.');
     }
   };
 
@@ -290,14 +333,14 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
     const message = encodeURIComponent(
       `Hello CHIP NG Concierge, I just initiated a Direct Bank Transfer order on the homepage:\n\n` +
       `*Product:* ${isMetal || isDebit ? `${product.name} (${selectedFinish === 'gold' ? '24K Gold' : 'Matte Obsidian'})` : (selectedFinish === 'black' ? 'Black PVC Card (Custom UV Print)' : 'White PVC Card (Custom Print)')}\n` +
-      `*Amount to Pay:* ₦${totalPrice.toLocaleString()}\n` +
+      `*Amount to Pay:* ₦${totalPrice.toLocaleString()} (${formattedTotalPay})\n` +
       `*Destination Bank:* CHUKA VICTOR OKOYE (OPay: 611 287 2208)\n` +
       `*Name on Card:* ${engravedName || customerName}\n` +
       `*Role/Company:* ${engravedTitle || 'N/A'}\n` +
       `*Recipient Name:* ${customerName}\n` +
       `*WhatsApp:* ${whatsapp}\n` +
-      `*Delivery Address:* ${deliveryAddress}, ${selectedState}\n` +
-      `*Add-on Tag:* ${includePhoneTag ? 'Yes (+₦7,500)' : 'No'}\n\n` +
+      `*Delivery Address:* ${deliveryAddress}, ${resolvedDeliveryDestination}\n` +
+      `*Add-on Tag:* ${includePhoneTag ? 'Yes' : 'No'}\n\n` +
       `Attaching my payment receipt below for instant priority engraving & dispatch confirmation.`
     );
     window.open(`https://wa.me/2348100764154?text=${message}`, '_blank');
@@ -345,13 +388,16 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-neutral-200/70 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
-            aria-label="Close checkout"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <CurrencySelector compact />
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-neutral-200/70 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
+              aria-label="Close checkout"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Scrollable Body */}
@@ -386,12 +432,12 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                   <span className="font-bold text-neutral-950 dark:text-white">{engravedName || customerName}</span>
                 </div>
                 <div className="flex justify-between border-b border-neutral-200 dark:border-white/10 pb-2">
-                  <span className="text-neutral-500">Delivery State</span>
-                  <span className="font-bold text-neutral-950 dark:text-white">{selectedState}</span>
+                  <span className="text-neutral-500">Delivery Destination</span>
+                  <span className="font-bold text-neutral-950 dark:text-white">{resolvedDeliveryDestination}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Total Paid</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">₦{totalPrice.toLocaleString()}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{formattedTotalPay}</span>
                 </div>
               </div>
 
@@ -514,7 +560,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         Choose PVC Card Style
                       </label>
                       <span className="text-[11px] font-mono text-[#16a34a] font-bold">
-                        {selectedFinish === 'black' ? '₦35,000 (UV Print)' : '₦30,000 (Custom Print)'}
+                        {selectedFinish === 'black' ? `${formatNgn(35000)} (UV Print)` : `${formatNgn(30000)} (Custom Print)`}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2.5">
@@ -532,7 +578,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                             <span className="w-3.5 h-3.5 rounded-full bg-neutral-950 border border-neutral-700 shrink-0" />
                             <span className="truncate">Black PVC</span>
                           </div>
-                          <span className="text-[10px] font-mono font-bold text-[#16a34a]">₦35,000</span>
+                          <span className="text-[10px] font-mono font-bold text-[#16a34a]">{formatNgn(35000)}</span>
                         </div>
                         <span className="text-[10px] text-neutral-500 dark:text-neutral-400 text-left font-normal">
                           Tactile UV Print • VIP
@@ -552,7 +598,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                             <span className="w-3.5 h-3.5 rounded-full bg-white border border-neutral-300 shrink-0" />
                             <span className="truncate">White PVC</span>
                           </div>
-                          <span className="text-[10px] font-mono font-bold text-[#16a34a]">₦30,000</span>
+                          <span className="text-[10px] font-mono font-bold text-[#16a34a]">{formatNgn(30000)}</span>
                         </div>
                         <span className="text-[10px] text-neutral-500 dark:text-neutral-400 text-left font-normal">
                           Crisp Full-Color Print
@@ -570,7 +616,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                   </div>
                   <div className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span><strong>Fast Delivery:</strong> 24h Lagos, 48h Abuja & nationwide via DHL/GIG.</span>
+                    <span><strong>Global DHL Express Shipping:</strong> 24-48h Nigeria, 3-6 days worldwide.</span>
                   </div>
                   <div className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -631,7 +677,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                 {/* SECTION 2: Recipient Contact & Delivery Address */}
                 <div className="space-y-3 pb-4 border-b border-neutral-200/80 dark:border-white/10">
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
-                    2. Recipient & Nationwide Dispatch
+                    2. Recipient & Global Dispatch
                   </span>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -675,21 +721,48 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                       />
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div>
                       <label className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1 block">
-                        Delivery State (Nigeria) *
+                        Delivery Country *
                       </label>
                       <select
-                        value={selectedState}
-                        onChange={(e) => setSelectedState(e.target.value)}
+                        value={deliveryCountry}
+                        onChange={(e) => setDeliveryCountry(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#16a34a] cursor-pointer"
                       >
-                        {NIGERIAN_STATES.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
+                        {WORLD_COUNTRIES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.name}
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1 block">
+                        {isNigeriaDelivery ? 'Delivery State (Nigeria) *' : 'City / State & Postal Code *'}
+                      </label>
+                      {isNigeriaDelivery ? (
+                        <select
+                          value={selectedState}
+                          onChange={(e) => setSelectedState(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#16a34a] cursor-pointer"
+                        >
+                          {NIGERIAN_STATES.map((st) => (
+                            <option key={st} value={st}>
+                              {st}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder="e.g. London SW1A 1AA / New York, NY 10001"
+                          value={internationalRegion}
+                          onChange={(e) => setInternationalRegion(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#16a34a]"
+                        />
+                      )}
                     </div>
 
                     <div className="sm:col-span-2">
@@ -698,7 +771,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. 15 Admiralty Way, Lekki Phase 1, Lagos"
+                        placeholder={isNigeriaDelivery ? 'e.g. 15 Admiralty Way, Lekki Phase 1, Lagos' : 'e.g. 221B Baker Street, Flat 4'}
                         value={deliveryAddress}
                         onChange={(e) => setDeliveryAddress(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-white/5 text-xs font-medium text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#16a34a]"
@@ -739,18 +812,18 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-xs font-bold text-neutral-950 dark:text-white font-mono">+₦7,500</div>
-                    <div className="text-[10px] text-neutral-400 line-through font-mono">₦12,000</div>
+                    <div className="text-xs font-bold text-neutral-950 dark:text-white font-mono">+{formatNgn(7500)}</div>
+                    <div className="text-[10px] text-neutral-400 line-through font-mono">{formatNgn(12000)}</div>
                   </div>
                 </div>
 
                 {/* SECTION 4: Payment Method Selection */}
                 <div className="space-y-3">
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
-                    3. Select Payment Method
+                    3. Select Payment Method ({checkout.checkoutCurrency})
                   </span>
 
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className={`grid gap-2.5 ${isNigeriaDelivery && currency === 'NGN' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('flutterwave')}
@@ -760,25 +833,31 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                           : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
                       }`}
                     >
-                      <CreditCard className="w-4 h-4 text-emerald-500" />
-                      <span>Flutterwave (Cards / Bank / USSD / Apple Pay)</span>
+                      <CreditCard className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>
+                        {currency === 'NGN'
+                          ? 'Flutterwave (Cards / Bank / USSD / Apple Pay)'
+                          : `Pay in ${checkout.checkoutCurrency} (Visa / Mastercard / Apple Pay / Google Pay)`}
+                      </span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('transfer')}
-                      className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        paymentMethod === 'transfer'
-                          ? 'border-[#16a34a] bg-[#16a34a]/15 text-neutral-950 dark:text-[#16a34a] shadow-xs'
-                          : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4 text-[#16a34a] dark:text-[#16a34a]" />
-                      <span>Direct Bank Transfer</span>
-                    </button>
+                    {isNigeriaDelivery && currency === 'NGN' && (
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('transfer')}
+                        className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          paymentMethod === 'transfer'
+                            ? 'border-[#16a34a] bg-[#16a34a]/15 text-neutral-950 dark:text-[#16a34a] shadow-xs'
+                            : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
+                        }`}
+                      >
+                        <Building2 className="w-4 h-4 text-[#16a34a] dark:text-[#16a34a]" />
+                        <span>Direct Bank Transfer (NGN Only)</span>
+                      </button>
+                    )}
                   </div>
 
-                  {paymentMethod === 'transfer' && (
+                  {paymentMethod === 'transfer' && isNigeriaDelivery && currency === 'NGN' && (
                     <div className="p-4 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 space-y-3 text-xs">
                       <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-white/10">
                         <span className="text-neutral-500 font-mono">Bank Name</span>
@@ -815,27 +894,38 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                 <div className="pt-3 border-t border-neutral-200/80 dark:border-white/10 space-y-3">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-neutral-500">Subtotal ({product.name}):</span>
-                    <span className="font-bold text-neutral-950 dark:text-white">₦{basePrice.toLocaleString()}</span>
+                    <span className="font-bold text-neutral-950 dark:text-white">{formatNgn(basePrice)}</span>
                   </div>
 
                   {includePhoneTag && (
                     <div className="flex items-center justify-between text-xs font-mono">
                       <span className="text-neutral-500">Phone Tap Sticker Add-on:</span>
-                      <span className="font-bold text-neutral-950 dark:text-white">+₦7,500</span>
+                      <span className="font-bold text-neutral-950 dark:text-white">+{formatNgn(7500)}</span>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-neutral-500">Nationwide Express Delivery (DHL/GIG):</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">FREE</span>
+                    <span className="text-neutral-500">
+                      {isNigeriaDelivery
+                        ? 'Nationwide Express Delivery (DHL/GIG):'
+                        : `DHL Express Worldwide (${deliveryCountryObj.name}):`}
+                    </span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                      {shippingNgn === 0 ? 'FREE' : formatNgn(shippingNgn)}
+                    </span>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-white/10">
+                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-white/10 gap-3">
                     <div>
                       <span className="text-[10px] uppercase font-mono tracking-wider text-neutral-400 block">Total Due</span>
                       <span className="text-2xl sm:text-3xl font-black font-mono text-neutral-950 dark:text-white tabular-nums">
-                        ₦{totalPrice.toLocaleString()}
+                        {formatNgn(totalPrice)}
                       </span>
+                      {checkout.isFallbackToUsd && (
+                        <span className="text-[10px] font-mono text-neutral-500 block">
+                          Settled as {formattedTotalPay} USD
+                        </span>
+                      )}
                     </div>
 
                     {paymentMethod === 'flutterwave' ? (
@@ -853,7 +943,7 @@ export const MakroProductCheckoutModal: React.FC<MakroProductCheckoutModalProps>
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            <span>Pay ₦{totalPrice.toLocaleString()} with Flutterwave</span>
+                            <span>Pay {formattedTotalPay} with Flutterwave</span>
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                           </>
                         )}

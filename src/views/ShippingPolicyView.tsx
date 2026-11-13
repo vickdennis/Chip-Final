@@ -3,6 +3,7 @@ import { ViewState } from '../App';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { Truck, Clock, ShieldCheck, MapPin, PackageCheck, AlertCircle } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface ShippingPolicyViewProps {
   onNavigate: (view: ViewState) => void;
@@ -15,6 +16,7 @@ export default function ShippingPolicyView({
   isDarkMode = false,
   toggleDarkMode = () => {},
 }: ShippingPolicyViewProps) {
+  const { formatNgn } = useCurrency();
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950 font-sans">
       <MakroNavbar
@@ -82,14 +84,14 @@ export default function ShippingPolicyView({
             <section className="space-y-3">
               <h2 className="text-xl font-bold text-neutral-950 dark:text-white">2. Shipping Rates</h2>
               <p>
-                Standard courier delivery within Lagos State is calculated at checkout (₦2,500 – ₦3,500 depending on area). Interstate delivery to all other Nigerian states is ₦4,500 – ₦6,000. Orders above 5 cards qualify for free express shipping nationwide.
+                Standard courier delivery within Lagos State is calculated at checkout ({formatNgn(2500)} – {formatNgn(3500)} depending on area), and interstate delivery across Nigeria is {formatNgn(4500)} – {formatNgn(6000)}. Regional Africa DHL Express shipping is {formatNgn(18000)}, and worldwide DHL Express is {formatNgn(28000)}. Orders at or above {formatNgn(150000)} (including Corporate Bundles) qualify for free express shipping worldwide.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-xl font-bold text-neutral-950 dark:text-white">3. International Shipping</h2>
+              <h2 className="text-xl font-bold text-neutral-950 dark:text-white">3. International Shipping & Local Currency</h2>
               <p>
-                We ship to Ghana, Kenya, South Africa, the United Kingdom, the United States, and Canada via DHL Worldwide Express (3–7 business days). Contact our international concierge for customs declaration support.
+                We ship worldwide — including Ghana, Kenya, South Africa, the United Kingdom, the United States, Canada, the EU, and the UAE — via DHL Worldwide Express (3–7 business days). Checkout automatically displays prices in your local currency with international card, Apple Pay, Google Pay, and regional mobile money support.
               </p>
             </section>
           </div>

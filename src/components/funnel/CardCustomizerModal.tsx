@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Card3DRotator, CardMaterial } from './Card3DRotator';
 import { Sparkles, CheckCircle2, Shield, ArrowRight, ArrowLeft, Tag, Lock, HelpCircle } from 'lucide-react';
 import InternationalPhoneInput from '../InternationalPhoneInput';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export interface CardCustomizationData {
   tier: 'plastic' | 'metal' | 'debit';
@@ -38,6 +39,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
   initialMaterial,
   onProceedToCheckout,
 }) => {
+  const { formatNgn } = useCurrency();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Form State
@@ -240,7 +242,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                 Selected Card: <strong className="text-white uppercase">{material === 'plastic_black' ? 'Black PVC (Custom UV Print)' : 'White PVC (Custom Print)'}</strong>
               </span>
               <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-100 to-[#16a34a]">
-                ₦{getBasePrice().toLocaleString()}
+                {formatNgn(getBasePrice())}
               </span>
             </div>
           </div>
@@ -269,8 +271,8 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                         material: 'plastic_white' as CardMaterial,
                         label: 'White PVC Card',
                         sublabel: 'Custom Print',
-                        price: '₦30,000',
-                        originalPrice: '₦45,000',
+                        price: formatNgn(30000),
+                        originalPrice: formatNgn(45000),
                         badge: 'Clean Minimalist',
                         desc: 'Sleek ceramic white polymer with full-bleed custom color print. Embedded NTAG216 chip & dynamic QR code.',
                       },
@@ -279,8 +281,8 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                         material: 'plastic_black' as CardMaterial,
                         label: 'Black PVC Card',
                         sublabel: 'Custom UV Print',
-                        price: '₦35,000',
-                        originalPrice: '₦50,000',
+                        price: formatNgn(35000),
+                        originalPrice: formatNgn(50000),
                         badge: '★ Most Popular • VIP',
                         desc: 'Industrial matte black polymer with tactile high-definition UV print. Scratch & waterproof with instant tap.',
                       },
@@ -533,7 +535,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                                 YES! Add the ChipNG Phone Tap Sticker
                               </span>
                               <span className="text-xs font-bold text-amber-300">
-                                +₦7,500 <span className="text-[10px] text-white/40 line-through">₦12,000</span>
+                                +{formatNgn(7500)} <span className="text-[10px] text-white/40 line-through">{formatNgn(12000)}</span>
                               </span>
                             </div>
                             <p className="text-[11px] text-white/60 leading-tight mt-0.5">
@@ -555,7 +557,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                               <span className="text-xs font-bold text-white">
                                 YES! Upgrade to VIP Production & Lifetime Advanced Analytics
                               </span>
-                              <span className="text-xs font-bold text-amber-300">+₦5,000</span>
+                              <span className="text-xs font-bold text-amber-300">+{formatNgn(5000)}</span>
                             </div>
                             <p className="text-[11px] text-white/60 leading-tight mt-0.5">
                               {tier === 'metal'
@@ -576,7 +578,7 @@ export const CardCustomizerModal: React.FC<CardCustomizerModalProps> = ({
                       <span>
                         {isSubmittingLead
                           ? 'Applying 10% VIP Coupon...'
-                          : `Claim 10% Discount & Checkout (Save ₦${(getBasePrice() * 0.1).toLocaleString()})`}
+                          : `Claim 10% Discount & Checkout (Save ${formatNgn(getBasePrice() * 0.1)})`}
                       </span>
                     </button>
 

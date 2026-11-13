@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Moon, Sun, Menu, X, Star } from 'lucide-react';
 import { ViewState } from '../../App';
 import BrandLogo from '../BrandLogo';
+import { CurrencySelector } from '../CurrencySelector';
 
 interface MakroNavbarProps {
   currentView: ViewState;
@@ -84,13 +85,16 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
         </nav>
 
         {/* Zone 3: 1-2 Primary Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Location / Currency Switcher */}
+          <CurrencySelector compact className="hidden sm:inline-block" />
+
           {/* Drop A Review Button */}
           <a
             href="https://g.page/r/CZGM0zQdEiY7EAE/review"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shadow-2xs"
+            className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shadow-2xs"
             title="Drop a Google Review for CHIP NG"
           >
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
@@ -162,6 +166,10 @@ export const MakroNavbar: React.FC<MakroNavbarProps> = ({
           </nav>
 
           <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800 flex flex-col gap-3">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-neutral-500">Display Currency</span>
+              <CurrencySelector />
+            </div>
             <a
               href="https://g.page/r/CZGM0zQdEiY7EAE/review"
               target="_blank"

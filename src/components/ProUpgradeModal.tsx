@@ -18,6 +18,8 @@ import {
 import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import { supabase } from '../supabaseClient';
 import { toast } from './Toast';
+import { useCurrency } from '../context/CurrencyContext';
+import { formatCurrencyAmount } from '../utils/currency';
 
 interface ProUpgradeModalProps {
   isOpen: boolean;
@@ -34,6 +36,7 @@ export default function ProUpgradeModal({
   onSuccess,
   defaultFeature
 }: ProUpgradeModalProps) {
+  const { formatNgn, getCheckout } = useCurrency();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [upgrading, setUpgrading] = useState(false);
 
@@ -41,6 +44,9 @@ export default function ProUpgradeModal({
 
   const monthlyPrice = 4999; // ₦4,999/mo
   const annualPrice = 45000; // ₦45,000/yr (~₦3,750/mo - Save 25%)
+  const activeNgnPrice = billingCycle === 'annual' ? annualPrice : monthlyPrice;
+  const checkout = getCheckout(activeNgnPrice);
+  const formattedPay = formatCurrencyAmount(checkout.checkoutAmount, checkout.checkoutCurrency);
 
   const handleActivatePro = async (isTestSim = false) => {
     setUpgrading(true);
@@ -69,11 +75,10 @@ export default function ProUpgradeModal({
         return;
       }
 
-      // Real Flutterwave Payment
-      const price = billingCycle === 'annual' ? annualPrice : monthlyPrice;
+      // Real Flutterwave Payment in visitor's local/supported currency
       await openFlutterwavePayment({
-        amount: price,
-        currency: 'NGN',
+        amount: checkout.checkoutAmount,
+        currency: checkout.checkoutCurrency,
         customer: {
           email: profile?.contact_email || profile?.email || 'user@chipng.com',
           name: profile?.full_name || profile?.username || 'CHIP Executive',
@@ -206,10 +211,10 @@ export default function ProUpgradeModal({
 
           <div className="mt-3 text-center">
             <span className="text-3xl font-extrabold text-neutral-950 dark:text-white">
-              {billingCycle === 'annual' ? '₦45,000' : '₦4,999'}
+              {formatNgn(activeNgnPrice)}
             </span>
             <span className="text-xs text-neutral-400 font-medium ml-1.5">
-              {billingCycle === 'annual' ? '/year (~₦3,750/mo)' : '/month'}
+              {billingCycle === 'annual' ? `/year (~${formatNgn(3750)}/mo)` : '/month'}
             </span>
           </div>
         </div>
@@ -251,7 +256,7 @@ export default function ProUpgradeModal({
             className="w-full py-3.5 px-6 rounded-2xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md"
           >
             <Crown className="w-4 h-4 text-amber-500" />
-            <span>{upgrading ? 'Processing Upgrade...' : `Subscribe via Flutterwave (${billingCycle === 'annual' ? '₦45,000/yr' : '₦4,999/mo'})`}</span>
+            <span>{upgrading ? 'Processing Upgrade...' : `Subscribe via Flutterwave (${formattedPay}/${billingCycle === 'annual' ? 'yr' : 'mo'})`}</span>
           </button>
 
           <button

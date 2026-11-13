@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Smartphone, CreditCard, BarChart2, Check, ArrowRight, Download, ExternalLink, Zap, Radio, Globe, UserCheck, Shield } from 'lucide-react';
 import { downloadVCardClient } from '../../utils/vcardGenerator';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = ({ onGetStarted }) => {
+  const { currency, isInternational, formatNgn } = useCurrency();
   const [activeTab, setActiveTab] = useState<'card' | 'bio' | 'leads' | 'telemetry'>('card');
   const [selectedTheme, setSelectedTheme] = useState<'obsidian' | 'gold' | 'titanium' | 'lime'>('obsidian');
   const [leadSaved, setLeadSaved] = useState(false);
@@ -11,10 +13,10 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
   const [visitorPhone, setVisitorPhone] = useState('');
 
   const finishPrices = {
-    obsidian: { price: '₦50,000', label: 'Matte Obsidian Metal' },
-    gold: { price: '₦100,000', label: '24K Gold Mirror Finish' },
-    titanium: { price: '₦80,000', label: 'Titanium Silver Alloy' },
-    lime: { price: '₦35,000', label: 'CHIP Eco Leaf Green PVC' },
+    obsidian: { price: formatNgn(50000), label: 'Matte Obsidian Metal' },
+    gold: { price: formatNgn(100000), label: '24K Gold Mirror Finish' },
+    titanium: { price: formatNgn(80000), label: 'Titanium Silver Alloy' },
+    lime: { price: formatNgn(35000), label: 'CHIP Eco Leaf Green PVC' },
   };
 
   return (
@@ -145,7 +147,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                     </span>
                   </div>
                   <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                    Free nationwide shipping in Nigeria
+                    {isInternational ? 'Worldwide DHL Express available' : 'Free nationwide shipping in Nigeria'}
                   </span>
                 </div>
 
@@ -227,7 +229,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                   </div>
                   <div className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Sell digital products & book sessions in ₦</span>
+                    <span>Sell digital products & book sessions in {currency}</span>
                   </div>
                 </div>
 
@@ -312,7 +314,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                         <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
                       </div>
                       <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200/60 dark:hover:bg-neutral-700 transition-colors cursor-pointer flex items-center justify-between text-xs font-medium text-neutral-900 dark:text-white">
-                        <span>Book 30-Min Strategy Call (₦25,000)</span>
+                        <span>Book 30-Min Strategy Call ({formatNgn(25000)})</span>
                         <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
                       </div>
                       <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200/60 dark:hover:bg-neutral-700 transition-colors cursor-pointer flex items-center justify-between text-xs font-medium text-neutral-900 dark:text-white">
@@ -489,7 +491,7 @@ export const MakroInteractiveShowcase: React.FC<{ onGetStarted: () => void }> = 
                         <div className="text-neutral-500 text-[10px]">Abuja FCT · 18 mins ago</div>
                       </div>
                     </div>
-                    <span className="text-[#16a34a] dark:text-[#16a34a] font-mono font-bold">Booked Call (₦25,000)</span>
+                    <span className="text-[#16a34a] dark:text-[#16a34a] font-mono font-bold">Booked Call ({formatNgn(25000)})</span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 flex items-center justify-between text-xs">
