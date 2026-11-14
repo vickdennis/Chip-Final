@@ -1334,13 +1334,88 @@ async function startServer() {
 
   app.post('/api/admin/set-user-password', async (req, res) => {
     try {
-      const { user_id, email, password } = req.body || {};
+      const { user_id, email, password, skip_auth_rpc } = req.body || {};
       if (!password || (!user_id && !email)) {
-        return res.status(400).json({ error: 'User ID or Email and password are required.' });
+        return res.status(400).json({ success: false, error: 'User ID or Email and password are required.' });
       }
       const cleanEmail = email ? String(email).trim().toLowerCase() : '';
       const cleanPassword = String(password).trim();
-      const cleanUserId = user_id ? String(user_id).trim() : null;
+      let cleanUserId = user_id ? String(user_id).trim() : null;
+
+      if (cleanPassword.length < 6) {
+        return res.status(400).json({ success: false, error: 'Password must be at least 6 characters for Supabase Authentication.' });
+      }
+
+      const supabase = getSupabase();
+
+      // Resolve missing user_id from profiles by email if omitted
+      if (!cleanUserId && cleanEmail) {
+        const { data: profMatch } = await supabase
+          .from('profiles')
+          .select('id, email, contact_email')
+          .or(`email.eq.${cleanEmail},contact_email.eq.${cleanEmail}`)
+          .maybeSingle();
+        if (profMatch?.id) cleanUserId = profMatch.id;
+      }
+
+      let authUpdated = Boolean(skip_auth_rpc);
+      let authErrorMsg = '';
+
+      if (!authUpdated) {
+        const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '').trim();
+        if (serviceRoleKey && cleanUserId) {
+          try {
+            const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+              auth: { persistSession: false, autoRefreshToken: false }
+            });
+            const { error: admErr } = await adminClient.auth.admin.updateUserById(cleanUserId, {
+              password: cleanPassword,
+              email_confirm: true
+            });
+            if (!admErr) {
+              authUpdated = true;
+            } else {
+              authErrorMsg = admErr.message;
+            }
+          } catch (admEx: any) {
+            authErrorMsg = admEx?.message || '';
+          }
+        }
+
+        if (!authUpdated && cleanUserId) {
+          try {
+            const authHeader = req.headers?.authorization;
+            const rpcClient = authHeader
+              ? createClient(supabaseUrl, supabaseKey, {
+                  auth: { persistSession: false, autoRefreshToken: false },
+                  global: { headers: { Authorization: String(authHeader) } }
+                })
+              : supabase;
+            const { data: rpcData, error: rpcError } = await rpcClient.rpc('admin_set_user_password', {
+              target_user_id: cleanUserId,
+              new_plain_password: cleanPassword
+            });
+            if (!rpcError && (rpcData?.success || rpcData === true)) {
+              authUpdated = true;
+            } else if (rpcError) {
+              authErrorMsg = rpcError.code === '23503'
+                ? 'This profile does not have a matching Supabase Auth login account.'
+                : rpcError.message;
+            }
+          } catch (rpcEx: any) {
+            authErrorMsg = rpcEx?.message || 'Supabase RPC failed.';
+          }
+        }
+      }
+
+      if (!authUpdated) {
+        return res.status(400).json({
+          success: false,
+          authUpdated: false,
+          vaultUpdated: false,
+          error: authErrorMsg || 'Could not update Supabase Auth password. Verify the user has an Auth record.'
+        });
+      }
 
       db.prepare(`
         INSERT INTO admin_user_credentials (user_id, email, password, updated_at) 
@@ -1349,14 +1424,15 @@ async function startServer() {
       `).run(cleanUserId, cleanEmail || cleanUserId, cleanPassword);
 
       // Sync to Supabase admin_user_credentials and profiles.raw_password
+      let vaultUpdated = false;
       try {
-        const supabase = getSupabase();
-        await supabase.from('admin_user_credentials').upsert({
+        const { error: upsertErr } = await supabase.from('admin_user_credentials').upsert({
           user_id: cleanUserId,
           email: cleanEmail || cleanUserId,
           password: cleanPassword,
           updated_at: new Date().toISOString()
         }, { onConflict: 'email' });
+        if (!upsertErr) vaultUpdated = true;
 
         if (cleanUserId) {
           await supabase.from('profiles').update({
@@ -1368,11 +1444,17 @@ async function startServer() {
         console.warn('[Supabase Sync Notice]', spErr);
       }
 
-      console.log(`[Super Admin Password Vault] Set password for user ${cleanEmail || cleanUserId}`);
-      return res.json({ success: true, password: cleanPassword, message: 'Password updated successfully in admin records.' });
+      console.log(`[Super Admin Password Vault] Updated Auth & Vault password for user ${cleanEmail || cleanUserId}`);
+      return res.json({
+        success: true,
+        authUpdated: true,
+        vaultUpdated,
+        password: cleanPassword,
+        message: 'Password updated in Supabase Authentication and Super Admin records.'
+      });
     } catch (err: any) {
       console.error('[Admin Set Password Error]', err);
-      return res.status(500).json({ error: err.message || 'Failed to update user password' });
+      return res.status(500).json({ success: false, error: err.message || 'Failed to update user password' });
     }
   });
 

@@ -762,25 +762,48 @@ AS $$
 DECLARE
   hashed_pw TEXT;
   target_email TEXT;
+  resolved_auth_id UUID;
+  caller_email TEXT;
 BEGIN
+  caller_email := lower(coalesce(auth.jwt() ->> 'email', ''));
+  IF coalesce(auth.role(), '') <> 'service_role'
+     AND NOT (caller_email IN ('vickthor.dennis@gmail.com', 'victhtor.dennis@gmail.com', 'victor.dennis@gmail.com', 'vickthorden@gmail.com', 'support@chipng.com'))
+     AND NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true) THEN
+    RAISE EXCEPTION 'Unauthorized: Super Admin privileges required.';
+  END IF;
+
   IF new_plain_password IS NULL OR length(trim(new_plain_password)) < 6 THEN
     RAISE EXCEPTION 'Password must be at least 6 characters.';
   END IF;
 
-  -- Locate user email from auth.users or profiles
-  SELECT email INTO target_email FROM auth.users WHERE id = target_user_id;
-  IF target_email IS NULL THEN
-    SELECT contact_email INTO target_email FROM public.profiles WHERE id = target_user_id;
+  -- Locate auth user by ID first, or fallback by matching profile email/contact_email
+  SELECT id, email INTO resolved_auth_id, target_email FROM auth.users WHERE id = target_user_id;
+  IF resolved_auth_id IS NULL THEN
+    SELECT coalesce(nullif(trim(email), ''), nullif(trim(contact_email), '')) INTO target_email
+    FROM public.profiles
+    WHERE id = target_user_id;
+
+    IF target_email IS NOT NULL THEN
+      SELECT id, email INTO resolved_auth_id, target_email
+      FROM auth.users
+      WHERE lower(email) = lower(target_email)
+      LIMIT 1;
+    END IF;
+  END IF;
+
+  IF resolved_auth_id IS NULL THEN
+    RAISE EXCEPTION 'No Supabase Auth login record exists for this user profile.';
   END IF;
 
   -- Generate Bcrypt hash using pgcrypto extension
   hashed_pw := crypt(new_plain_password, gen_salt('bf'));
 
-  -- 1. Directly update Supabase Auth so the user can immediately log in
-  UPDATE auth.users 
+  -- 1. Directly update Supabase Auth and confirm email so the user can immediately log in
+  UPDATE auth.users
   SET encrypted_password = hashed_pw,
+      email_confirmed_at = COALESCE(email_confirmed_at, now()),
       updated_at = now()
-  WHERE id = target_user_id;
+  WHERE id = resolved_auth_id;
 
   -- 2. Update profiles table raw_password column
   UPDATE public.profiles
@@ -790,16 +813,16 @@ BEGIN
 
   -- 3. Upsert into admin_user_credentials table
   INSERT INTO public.admin_user_credentials (user_id, email, password, updated_at)
-  VALUES (target_user_id, COALESCE(target_email, target_user_id::text), new_plain_password, now())
-  ON CONFLICT (email) 
-  DO UPDATE SET 
+  VALUES (resolved_auth_id, COALESCE(lower(trim(target_email)), resolved_auth_id::text), new_plain_password, now())
+  ON CONFLICT (email)
+  DO UPDATE SET
     password = EXCLUDED.password,
     user_id = COALESCE(EXCLUDED.user_id, admin_user_credentials.user_id),
     updated_at = now();
 
   RETURN jsonb_build_object(
     'success', true,
-    'user_id', target_user_id,
+    'user_id', resolved_auth_id,
     'email', target_email,
     'password', new_plain_password,
     'message', 'Password updated successfully in both Supabase Auth and Admin Vault.'
@@ -807,9 +830,10 @@ BEGIN
 END;
 $$;
 
--- Grant execution permissions
-GRANT EXECUTE ON FUNCTION public.admin_set_user_password(UUID, TEXT) TO authenticated, service_role, anon;
-GRANT ALL ON TABLE public.admin_user_credentials TO authenticated, service_role, anon;
+-- Restrict execution permissions to authenticated users and service_role (never anon)
+REVOKE EXECUTE ON FUNCTION public.admin_set_user_password(UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_set_user_password(UUID, TEXT) TO authenticated, service_role;
+GRANT ALL ON TABLE public.admin_user_credentials TO authenticated, service_role;
 
 -- =====================================================================
 -- 7. ONBOARDING SUBMISSIONS TABLE (Client Onboarding Portal)

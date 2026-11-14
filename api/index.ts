@@ -14,7 +14,61 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthy
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
 
 function getSupabase() {
-  return createClient(supabaseUrl, supabaseKey);
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+const SUPER_ADMIN_ALLOWLIST = new Set([
+  'vickthor.dennis@gmail.com',
+  'victhtor.dennis@gmail.com',
+  'victor.dennis@gmail.com',
+  'vickthorden@gmail.com',
+  'support@chipng.com',
+]);
+
+async function verifyAdminRequest(req: Request): Promise<{ authorized: boolean; status: number; error: string; userId?: string }> {
+  const authHeader = req.headers?.authorization;
+  if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+    return { authorized: false, status: 401, error: 'Authentication required (missing Bearer token).' };
+  }
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return { authorized: false, status: 401, error: 'Authentication required (empty Bearer token).' };
+  }
+  try {
+    const supabase = getSupabase();
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      return { authorized: false, status: 401, error: 'Invalid or expired authentication token.' };
+    }
+    const emailLower = (user.email || '').toLowerCase().trim();
+    if (SUPER_ADMIN_ALLOWLIST.has(emailLower)) {
+      return { authorized: true, status: 200, error: '', userId: user.id };
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (profile?.is_admin) {
+      return { authorized: true, status: 200, error: '', userId: user.id };
+    }
+    return { authorized: false, status: 403, error: 'Super Admin privileges required.' };
+  } catch {
+    return { authorized: false, status: 401, error: 'Token verification failed.' };
+  }
+}
+
+async function requireAdminMiddleware(req: Request, res: Response, next: any) {
+  const check = await verifyAdminRequest(req);
+  if (!check.authorized) {
+    return res.status(check.status).json({ success: false, error: check.error });
+  }
+  next();
 }
 
 const app = express();
@@ -1047,15 +1101,18 @@ app.post('/api/admin/create-user', async (req: Request, res: Response) => {
 // In-memory / serverless vault cache for credentials
 const serverlessCredentialsCache: Record<string, string> = {};
 
-app.get('/api/admin/user-credentials', async (req: Request, res: Response) => {
+app.get('/api/admin/user-credentials', requireAdminMiddleware, async (req: Request, res: Response) => {
   const merged: Record<string, string> = { ...serverlessCredentialsCache };
   try {
     const supabase = getSupabase();
-    const { data: spRows } = await supabase.from('admin_user_credentials').select('*');
+    const { data: spRows } = await supabase
+      .from('admin_user_credentials')
+      .select('*')
+      .order('updated_at', { ascending: true });
     if (spRows && Array.isArray(spRows)) {
       for (const r of spRows) {
-        if (r.email) merged[r.email.toLowerCase().trim()] = r.password;
-        if (r.user_id) merged[r.user_id] = r.password;
+        if (r.email && r.password) merged[r.email.toLowerCase().trim()] = r.password;
+        if (r.user_id && r.password) merged[r.user_id] = r.password;
       }
     }
   } catch (e) {}
@@ -1063,38 +1120,123 @@ app.get('/api/admin/user-credentials', async (req: Request, res: Response) => {
   res.json({ credentials: merged, list: Object.entries(merged).map(([email, password]) => ({ email, password })) });
 });
 
-app.post('/api/admin/set-user-password', async (req: Request, res: Response) => {
-  const { user_id, email, password } = req.body || {};
-  if (!password || (!user_id && !email)) {
-    return res.status(400).json({ error: 'User ID or Email and password are required.' });
-  }
-  const cleanEmail = email ? String(email).trim().toLowerCase() : '';
-  const cleanPassword = String(password).trim();
-  const cleanUserId = user_id ? String(user_id).trim() : '';
-
-  if (cleanEmail) serverlessCredentialsCache[cleanEmail] = cleanPassword;
-  if (cleanUserId) serverlessCredentialsCache[cleanUserId] = cleanPassword;
-
+app.post('/api/admin/set-user-password', requireAdminMiddleware, async (req: Request, res: Response) => {
   try {
-    const supabase = getSupabase();
-    await supabase.from('admin_user_credentials').upsert({
-      user_id: cleanUserId || null,
-      email: cleanEmail || cleanUserId,
-      password: cleanPassword,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'email' });
-
-    if (cleanUserId) {
-      await supabase.from('profiles').update({
-        raw_password: cleanPassword,
-        updated_at: new Date().toISOString()
-      }).eq('id', cleanUserId);
+    const { user_id, email, password, skip_auth_rpc } = req.body || {};
+    if (!password || (!user_id && !email)) {
+      return res.status(400).json({ success: false, error: 'User ID or Email and password are required.' });
     }
-  } catch (e) {
-    console.warn('[Serverless Supabase Credential Sync Notice]', e);
-  }
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+    const cleanPassword = String(password).trim();
+    let cleanUserId = user_id ? String(user_id).trim() : '';
 
-  return res.json({ success: true, password: cleanPassword, message: 'Password updated successfully in admin records.' });
+    if (cleanPassword.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters for Supabase Authentication.' });
+    }
+
+    const supabase = getSupabase();
+
+    if (!cleanUserId && cleanEmail) {
+      const { data: profMatch } = await supabase
+        .from('profiles')
+        .select('id, email, contact_email')
+        .or(`email.eq.${cleanEmail},contact_email.eq.${cleanEmail}`)
+        .maybeSingle();
+      if (profMatch?.id) cleanUserId = profMatch.id;
+    }
+
+    let authUpdated = Boolean(skip_auth_rpc);
+    let authErrorMsg = '';
+
+    if (!authUpdated) {
+      const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '').trim();
+      if (serviceRoleKey && cleanUserId) {
+        try {
+          const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+            auth: { persistSession: false, autoRefreshToken: false }
+          });
+          const { error: admErr } = await adminClient.auth.admin.updateUserById(cleanUserId, {
+            password: cleanPassword,
+            email_confirm: true
+          });
+          if (!admErr) {
+            authUpdated = true;
+          } else {
+            authErrorMsg = admErr.message;
+          }
+        } catch (admEx: any) {
+          authErrorMsg = admEx?.message || '';
+        }
+      }
+
+      if (!authUpdated && cleanUserId) {
+        try {
+          const authHeader = req.headers?.authorization;
+          const rpcClient = authHeader
+            ? createClient(supabaseUrl, supabaseKey, {
+                auth: { persistSession: false, autoRefreshToken: false },
+                global: { headers: { Authorization: String(authHeader) } }
+              })
+            : supabase;
+          const { data: rpcData, error: rpcError } = await rpcClient.rpc('admin_set_user_password', {
+            target_user_id: cleanUserId,
+            new_plain_password: cleanPassword
+          });
+          if (!rpcError && (rpcData?.success || rpcData === true)) {
+            authUpdated = true;
+          } else if (rpcError) {
+            authErrorMsg = rpcError.code === '23503'
+              ? 'This profile does not have a matching Supabase Auth login account.'
+              : rpcError.message;
+          }
+        } catch (rpcEx: any) {
+          authErrorMsg = rpcEx?.message || 'Supabase RPC failed.';
+        }
+      }
+    }
+
+    if (!authUpdated) {
+      return res.status(400).json({
+        success: false,
+        authUpdated: false,
+        vaultUpdated: false,
+        error: authErrorMsg || 'Could not update Supabase Auth password. Verify the user has an Auth record.'
+      });
+    }
+
+    if (cleanEmail) serverlessCredentialsCache[cleanEmail] = cleanPassword;
+    if (cleanUserId) serverlessCredentialsCache[cleanUserId] = cleanPassword;
+
+    let vaultUpdated = false;
+    try {
+      const { error: upsertErr } = await supabase.from('admin_user_credentials').upsert({
+        user_id: cleanUserId || null,
+        email: cleanEmail || cleanUserId,
+        password: cleanPassword,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'email' });
+      if (!upsertErr) vaultUpdated = true;
+
+      if (cleanUserId) {
+        await supabase.from('profiles').update({
+          raw_password: cleanPassword,
+          updated_at: new Date().toISOString()
+        }).eq('id', cleanUserId);
+      }
+    } catch (e) {
+      console.warn('[Serverless Supabase Credential Sync Notice]', e);
+    }
+
+    return res.json({
+      success: true,
+      authUpdated: true,
+      vaultUpdated,
+      password: cleanPassword,
+      message: 'Password updated in Supabase Authentication and Super Admin records.'
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err?.message || 'Failed to update user password' });
+  }
 });
 
 // --- Google Form & Response Sheet Ingestion APIs ---

@@ -108,6 +108,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [settingPasswordUser, setSettingPasswordUser] = useState<any | null>(null);
   const [newPasswordInput, setNewPasswordInput] = useState<string>('');
   const [savingPasswordLoading, setSavingPasswordLoading] = useState<boolean>(false);
+  const [passwordModalError, setPasswordModalError] = useState<string>('');
+  const [showModalPassword, setShowModalPassword] = useState<boolean>(true);
 
   // Google Form Automated Profile Ingestion State
   const [showGoogleFormModal, setShowGoogleFormModal] = useState<boolean>(false);
@@ -444,22 +446,24 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     if (postsData) setPosts(postsData);
     if (blogViewsCount !== null) setBlogViews(blogViewsCount);
 
-    // Fetch Super Admin User Credentials Vault (Direct from Supabase + Backend Vault)
+    // Fetch Super Admin User Credentials Vault (Lowest priority: profiles.raw_password -> Backend Vault -> Newest Supabase admin_user_credentials)
     try {
       const credMap: Record<string, string> = {};
 
-      // 1. Directly query Supabase admin_user_credentials
-      try {
-        const { data: credRows } = await supabase.from('admin_user_credentials').select('*');
-        if (credRows && Array.isArray(credRows)) {
-          for (const row of credRows) {
-            if (row.email) credMap[row.email.toLowerCase().trim()] = row.password;
-            if (row.user_id) credMap[row.user_id] = row.password;
+      // 1. Baseline fallback from profiles.raw_password
+      if (usersData && Array.isArray(usersData)) {
+        for (const u of usersData) {
+          if (u.raw_password) {
+            const loginEmailKey = String(u.email || '').toLowerCase().trim();
+            const contactEmailKey = String(u.contact_email || '').toLowerCase().trim();
+            if (loginEmailKey) credMap[loginEmailKey] = u.raw_password;
+            if (contactEmailKey) credMap[contactEmailKey] = u.raw_password;
+            if (u.id) credMap[u.id] = u.raw_password;
           }
         }
-      } catch (spErr) {}
+      }
 
-      // 2. Query backend credentials vault
+      // 2. Query backend credentials vault (SQLite + Supabase merge)
       try {
         const authHeaders = await getAdminAuthHeaders();
         const credRes = await fetch('/api/admin/user-credentials', { headers: authHeaders });
@@ -471,16 +475,19 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         }
       } catch (apiErr) {}
 
-      // 3. Fallback to profiles.raw_password if available
-      if (usersData && Array.isArray(usersData)) {
-        for (const u of usersData) {
-          if (u.raw_password) {
-            const emailKey = String(u.contact_email || u.email || '').toLowerCase().trim();
-            if (emailKey) credMap[emailKey] = u.raw_password;
-            if (u.id) credMap[u.id] = u.raw_password;
+      // 3. Direct Supabase admin_user_credentials ordered ascending by updated_at (newest update wins)
+      try {
+        const { data: credRows } = await supabase
+          .from('admin_user_credentials')
+          .select('*')
+          .order('updated_at', { ascending: true });
+        if (credRows && Array.isArray(credRows)) {
+          for (const row of credRows) {
+            if (row.email && row.password) credMap[row.email.toLowerCase().trim()] = row.password;
+            if (row.user_id && row.password) credMap[row.user_id] = row.password;
           }
         }
-      }
+      } catch (spErr) {}
 
       setUserCredentials(credMap);
     } catch (e) {}
@@ -894,52 +901,53 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   const handleSaveUserPassword = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!settingPasswordUser || !newPasswordInput.trim()) return;
+    if (!settingPasswordUser) return;
+
+    const cleanPassword = newPasswordInput.trim();
+    if (!cleanPassword) {
+      setPasswordModalError('Please enter a new password.');
+      return;
+    }
+    if (cleanPassword.length < 6) {
+      const minErr = 'Password must be at least 6 characters for Supabase Authentication.';
+      setPasswordModalError(minErr);
+      toast.error(minErr);
+      return;
+    }
 
     setSavingPasswordLoading(true);
-    const cleanPassword = newPasswordInput.trim();
+    setPasswordModalError('');
     const targetUserId = settingPasswordUser.id;
-    const email = (settingPasswordUser.contact_email || settingPasswordUser.email || '').toLowerCase().trim();
+    const loginEmail = (settingPasswordUser.email || settingPasswordUser.contact_email || '').toLowerCase().trim();
+    const contactEmail = (settingPasswordUser.contact_email || '').toLowerCase().trim();
 
     try {
-      let saved = false;
+      let authUpdated = false;
+      let vaultUpdated = false;
       let errorMsg = '';
 
-      // 1. Call Supabase Stored Procedure (updates Supabase Auth encrypted_password + profiles + admin_user_credentials)
+      // 1. Call Supabase Stored Procedure (updates Supabase Auth encrypted_password + email_confirmed_at + profiles + admin_user_credentials)
       try {
         const { data: rpcData, error: rpcError } = await supabase.rpc('admin_set_user_password', {
           target_user_id: targetUserId,
           new_plain_password: cleanPassword
         });
         if (!rpcError && (rpcData?.success || rpcData === true)) {
-          saved = true;
+          authUpdated = true;
+          vaultUpdated = true;
         } else if (rpcError) {
-          errorMsg = rpcError.message;
+          const rawRpcMsg = String(rpcError.message || '');
+          if (rpcError.code === '23503' || rawRpcMsg.includes('admin_user_credentials_user_id_fkey')) {
+            errorMsg = 'This profile does not have a matching Supabase Auth user account yet.';
+          } else {
+            errorMsg = rawRpcMsg;
+          }
         }
       } catch (rpcErr: any) {
-        errorMsg = rpcErr.message;
+        errorMsg = rpcErr?.message || 'Supabase password update failed.';
       }
 
-      // 2. Direct Supabase Table Upserts (in case RPC is still pending or for immediate local reflection)
-      try {
-        await supabase.from('admin_user_credentials').upsert({
-          user_id: targetUserId,
-          email: email || targetUserId,
-          password: cleanPassword,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'email' });
-
-        await supabase.from('profiles').update({
-          raw_password: cleanPassword,
-          updated_at: new Date().toISOString()
-        }).eq('id', targetUserId);
-
-        saved = true;
-      } catch (directErr: any) {
-        if (!saved) errorMsg = directErr.message;
-      }
-
-      // 3. Backend Proxy Sync
+      // 2. Backend Proxy Sync (also updates Auth via RPC/Service Role if Step 1 failed and persists vault in SQLite + Supabase)
       try {
         const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         const res = await fetch('/api/admin/set-user-password', {
@@ -947,30 +955,59 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
           headers,
           body: JSON.stringify({
             user_id: targetUserId,
-            email,
-            password: cleanPassword
+            email: loginEmail,
+            password: cleanPassword,
+            skip_auth_rpc: authUpdated
           })
         });
-        if (res.ok) {
-          saved = true;
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data?.success) {
+          if (data.authUpdated) authUpdated = true;
+          if (data.vaultUpdated !== false) vaultUpdated = true;
+        } else if (!authUpdated && data?.error) {
+          errorMsg = data.error;
         }
-      } catch (backendErr) {}
+      } catch (_backendErr) {}
 
-      if (saved) {
+      // 3. Ensure Supabase vault & profiles.raw_password are synced with explicit error checking
+      if (authUpdated) {
+        try {
+          const { error: credErr } = await supabase.from('admin_user_credentials').upsert({
+            user_id: targetUserId,
+            email: loginEmail || targetUserId,
+            password: cleanPassword,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'email' });
+          if (!credErr) vaultUpdated = true;
+
+          await supabase.from('profiles').update({
+            raw_password: cleanPassword,
+            updated_at: new Date().toISOString()
+          }).eq('id', targetUserId);
+        } catch (_syncErr) {}
+      }
+
+      if (authUpdated) {
         setUserCredentials(prev => {
           const updated = { ...prev, [targetUserId]: cleanPassword };
-          if (email) updated[email] = cleanPassword;
+          if (loginEmail) updated[loginEmail] = cleanPassword;
+          if (contactEmail) updated[contactEmail] = cleanPassword;
           return updated;
         });
         setUsers(prev => prev.map(u => u.id === targetUserId ? { ...u, raw_password: cleanPassword } : u));
-        toast.success(`Password saved for ${settingPasswordUser.full_name || settingPasswordUser.username || email}!`);
+        toast.success(`Password updated for ${settingPasswordUser.full_name || settingPasswordUser.username || loginEmail}! User can log in immediately.`);
         setSettingPasswordUser(null);
         setNewPasswordInput('');
+        setPasswordModalError('');
       } else {
-        toast.error(`Unable to save password: ${errorMsg || 'Please paste the Supabase schema in your SQL Editor.'}`);
+        const finalErr = errorMsg || 'Failed to update Supabase Authentication password. Verify the user has an Auth account and your SQL RPC is active.';
+        setPasswordModalError(finalErr);
+        toast.error(finalErr);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Error updating password.');
+      const msg = err?.message || 'Error updating password.';
+      setPasswordModalError(msg);
+      toast.error(msg);
     } finally {
       setSavingPasswordLoading(false);
     }
@@ -1818,9 +1855,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       {/* Password Column (Super Admin Only) */}
                       <td className="py-3.5 px-4">
                         {(() => {
-                          const emailKey = String(u?.contact_email || u?.email || '').toLowerCase().trim();
+                          const loginEmailKey = String(u?.email || '').toLowerCase().trim();
+                          const contactEmailKey = String(u?.contact_email || '').toLowerCase().trim();
                           const creds = (userCredentials && typeof userCredentials === 'object') ? userCredentials : {};
-                          const pass = creds[emailKey] || (u?.id ? creds[u.id] : undefined);
+                          const pass = (u?.id ? creds[u.id] : undefined) || (loginEmailKey ? creds[loginEmailKey] : undefined) || (contactEmailKey ? creds[contactEmailKey] : undefined) || u?.raw_password;
                           const isRevealed = Boolean(u?.id && revealedPasswords && revealedPasswords[u.id]);
 
                           if (pass) {
@@ -1853,6 +1891,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 <button
                                   type="button"
                                   onClick={() => {
+                                    setPasswordModalError('');
+                                    setShowModalPassword(true);
                                     setSettingPasswordUser(u);
                                     setNewPasswordInput(pass);
                                   }}
@@ -1873,6 +1913,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                               <button
                                 type="button"
                                 onClick={() => {
+                                  setPasswordModalError('');
+                                  setShowModalPassword(true);
                                   setSettingPasswordUser(u);
                                   setNewPasswordInput('');
                                 }}
@@ -2979,14 +3021,16 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           Manage User Password
                         </h3>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                          {settingPasswordUser.full_name || settingPasswordUser.username || settingPasswordUser.email}
+                          {settingPasswordUser.full_name || settingPasswordUser.username || settingPasswordUser.email || settingPasswordUser.contact_email}
                         </p>
                       </div>
                     </div>
                     <button 
+                      type="button"
                       onClick={() => {
                         setSettingPasswordUser(null);
                         setNewPasswordInput('');
+                        setPasswordModalError('');
                       }} 
                       className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
                     >
@@ -2996,20 +3040,32 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
                   <form onSubmit={handleSaveUserPassword} className="space-y-4">
                     <div className="p-3 bg-neutral-50 dark:bg-[#151821] rounded-2xl border border-neutral-200/60 dark:border-white/5 text-xs text-neutral-500 dark:text-neutral-400 space-y-1">
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-neutral-700 dark:text-neutral-300">Account Email:</span>
-                        <span className="font-mono">{settingPasswordUser.contact_email || settingPasswordUser.email || 'None'}</span>
+                      <div className="flex justify-between gap-2">
+                        <span className="font-semibold text-neutral-700 dark:text-neutral-300">Login Email:</span>
+                        <span className="font-mono truncate">{settingPasswordUser.email || settingPasswordUser.contact_email || 'None'}</span>
                       </div>
-                      <div className="flex justify-between">
+                      {settingPasswordUser.contact_email && settingPasswordUser.email && settingPasswordUser.contact_email !== settingPasswordUser.email && (
+                        <div className="flex justify-between gap-2">
+                          <span className="font-semibold text-neutral-700 dark:text-neutral-300">Card Email:</span>
+                          <span className="font-mono truncate">{settingPasswordUser.contact_email}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between gap-2">
                         <span className="font-semibold text-neutral-700 dark:text-neutral-300">Handle:</span>
                         <span className="font-mono">@{settingPasswordUser.username || 'unknown'}</span>
                       </div>
                     </div>
 
+                    {passwordModalError && (
+                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-medium leading-relaxed">
+                        {passwordModalError}
+                      </div>
+                    )}
+
                     <div>
                       <div className="flex justify-between items-center mb-1.5">
                         <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                          New Password *
+                          New Password * <span className="normal-case font-normal text-neutral-400">(min 6 chars)</span>
                         </label>
                         <button
                           type="button"
@@ -3020,6 +3076,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                               gen += chars.charAt(Math.floor(Math.random() * chars.length));
                             }
                             setNewPasswordInput(gen);
+                            setPasswordModalError('');
                             toast.info('Generated new strong password');
                           }}
                           className="text-[11px] text-[#16a34a] hover:underline font-bold flex items-center gap-1 cursor-pointer"
@@ -3027,18 +3084,47 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           <Sparkles className="w-3 h-3" /> Auto-Generate
                         </button>
                       </div>
-                      <div className="relative">
+                      <div className="relative flex items-center">
                         <input
                           required
-                          type="text"
+                          minLength={6}
+                          type={showModalPassword ? 'text' : 'password'}
                           value={newPasswordInput}
-                          onChange={e => setNewPasswordInput(e.target.value)}
-                          placeholder="Enter or generate password..."
-                          className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-mono font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]"
+                          onChange={e => {
+                            setNewPasswordInput(e.target.value);
+                            if (passwordModalError) setPasswordModalError('');
+                          }}
+                          placeholder="Enter or generate password (6+ chars)..."
+                          className="w-full pl-4 pr-20 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-mono font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]"
                         />
+                        <div className="absolute right-2 flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowModalPassword(prev => !prev)}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+                            title={showModalPassword ? 'Hide Password' : 'Show Password'}
+                          >
+                            {showModalPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                          {newPasswordInput.trim() && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (navigator?.clipboard?.writeText) {
+                                  navigator.clipboard.writeText(newPasswordInput.trim());
+                                  toast.success('Password copied to clipboard!');
+                                }
+                              }}
+                              className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+                              title="Copy Password"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-[11px] text-neutral-400 mt-1.5 leading-relaxed">
-                        This updates both Supabase Authentication and the Super Admin Credentials Vault. The user can log in with this password immediately.
+                        Updates both Supabase Authentication (enabling immediate sign-in) and the Super Admin Credentials Vault.
                       </p>
                     </div>
 
@@ -3048,6 +3134,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         onClick={() => {
                           setSettingPasswordUser(null);
                           setNewPasswordInput('');
+                          setPasswordModalError('');
                         }}
                         className="px-4 py-2 rounded-full border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs cursor-pointer"
                       >
@@ -3055,7 +3142,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       </button>
                       <button
                         type="submit"
-                        disabled={savingPasswordLoading || !newPasswordInput.trim()}
+                        disabled={savingPasswordLoading || newPasswordInput.trim().length < 6}
                         className="px-5 py-2 rounded-full bg-neutral-950 text-white dark:bg-[#16a34a] dark:text-neutral-950 hover:opacity-90 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                       >
                         {savingPasswordLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
