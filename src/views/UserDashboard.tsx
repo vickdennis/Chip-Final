@@ -59,6 +59,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
   const [activeTab, setActiveTab] = useState<'analytics' | 'leads' | 'profile' | 'links' | 'social' | 'shop' | 'appearance' | 'gallery' | 'nfc' | 'buy-nfc' | 'referrals' | 'settings' | 'intro-video'>('profile');
   const [leadsStats, setLeadsStats] = useState<{ total: number; newCount: number; convertedCount: number }>({ total: 0, newCount: 0, convertedCount: 0 });
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [pendingCancelVerification, setPendingCancelVerification] = useState(false);
 
   const isProActive = Boolean(
     profile?.is_pro || 
@@ -1275,10 +1276,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       }
       
       setProfile({ ...profile, unlocked_themes: newUnlocked, theme: theme.id });
-      alert('Theme purchased successfully!');
+      toast.success('Theme purchased successfully!');
     } catch (err: any) {
       console.error(err);
-      alert('Error purchasing theme: ' + err.message);
+      toast.error('Error purchasing theme: ' + err.message);
     }
   };
 
@@ -1673,7 +1674,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     type="button"
                     onClick={async () => {
                       if (!checkoutName || !checkoutPhone || !checkoutAddress || !selectedNfcCard) {
-                        alert('Please fill in your name, WhatsApp phone, and delivery address.');
+                        toast.error('Please fill in your name, WhatsApp phone, and delivery address.');
                         return;
                       }
                       const txRef = `SHOP_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
@@ -1732,7 +1733,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                 reference: ref,
                                 status: 'success'
                               });
-                              alert('Payment complete! We will process your NFC card order shortly.');
+                              toast.success('Payment complete! We will process your NFC card order shortly.');
                               
                               const message = `*New NFC Card Order from ${checkoutName} (${checkoutPhone})*\n\n*Item:* ${selectedNfcCard.name} (${formatCurrencyAmount(cardCheckout.checkoutAmount, cardCheckout.checkoutCurrency)})\n*Delivery Country:* ${countryObj.name}\n*Delivery Address:* ${checkoutAddress}\n*Reference:* ${ref}`;
                               const waUrl = `https://wa.me/2348100764154?text=${encodeURIComponent(message)}`;
@@ -1744,12 +1745,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                               setCheckoutAddress('');
                             } catch(err) {
                               console.error(err);
-                              alert('Error processing purchase.');
+                              toast.error('Error processing purchase.');
                             }
                           },
                         });
                       } catch (err: any) {
-                        alert(err?.message || 'Failed to open Flutterwave gateway');
+                        toast.error(err?.message || 'Failed to open Flutterwave gateway');
                       }
                     }}
                     disabled={!selectedNfcCard || !checkoutName || !checkoutPhone || !checkoutAddress}
@@ -2691,16 +2692,36 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                           </select>
                         )}
                         {profile.is_verified ? (
-                          <button
-                            onClick={() => {
-                              if (window.confirm('Cancel your verification subscription?')) {
-                                setProfile({ ...profile, is_verified: false });
-                              }
-                            }}
-                            className="px-4 py-2.5 text-xs font-bold rounded-full transition-colors bg-neutral-100 dark:bg-white/10 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/15"
-                          >
-                            Cancel Subscription
-                          </button>
+                          pendingCancelVerification ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setProfile({ ...profile, is_verified: false });
+                                  setPendingCancelVerification(false);
+                                  toast.info('Verification subscription cancelled.');
+                                }}
+                                className="px-3.5 py-2 text-xs font-bold rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
+                              >
+                                Confirm Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPendingCancelVerification(false)}
+                                className="px-3.5 py-2 text-xs font-semibold rounded-full bg-neutral-100 dark:bg-white/10 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/15 transition-colors cursor-pointer"
+                              >
+                                Keep
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setPendingCancelVerification(true)}
+                              className="px-4 py-2.5 text-xs font-bold rounded-full transition-colors bg-neutral-100 dark:bg-white/10 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/15 cursor-pointer"
+                            >
+                              Cancel Subscription
+                            </button>
+                          )
                         ) : (
                           <button
                             type="button"
@@ -2740,11 +2761,11 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                         console.error("Failed to record verification purchase", e);
                                       }
                                     }
-                                    alert('Payment successful! You are now verified.');
+                                    toast.success('Payment successful! You are now verified.');
                                   },
                                 });
                               } catch (err: any) {
-                                alert(err?.message || 'Failed to open Flutterwave gateway');
+                                toast.error(err?.message || 'Failed to open Flutterwave gateway');
                               }
                             }}
                             className="px-5 py-2.5 text-xs font-bold rounded-full transition-all bg-[#16a34a] hover:bg-[#15803d] text-white shadow-sm cursor-pointer"
@@ -3146,7 +3167,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                         <button 
                           title="Auto-fetch followers"
                           onClick={async () => {
-                            if (!item.url) return alert("Please enter a URL first.");
+                            if (!item.url) {
+                              toast.error("Please enter a URL first.");
+                              return;
+                            }
                             let hash = 0;
                             for (let c = 0; c < item.url.length; c++) hash = item.url.charCodeAt(c) + ((hash << 5) - hash);
                             const count = Math.abs(hash) % 1000000 + 1000;
@@ -3450,7 +3474,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                     
                                     setLinks(links.map(l => l.id === img.id ? { ...l, url: data.publicUrl } : l));
                                   } catch (err: any) {
-                                    alert(err.message);
+                                    toast.error(err.message);
                                   } finally {
                                     setUploading(false);
                                   }
@@ -3503,7 +3527,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                                 setLinks([...links, newLink]);
                               }
                             } catch (err: any) {
-                              alert(err.message);
+                              toast.error(err.message);
                             } finally {
                               setUploading(false);
                             }
@@ -3782,7 +3806,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       setCurrentLink({...currentLink, image_url: data.publicUrl});
                     } catch (err: any) {
                       console.error(err);
-                      alert('Error uploading image: ' + err.message);
+                      toast.error('Error uploading image: ' + err.message);
                     } finally {
                       setUploading(false);
                     }
@@ -3891,7 +3915,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                   setSetupGuideActive(false);
-                  alert("🎉 Setup Complete! Your public bio card is ready.");
+                  toast.success("Setup Complete! Your public bio card is ready.");
                 }
               }}
               className="flex-1 sm:flex-none px-5 py-2.5 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-full font-bold transition-all text-xs shadow-sm"

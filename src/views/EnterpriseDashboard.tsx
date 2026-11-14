@@ -9,6 +9,7 @@ import { openFlutterwavePayment } from '../utils/flutterwaveClient';
 import BrandLogo from '../components/BrandLogo';
 import { useCurrency } from '../context/CurrencyContext';
 import { formatCurrencyAmount } from '../utils/currency';
+import { toast } from '../components/Toast';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const { currency, formatNgn, getCheckout } = useCurrency();
@@ -32,6 +33,10 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
     name: '', brand_color: '#000000', logo_url: '', brand_font: 'sans'
   });
   const [profile, setProfile] = useState<any>(null);
+  const [showCompanyNameModal, setShowCompanyNameModal] = useState(false);
+  const [companyNameInput, setCompanyNameInput] = useState('');
+  const [creatingEnterpriseLoading, setCreatingEnterpriseLoading] = useState(false);
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEnterpriseData();
@@ -52,7 +57,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       const { data: ent } = await supabase.from('enterprises').select('*').eq('id', userProfile.enterprise_id).single();
       if (ent) {
         if (ent.owner_id !== user.id) {
-          alert("You belong to an enterprise, but you are not the owner. Access denied to Enterprise Dashboard.");
+          toast.error("You belong to an enterprise, but you are not the owner. Access denied to Enterprise Dashboard.");
           onNavigate('user-dashboard');
           return;
         }
@@ -91,15 +96,23 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
     setLoading(false);
   };
 
-  const handleCreateEnterpriseSuccess = async (response: any) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const handleCreateEnterpriseSuccess = async () => {
+    setShowCompanyNameModal(true);
+  };
 
-    const newEntName = prompt("Payment successful! Enter your company name:");
-    if (!newEntName) return;
+  const handleConfirmCompanyCreation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newEntName = companyNameInput.trim();
+    if (!newEntName) {
+      toast.error('Please enter your company name.');
+      return;
+    }
 
+    setCreatingEnterpriseLoading(true);
     try {
-      // Create enterprise
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { data: newEnt, error: entError } = await supabase.from('enterprises').insert({
         name: newEntName,
         owner_id: user.id,
@@ -108,15 +121,19 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
 
       if (entError) throw entError;
 
-      // Update current profile
       await supabase.from('profiles').update({
         enterprise_id: newEnt.id,
         is_enterprise_owner: true
       }).eq('id', user.id);
 
+      setShowCompanyNameModal(false);
+      setCompanyNameInput('');
+      toast.success(`Enterprise organization "${newEntName}" created!`);
       fetchEnterpriseData();
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
+    } finally {
+      setCreatingEnterpriseLoading(false);
     }
   };
 
@@ -133,17 +150,17 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       }).eq('id', enterprise.id);
 
       if (error) throw error;
-      alert("Brand settings updated successfully! Employee profiles will now inherit these guidelines where applicable.");
+      toast.success("Brand settings updated! Employee profiles now inherit these guidelines.");
       fetchEnterpriseData();
     } catch (err: any) {
-      alert("Error saving branding: " + err.message);
+      toast.error("Error saving branding: " + err.message);
     }
   };
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     if (employees.length >= (enterprise?.total_seats || 20)) {
-      alert("You have reached your seat limit. Update billing to add more seats.");
+      toast.error("You have reached your seat limit. Update billing to add more seats.");
       return;
     }
 
@@ -160,9 +177,9 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       });
       if (error) {
         if (error.message && error.message.toLowerCase().includes('rate limit')) {
-          alert('Sign up error: email rate limit exceeded. Please try again later.');
+          toast.error('Sign up error: email rate limit exceeded. Please try again later.');
         } else {
-          alert("Sign up error: " + error.message);
+          toast.error("Sign up error: " + error.message);
         }
       } else if (data.user) {
         // Wait for profile trigger to complete
@@ -178,13 +195,13 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
         });
         await adminAuthClient.auth.signOut().catch(() => {});
         
-        alert(`Employee ${employeeForm.full_name} created successfully!`);
+        toast.success(`Employee ${employeeForm.full_name} created successfully!`);
         setIsCreatingEmployee(false);
         setEmployeeForm({ email: '', password: '', full_name: '', headline: '', bio: '', username: '' });
         fetchEnterpriseData();
       }
     } catch (err: any) {
-      alert("Error creating employee: " + err.message);
+      toast.error("Error creating employee: " + err.message);
     }
   };
 
@@ -202,24 +219,26 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
       
       if (error) throw error;
       
-      alert("Employee updated successfully!");
+      toast.success("Employee updated successfully!");
       setEditingEmployee(null);
       setEmployeeForm({ email: '', password: '', full_name: '', headline: '', bio: '', username: '' });
       fetchEnterpriseData();
     } catch (err: any) {
-      alert("Error updating employee: " + err.message);
+      toast.error("Error updating employee: " + err.message);
     }
   };
 
   const handleDeleteEmployee = async (id: string) => {
-    if (!window.confirm("Remove this employee from the enterprise? They will still have an account but won't be linked to your brand.")) return;
     try {
-       await supabase.from('profiles').update({
+       const { error } = await supabase.from('profiles').update({
          enterprise_id: null
        }).eq('id', id);
+       if (error) throw error;
+       setPendingRemoveId(null);
+       toast.success('Employee unlinked from enterprise.');
        fetchEnterpriseData();
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     }
   };
 
@@ -276,7 +295,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                     onSuccess: handleCreateEnterpriseSuccess,
                   });
                 } catch (err: any) {
-                  alert(err?.message || 'Failed to open Flutterwave gateway');
+                  toast.error(err?.message || 'Failed to open Flutterwave gateway');
                 }
               }}
               className="flex-1 py-3.5 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
@@ -285,6 +304,40 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
             </button>
           </div>
         </div>
+
+        {showCompanyNameModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <form onSubmit={handleConfirmCompanyCreation} className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+              <h3 className="text-base font-bold text-neutral-950 dark:text-white">Payment Successful</h3>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">Enter your company or organization name to finalize your Enterprise fleet setup.</p>
+              <input
+                type="text"
+                required
+                autoFocus
+                placeholder="e.g. Acme Nigeria Ltd"
+                value={companyNameInput}
+                onChange={(e) => setCompanyNameInput(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-sm text-neutral-950 dark:text-white outline-none focus:ring-2 focus:ring-[#16a34a]/50"
+              />
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowCompanyNameModal(false)}
+                  className="px-4 py-2 rounded-full border border-neutral-200/80 dark:border-white/10 text-xs font-semibold text-neutral-700 dark:text-neutral-300 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingEnterpriseLoading}
+                  className="px-5 py-2 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-bold cursor-pointer disabled:opacity-50"
+                >
+                  {creatingEnterpriseLoading ? 'Creating...' : 'Create Organization'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     );
   }
@@ -470,9 +523,26 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                             >
                               Edit
                             </button>
-                            <button onClick={() => handleDeleteEmployee(emp.id)} className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors">
-                              <Trash2 className="w-4 h-4"/>
-                            </button>
+                            {pendingRemoveId === emp.id ? (
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => handleDeleteEmployee(emp.id)}
+                                  className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500 cursor-pointer"
+                                >
+                                  Remove
+                                </button>
+                                <button
+                                  onClick={() => setPendingRemoveId(null)}
+                                  className="px-2 py-1 rounded-lg border border-neutral-200/80 dark:border-white/10 text-xs font-semibold text-neutral-600 dark:text-neutral-300 cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setPendingRemoveId(emp.id)} className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors cursor-pointer" title="Remove employee">
+                                <Trash2 className="w-4 h-4"/>
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -582,15 +652,15 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
                                  total_seats: enterprise.total_seats + 10
                               }).eq('id', enterprise.id);
                               if (!error) {
-                                 alert('Seats added successfully!');
+                                 toast.success('Seats added successfully!');
                                  fetchEnterpriseData();
                               } else {
-                                 alert('Failed to add seats. Contact support.');
+                                 toast.error('Failed to add seats. Contact support.');
                               }
                            },
                          });
                        } catch (err: any) {
-                         alert(err?.message || 'Failed to open Flutterwave gateway');
+                         toast.error(err?.message || 'Failed to open Flutterwave gateway');
                        }
                      }}
                      className="w-full py-3 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer"

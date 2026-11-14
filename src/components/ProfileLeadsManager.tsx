@@ -31,6 +31,7 @@ import { downloadVCardClient } from '../utils/vcardGenerator';
 import InternationalPhoneInput from './InternationalPhoneInput';
 import { formatToInternationalE164 } from '../utils/countryData';
 import ProUpgradeModal from './ProUpgradeModal';
+import { downloadCsvFile } from '../utils/adminApi';
 
 export interface UserLead {
   id: number | string;
@@ -105,6 +106,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
   const [newCompany, setNewCompany] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [submittingManual, setSubmittingManual] = useState(false);
+  const [pendingDeleteLeadId, setPendingDeleteLeadId] = useState<number | string | null>(null);
 
   const fetchLeads = async (showToastFeedback = false) => {
     if (!profile?.id) {
@@ -273,7 +275,7 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
   };
 
   const handleDeleteLead = async (leadId: number | string) => {
-    if (!window.confirm('Are you sure you want to delete this captured contact?')) return;
+    setPendingDeleteLeadId(null);
     try {
       await fetch(`/api/leads/${leadId}`, {
         method: 'DELETE'
@@ -425,23 +427,16 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
 
     const headers = ['Name', 'WhatsApp / Phone', 'Email', 'Company', 'Note', 'Status', 'Date Captured'];
     const rows = leads.map(l => [
-      `"${(l.name || '').replace(/"/g, '""')}"`,
-      `"${(l.whatsapp || '').replace(/"/g, '""')}"`,
-      `"${(l.email || '').replace(/"/g, '""')}"`,
-      `"${(l.company || '').replace(/"/g, '""')}"`,
-      `"${(l.message || '').replace(/"/g, '""')}"`,
-      `"${l.status || 'new'}"`,
-      `"${l.created_at || ''}"`
+      l.name || '',
+      l.whatsapp || '',
+      l.email || '',
+      l.company || '',
+      l.message || '',
+      l.status || 'new',
+      l.created_at || ''
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `chipng_contacts_${profile.username || 'export'}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`chipng_contacts_${profile.username || 'export'}.csv`, headers, rows);
     toast.success('Contacts CSV exported successfully!');
   };
 
@@ -457,26 +452,19 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
       const firstName = parts[0] || 'Contact';
       const lastName = parts.slice(1).join(' ') || '';
       return [
-        `"${firstName.replace(/"/g, '""')}"`,
-        `"${lastName.replace(/"/g, '""')}"`,
-        `"${(l.whatsapp || '').replace(/"/g, '""')}"`,
-        `"${(l.email || '').replace(/"/g, '""')}"`,
-        `"${(l.company || '').replace(/"/g, '""')}"`,
-        `"${l.status === 'converted' ? 'Customer' : 'Lead'}"`,
-        `"CHIP NG NFC Tap"`,
-        `"${(l.message || '').replace(/"/g, '""')}"`,
-        `"${l.created_at || ''}"`
+        firstName,
+        lastName,
+        l.whatsapp || '',
+        l.email || '',
+        l.company || '',
+        l.status === 'converted' ? 'Customer' : 'Lead',
+        'CHIP NG NFC Tap',
+        l.message || '',
+        l.created_at || ''
       ];
     });
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `chipng_hubspot_salesforce_${profile.username || 'export'}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`chipng_hubspot_salesforce_${profile.username || 'export'}.csv`, headers, rows);
     toast.success('HubSpot & Salesforce formatted CSV exported!');
   };
 
@@ -892,13 +880,33 @@ export const ProfileLeadsManager: React.FC<ProfileLeadsManagerProps> = ({ profil
                       {isConverted ? 'Revert to New' : '✓ Mark Converted'}
                     </button>
 
-                    <button
-                      onClick={() => handleDeleteLead(lead.id)}
-                      className="p-2 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
-                      title="Delete contact"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {pendingDeleteLeadId === lead.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLead(lead.id)}
+                          className="px-2.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] transition-colors cursor-pointer"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteLeadId(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-neutral-200 dark:bg-white/10 text-neutral-700 dark:text-neutral-200 font-semibold text-[11px] transition-colors cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteLeadId(lead.id)}
+                        className="p-2 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        title="Delete contact"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );

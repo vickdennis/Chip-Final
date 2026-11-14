@@ -28,6 +28,7 @@ import { toast } from '../components/Toast';
 import { supabase } from '../supabaseClient';
 import { isValidEmail } from '../utils/contactExtractor';
 import { wrapChipngSupportEmail } from '../utils/resendEmailTemplates';
+import { getAdminAuthHeaders, parseTimestamp } from '../utils/adminApi';
 
 interface AdminEmailManagerProps {
   users?: any[];
@@ -83,7 +84,8 @@ CHIPNG Support Team`
   const checkRecipientDeliverability = async (email: string) => {
     try {
       setRecipientHealth(prev => ({ ...prev, [email]: { status: 'checking' } }));
-      const res = await fetch(`/api/admin/diagnose-recipient?email=${encodeURIComponent(email)}`);
+      const authHeaders = await getAdminAuthHeaders();
+      const res = await fetch(`/api/admin/diagnose-recipient?email=${encodeURIComponent(email)}`, { headers: authHeaders });
       if (res.ok) {
         const data = await res.json();
         if (data.isMisconfiguredRemote) {
@@ -328,9 +330,6 @@ CHIPNG Support Team`
       let lastErrorMessage = '';
       const endpointsToTry = [
         '/api/admin/send-email',
-        '/api/send-email',
-        '/api/email/send',
-        '/admin/send-email'
       ];
 
       for (const endpoint of endpointsToTry) {
@@ -359,50 +358,6 @@ CHIPNG Support Team`
           }
         } catch (fetchErr: any) {
           console.warn(`Dispatch attempt to ${endpoint} failed:`, fetchErr);
-        }
-      }
-
-      // Tier 2: Resend API Direct Fallback
-      if (!dispatchSuccess) {
-        try {
-          let resendKey = '';
-          try {
-            const { data: dbSettings } = await supabase
-              .from('admin_integration_settings')
-              .select('resend_api_key')
-              .limit(1)
-              .maybeSingle();
-            if (dbSettings?.resend_api_key) {
-              resendKey = dbSettings.resend_api_key.trim();
-            }
-          } catch (e) {}
-
-          if (resendKey) {
-            const directRes = await fetch('https://api.resend.com/emails', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${resendKey}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                from: 'CHIPNG Support <support@chipng.com>',
-                to: recipientsToSend,
-                reply_to: replyTo.trim() || 'support@chipng.com',
-                subject: effectiveSubject,
-                html: effectiveHtml
-              })
-            });
-
-            const directData = await directRes.json().catch(() => ({}));
-            if (directRes.ok && directData.id) {
-              safeMessageId = String(directData.id);
-              dispatchSuccess = true;
-            } else {
-              lastErrorMessage = extractErrorText(directData.error || directData.message || directData, lastErrorMessage);
-            }
-          }
-        } catch (tier2Err: any) {
-          console.warn('Direct Resend fallback note:', tier2Err);
         }
       }
 
@@ -804,12 +759,26 @@ CHIPNG Support Team`
                       const safeSubject = typeof log?.subject === 'string' ? log.subject : String(log?.subject || '—');
                       let dateStr = '—';
                       try {
-                        if (log?.created_at) {
-                          dateStr = new Date(log.created_at).toLocaleDateString();
+                        const parsed = parseTimestamp(log?.created_at);
+                        if (parsed) {
+                          dateStr = parsed.toLocaleDateString();
                         }
                       } catch {
                         dateStr = '—';
                       }
+                      const rawStatus = String(log?.status || 'sent').toLowerCase();
+                      const isFailed = rawStatus === 'failed' || rawStatus === 'error' || rawStatus === 'bounced';
+                      const isSimulated = rawStatus === 'simulated' || rawStatus === 'pending';
+                      const badgeClasses = isFailed
+                        ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        : isSimulated
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                        : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
+                      const badgeLabel = isFailed
+                        ? 'Failed'
+                        : isSimulated
+                        ? 'Simulated'
+                        : 'Accepted by Resend';
                       return (
                         <tr key={log?.id || `log-${idx}`} className="hover:bg-neutral-50 dark:hover:bg-white/[0.02]">
                           <td className="py-2 px-3 font-mono text-[11px] text-neutral-800 dark:text-neutral-200 truncate max-w-[120px]">
@@ -819,8 +788,11 @@ CHIPNG Support Team`
                             {safeSubject}
                           </td>
                           <td className="py-2 px-3 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                              Accepted by Resend
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClasses}`}
+                              title={log?.error_message || badgeLabel}
+                            >
+                              {badgeLabel}
                             </span>
                           </td>
                           <td className="py-2 px-3 text-[10px] text-neutral-400 whitespace-nowrap">

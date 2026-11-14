@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Package, Plus, Edit2, Trash2, CheckCircle2, Star, MessageSquare } from 'lucide-react';
+import { toast } from '../components/Toast';
+import { getAdminAuthHeaders } from '../utils/adminApi';
 
 interface BuyBoxProduct {
   id?: number;
@@ -20,6 +22,7 @@ export default function AdminBuyBoxManager() {
   const [products, setProducts] = useState<BuyBoxProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<BuyBoxProduct | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   const defaultForm: BuyBoxProduct = {
     name: '', price_ngn: '', image_url: '', benefits_json: '["Instant Tap & Share via NFC", "Works with all iPhones & Androids", "No Monthly App Subscription"]',
@@ -94,33 +97,42 @@ export default function AdminBuyBoxManager() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ ...form, rating: Number(form.rating) || 0, review_count: Number(form.review_count) || 0 })
       });
       if (res.ok) {
-        alert('Product saved successfully!');
+        toast.success('Product saved successfully!');
         fetchProducts();
         setForm(defaultForm);
         setEditingProduct(null);
       } else {
-        const errorData = await res.json();
-        alert('Error saving product: ' + (errorData.error || res.statusText));
+        const errorData = await res.json().catch(() => ({}));
+        toast.error('Error saving product: ' + (errorData.error || res.statusText));
       }
     } catch (e: any) {
       console.error(e);
-      alert('Error saving product: ' + e.message);
+      toast.error('Error saving product: ' + e.message);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this product?')) return;
     try {
-      await fetch('/api/products/' + id, { method: 'DELETE' });
+      const headers = await getAdminAuthHeaders();
+      const res = await fetch('/api/products/' + id, { method: 'DELETE', headers });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error('Failed to delete product: ' + (err.error || res.statusText));
+        return;
+      }
+      setPendingDeleteId(null);
+      toast.success('Product deleted');
       fetchProducts();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error('Error deleting product: ' + (e?.message || 'Network error'));
     }
   };
 
@@ -219,11 +231,11 @@ export default function AdminBuyBoxManager() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Rating</label>
-              <input type="number" step="0.1" value={form.rating} onChange={e=>setForm({...form, rating: parseFloat(e.target.value)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]" />
+              <input type="number" step="0.1" value={Number.isNaN(form.rating) ? '' : form.rating} onChange={e=>setForm({...form, rating: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]" />
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">Review Count</label>
-              <input type="number" value={form.review_count} onChange={e=>setForm({...form, review_count: parseInt(e.target.value)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]" />
+              <input type="number" value={Number.isNaN(form.review_count) ? '' : form.review_count} onChange={e=>setForm({...form, review_count: e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0)})} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]" />
             </div>
           </div>
 
@@ -297,7 +309,7 @@ export default function AdminBuyBoxManager() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 self-end sm:self-center">
+                <div className="flex gap-2 self-end sm:self-center items-center">
                   <button 
                     onClick={() => handleEdit(p)} 
                     className="p-2.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-neutral-700 dark:text-neutral-300"
@@ -305,13 +317,30 @@ export default function AdminBuyBoxManager() {
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button 
-                    onClick={() => handleDelete(p.id!)} 
-                    className="p-2.5 rounded-full border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {pendingDeleteId === p.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleDelete(p.id!)}
+                        className="px-3 py-1.5 rounded-full bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500 cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setPendingDeleteId(null)}
+                        className="px-2.5 py-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 text-xs font-semibold text-neutral-600 dark:text-neutral-300 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setPendingDeleteId(p.id!)} 
+                      className="p-2.5 rounded-full border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

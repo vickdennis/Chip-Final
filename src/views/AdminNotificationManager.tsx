@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Send, RefreshCw, Trash2, AlertCircle, CheckCircle2, Globe, Users } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { getAdminAuthHeaders, parseTimestamp } from '../utils/adminApi';
+import { toast } from '../components/Toast';
 
 export default function AdminNotificationManager() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<any>(null);
   const [statusFeedback, setStatusFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
 
@@ -128,9 +131,10 @@ export default function AdminNotificationManager() {
 
     // 2. Send to Node.js backend broadcast endpoint
     try {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/notifications/broadcast', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ title: newNotification.title, message: newNotification.message })
       });
       
@@ -149,7 +153,7 @@ export default function AdminNotificationManager() {
         // Fallback to /api/app-updates alias
         const res2 = await fetch('/api/app-updates', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ title: newNotification.title, message: newNotification.message })
         });
         if (res2.ok) serverSuccess = true;
@@ -174,19 +178,25 @@ export default function AdminNotificationManager() {
   };
 
   const handleDelete = async (id: any) => {
-    if (!window.confirm("Delete this broadcast notification?")) return;
     try {
-      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
+      const headers = await getAdminAuthHeaders();
+      const res = await fetch(`/api/notifications/${id}`, { method: 'DELETE', headers });
+      if (!res.ok) {
+        await fetch(`/api/app-updates/${id}`, { method: 'DELETE', headers }).catch(() => {});
+      }
     } catch (e) {
       try {
-        await fetch(`/api/app-updates/${id}`, { method: 'DELETE' });
+        const headers = await getAdminAuthHeaders();
+        await fetch(`/api/app-updates/${id}`, { method: 'DELETE', headers });
       } catch (e2) {}
     }
     try {
       await supabase.from('app_notifications').delete().eq('id', id);
     } catch (e) {}
 
+    setPendingDeleteId(null);
     removeLocalBroadcast(id);
+    toast.success('Notification removed');
     fetchNotifications();
   };
 
@@ -287,15 +297,32 @@ export default function AdminNotificationManager() {
                     <h4 className="font-bold text-neutral-950 dark:text-white text-sm">{n.title}</h4>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-neutral-400 font-mono">
-                        {new Date(n.created_at.replace(" ", "T") + "Z").toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        {parseTimestamp(n.created_at)?.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) || 'Recent'}
                       </span>
-                      <button 
-                        onClick={() => handleDelete(n.id)}
-                        className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
-                        title="Delete notification"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {pendingDeleteId === n.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleDelete(n.id)}
+                            className="px-2 py-0.5 text-[10px] font-bold bg-rose-600 text-white rounded-md hover:bg-rose-500 cursor-pointer"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setPendingDeleteId(null)}
+                            className="px-2 py-0.5 text-[10px] font-semibold bg-neutral-200 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 rounded-md cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setPendingDeleteId(n.id)}
+                          className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
+                          title="Delete notification"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">{n.message}</p>

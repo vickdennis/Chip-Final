@@ -50,6 +50,7 @@ import {
   extractFirstName,
   generateUUID
 } from '../utils/contactExtractor';
+import { downloadCsvFile, getAdminAuthHeaders } from '../utils/adminApi';
 
 interface AdminUserCommsManagerProps {
   users: any[];
@@ -567,23 +568,16 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
 
     const headers = ['Full Name', 'First Name', 'Email Address', 'Phone Number', 'Normalized Phone (E.164)', 'Source', 'Notes'];
     const rows = list.map(c => [
-      `"${c.name.replace(/"/g, '""')}"`,
-      `"${extractFirstName(c.name).replace(/"/g, '""')}"`,
-      `"${c.email.replace(/"/g, '""')}"`,
-      `"${c.phone.replace(/"/g, '""')}"`,
-      `"${c.normalizedPhone.replace(/"/g, '""')}"`,
-      `"${c.source.replace(/"/g, '""')}"`,
-      `"${(c.notes || '').replace(/"/g, '""')}"`
+      c.name,
+      extractFirstName(c.name),
+      c.email,
+      c.phone,
+      c.normalizedPhone,
+      c.source,
+      c.notes || ''
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `CHIP_NG_Extracted_Contacts_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`CHIP_NG_Extracted_Contacts_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
     toast.success(`Exported ${list.length} contacts to CSV`);
   };
 
@@ -600,12 +594,13 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
     setBulkSmsLogs([]);
 
     try {
+      const authHeaders = await getAdminAuthHeaders({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      });
       const res = await fetch('/api/admin/send-bulk-sms', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: authHeaders,
         body: JSON.stringify({
           recipients: phoneRecipients.map(r => ({
             name: (r.name || 'Recipient').trim(),

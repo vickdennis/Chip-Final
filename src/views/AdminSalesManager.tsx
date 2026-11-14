@@ -24,7 +24,7 @@ export default function AdminSalesManager() {
     fetchSales();
   }, []);
 
-  const totalRevenue = sales.reduce((acc, sale) => acc + (sale.amount || 0) / 100, 0);
+  const totalRevenue = sales.reduce((acc, sale) => acc + (Number(sale.amount) || 0), 0);
   const totalOrders = sales.length;
   const avgOrder = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
@@ -149,7 +149,7 @@ export default function AdminSalesManager() {
                       </div>
                     </td>
                     <td className="py-4 px-6 font-bold text-neutral-950 dark:text-white text-sm">
-                      ₦{(sale.amount / 100).toLocaleString()}
+                      ₦{Number(sale.amount || 0).toLocaleString()}
                     </td>
                     <td className="py-4 px-6 text-right">
                       <span className="font-mono text-xs bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 px-2.5 py-1 rounded-md">

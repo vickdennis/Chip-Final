@@ -566,7 +566,62 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthy
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
 
 function getSupabase() {
-  return createClient(supabaseUrl, supabaseKey);
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+const SUPER_ADMIN_ALLOWLIST = new Set([
+  'vickthor.dennis@gmail.com',
+  'victhtor.dennis@gmail.com',
+  'victor.dennis@gmail.com',
+  'vickthorden@gmail.com',
+  'support@chipng.com',
+]);
+
+async function verifyAdminRequest(req: any): Promise<{ authorized: boolean; status: number; error: string; userId?: string }> {
+  const authHeader = req.headers?.authorization;
+  if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+    return { authorized: false, status: 401, error: 'Authentication required (missing Bearer token).' };
+  }
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return { authorized: false, status: 401, error: 'Authentication required (empty Bearer token).' };
+  }
+  try {
+    const supabase = getSupabase();
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      return { authorized: false, status: 401, error: 'Invalid or expired authentication token.' };
+    }
+    const emailLower = (user.email || '').toLowerCase().trim();
+    if (SUPER_ADMIN_ALLOWLIST.has(emailLower)) {
+      return { authorized: true, status: 200, error: '', userId: user.id };
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (profile?.is_admin) {
+      return { authorized: true, status: 200, error: '', userId: user.id };
+    }
+    return { authorized: false, status: 403, error: 'Super Admin privileges required.' };
+  } catch (err: any) {
+    return { authorized: false, status: 401, error: 'Token verification failed.' };
+  }
+}
+
+async function requireAdminMiddleware(req: any, res: any, next: any) {
+  const check = await verifyAdminRequest(req);
+  if (!check.authorized) {
+    return res.status(check.status).json({ success: false, error: check.error });
+  }
+  req.adminUserId = check.userId;
+  next();
 }
 
 async function startServer() {
@@ -586,6 +641,9 @@ async function startServer() {
     }
     next();
   });
+
+  // Protect all /api/admin/* endpoints with strict Supabase JWT + Admin authorization
+  app.use('/api/admin', requireAdminMiddleware);
 
   // SQLite Leads API
   app.post('/api/lead', async (req, res) => {
@@ -1169,9 +1227,9 @@ async function startServer() {
         }
       });
 
-      if (data?.user?.id) {
+      if (data?.user?.id && (!Array.isArray(data.user.identities) || data.user.identities.length > 0)) {
         userId = data.user.id;
-      } else if (error && (error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already exists'))) {
+      } else if ((data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) || (error && (error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already exists')))) {
         // User is already registered in auth.users; look up their profile ID so we can update their profile
         const { data: existingProf } = await supabase
           .from('profiles')
@@ -1180,12 +1238,12 @@ async function startServer() {
           .maybeSingle();
         if (existingProf?.id) {
           userId = existingProf.id;
-        } else {
-          // If not in profiles, query candidate by username
-          if (cleanUsername) {
-            const { data: uProf } = await supabase.from('profiles').select('id').eq('username', cleanUsername).maybeSingle();
-            if (uProf?.id) userId = uProf.id;
-          }
+        } else if (cleanUsername) {
+          const { data: uProf } = await supabase.from('profiles').select('id').eq('username', cleanUsername).maybeSingle();
+          if (uProf?.id) userId = uProf.id;
+        }
+        if (!userId && data?.user?.id) {
+          userId = data.user.id;
         }
       } else if (error) {
         console.warn('[Admin Create User] Auth signup warning:', error.message);
@@ -1435,13 +1493,13 @@ async function startServer() {
               continue;
             }
 
-            if (authData?.user) {
+            if (authData?.user && (!Array.isArray(authData.user.identities) || authData.user.identities.length > 0)) {
               targetUserId = authData.user.id;
             }
           }
 
           if (!targetUserId) {
-            const { data: prof } = await supabase.from('profiles').select('id').eq('contact_email', cleanEmail).maybeSingle();
+            const { data: prof } = await supabase.from('profiles').select('id').or(`contact_email.eq.${cleanEmail},email.eq.${cleanEmail}`).maybeSingle();
             targetUserId = prof?.id || null;
           }
 
@@ -1485,11 +1543,13 @@ async function startServer() {
             if (Array.isArray(item.socials) && item.socials.length > 0) {
               for (const s of item.socials) {
                 if (s.platform && s.url) {
-                  await supabase.from('social_links').upsert({
-                    profile_id: targetUserId,
-                    platform: s.platform,
-                    url: s.url
-                  }).catch(() => {});
+                  try {
+                    await supabase.from('social_links').upsert({
+                      profile_id: targetUserId,
+                      platform: s.platform,
+                      url: s.url
+                    });
+                  } catch (_socialErr) {}
                 }
               }
             }
@@ -1782,7 +1842,7 @@ Return ONLY valid JSON matching this structure:
         if (user) {
           authenticatedUserId = user.id;
           const emailLower = (user.email || '').toLowerCase().trim();
-          if (emailLower === 'vickthor.dennis@gmail.com' || emailLower === 'victhtor.dennis@gmail.com' || emailLower === 'support@chipng.com') {
+          if (SUPER_ADMIN_ALLOWLIST.has(emailLower)) {
             isAuthorizedAdmin = true;
           } else {
             const { data: profile } = await supabase
@@ -1793,15 +1853,13 @@ Return ONLY valid JSON matching this structure:
             isAuthorizedAdmin = Boolean(profile?.is_admin);
           }
         }
-      } else {
-        isAuthorizedAdmin = true;
       }
 
       if (!isAuthorizedAdmin) {
-        return res.status(403).json({
+        return res.status(401).json({
           success: false,
-          code: 'FORBIDDEN',
-          error: 'You do not have permission to send emails.'
+          code: 'UNAUTHORIZED',
+          error: 'Super Admin authentication required to send emails.'
         });
       }
 
@@ -2150,7 +2208,7 @@ Return ONLY valid JSON matching this structure:
   });
 
   // --- Fetch All Client Onboarding Submissions Endpoint ---
-  app.get(['/api/onboarding/submissions', '/api/onboarding', '/onboarding/submissions', '/api/admin/onboarding-submissions'], async (req, res) => {
+  app.get(['/api/onboarding/submissions', '/api/onboarding', '/onboarding/submissions', '/api/admin/onboarding-submissions'], requireAdminMiddleware, async (req, res) => {
     try {
       const supabase = getSupabase();
       const map = new Map<string, any>();
@@ -2965,7 +3023,7 @@ Return ONLY valid JSON matching this structure:
       } catch (e) {}
 
       const totalCountRow = db.prepare('SELECT COUNT(*) as total FROM app_downloads').get() as { total: number };
-      const totalDownloads = totalCountRow?.total || 1850;
+      const totalDownloads = totalCountRow?.total ?? 0;
 
       const downloadUrls: Record<string, string> = {
         ios: 'https://apps.apple.com/app/chip-ng/id6470000000',
@@ -2987,9 +3045,9 @@ Return ONLY valid JSON matching this structure:
 
   app.get('/api/app/downloads', async (req, res) => {
     try {
-      let totalDownloads = 1850;
-      let byPlatform = { ios: 685, android: 830, apk: 215, pwa: 120 };
-      let byDevice = { mobile: 1690, tablet: 95, desktop: 65 };
+      let totalDownloads = 0;
+      const byPlatform = { ios: 0, android: 0, apk: 0, pwa: 0 };
+      const byDevice = { mobile: 0, tablet: 0, desktop: 0 };
       let recentDownloads: any[] = [];
       let dailyTrends: any[] = [];
 
@@ -3051,23 +3109,9 @@ Return ONLY valid JSON matching this structure:
         totalDownloads,
         byPlatform,
         byDevice,
-        dailyTrends: dailyTrends.length ? dailyTrends : [
-          { date: '10-05', total: 112, ios: 42, android: 50, apk: 14, pwa: 6 },
-          { date: '10-06', total: 128, ios: 48, android: 56, apk: 16, pwa: 8 },
-          { date: '10-07', total: 145, ios: 52, android: 65, apk: 18, pwa: 10 },
-          { date: '10-08', total: 139, ios: 50, android: 62, apk: 19, pwa: 8 },
-          { date: '10-09', total: 164, ios: 61, android: 73, apk: 20, pwa: 10 },
-          { date: '10-10', total: 188, ios: 70, android: 85, apk: 22, pwa: 11 },
-          { date: '10-11', total: 196, ios: 74, android: 88, apk: 23, pwa: 11 }
-        ],
-        recentDownloads: recentDownloads.length ? recentDownloads : [
-          { platform: 'ios', device_type: 'iPhone 15 Pro Max', version: '2.4.0', city: 'Lagos', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 3).toISOString() },
-          { platform: 'android', device_type: 'Samsung Galaxy S24 Ultra', version: '2.4.0', city: 'Abuja', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString() },
-          { platform: 'apk', device_type: 'Xiaomi Redmi Note 13', version: '2.4.0', city: 'Lekki Phase 1', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
-          { platform: 'ios', device_type: 'iPhone 14', version: '2.4.0', city: 'Victoria Island', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 44).toISOString() },
-          { platform: 'android', device_type: 'Google Pixel 8', version: '2.4.0', city: 'Port Harcourt', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 78).toISOString() }
-        ],
-        conversionRate: 16.4
+        dailyTrends,
+        recentDownloads,
+        conversionRate: totalDownloads > 0 ? 16.4 : 0
       });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -3662,7 +3706,7 @@ Return ONLY valid JSON matching this structure:
     } catch (e: any) { console.error("products error", e); res.status(500).json({error: e.message}); }
   });
 
-  app.post('/api/products', (req, res) => {
+  app.post('/api/products', requireAdminMiddleware, (req, res) => {
     try {
       const { id, name, price_ngn, image_url, benefits_json, rating, review_count, badge_text, whatsapp_link, button_variant_a, button_variant_b } = req.body;
       if (id) {
@@ -3893,7 +3937,7 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  app.post('/api/portfolio/profile', (req, res) => {
+  app.post('/api/portfolio/profile', requireAdminMiddleware, (req, res) => {
     try {
       const {
         name,
@@ -3970,7 +4014,7 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  app.post('/api/portfolio/project', (req, res) => {
+  app.post('/api/portfolio/project', requireAdminMiddleware, (req, res) => {
     try {
       const {
         id,
@@ -4021,7 +4065,7 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  app.delete('/api/portfolio/project/:id', (req, res) => {
+  app.delete('/api/portfolio/project/:id', requireAdminMiddleware, (req, res) => {
     try {
       db.prepare('DELETE FROM portfolio_projects WHERE id = ?').run(req.params.id);
       res.json({ success: true, message: 'Project deleted' });
@@ -4031,7 +4075,7 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  app.post('/api/portfolio/article', (req, res) => {
+  app.post('/api/portfolio/article', requireAdminMiddleware, (req, res) => {
     try {
       const { id, title, slug, excerpt, read_time, date, url, sort_order = 0 } = req.body;
       const safeSlug = slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `art-${Date.now()}`);
@@ -4049,7 +4093,7 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  app.delete('/api/portfolio/article/:id', (req, res) => {
+  app.delete('/api/portfolio/article/:id', requireAdminMiddleware, (req, res) => {
     try {
       db.prepare('DELETE FROM portfolio_articles WHERE id = ?').run(req.params.id);
       res.json({ success: true });
@@ -4445,7 +4489,7 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  app.delete('/api/products/:id', (req, res) => {
+  app.delete('/api/products/:id', requireAdminMiddleware, (req, res) => {
     try {
       db.prepare('DELETE FROM products WHERE id=?').run(req.params.id);
       res.json({ success: true });
@@ -4876,9 +4920,9 @@ Return ONLY valid JSON matching this structure:
       try {
         if (db) {
           db.prepare(`
-            INSERT INTO telemetry_clicks (profile_id, username, link_title, click_type, created_at)
-            VALUES (?, ?, ?, ?, ?)
-          `).run(profile.id, profile.username, 'Direct vCard Link Download', 'vcard', new Date().toISOString());
+            INSERT INTO profile_analytics_clicks (profile_id, link_title, click_type, created_at)
+            VALUES (?, ?, ?, ?)
+          `).run(String(profile.id || ''), 'Direct vCard Link Download', 'vcard', new Date().toISOString());
         }
       } catch (e) {}
 
@@ -5011,7 +5055,7 @@ Host: https://www.chipng.com`;
 
   
   // Broadcast API
-  app.post('/api/broadcast', (req, res) => {
+  app.post('/api/broadcast', requireAdminMiddleware, (req, res) => {
     try {
       const { leads, messageTemplate } = req.body;
       if (!leads || !messageTemplate) return res.status(400).json({ error: 'Missing leads or messageTemplate' });
@@ -5067,7 +5111,7 @@ Name: ${name}
 Email: ${email}
 Phone: ${phone}
 Card: ${card_type}
-Amount: ₦${amount/100}
+Amount: ₦${Number(amount || 0).toLocaleString()}
 Ref: ${payment_reference}`,
           });
         }
@@ -5236,9 +5280,9 @@ Ref: ${payment_reference}`,
     }
   };
 
-  app.post('/api/app-updates', handleBroadcastNotification);
-  app.post('/api/notifications/broadcast', handleBroadcastNotification);
-  app.post('/api/notifications', handleBroadcastNotification);
+  app.post('/api/app-updates', requireAdminMiddleware, handleBroadcastNotification);
+  app.post('/api/notifications/broadcast', requireAdminMiddleware, handleBroadcastNotification);
+  app.post('/api/notifications', requireAdminMiddleware, handleBroadcastNotification);
 
   // Mark notification read routes
   const handleMarkRead = (req: any, res: any) => {
@@ -5258,10 +5302,10 @@ Ref: ${payment_reference}`,
     }
   };
 
-  app.delete('/api/app-updates/:id', handleDeleteNotification);
-  app.delete('/api/notifications/:id', handleDeleteNotification);
+  app.delete('/api/app-updates/:id', requireAdminMiddleware, handleDeleteNotification);
+  app.delete('/api/notifications/:id', requireAdminMiddleware, handleDeleteNotification);
 
-  app.get('/api/broadcast/stats', (req, res) => {
+  app.get('/api/broadcast/stats', requireAdminMiddleware, (req, res) => {
     try {
       const totalLeads = db.prepare('SELECT COUNT(*) as c FROM leads').get().c;
       const sent7Days = db.prepare("SELECT COUNT(*) as c FROM leads WHERE last_broadcast_at >= datetime('now', '-7 days')").get().c;
@@ -5270,7 +5314,7 @@ Ref: ${payment_reference}`,
     } catch (e) { console.error("broadcast error", e); res.status(500).json({error: e.message}); }
   });
 
-  app.get('/api/broadcast/logs', (req, res) => {
+  app.get('/api/broadcast/logs', requireAdminMiddleware, (req, res) => {
     try {
       const rows = db.prepare('SELECT * FROM broadcast_logs ORDER BY created_at DESC LIMIT 20').all();
       res.json(rows);
@@ -5279,7 +5323,7 @@ Ref: ${payment_reference}`,
     }
   });
 
-  app.post('/api/broadcast/mark-sent', (req, res) => {
+  app.post('/api/broadcast/mark-sent', requireAdminMiddleware, (req, res) => {
     try {
       const { lead_id } = req.body;
       db.prepare("UPDATE leads SET last_broadcast_at = datetime('now'), broadcast_count = IFNULL(broadcast_count, 0) + 1 WHERE id = ?").run(lead_id);
@@ -5287,7 +5331,7 @@ Ref: ${payment_reference}`,
     } catch (e) { console.error("broadcast error", e); res.status(500).json({error: e.message}); }
   });
 
-  app.post('/api/broadcast/toggle-optout', (req, res) => {
+  app.post('/api/broadcast/toggle-optout', requireAdminMiddleware, (req, res) => {
     try {
       const { lead_id, opt_out } = req.body;
       db.prepare("UPDATE leads SET opt_out = ? WHERE id = ?").run(opt_out ? 1 : 0, lead_id);
@@ -5407,7 +5451,7 @@ Ref: ${payment_reference}`,
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
 
-  app.post('/api/seo/keywords', (req, res) => {
+  app.post('/api/seo/keywords', requireAdminMiddleware, (req, res) => {
     try {
       const { keyword_phrase, target_url_slug, type } = req.body;
       db.prepare('INSERT INTO seo_keywords (keyword_phrase, target_url_slug, type) VALUES (?, ?, ?)').run(keyword_phrase, target_url_slug, type);
@@ -5415,14 +5459,14 @@ Ref: ${payment_reference}`,
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
 
-  app.delete('/api/seo/keywords/:id', (req, res) => {
+  app.delete('/api/seo/keywords/:id', requireAdminMiddleware, (req, res) => {
     try {
       db.prepare('DELETE FROM seo_keywords WHERE id = ?').run(req.params.id);
       res.json({ success: true });
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
 
-  app.get('/api/seo/links-report', (req, res) => {
+  app.get('/api/seo/links-report', requireAdminMiddleware, (req, res) => {
     try {
       const logs = db.prepare('SELECT * FROM post_links_log ORDER BY created_at DESC LIMIT 50').all();
       const broken = (logs as any[]).filter(l => l.status === 'BROKEN').length;
@@ -5430,7 +5474,7 @@ Ref: ${payment_reference}`,
     } catch(e: any) { res.status(500).json({error: e.message}); }
   });
 
-  app.post('/api/seo/check-links', async (req, res) => {
+  app.post('/api/seo/check-links', requireAdminMiddleware, async (req, res) => {
     try {
       const logs = db.prepare('SELECT * FROM post_links_log ORDER BY id DESC LIMIT 50').all();
       let brokenCount = 0;

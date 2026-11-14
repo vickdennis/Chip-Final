@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../components/Toast';
+import { getAdminAuthHeaders } from '../utils/adminApi';
 
 interface PortfolioProject {
   id: number;
@@ -77,6 +78,7 @@ export const AdminPortfolioManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingProject, setSavingProject] = useState(false);
+  const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const [activeSubTab, setActiveSubTab] = useState<'projects' | 'profile' | 'socials'>('projects');
@@ -171,29 +173,39 @@ export const AdminPortfolioManager: React.FC = () => {
       localStorage.setItem('chipng_portfolio_profile', JSON.stringify(profile));
     } catch (e) {}
 
+    let supaSaved = false;
     // 1. Sync with Supabase cloud database
     try {
-      await supabase.from('portfolio_profile').upsert({ id: 1, ...profile, updated_at: new Date().toISOString() });
+      const { error: sbErr } = await supabase.from('portfolio_profile').upsert({ id: 1, ...profile, updated_at: new Date().toISOString() });
+      if (!sbErr) supaSaved = true;
     } catch (sbErr) {
       console.warn('Supabase portfolio_profile sync:', sbErr);
     }
 
     // 2. Sync with backend API
     try {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/portfolio/profile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(profile),
       });
       if (res.ok) {
         toast.success('Portfolio profile updated successfully!');
       } else {
-        const errJson = await res.json().catch(() => null);
-        console.warn('Portfolio profile save response:', errJson);
-        toast.success('Portfolio profile saved and active!');
+        const errJson = await res.json().catch(() => ({}));
+        if (supaSaved) {
+          toast.info('Saved to Supabase; backend sync warning: ' + (errJson?.error || res.statusText));
+        } else {
+          toast.error('Failed to save portfolio profile: ' + (errJson?.error || res.statusText));
+        }
       }
     } catch (e: any) {
-      toast.success('Portfolio profile saved locally and active!');
+      if (supaSaved) {
+        toast.info('Saved to Supabase; backend unreachable.');
+      } else {
+        toast.error('Failed to save portfolio profile: ' + (e?.message || 'Network error'));
+      }
     } finally {
       setSavingProfile(false);
     }
@@ -201,15 +213,16 @@ export const AdminPortfolioManager: React.FC = () => {
 
   const handleSaveProject = async () => {
     if (!editingProject?.title || !editingProject?.description || !editingProject?.live_url) {
-      alert('Please fill in title, description, and live URL.');
+      toast.error('Please fill in title, description, and live URL.');
       return;
     }
 
     setSavingProject(true);
     try {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/portfolio/project', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(editingProject),
       });
       if (res.ok) {
@@ -218,7 +231,8 @@ export const AdminPortfolioManager: React.FC = () => {
         setEditingProject(null);
         fetchPortfolioData();
       } else {
-        toast.error('Failed to save project');
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to save project');
       }
     } catch (e: any) {
       toast.error(e.message || 'Network error');
@@ -227,16 +241,17 @@ export const AdminPortfolioManager: React.FC = () => {
     }
   };
 
-  const handleDeleteProject = async (id: number, title: string) => {
-    if (!confirm(`Are you sure you want to delete project "${title}"?`)) return;
-
+  const handleDeleteProject = async (id: number) => {
     try {
-      const res = await fetch(`/api/portfolio/project/${id}`, { method: 'DELETE' });
+      const headers = await getAdminAuthHeaders();
+      const res = await fetch(`/api/portfolio/project/${id}`, { method: 'DELETE', headers });
       if (res.ok) {
+        setPendingDeleteProjectId(null);
         toast.success('Project deleted');
         fetchPortfolioData();
       } else {
-        toast.error('Failed to delete project');
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to delete project');
       }
     } catch (e: any) {
       toast.error(e.message || 'Error deleting');
@@ -529,13 +544,30 @@ export const AdminPortfolioManager: React.FC = () => {
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
-                    <button
-                      onClick={() => handleDeleteProject(proj.id, proj.title)}
-                      className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {pendingDeleteProjectId === proj.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleDeleteProject(proj.id)}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500 cursor-pointer"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setPendingDeleteProjectId(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-neutral-200 dark:bg-white/10 text-xs font-semibold text-neutral-700 dark:text-neutral-300 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setPendingDeleteProjectId(proj.id)}
+                        className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -673,12 +705,13 @@ export const AdminPortfolioManager: React.FC = () => {
                     onChange={(e) => handleImageUpload(e, async (url) => {
                       setProfile(prev => ({ ...prev, avatar_url: url }));
                       try {
-                        await fetch('/api/portfolio/profile', {
+                        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+                        const res = await fetch('/api/portfolio/profile', {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
+                          headers,
                           body: JSON.stringify({ avatar_url: url })
                         });
-                        toast.success('Avatar image saved!');
+                        if (res.ok) toast.success('Avatar image saved!');
                       } catch (err) {}
                     })}
                   />
@@ -724,12 +757,13 @@ export const AdminPortfolioManager: React.FC = () => {
                     onChange={(e) => handleImageUpload(e, async (url) => {
                       setProfile(prev => ({ ...prev, hero_image_url: url }));
                       try {
-                        await fetch('/api/portfolio/profile', {
+                        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+                        const res = await fetch('/api/portfolio/profile', {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
+                          headers,
                           body: JSON.stringify({ hero_image_url: url })
                         });
-                        toast.success('Hero cover image saved!');
+                        if (res.ok) toast.success('Hero cover image saved!');
                       } catch (err) {}
                     })}
                   />
@@ -762,12 +796,13 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="button"
                     onClick={async () => {
                       setProfile(prev => ({ ...prev, about_image_url: '' }));
-                      await fetch('/api/portfolio/profile', {
+                      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+                      const res = await fetch('/api/portfolio/profile', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers,
                         body: JSON.stringify({ about_image_url: '' })
                       });
-                      toast.success('Cover photo reset.');
+                      if (res.ok) toast.success('Cover photo reset.');
                     }}
                     className="text-[11px] text-red-500 hover:underline cursor-pointer"
                   >
@@ -816,12 +851,13 @@ export const AdminPortfolioManager: React.FC = () => {
                             return updated;
                           });
                           try {
-                            await fetch('/api/portfolio/profile', {
+                            const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+                            const res = await fetch('/api/portfolio/profile', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
+                              headers,
                               body: JSON.stringify({ about_image_url: url })
                             });
-                            toast.success('About Me cover photo uploaded & saved live!');
+                            if (res.ok) toast.success('About Me cover photo uploaded & saved live!');
                           } catch (err) {
                             console.warn('Auto-save error:', err);
                           }

@@ -3,6 +3,7 @@ import { Send, Filter, FileText, MessageCircle, AlertCircle, PhoneForwarded, Che
 import { supabase } from '../supabaseClient';
 import { toast } from '../components/Toast';
 import { getInternationalWhatsAppUrl } from '../utils/countryData';
+import { getAdminAuthHeaders, parseTimestamp } from '../utils/adminApi';
 
 export default function AdminBroadcastManager() {
   const [sendType, setSendType] = useState<'post' | 'custom'>('post');
@@ -32,9 +33,10 @@ export default function AdminBroadcastManager() {
       const { data: postsData } = await supabase.from('posts').select('*').eq('is_published', true).order('created_at', { ascending: false });
       if (postsData) setPosts(postsData);
 
+      const authHeaders = await getAdminAuthHeaders();
       const [leadsRes, statsRes] = await Promise.all([
         fetch('/api/leads'),
-        fetch('/api/broadcast/stats')
+        fetch('/api/broadcast/stats', { headers: authHeaders })
       ]);
       
       if (leadsRes.ok) setLeads(await leadsRes.json());
@@ -46,8 +48,8 @@ export default function AdminBroadcastManager() {
   };
 
   const isSentLast7Days = (dateString: string) => {
-    if (!dateString) return false;
-    const date = new Date(dateString.endsWith("Z") ? dateString : dateString.replace(" ", "T") + "Z");
+    const date = parseTimestamp(dateString);
+    if (!date) return false;
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     return diff < 7 * 24 * 60 * 60 * 1000;
@@ -101,9 +103,10 @@ export default function AdminBroadcastManager() {
 
   const handleMarkSent = async (lead: any) => {
     try {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/broadcast/mark-sent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ lead_id: lead.id })
       });
       if (res.ok) {

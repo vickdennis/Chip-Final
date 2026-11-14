@@ -270,6 +270,8 @@ export default function App() {
       setPublicUsername(route.publicUsername);
       setBlogSlug(route.blogSlug);
       setCommercialSlug(route.commercialSlug);
+      const p = window.location.pathname.toLowerCase().replace(/\/+$/, '');
+      setAutoDownloadVCard(p.endsWith('/vcard') || p.endsWith('.vcf'));
     };
     window.addEventListener('popstate', handlePopState);
 

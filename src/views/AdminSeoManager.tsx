@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Link as LinkIcon, AlertTriangle, Plus, Trash2, Activity, CheckCircle2 } from 'lucide-react';
+import { toast } from '../components/Toast';
+import { getAdminAuthHeaders } from '../utils/adminApi';
 
 export default function AdminSeoManager() {
   const [keywords, setKeywords] = useState<any[]>([]);
   const [report, setReport] = useState<any>({ total: 0, broken: 0, logs: [] });
   const [loading, setLoading] = useState(true);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   const [form, setForm] = useState({ keyword_phrase: '', target_url_slug: '', type: 'post' });
 
@@ -15,9 +18,10 @@ export default function AdminSeoManager() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const headers = await getAdminAuthHeaders();
       const [kwRes, repRes] = await Promise.all([
-        fetch('/api/seo/keywords'),
-        fetch('/api/seo/links-report')
+        fetch('/api/seo/keywords', { headers }),
+        fetch('/api/seo/links-report', { headers })
       ]);
       if (kwRes.ok) setKeywords(await kwRes.json());
       if (repRes.ok) setReport(await repRes.json());
@@ -28,22 +32,40 @@ export default function AdminSeoManager() {
   const handleAddKeyword = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await fetch('/api/seo/keywords', {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+      const res = await fetch('/api/seo/keywords', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(form)
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to add keyword rule');
+        return;
+      }
+      toast.success('SEO auto-link rule added');
       setForm({ keyword_phrase: '', target_url_slug: '', type: 'post' });
       fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      toast.error(e?.message || 'Network error adding keyword');
+    }
   };
 
   const handleDeleteKeyword = async (id: number) => {
-    if (!confirm('Delete keyword?')) return;
     try {
-      await fetch('/api/seo/keywords/' + id, { method: 'DELETE' });
+      const headers = await getAdminAuthHeaders();
+      const res = await fetch('/api/seo/keywords/' + id, { method: 'DELETE', headers });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to delete keyword rule');
+        return;
+      }
+      setPendingDeleteId(null);
+      toast.success('Keyword rule removed');
       fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      toast.error(e?.message || 'Error deleting keyword');
+    }
   };
 
   const [checkingLinks, setCheckingLinks] = useState(false);
@@ -51,7 +73,8 @@ export default function AdminSeoManager() {
   const handleRunCron = async () => {
     setCheckingLinks(true);
     try {
-      const res = await fetch('/api/seo/check-links', { method: 'POST' });
+      const headers = await getAdminAuthHeaders();
+      const res = await fetch('/api/seo/check-links', { method: 'POST', headers });
       if (res.ok) {
         const json = await res.json();
         setReport({
@@ -59,9 +82,13 @@ export default function AdminSeoManager() {
           broken: json.broken || 0,
           logs: json.logs || report.logs
         });
+        toast.success('Broken link scan completed');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to run link checker');
       }
-    } catch (e) { 
-      console.error(e); 
+    } catch (e: any) { 
+      toast.error(e?.message || 'Failed to run link checker');
     } finally {
       setCheckingLinks(false);
     }
@@ -137,13 +164,30 @@ export default function AdminSeoManager() {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <button 
-                        onClick={() => handleDeleteKeyword(kw.id)} 
-                        className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
-                        title="Delete rule"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {pendingDeleteId === kw.id ? (
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleDeleteKeyword(kw.id)}
+                            className="px-2.5 py-1 rounded-md bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500 cursor-pointer"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setPendingDeleteId(null)}
+                            className="px-2 py-1 rounded-md border border-neutral-200/80 dark:border-white/10 text-xs font-semibold text-neutral-600 dark:text-neutral-300 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setPendingDeleteId(kw.id)} 
+                          className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
+                          title="Delete rule"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

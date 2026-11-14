@@ -378,14 +378,14 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
   if (error || !profile) {
     return (
-      <div className="dark min-h-screen bg-gray-50 dark:bg-black flex flex-col items-center justify-center text-center p-6">
-        <h1 className="font-display text-4xl font-black mb-2 text-current">Profile Not Found</h1>
-        <p className="font-sans text-current/40 dark:text-white/40 mb-6">We couldn't find a user with this username.</p>
+      <div className="dark min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center text-center p-6">
+        <h1 className="font-display text-4xl font-black mb-2 text-white">Profile Not Found</h1>
+        <p className="font-sans text-white/60 mb-6">We couldn't find a user with this username.</p>
         <button 
           onClick={() => {
             window.location.href = '/';
           }} 
-          className="px-6 py-2 bg-gray-50 dark:bg-black text-current font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-gray-50 dark:bg-black/90 transition-colors"
+          className="px-6 py-2.5 bg-white text-black font-mono text-[13px] font-bold rounded-xl uppercase tracking-widest hover:bg-neutral-200 transition-colors cursor-pointer"
         >
           Create your own CHIPNG card
         </button>
@@ -588,11 +588,11 @@ export default function PublicProfileView({ onNavigate, username, autoDownloadVC
 
         {/* Bio Link Modal */}
         {isBioModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-gray-50 dark:bg-black/80 backdrop-blur-sm sm:pb-4 pb-12">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/80 backdrop-blur-sm sm:pb-4 pb-12">
             <div className="bg-[#1a1a1a] w-full max-w-[400px] rounded-[32px] overflow-hidden flex flex-col relative animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 shadow-2xl border border-[#333]">
               <button 
                 onClick={() => setIsBioModalOpen(false)}
-                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-black/50 text-current hover:bg-gray-50 dark:bg-black transition-colors"
+                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -22,6 +22,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { toast } from '../components/Toast';
+import { downloadCsvFile, parseTimestamp } from '../utils/adminApi';
 
 export default function AdminLeadsManager() {
   const [leads, setLeads] = useState<any[]>([]);
@@ -122,51 +123,6 @@ export default function AdminLeadsManager() {
       }
     } catch (e) {}
 
-    // If completely empty, seed sample direct inquiries & support records
-    if (fetchedList.length === 0) {
-      fetchedList = [
-        {
-          id: 'inq_init_1',
-          name: 'Chief Babatunde Alabi',
-          email: 'babatunde.alabi@moniepoint-hq.ng',
-          whatsapp: '+234 803 456 7890',
-          company: 'Enterprise Card Deployment',
-          message: 'We are requesting 150 matte black stainless steel NFC executive cards for our senior management in Victoria Island. Please advise on custom logo engraving turnaround time.',
-          city: 'Victoria Island, Lagos',
-          source: 'direct_inquiry',
-          post_slug: 'contact_inquiry',
-          status: 'new',
-          created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString()
-        },
-        {
-          id: 'inq_init_2',
-          name: 'Amina Bello-Kano',
-          email: 'amina.bello@sterlingpartners.com',
-          whatsapp: '+234 812 990 1122',
-          company: 'API Integration',
-          message: 'Our corporate directory runs on Azure AD and Workday. Can the CHIP NG dynamic link-in-bio platform automatically sync profile changes through your webhook API?',
-          city: 'Abuja, FCT',
-          source: 'direct_inquiry',
-          post_slug: 'contact_inquiry',
-          status: 'in_review',
-          created_at: new Date(Date.now() - 1000 * 60 * 180).toISOString()
-        },
-        {
-          id: 'inq_init_3',
-          name: 'David O. Adeleke',
-          email: 'david@creatorshub.africa',
-          whatsapp: '+234 901 334 5566',
-          company: 'Support & Feedback',
-          message: 'The sub-10ms contactless NFC tap on iPhone 15 Pro and Galaxy S24 Ultra is incredibly smooth! We just ordered 5 more customized white PVC cards for our media team.',
-          city: 'Lekki Phase 1, Lagos',
-          source: 'direct_inquiry',
-          post_slug: 'contact_inquiry',
-          status: 'resolved',
-          created_at: new Date(Date.now() - 1000 * 60 * 520).toISOString()
-        }
-      ];
-    }
-
     setLeads(fetchedList);
     setLoading(false);
     setRefreshing(false);
@@ -237,42 +193,38 @@ export default function AdminLeadsManager() {
   const downloadInquiriesCSV = () => {
     const inquiries = leads.filter(l => isDirectInquiry(l));
     const headers = ['Date', 'Name', 'Email', 'Topic', 'Message', 'Status', 'Location'];
-    const rows = inquiries.map(l => [
-      `"${new Date(l.created_at).toISOString()}"`,
-      `"${l.name || ''}"`,
-      `"${l.email || l.whatsapp || ''}"`,
-      `"${l.company || 'Direct Inquiry'}"`,
-      `"${(l.message || '').replace(/"/g, '""')}"`,
-      `"${l.status || 'new'}"`,
-      `"${l.city || 'Lagos'}"`
-    ]);
+    const rows = inquiries.map(l => {
+      const parsed = parseTimestamp(l.created_at);
+      return [
+        parsed ? parsed.toISOString() : (l.created_at || ''),
+        l.name || '',
+        l.email || l.whatsapp || '',
+        l.company || 'Direct Inquiry',
+        l.message || '',
+        l.status || 'new',
+        l.city || 'Lagos'
+      ];
+    });
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `chipng_direct_inquiries_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`chipng_direct_inquiries_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
     toast.success('Downloaded Direct Inquiries CSV');
   };
 
   const downloadLeadsCSV = () => {
     const headers = ['Date', 'Name', 'WhatsApp', 'City', 'Post Slug', 'Source'];
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n"
-      + leads.map(l => {
-          return `"${new Date(l.created_at).toISOString()}","${l.name}","${l.whatsapp}","${l.city || ''}","${l.post_slug}","${l.source}"`;
-      }).join("\n");
-      
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "chipng_leads.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const rows = leads.map(l => {
+      const parsed = parseTimestamp(l.created_at);
+      return [
+        parsed ? parsed.toISOString() : (l.created_at || ''),
+        l.name || '',
+        l.whatsapp || '',
+        l.city || '',
+        l.post_slug || '',
+        l.source || ''
+      ];
+    });
+
+    downloadCsvFile('chipng_leads.csv', headers, rows);
     toast.success('Downloaded Leads CSV');
   };
 

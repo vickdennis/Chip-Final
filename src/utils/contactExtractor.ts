@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { getAdminAuthHeaders } from './adminApi';
 
 export interface ExtractedContact {
   id: string;
@@ -315,9 +316,10 @@ export async function extractContactsFromFile(file: File): Promise<ExtractedCont
           const dataUrl = reader.result as string;
           const base64Data = dataUrl.split(',')[1] || '';
           
+          const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
           const res = await fetch('/api/admin/extract-contacts', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
               fileData: base64Data,
               mimeType: file.type || (extension === 'png' ? 'image/png' : 'image/jpeg'),
@@ -378,9 +380,10 @@ export async function extractContactsFromFile(file: File): Promise<ExtractedCont
       try {
         const dataUrl = reader.result as string;
         const base64Data = dataUrl.split(',')[1] || '';
+        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         const res = await fetch('/api/admin/extract-contacts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             fileData: base64Data,
             mimeType: file.type || 'application/octet-stream',

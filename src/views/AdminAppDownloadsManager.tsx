@@ -29,6 +29,7 @@ import {
 } from '../utils/telemetryClient';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '../components/Toast';
+import { downloadCsvFile } from '../utils/adminApi';
 
 export default function AdminAppDownloadsManager() {
   const [analytics, setAnalytics] = useState<AppDownloadAnalytics | null>(null);
@@ -85,26 +86,17 @@ export default function AdminAppDownloadsManager() {
 
   const handleExportCsv = () => {
     if (!analytics) return;
-    const rows = [
-      ['Event ID', 'Platform', 'Device Type', 'Location', 'Version', 'Date'],
-      ...analytics.recentDownloads.map((dl, idx) => [
-        dl.id || `evt_${idx}`,
-        dl.platform.toUpperCase(),
-        dl.device_type || 'Mobile',
-        `${dl.city || 'Lagos'}, ${dl.country || 'Nigeria'}`,
-        dl.version || '2.4.0',
-        dl.created_at
-      ])
-    ];
+    const headers = ['Event ID', 'Platform', 'Device Type', 'Location', 'Version', 'Date'];
+    const rows = analytics.recentDownloads.map((dl, idx) => [
+      dl.id || `evt_${idx}`,
+      dl.platform.toUpperCase(),
+      dl.device_type || 'Mobile',
+      `${dl.city || 'Lagos'}, ${dl.country || 'Nigeria'}`,
+      dl.version || '2.4.0',
+      dl.created_at
+    ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `chipng_app_downloads_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`chipng_app_downloads_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
     toast.success('Downloaded App Telemetry CSV Report');
   };
 
@@ -117,16 +109,16 @@ export default function AdminAppDownloadsManager() {
     );
   }
 
-  const total = analytics?.totalDownloads || 1856;
-  const iosCount = analytics?.byPlatform.ios || 685;
-  const androidCount = analytics?.byPlatform.android || 830;
-  const apkCount = analytics?.byPlatform.apk || 218;
-  const pwaCount = analytics?.byPlatform.pwa || 123;
+  const total = analytics?.totalDownloads ?? 0;
+  const iosCount = analytics?.byPlatform.ios ?? 0;
+  const androidCount = analytics?.byPlatform.android ?? 0;
+  const apkCount = analytics?.byPlatform.apk ?? 0;
+  const pwaCount = analytics?.byPlatform.pwa ?? 0;
 
-  const iosPercent = Math.round((iosCount / total) * 100);
-  const androidPercent = Math.round((androidCount / total) * 100);
-  const apkPercent = Math.round((apkCount / total) * 100);
-  const pwaPercent = Math.round((pwaCount / total) * 100);
+  const iosPercent = total > 0 ? Math.round((iosCount / total) * 100) : 0;
+  const androidPercent = total > 0 ? Math.round((androidCount / total) * 100) : 0;
+  const apkPercent = total > 0 ? Math.round((apkCount / total) * 100) : 0;
+  const pwaPercent = total > 0 ? Math.round((pwaCount / total) * 100) : 0;
 
   const filteredDownloads = (analytics?.recentDownloads || []).filter(item => {
     if (selectedPlatformFilter === 'all') return true;

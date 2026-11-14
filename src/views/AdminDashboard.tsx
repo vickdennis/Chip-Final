@@ -23,6 +23,7 @@ import { toast } from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';
 import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge';
 import InternationalPhoneInput from '../components/InternationalPhoneInput';
+import { getAdminAuthHeaders, parseTimestamp, getProductPreviewImage, SUPER_ADMIN_ALLOWLIST } from '../utils/adminApi';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -32,6 +33,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [purchases, setPurchases] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
+  const [appDownloadsTotal, setAppDownloadsTotal] = useState<number>(0);
+  const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; confirmLabel?: string; onConfirm: () => Promise<void> | void } | null>(null);
   const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'email' | 'comms' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads' | 'portfolio'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -128,7 +131,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
       // 1. Fetch from serverless API (aggregates database submissions)
       try {
-        const res = await fetch('/api/onboarding/submissions');
+        const authHeaders = await getAdminAuthHeaders();
+        const res = await fetch('/api/onboarding/submissions', { headers: authHeaders });
         if (res.ok) {
           const apiData = await res.json().catch(() => ({}));
           if (Array.isArray(apiData.submissions)) {
@@ -222,9 +226,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
     toast.info(`Creating & saving 100% profile for @${cleanUsername}...`);
     try {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/admin/create-user', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           email: cleanEmail,
           password,
@@ -379,15 +384,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     let { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
     
     const userEmailLower = (user.email || '').toLowerCase().trim();
-    const isSuperAdminEmail = userEmailLower === 'vickthor.dennis@gmail.com' || 
-                              userEmailLower === 'victhtor.dennis@gmail.com' ||
-                              userEmailLower === 'victor.dennis@gmail.com' ||
-                              userEmailLower === 'vickthorden@gmail.com' ||
-                              userEmailLower === 'support@chipng.com' ||
-                              userEmailLower.includes('dennis') ||
-                              userEmailLower.includes('chipng.com');
+    const isSuperAdminEmail = SUPER_ADMIN_ALLOWLIST.includes(userEmailLower);
 
-    // Auto-grant if email matches
+    // Auto-grant only if email matches strict super admin allowlist
     if (isSuperAdminEmail && !profile?.is_admin) {
       await supabase.from('profiles').update({ is_admin: true }).eq('id', user.id);
       setIsAdmin(true);
@@ -462,7 +461,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
       // 2. Query backend credentials vault
       try {
-        const credRes = await fetch('/api/admin/user-credentials');
+        const authHeaders = await getAdminAuthHeaders();
+        const credRes = await fetch('/api/admin/user-credentials', { headers: authHeaders });
         if (credRes.ok) {
           const credData = await credRes.json();
           if (credData?.credentials) {
@@ -534,6 +534,17 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       );
       setInquiries(directOnly);
       setUnreadInquiriesCount(directOnly.filter(l => !l.status || l.status === 'new').length);
+    } catch (e) {}
+
+    // Fetch real app downloads count
+    try {
+      const dlRes = await fetch('/api/app/downloads');
+      if (dlRes.ok) {
+        const dlJson = await dlRes.json();
+        if (typeof dlJson.totalDownloads === 'number') {
+          setAppDownloadsTotal(dlJson.totalDownloads);
+        }
+      }
     } catch (e) {}
 
     // Auto-sync onboarding submissions
@@ -648,11 +659,16 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         cover_image_url: userForm.cover_image_url || null
       };
 
+      let apiUpdated = false;
+      let directUpdated = false;
+      let lastErrorMessage = '';
+
       // 1. Dual Atomic Sync via authoritative /api/admin/profile/update-full (bypasses RLS)
       try {
+        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         const fullRes = await fetch('/api/admin/profile/update-full', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             profile_id: editingUser.id,
             profile: { ...profilePayload, is_whatsapp: userForm.is_whatsapp },
@@ -661,18 +677,28 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
             products: userProducts
           })
         });
-        if (!fullRes.ok) {
+        if (fullRes.ok) {
+          apiUpdated = true;
+        } else {
           const errData = await fullRes.json().catch(() => ({}));
+          lastErrorMessage = errData.error || fullRes.statusText;
           console.warn('Admin profile update-full notice:', errData);
         }
-      } catch (syncErr) {
+      } catch (syncErr: any) {
+        lastErrorMessage = syncErr?.message || '';
         console.warn('Admin dual sync warning:', syncErr);
       }
 
       // 2. Direct Supabase Update (using clean verified schema columns)
       try {
-        await supabase.from('profiles').update(profilePayload).eq('id', editingUser.id);
+        const { error: profErr } = await supabase.from('profiles').update(profilePayload).eq('id', editingUser.id);
+        if (!profErr) {
+          directUpdated = true;
+        } else {
+          lastErrorMessage = profErr.message;
+        }
       } catch (err: any) {
+        lastErrorMessage = err?.message || lastErrorMessage;
         console.warn('Direct supabase update note:', err);
       }
 
@@ -718,6 +744,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         }
       } catch (err) {}
 
+      if (!apiUpdated && !directUpdated) {
+        toast.error('Failed to update user profile: ' + (lastErrorMessage || 'Permission or network error.'));
+        return;
+      }
+
       toast.success(`100% Profile Setup completed for @${cleanUsername || editingUser.username || 'user'}!`);
       setEditingUser(null);
       fetchData();
@@ -748,9 +779,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         // 1. Try server provision endpoint first
         let createdSuccessfully = false;
         try {
+          const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
           const res = await fetch('/api/admin/create-user', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
               email: currentEmail,
               password: newUserForm.password,
@@ -909,9 +941,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
       // 3. Backend Proxy Sync
       try {
+        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         const res = await fetch('/api/admin/set-user-password', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             user_id: targetUserId,
             email,
@@ -970,9 +1003,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       }
 
       // 2. Call backend proxy endpoint
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/admin/parse-google-form', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           url: googleFormUrl.trim(),
           content: googleFormContent.trim()
@@ -1017,9 +1051,10 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     try {
       // 1. Try batch backend API first
       try {
+        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         const res = await fetch('/api/admin/batch-create-profiles', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ users: selected })
         });
         if (res.ok) {
@@ -1140,29 +1175,54 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    const numericPrice = parseFloat(prodForm.price.toString().replace(/,/g, ''));
+    if (!prodForm.name.trim() || isNaN(numericPrice) || numericPrice < 0) {
+      toast.error('Please enter a valid product name and numeric price.');
+      return;
+    }
+
     const payload = {
       profile_id: null,
-      name: prodForm.name,
+      name: prodForm.name.trim(),
       description: prodForm.description,
-      price: parseFloat(prodForm.price.toString().replace(/,/g, '')),
+      price: numericPrice,
       image_url: JSON.stringify(prodForm.media_urls)
     };
 
-    if (editingProduct) {
-      await supabase.from('products').update(payload).eq('id', editingProduct.id);
-    } else {
-      await supabase.from('products').insert([payload]);
+    try {
+      const { error } = editingProduct
+        ? await supabase.from('products').update(payload).eq('id', editingProduct.id)
+        : await supabase.from('products').insert([payload]);
+
+      if (error) {
+        toast.error('Failed to save product: ' + error.message);
+        return;
+      }
+
+      toast.success(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
+      setEditingProduct(null);
+      setProdForm({ name: '', description: '', price: '', media_urls: [] });
+      fetchData();
+    } catch (err: any) {
+      toast.error('Failed to save product: ' + (err?.message || 'Unknown error'));
     }
-    
-    setEditingProduct(null);
-    setProdForm({ name: '', description: '', price: '', media_urls: [] });
-    fetchData();
   };
 
-  const deleteProduct = async (id: string) => {
-    if (!window.confirm('Delete this product?')) return;
-    await supabase.from('products').delete().eq('id', id);
-    fetchData();
+  const deleteProduct = (id: string) => {
+    setConfirmModal({
+      title: 'Delete Product',
+      message: 'Are you sure you want to delete this hardware product from the catalog?',
+      confirmLabel: 'Delete Product',
+      onConfirm: async () => {
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (error) {
+          toast.error('Error deleting product: ' + error.message);
+        } else {
+          toast.success('Product deleted.');
+          fetchData();
+        }
+      },
+    });
   };
 
   const handleSavePost = async (e: React.FormEvent, forcePublish?: boolean) => {
@@ -1210,10 +1270,21 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     }
   };
 
-  const deletePost = async (id: string) => {
-    if (!window.confirm('Delete this post?')) return;
-    await supabase.from('posts').delete().eq('id', id);
-    fetchData();
+  const deletePost = (id: string) => {
+    setConfirmModal({
+      title: 'Delete Blog Post',
+      message: 'Are you sure you want to permanently delete this article?',
+      confirmLabel: 'Delete Post',
+      onConfirm: async () => {
+        const { error } = await supabase.from('posts').delete().eq('id', id);
+        if (error) {
+          toast.error('Error deleting post: ' + error.message);
+        } else {
+          toast.success('Post deleted.');
+          fetchData();
+        }
+      },
+    });
   };
 
   const togglePostPublished = async (post: any) => {
@@ -1221,8 +1292,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       is_published: !post.is_published,
       published_at: !post.is_published && !post.published_at ? new Date().toISOString() : post.published_at
     };
-    await supabase.from('posts').update(payload).eq('id', post.id);
-    fetchData();
+    const { error } = await supabase.from('posts').update(payload).eq('id', post.id);
+    if (error) {
+      toast.error('Error updating post status: ' + error.message);
+    } else {
+      fetchData();
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center font-mono">Loading...</div>;
@@ -1233,7 +1308,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         <ShieldAlert className="w-16 h-16 text-red-500 mb-4" />
         <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
         <p className="text-black/40 dark:text-white/40 mb-6">You do not have permission to view the Super Admin Panel.</p>
-        <button onClick={() => onNavigate('user-dashboard')} className="px-6 py-2 bg-black text-black dark:text-white rounded-2xl font-mono text-[13px] font-bold">
+        <button onClick={() => onNavigate('user-dashboard')} className="px-6 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 rounded-2xl font-mono text-[13px] font-bold transition-opacity cursor-pointer">
           Return to Dashboard
         </button>
       </div>
@@ -1472,7 +1547,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 </div>
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">App Installs</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">1,856</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{appDownloadsTotal.toLocaleString()}</p>
                   <div className="text-[11px] text-[#16a34a] dark:text-[#16a34a] mt-2 flex items-center justify-between font-bold">
                     <span>Android & iOS</span>
                     <span>Radar →</span>
@@ -1500,7 +1575,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct Inquiries</h3>
                   <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-                    {inquiries.length > 0 ? inquiries.length : 3}
+                    {inquiries.length}
                   </p>
                   <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center justify-between font-bold">
                     <span>Support Feedback</span>
@@ -1553,7 +1628,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                     const isNew = !item.status || item.status === 'new';
                     const isResolved = item.status === 'resolved';
                     const topic = item.company || 'Direct Inquiry';
-                    const timeAgo = item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Recently';
+                    const parsedDate = parseTimestamp(item.created_at);
+                    const timeAgo = parsedDate ? parsedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Recently';
 
                     return (
                       <div
@@ -1690,6 +1766,17 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 }`}
               >
                 <CheckCircle className="w-3 h-3" /> Verified ({users.filter(u => u.is_verified).length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserFilter('unverified')}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  userFilter === 'unverified'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:opacity-80'
+                }`}
+              >
+                <AlertCircle className="w-3 h-3" /> Unverified ({users.filter(u => !u.is_verified).length})
               </button>
             </div>
 
@@ -3227,7 +3314,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                         </div>
 
                         {/* Supabase Schema & Dual-Persistence Setup Banner */}
-                        <div className="p-4 bg-neutral-900/60 dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-white/10 rounded-2xl space-y-3">
+                        <div className="p-4 bg-neutral-100/80 dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-white/10 rounded-2xl space-y-3">
                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div className="space-y-0.5">
                               <div className="flex items-center gap-2">
@@ -3851,10 +3938,12 @@ GRANT ALL ON TABLE public.email_logs TO anon, authenticated, service_role;`;
                 <span className="text-xs text-neutral-400">{products.length} Products synced to Homepage</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {products.map(p => (
+                {products.map(p => {
+                  const previewImg = getProductPreviewImage(p.image_url);
+                  return (
                   <div key={p.id} className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm flex flex-col hover:border-neutral-300 dark:hover:border-white/20 transition-all">
-                    {p.image_url ? (
-                      <img src={p.image_url.startsWith('[') ? JSON.parse(p.image_url)[0] : p.image_url} alt={p.name} className="w-full h-44 object-cover" />
+                    {previewImg ? (
+                      <img src={previewImg} alt={p.name} className="w-full h-44 object-cover" />
                     ) : (
                       <div className="w-full h-44 bg-neutral-100 dark:bg-[#151821] flex items-center justify-center text-neutral-400">
                         <CreditCard className="w-10 h-10 stroke-[1.5]" />
@@ -3891,7 +3980,8 @@ GRANT ALL ON TABLE public.email_logs TO anon, authenticated, service_role;`;
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 {products.length === 0 && (
                   <div className="col-span-2 p-12 text-center text-neutral-400 text-sm bg-white dark:bg-[#111318] border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
                     No active hardware products found. Use the inventory form to publish your first NFC card.
@@ -3934,6 +4024,36 @@ GRANT ALL ON TABLE public.email_logs TO anon, authenticated, service_role;`;
           <AdminPortfolioManager />
         )}
       </div>
+
+      {/* Confirmation Modal (replaces browser confirm dialogs) */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-neutral-950 dark:text-white">{confirmModal.title}</h3>
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">{confirmModal.message}</p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                className="px-4 py-2 rounded-full border border-neutral-200/80 dark:border-white/10 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const fn = confirmModal.onConfirm;
+                  setConfirmModal(null);
+                  await fn();
+                }}
+                className="px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold cursor-pointer"
+              >
+                {confirmModal.confirmLabel || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

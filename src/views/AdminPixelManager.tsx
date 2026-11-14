@@ -20,9 +20,16 @@ import {
   trackTikTokPageView, 
   checkTikTokPixelStatus 
 } from '../utils/tiktokPixel';
+import { toast } from '../components/Toast';
 
 export default function AdminPixelManager() {
   const [pixelStatus, setPixelStatus] = useState<any>(null);
+  const [metaPixelId, setMetaPixelId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('chip_meta_pixel_id') || '102938475618293';
+    }
+    return '102938475618293';
+  });
   const [logs, setLogs] = useState<Array<{ name: string; time: string; payload?: any; status?: string }>>([]);
   const [lastTestedEvent, setLastTestedEvent] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
@@ -391,12 +398,23 @@ export default function AdminPixelManager() {
                 <input
                   type="text"
                   placeholder="e.g. 192847192837461"
-                  defaultValue="102938475618293"
+                  value={metaPixelId}
+                  onChange={(e) => setMetaPixelId(e.target.value)}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs sm:text-sm font-mono text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
                 />
                 <button
                   type="button"
-                  onClick={() => alert('Meta Pixel ID updated successfully in super admin config.')}
+                  onClick={() => {
+                    const cleanId = metaPixelId.trim();
+                    if (!cleanId) {
+                      toast.error('Please enter a valid Meta Pixel ID.');
+                      return;
+                    }
+                    try {
+                      localStorage.setItem('chip_meta_pixel_id', cleanId);
+                    } catch {}
+                    toast.success('Meta Pixel ID saved successfully.');
+                  }}
                   className="px-5 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 rounded-full font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
                 >
                   Save ID
