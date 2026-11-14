@@ -3153,6 +3153,127 @@ app.post('/api/admin/send-bulk-sms', async (req: Request, res: Response) => {
   }
 });
 
+// Resilient Auth Signup Endpoint (decodes raw GoTrue HTTP 500 errors cleanly & supports service-role fallback)
+app.post('/api/auth/signup', async (req: Request, res: Response) => {
+  try {
+    const { email, password, full_name, username } = req.body || {};
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const cleanPassword = String(password || '');
+    const cleanFullName = String(full_name || '').trim();
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return res.status(400).json({ success: false, code: 'invalid_email', error: 'Please enter a valid email address.' });
+    }
+    if (cleanPassword.length < 6) {
+      return res.status(400).json({ success: false, code: 'weak_password', error: 'Password must be at least 6 characters long.' });
+    }
+
+    const initialUsername = (username ? String(username) : cleanEmail.split('@')[0])
+      .replace(/[^a-z0-9_.-]/g, '')
+      .toLowerCase() || `user${Math.floor(Math.random() * 10000)}`;
+
+    const goTrueRes = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: cleanEmail,
+        password: cleanPassword,
+        data: { full_name: cleanFullName || initialUsername }
+      })
+    });
+
+    const goTrueJson: any = await goTrueRes.json().catch(() => ({}));
+    const supabaseClient = getSupabase();
+
+    if (goTrueRes.ok && (goTrueJson?.user?.id || goTrueJson?.id)) {
+      const userObj = goTrueJson.user || goTrueJson;
+      try {
+        await supabaseClient.from('profiles').upsert({
+          id: userObj.id,
+          full_name: cleanFullName || initialUsername,
+          contact_email: cleanEmail,
+          email: cleanEmail,
+          username: initialUsername,
+          theme: 'default'
+        }, { onConflict: 'id' });
+      } catch (_e) {}
+
+      return res.json({
+        success: true,
+        user: userObj,
+        session: goTrueJson.access_token
+          ? {
+              access_token: goTrueJson.access_token,
+              refresh_token: goTrueJson.refresh_token,
+              expires_in: goTrueJson.expires_in,
+              token_type: goTrueJson.token_type,
+              user: userObj
+            }
+          : (goTrueJson.session || null)
+      });
+    }
+
+    const rawErrCode = String(goTrueJson?.error_code || goTrueJson?.code || 'signup_failed');
+    const rawErrMsg = String(goTrueJson?.msg || goTrueJson?.error_description || goTrueJson?.message || goTrueJson?.error || '').trim();
+
+    const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '').trim();
+    if (serviceRoleKey && (goTrueRes.status >= 500 || /confirmation email|unexpected_failure/i.test(`${rawErrCode} ${rawErrMsg}`))) {
+      try {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+          auth: { persistSession: false, autoRefreshToken: false }
+        });
+        const { data: created, error: adminErr } = await adminClient.auth.admin.createUser({
+          email: cleanEmail,
+          password: cleanPassword,
+          email_confirm: true,
+          user_metadata: { full_name: cleanFullName || initialUsername }
+        });
+        if (!adminErr && created?.user?.id) {
+          try {
+            await adminClient.from('profiles').upsert({
+              id: created.user.id,
+              full_name: cleanFullName || initialUsername,
+              contact_email: cleanEmail,
+              email: cleanEmail,
+              username: initialUsername,
+              theme: 'default'
+            }, { onConflict: 'id' });
+          } catch (_pErr) {}
+
+          const { data: signInData } = await supabaseClient.auth.signInWithPassword({
+            email: cleanEmail,
+            password: cleanPassword
+          });
+
+          return res.json({
+            success: true,
+            user: created.user,
+            session: signInData?.session || null
+          });
+        }
+      } catch (svcErr) {
+        console.warn('[Serverless Auth Signup] Service-role fallback notice:', svcErr);
+      }
+    }
+
+    return res.status(goTrueRes.status >= 400 ? goTrueRes.status : 400).json({
+      success: false,
+      code: rawErrCode,
+      error: rawErrMsg || 'Unable to complete registration right now. Please try "Continue with Google" or try again shortly.'
+    });
+  } catch (err: any) {
+    console.error('[Serverless Auth Signup API Error]', err);
+    return res.status(500).json({
+      success: false,
+      code: 'internal_error',
+      error: 'Unable to complete registration right now. Please check your connection and try again.'
+    });
+  }
+});
+
 // 404 Catch-All
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Endpoint not found', path: req.url });

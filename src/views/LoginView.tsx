@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { ViewState } from '../App';
 import { supabase } from '../supabaseClient';
-import { ArrowRight, Check, Sparkles, Moon, Sun, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowRight, Check, Sparkles, Moon, Sun, ArrowLeft, Loader2, ExternalLink, Copy } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import { toast } from '../components/Toast';
+import { extractAuthErrorMessage, getInAppBrowserName } from '../utils/authError';
 
 interface LoginViewProps {
   onNavigate: (view: ViewState) => void;
@@ -19,6 +20,8 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const inAppBrowser = React.useMemo(() => getInAppBrowserName(), []);
 
   // Check URL hash and search params on mount (handles Supabase OAuth callbacks, error redirects, etc.)
   React.useEffect(() => {
@@ -54,13 +57,57 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
         const cleanFullName = fullName.trim();
         const initialUsername = cleanEmail.split('@')[0].replace(/[^a-z0-9_.-]/g, '').toLowerCase() || `user${Math.floor(Math.random() * 1000)}`;
 
-        const { error, data } = await supabase.auth.signUp({
+        if (password.length < 6) {
+          throw new Error('Password must be at least 6 characters long.');
+        }
+
+        let { error, data } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
           options: {
             data: { full_name: cleanFullName },
           },
         });
+
+        // If @supabase/auth-js swallowed an HTTP 500 (e.g. AuthRetryableFetchError with "{}"),
+        // call our backend /api/auth/signup endpoint which decodes GoTrue's real error and
+        // completes registration via server-side provisioning if available.
+        if (error && (error.name === 'AuthRetryableFetchError' || Number((error as any).status) >= 500 || !error.message || error.message.trim() === '{}')) {
+          try {
+            const fallbackRes = await fetch('/api/auth/signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: cleanEmail,
+                password,
+                full_name: cleanFullName,
+                username: initialUsername
+              })
+            });
+            const fallbackData = await fallbackRes.json().catch(() => null);
+            if (fallbackRes.ok && fallbackData?.success) {
+              error = null as any;
+              data = { user: fallbackData.user || null, session: fallbackData.session || null } as any;
+              if (fallbackData.session?.access_token && fallbackData.session?.refresh_token) {
+                await supabase.auth.setSession({
+                  access_token: fallbackData.session.access_token,
+                  refresh_token: fallbackData.session.refresh_token
+                }).catch(() => {});
+              }
+            } else if (fallbackData?.error) {
+              throw {
+                message: fallbackData.error,
+                error_code: fallbackData.code,
+                status: fallbackRes.status
+              };
+            }
+          } catch (fbErr: any) {
+            if (fbErr && fbErr.message) {
+              throw fbErr;
+            }
+          }
+        }
+
         if (error) throw error;
 
         // Persist profile row immediately
@@ -107,18 +154,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
       }
     } catch (err: any) {
       console.error('Authentication error:', err);
-      let msg = err?.message || 'Authentication failed. Please verify credentials.';
-      if (/already registered/i.test(msg) || /user already exists/i.test(msg)) {
-        msg = 'This email is already registered. Please switch to "Sign In" above to access your dashboard.';
-      } else if (/invalid login credentials/i.test(msg)) {
-        msg = 'Incorrect email or password. Please verify and try again, or use "Forgot password?".';
-      } else if (/server error/i.test(msg)) {
-        if (mode === 'signup') {
-          msg = 'Unable to send account confirmation email right now. If your account was already created, please switch to "Sign In" above.';
-        } else {
-          msg = 'The authentication server encountered a temporary error. Please verify your email and password, or try resetting your password.';
-        }
-      }
+      const msg = extractAuthErrorMessage(err, mode);
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -139,10 +175,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
       if (error) throw error;
     } catch (err: any) {
       console.error('Google login error:', err);
-      let msg = err?.message || 'Google sign-in is currently unavailable.';
-      if (/server error/i.test(msg)) {
-        msg = 'Google Sign-In is not enabled in Supabase configuration for this domain. Please sign in directly with your email and password below.';
-      }
+      const msg = extractAuthErrorMessage(err, 'oauth');
       setErrorMsg(msg);
       toast.error(msg);
       setLoading(false);
@@ -166,10 +199,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
       toast.success('Password reset link sent to your email.');
     } catch (err: any) {
       console.error('Password reset error:', err);
-      let msg = err?.message || 'Failed to send password reset instructions.';
-      if (/server error/i.test(msg)) {
-        msg = 'Unable to dispatch password reset email right now. Please verify your email or contact support@chipng.com.';
-      }
+      const msg = extractAuthErrorMessage(err, 'reset');
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -255,14 +285,36 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
 
           {/* Feedback messages */}
           {errorMsg && (
-            <div className="mb-6 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-medium">
+            <div className="mb-6 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-medium leading-relaxed">
               {errorMsg}
             </div>
           )}
 
           {successMsg && (
-            <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+            <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-600 dark:text-emerald-400 text-xs font-medium leading-relaxed">
               {successMsg}
+            </div>
+          )}
+
+          {inAppBrowser && (
+            <div className="mb-5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-[11px] flex items-center justify-between gap-2">
+              <span className="leading-snug">
+                Opened in <strong>{inAppBrowser}</strong>. For fastest Google Sign-In, open in Chrome/Safari.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(window.location.href).then(() => {
+                    setCopiedUrl(true);
+                    toast.success('Link copied! Paste in Chrome or Safari.');
+                    setTimeout(() => setCopiedUrl(false), 2500);
+                  }).catch(() => {});
+                }}
+                className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-200/80 dark:bg-amber-800/60 text-amber-950 dark:text-amber-100 font-bold cursor-pointer"
+              >
+                {copiedUrl ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
+              </button>
             </div>
           )}
 
@@ -316,7 +368,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
                   placeholder="Amara Vance"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
                 />
               </div>
             )}
@@ -331,7 +383,7 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
               />
             </div>
 
@@ -354,10 +406,11 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
               <input
                 type="password"
                 required
+                minLength={mode === 'signup' ? 6 : undefined}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#181B24] text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-sm focus:outline-none focus:border-neutral-950 dark:focus:border-white transition-colors"
               />
             </div>
 

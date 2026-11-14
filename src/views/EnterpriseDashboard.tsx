@@ -10,6 +10,7 @@ import BrandLogo from '../components/BrandLogo';
 import { useCurrency } from '../context/CurrencyContext';
 import { formatCurrencyAmount } from '../utils/currency';
 import { toast } from '../components/Toast';
+import { extractAuthErrorMessage } from '../utils/authError';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const { currency, formatNgn, getCheckout } = useCurrency();
@@ -176,11 +177,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
         }
       });
       if (error) {
-        if (error.message && error.message.toLowerCase().includes('rate limit')) {
-          toast.error('Sign up error: email rate limit exceeded. Please try again later.');
-        } else {
-          toast.error("Sign up error: " + error.message);
-        }
+        toast.error(extractAuthErrorMessage(error, 'signup'));
       } else if (data.user) {
         // Wait for profile trigger to complete
         await new Promise(r => setTimeout(r, 1000));
@@ -201,7 +198,7 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
         fetchEnterpriseData();
       }
     } catch (err: any) {
-      toast.error("Error creating employee: " + err.message);
+      toast.error(extractAuthErrorMessage(err, 'signup'));
     }
   };
 

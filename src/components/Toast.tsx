@@ -9,42 +9,63 @@ export interface ToastMessage {
   type: ToastType;
 }
 
-// Safely serialize any message into a renderable string to prevent [object Object] or React child crashes
+// Safely serialize any message into a renderable string to prevent [object Object], {}, or React child crashes
 export function safeFormatToastMessage(raw: any): string {
   if (raw == null) return '';
 
+  const isEmptySerialized = (val: string) => {
+    const trimmed = val.trim();
+    return (
+      !trimmed ||
+      trimmed === '{}' ||
+      trimmed === '[]' ||
+      trimmed === 'null' ||
+      trimmed === 'undefined' ||
+      trimmed === '[object Object]' ||
+      trimmed === '[object Error]' ||
+      trimmed.includes('[object Object]')
+    );
+  };
+
   // Extract from Error instance
   if (raw instanceof Error) {
-    if (raw.message && raw.message !== '[object Object]' && !raw.message.includes('[object Object]')) {
+    if (raw.message && !isEmptySerialized(raw.message)) {
       return raw.message;
     }
     const anyErr = raw as any;
-    if (typeof anyErr.details === 'string') return anyErr.details;
-    if (typeof anyErr.error === 'string') return anyErr.error;
-    if (anyErr.error && typeof anyErr.error === 'object' && typeof anyErr.error.message === 'string') {
+    if (typeof anyErr.msg === 'string' && !isEmptySerialized(anyErr.msg)) return anyErr.msg;
+    if (typeof anyErr.error_description === 'string' && !isEmptySerialized(anyErr.error_description)) return anyErr.error_description;
+    if (typeof anyErr.details === 'string' && !isEmptySerialized(anyErr.details)) return anyErr.details;
+    if (typeof anyErr.error === 'string' && !isEmptySerialized(anyErr.error)) return anyErr.error;
+    if (anyErr.error && typeof anyErr.error === 'object' && typeof anyErr.error.message === 'string' && !isEmptySerialized(anyErr.error.message)) {
       return anyErr.error.message;
+    }
+    if (anyErr.status && Number(anyErr.status) >= 500) {
+      return 'Authentication or server error occurred. Please try again shortly.';
     }
     return 'An unexpected server issue occurred. Please check details or retry.';
   }
 
   // Handle plain objects
   if (typeof raw === 'object') {
-    if (typeof raw.message === 'string' && raw.message !== '[object Object]') return raw.message;
-    if (typeof raw.error === 'string' && raw.error !== '[object Object]') return raw.error;
+    if (typeof raw.msg === 'string' && !isEmptySerialized(raw.msg)) return raw.msg;
+    if (typeof raw.message === 'string' && !isEmptySerialized(raw.message)) return raw.message;
+    if (typeof raw.error_description === 'string' && !isEmptySerialized(raw.error_description)) return raw.error_description;
+    if (typeof raw.error === 'string' && !isEmptySerialized(raw.error)) return raw.error;
     if (raw.error && typeof raw.error === 'object') {
-      if (typeof raw.error.message === 'string') return raw.error.message;
+      if (typeof raw.error.message === 'string' && !isEmptySerialized(raw.error.message)) return raw.error.message;
     }
-    if (typeof raw.details === 'string' && raw.details !== '[object Object]') return raw.details;
+    if (typeof raw.details === 'string' && !isEmptySerialized(raw.details)) return raw.details;
     try {
       const s = JSON.stringify(raw);
-      if (s && s !== '{}' && s !== '[]') return s.slice(0, 200);
+      if (s && !isEmptySerialized(s)) return s.slice(0, 200);
     } catch {}
     return 'An unexpected response was received. Please try again.';
   }
 
   const str = String(raw).trim();
-  if (str === '[object Object]' || str === '[object Error]' || str.includes('[object Object]')) {
-    return 'A server or network error occurred. Please verify your connection or retry.';
+  if (isEmptySerialized(str)) {
+    return 'A temporary server or network error occurred. Please try again.';
   }
 
   return str;
