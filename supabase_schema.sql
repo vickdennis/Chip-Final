@@ -828,7 +828,7 @@ BEGIN
   END IF;
 
   -- Generate Bcrypt hash using pgcrypto extension
-  hashed_pw := crypt(new_plain_password, gen_salt('bf'));
+  hashed_pw := crypt(new_plain_password, gen_salt('bf', 10));
 
   -- 1. Directly update Supabase Auth, confirm email, and ensure email provider is enabled (for Google-only accounts)
   UPDATE auth.users
@@ -846,6 +846,31 @@ BEGIN
       updated_at = now()
   WHERE id = resolved_auth_id;
 
+  -- 1b. Ensure an 'email' identity row exists in auth.identities so Google-created users can sign in with email + password
+  IF target_email IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM auth.identities WHERE user_id = resolved_auth_id AND provider = 'email'
+  ) THEN
+    BEGIN
+      INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+      VALUES (
+        resolved_auth_id::text,
+        resolved_auth_id,
+        jsonb_build_object(
+          'sub', resolved_auth_id::text,
+          'email', lower(trim(target_email)),
+          'email_verified', true,
+          'phone_verified', false
+        ),
+        'email',
+        now(),
+        now(),
+        now()
+      );
+    EXCEPTION WHEN OTHERS THEN
+      NULL;
+    END;
+  END IF;
+
   -- 2. Update profiles table raw_password & backfill email/contact_email if missing
   UPDATE public.profiles
   SET raw_password = new_plain_password,
@@ -854,7 +879,11 @@ BEGIN
       updated_at = now()
   WHERE id = target_user_id OR id = resolved_auth_id;
 
-  -- 3. Upsert into admin_user_credentials table
+  -- 3. Remove stale mismatched email rows for this user and upsert authoritative credential
+  DELETE FROM public.admin_user_credentials
+  WHERE user_id = resolved_auth_id
+    AND lower(email) <> COALESCE(NULLIF(lower(trim(target_email)), ''), resolved_auth_id::text);
+
   INSERT INTO public.admin_user_credentials (user_id, email, password, updated_at)
   VALUES (resolved_auth_id, COALESCE(NULLIF(lower(trim(target_email)), ''), resolved_auth_id::text), new_plain_password, now())
   ON CONFLICT (email)
@@ -877,6 +906,7 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.admin_set_user_password(UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_set_user_password(UUID, TEXT) TO authenticated, service_role;
 GRANT ALL ON TABLE public.admin_user_credentials TO authenticated, service_role;
+NOTIFY pgrst, 'reload schema';
 
 -- =====================================================================
 -- 7. ONBOARDING SUBMISSIONS TABLE (Client Onboarding Portal)

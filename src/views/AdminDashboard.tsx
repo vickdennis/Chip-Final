@@ -951,12 +951,21 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       let resolvedEmail: string = loginEmail;
       let errorMsg = '';
 
-      // 1. Call Supabase Stored Procedure (updates Supabase Auth encrypted_password + email_confirmed_at + profiles + admin_user_credentials)
+      // 1. Call Supabase Stored Procedure (updates Supabase Auth encrypted_password + email_confirmed_at + auth.identities + profiles + admin_user_credentials)
       try {
-        const { data: rpcData, error: rpcError } = await supabase.rpc('admin_set_user_password', {
+        let { data: rpcData, error: rpcError } = await supabase.rpc('admin_set_user_password', {
           target_user_id: targetUserId,
           new_plain_password: cleanPassword
         });
+        if (rpcError && /jwt|expired|unauthorized|permission denied/i.test(String(rpcError.message || ''))) {
+          await supabase.auth.refreshSession().catch(() => {});
+          const retryRpc = await supabase.rpc('admin_set_user_password', {
+            target_user_id: targetUserId,
+            new_plain_password: cleanPassword
+          });
+          rpcData = retryRpc.data;
+          rpcError = retryRpc.error;
+        }
         if (!rpcError && (rpcData?.success || rpcData === true)) {
           authUpdated = true;
           vaultUpdated = true;
@@ -3093,7 +3102,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
             {/* Manage User Password Modal (Super Admin Only) */}
             {settingPasswordUser && (
-              <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+              <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[60] overflow-y-auto">
                 <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl my-8 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-3">
