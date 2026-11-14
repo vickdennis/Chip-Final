@@ -1260,7 +1260,6 @@ async function startServer() {
           email: cleanEmail,
           phone_number: phone_number?.trim() || null,
           cover_image_url: cover_image_url || null,
-          avatar_url: cover_image_url || null,
           is_verified: true,
           theme: 'default'
         };
@@ -1334,13 +1333,14 @@ async function startServer() {
 
   app.post('/api/admin/set-user-password', async (req, res) => {
     try {
-      const { user_id, email, password, skip_auth_rpc } = req.body || {};
-      if (!password || (!user_id && !email)) {
+      const { user_id, profile_id, email, password, skip_auth_rpc } = req.body || {};
+      if (!password || (!user_id && !profile_id && !email)) {
         return res.status(400).json({ success: false, error: 'User ID or Email and password are required.' });
       }
-      const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+      let cleanEmail = email ? String(email).trim().toLowerCase() : '';
       const cleanPassword = String(password).trim();
-      let cleanUserId = user_id ? String(user_id).trim() : null;
+      let cleanUserId = user_id ? String(user_id).trim() : (profile_id ? String(profile_id).trim() : null);
+      const cleanProfileId = profile_id ? String(profile_id).trim() : cleanUserId;
 
       if (cleanPassword.length < 6) {
         return res.status(400).json({ success: false, error: 'Password must be at least 6 characters for Supabase Authentication.' });
@@ -1348,7 +1348,7 @@ async function startServer() {
 
       const supabase = getSupabase();
 
-      // Resolve missing user_id from profiles by email if omitted
+      // Resolve missing user_id or email from profiles
       if (!cleanUserId && cleanEmail) {
         const { data: profMatch } = await supabase
           .from('profiles')
@@ -1356,33 +1356,65 @@ async function startServer() {
           .or(`email.eq.${cleanEmail},contact_email.eq.${cleanEmail}`)
           .maybeSingle();
         if (profMatch?.id) cleanUserId = profMatch.id;
+      } else if (cleanProfileId && !cleanEmail) {
+        const { data: profById } = await supabase
+          .from('profiles')
+          .select('email, contact_email')
+          .eq('id', cleanProfileId)
+          .maybeSingle();
+        if (profById) {
+          cleanEmail = String(profById.email || profById.contact_email || '').trim().toLowerCase();
+        }
       }
 
       let authUpdated = Boolean(skip_auth_rpc);
+      let resolvedAuthId: string | null = cleanUserId;
+      let resolvedEmail: string = cleanEmail;
       let authErrorMsg = '';
 
       if (!authUpdated) {
         const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '').trim();
-        if (serviceRoleKey && cleanUserId) {
+        if (serviceRoleKey && (cleanUserId || cleanEmail)) {
           try {
             const adminClient = createClient(supabaseUrl, serviceRoleKey, {
               auth: { persistSession: false, autoRefreshToken: false }
             });
-            const { error: admErr } = await adminClient.auth.admin.updateUserById(cleanUserId, {
-              password: cleanPassword,
-              email_confirm: true
-            });
-            if (!admErr) {
-              authUpdated = true;
-            } else {
-              authErrorMsg = admErr.message;
+            if (cleanUserId) {
+              const { data: admData, error: admErr } = await adminClient.auth.admin.updateUserById(cleanUserId, {
+                password: cleanPassword,
+                email_confirm: true
+              });
+              if (!admErr) {
+                authUpdated = true;
+                if (admData?.user?.email) resolvedEmail = admData.user.email.toLowerCase().trim();
+                if (admData?.user?.id) resolvedAuthId = admData.user.id;
+              } else {
+                authErrorMsg = admErr.message;
+              }
+            }
+            if (!authUpdated && cleanEmail) {
+              const { data: listData } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+              const foundAuthUser = (listData?.users || []).find((au: any) => (au.email || '').toLowerCase().trim() === cleanEmail);
+              if (foundAuthUser?.id) {
+                const { error: admErr2 } = await adminClient.auth.admin.updateUserById(foundAuthUser.id, {
+                  password: cleanPassword,
+                  email_confirm: true
+                });
+                if (!admErr2) {
+                  authUpdated = true;
+                  resolvedAuthId = foundAuthUser.id;
+                  resolvedEmail = (foundAuthUser.email || cleanEmail).toLowerCase().trim();
+                } else {
+                  authErrorMsg = admErr2.message;
+                }
+              }
             }
           } catch (admEx: any) {
             authErrorMsg = admEx?.message || '';
           }
         }
 
-        if (!authUpdated && cleanUserId) {
+        if (!authUpdated && (cleanUserId || cleanProfileId)) {
           try {
             const authHeader = req.headers?.authorization;
             const rpcClient = authHeader
@@ -1392,11 +1424,13 @@ async function startServer() {
                 })
               : supabase;
             const { data: rpcData, error: rpcError } = await rpcClient.rpc('admin_set_user_password', {
-              target_user_id: cleanUserId,
+              target_user_id: cleanProfileId || cleanUserId,
               new_plain_password: cleanPassword
             });
             if (!rpcError && (rpcData?.success || rpcData === true)) {
               authUpdated = true;
+              if (rpcData?.user_id) resolvedAuthId = String(rpcData.user_id).trim();
+              if (rpcData?.email) resolvedEmail = String(rpcData.email).toLowerCase().trim();
             } else if (rpcError) {
               authErrorMsg = rpcError.code === '23503'
                 ? 'This profile does not have a matching Supabase Auth login account.'
@@ -1417,38 +1451,49 @@ async function startServer() {
         });
       }
 
-      db.prepare(`
-        INSERT INTO admin_user_credentials (user_id, email, password, updated_at) 
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(email) DO UPDATE SET password=excluded.password, user_id=COALESCE(excluded.user_id, user_id), updated_at=CURRENT_TIMESTAMP
-      `).run(cleanUserId, cleanEmail || cleanUserId, cleanPassword);
+      const finalEmailKey = resolvedEmail || cleanEmail || resolvedAuthId || cleanProfileId;
+      if (finalEmailKey) {
+        db.prepare(`
+          INSERT INTO admin_user_credentials (user_id, email, password, updated_at) 
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(email) DO UPDATE SET password=excluded.password, user_id=COALESCE(excluded.user_id, user_id), updated_at=CURRENT_TIMESTAMP
+        `).run(resolvedAuthId || cleanProfileId, finalEmailKey, cleanPassword);
+      }
 
       // Sync to Supabase admin_user_credentials and profiles.raw_password
       let vaultUpdated = false;
       try {
-        const { error: upsertErr } = await supabase.from('admin_user_credentials').upsert({
-          user_id: cleanUserId,
-          email: cleanEmail || cleanUserId,
-          password: cleanPassword,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'email' });
-        if (!upsertErr) vaultUpdated = true;
+        if (resolvedEmail || cleanEmail) {
+          const { error: upsertErr } = await supabase.from('admin_user_credentials').upsert({
+            user_id: resolvedAuthId || cleanUserId,
+            email: resolvedEmail || cleanEmail,
+            password: cleanPassword,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'email' });
+          if (!upsertErr) vaultUpdated = true;
+        }
 
-        if (cleanUserId) {
-          await supabase.from('profiles').update({
+        if (cleanProfileId || resolvedAuthId) {
+          const profUpdate: Record<string, any> = {
             raw_password: cleanPassword,
             updated_at: new Date().toISOString()
-          }).eq('id', cleanUserId);
+          };
+          if (resolvedEmail) {
+            profUpdate.email = resolvedEmail;
+          }
+          await supabase.from('profiles').update(profUpdate).eq('id', cleanProfileId || resolvedAuthId);
         }
       } catch (spErr) {
         console.warn('[Supabase Sync Notice]', spErr);
       }
 
-      console.log(`[Super Admin Password Vault] Updated Auth & Vault password for user ${cleanEmail || cleanUserId}`);
+      console.log(`[Super Admin Password Vault] Updated Auth & Vault password for user ${resolvedEmail || resolvedAuthId}`);
       return res.json({
         success: true,
         authUpdated: true,
         vaultUpdated,
+        user_id: resolvedAuthId || cleanProfileId,
+        email: resolvedEmail || cleanEmail,
         password: cleanPassword,
         message: 'Password updated in Supabase Authentication and Super Admin records.'
       });

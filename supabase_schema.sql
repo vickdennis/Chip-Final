@@ -247,29 +247,61 @@ CREATE POLICY "Users can delete own social links."
   ON public.social_links FOR DELETE
   USING ( auth.uid() = profile_id OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
 
--- Function to automatically create a profile after inserting a user
+-- Function to automatically create a profile after inserting a user (email or Google OAuth)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 DECLARE
   base_username text;
   final_username text;
+  resolved_name text;
+  resolved_avatar text;
+  clean_email text;
   counter integer := 1;
 BEGIN
-  base_username := split_part(new.email, '@', 1);
+  clean_email := lower(nullif(trim(coalesce(new.email, '')), ''));
+  base_username := regexp_replace(
+    lower(coalesce(nullif(split_part(coalesce(clean_email, 'user'), '@', 1), ''), 'user')),
+    '[^a-z0-9_.-]',
+    '',
+    'g'
+  );
+  IF base_username = '' OR length(base_username) < 2 THEN
+    base_username := 'user' || substr(replace(new.id::text, '-', ''), 1, 6);
+  END IF;
   final_username := base_username;
 
   -- Ensure unique username
-  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
+  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username AND id <> new.id) LOOP
     final_username := base_username || counter::text;
     counter := counter + 1;
   END LOOP;
 
-  INSERT INTO public.profiles (id, full_name, username, headline)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', final_username, 'Tech Professional');
-  
+  resolved_name := coalesce(
+    nullif(trim(new.raw_user_meta_data->>'full_name'), ''),
+    nullif(trim(new.raw_user_meta_data->>'name'), ''),
+    base_username,
+    'CHIP Member'
+  );
+  resolved_avatar := coalesce(
+    nullif(trim(new.raw_user_meta_data->>'avatar_url'), ''),
+    nullif(trim(new.raw_user_meta_data->>'picture'), '')
+  );
+
+  INSERT INTO public.profiles (id, full_name, username, headline, email, contact_email, cover_image_url)
+  VALUES (new.id, resolved_name, final_username, 'Executive Member', clean_email, clean_email, resolved_avatar)
+  ON CONFLICT (id) DO UPDATE SET
+    email = COALESCE(NULLIF(public.profiles.email, ''), EXCLUDED.email),
+    contact_email = COALESCE(NULLIF(public.profiles.contact_email, ''), EXCLUDED.contact_email),
+    full_name = COALESCE(NULLIF(public.profiles.full_name, ''), EXCLUDED.full_name),
+    cover_image_url = COALESCE(NULLIF(public.profiles.cover_image_url, ''), EXCLUDED.cover_image_url),
+    updated_at = now();
+
+  RETURN new;
+EXCEPTION WHEN OTHERS THEN
+  -- Never block auth.users signup (e.g. Google OAuth) due to a profile constraint
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth;
 
 -- Trigger to call the function after a user is created
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -798,22 +830,33 @@ BEGIN
   -- Generate Bcrypt hash using pgcrypto extension
   hashed_pw := crypt(new_plain_password, gen_salt('bf'));
 
-  -- 1. Directly update Supabase Auth and confirm email so the user can immediately log in
+  -- 1. Directly update Supabase Auth, confirm email, and ensure email provider is enabled (for Google-only accounts)
   UPDATE auth.users
   SET encrypted_password = hashed_pw,
       email_confirmed_at = COALESCE(email_confirmed_at, now()),
+      raw_app_meta_data = jsonb_set(
+        COALESCE(raw_app_meta_data, '{}'::jsonb),
+        '{providers}',
+        CASE
+          WHEN COALESCE(raw_app_meta_data->'providers', '[]'::jsonb) @> '["email"]'::jsonb
+          THEN COALESCE(raw_app_meta_data->'providers', '[]'::jsonb)
+          ELSE COALESCE(raw_app_meta_data->'providers', '[]'::jsonb) || '["email"]'::jsonb
+        END
+      ),
       updated_at = now()
   WHERE id = resolved_auth_id;
 
-  -- 2. Update profiles table raw_password column
+  -- 2. Update profiles table raw_password & backfill email/contact_email if missing
   UPDATE public.profiles
   SET raw_password = new_plain_password,
+      email = COALESCE(NULLIF(trim(email), ''), lower(trim(target_email))),
+      contact_email = COALESCE(NULLIF(trim(contact_email), ''), lower(trim(target_email))),
       updated_at = now()
-  WHERE id = target_user_id;
+  WHERE id = target_user_id OR id = resolved_auth_id;
 
   -- 3. Upsert into admin_user_credentials table
   INSERT INTO public.admin_user_credentials (user_id, email, password, updated_at)
-  VALUES (resolved_auth_id, COALESCE(lower(trim(target_email)), resolved_auth_id::text), new_plain_password, now())
+  VALUES (resolved_auth_id, COALESCE(NULLIF(lower(trim(target_email)), ''), resolved_auth_id::text), new_plain_password, now())
   ON CONFLICT (email)
   DO UPDATE SET
     password = EXCLUDED.password,
@@ -823,7 +866,7 @@ BEGIN
   RETURN jsonb_build_object(
     'success', true,
     'user_id', resolved_auth_id,
-    'email', target_email,
+    'email', lower(trim(target_email)),
     'password', new_plain_password,
     'message', 'Password updated successfully in both Supabase Auth and Admin Vault.'
   );

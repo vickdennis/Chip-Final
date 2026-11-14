@@ -831,6 +831,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 headline: newUserForm.headline || null,
                 bio: newUserForm.bio || null,
                 contact_email: currentEmail,
+                email: currentEmail,
                 phone_number: newUserForm.phone_number || null,
                 cover_image_url: newUserForm.cover_image_url || null,
                 is_verified: true
@@ -899,6 +900,28 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     }
   };
 
+  const getUserStoredPassword = (u: any): string => {
+    if (!u) return '';
+    const loginEmailKey = String(u?.email || '').toLowerCase().trim();
+    const contactEmailKey = String(u?.contact_email || '').toLowerCase().trim();
+    const creds = (userCredentials && typeof userCredentials === 'object') ? userCredentials : {};
+    return (
+      (u?.id ? creds[u.id] : undefined) ||
+      (loginEmailKey ? creds[loginEmailKey] : undefined) ||
+      (contactEmailKey ? creds[contactEmailKey] : undefined) ||
+      u?.raw_password ||
+      ''
+    );
+  };
+
+  const openManagePasswordModal = (u: any) => {
+    const existingPass = getUserStoredPassword(u);
+    setPasswordModalError('');
+    setShowModalPassword(true);
+    setSettingPasswordUser(u);
+    setNewPasswordInput(existingPass);
+  };
+
   const handleSaveUserPassword = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!settingPasswordUser) return;
@@ -924,6 +947,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     try {
       let authUpdated = false;
       let vaultUpdated = false;
+      let resolvedAuthId: string = targetUserId;
+      let resolvedEmail: string = loginEmail;
       let errorMsg = '';
 
       // 1. Call Supabase Stored Procedure (updates Supabase Auth encrypted_password + email_confirmed_at + profiles + admin_user_credentials)
@@ -935,6 +960,8 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         if (!rpcError && (rpcData?.success || rpcData === true)) {
           authUpdated = true;
           vaultUpdated = true;
+          if (rpcData?.user_id) resolvedAuthId = String(rpcData.user_id).trim();
+          if (rpcData?.email) resolvedEmail = String(rpcData.email).toLowerCase().trim();
         } else if (rpcError) {
           const rawRpcMsg = String(rpcError.message || '');
           if (rpcError.code === '23503' || rawRpcMsg.includes('admin_user_credentials_user_id_fkey')) {
@@ -947,15 +974,16 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         errorMsg = rpcErr?.message || 'Supabase password update failed.';
       }
 
-      // 2. Backend Proxy Sync (also updates Auth via RPC/Service Role if Step 1 failed and persists vault in SQLite + Supabase)
+      // 2. Backend Proxy Sync (updates Auth via Service Role / RPC if Step 1 failed and persists vault in SQLite + Supabase)
       try {
         const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         const res = await fetch('/api/admin/set-user-password', {
           method: 'POST',
           headers,
           body: JSON.stringify({
-            user_id: targetUserId,
-            email: loginEmail,
+            user_id: resolvedAuthId || targetUserId,
+            profile_id: targetUserId,
+            email: resolvedEmail || loginEmail,
             password: cleanPassword,
             skip_auth_rpc: authUpdated
           })
@@ -964,38 +992,57 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
         if (res.ok && data?.success) {
           if (data.authUpdated) authUpdated = true;
           if (data.vaultUpdated !== false) vaultUpdated = true;
+          if (data.user_id) resolvedAuthId = String(data.user_id).trim();
+          if (data.email) resolvedEmail = String(data.email).toLowerCase().trim();
         } else if (!authUpdated && data?.error) {
           errorMsg = data.error;
         }
       } catch (_backendErr) {}
 
-      // 3. Ensure Supabase vault & profiles.raw_password are synced with explicit error checking
+      // 3. Ensure Supabase vault & profiles.raw_password are synced cleanly using resolved auth user/email
       if (authUpdated) {
         try {
-          const { error: credErr } = await supabase.from('admin_user_credentials').upsert({
-            user_id: targetUserId,
-            email: loginEmail || targetUserId,
-            password: cleanPassword,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'email' });
-          if (!credErr) vaultUpdated = true;
+          const vaultEmailKey = resolvedEmail || loginEmail || contactEmail;
+          if (vaultEmailKey) {
+            const { error: credErr } = await supabase.from('admin_user_credentials').upsert({
+              user_id: resolvedAuthId || targetUserId,
+              email: vaultEmailKey,
+              password: cleanPassword,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'email' });
+            if (!credErr) vaultUpdated = true;
+          }
 
-          await supabase.from('profiles').update({
+          const profileUpdate: Record<string, any> = {
             raw_password: cleanPassword,
             updated_at: new Date().toISOString()
-          }).eq('id', targetUserId);
+          };
+          if (!settingPasswordUser.email && resolvedEmail) {
+            profileUpdate.email = resolvedEmail;
+          }
+          if (!settingPasswordUser.contact_email && resolvedEmail) {
+            profileUpdate.contact_email = resolvedEmail;
+          }
+          await supabase.from('profiles').update(profileUpdate).eq('id', targetUserId);
         } catch (_syncErr) {}
       }
 
       if (authUpdated) {
         setUserCredentials(prev => {
           const updated = { ...prev, [targetUserId]: cleanPassword };
+          if (resolvedAuthId) updated[resolvedAuthId] = cleanPassword;
+          if (resolvedEmail) updated[resolvedEmail] = cleanPassword;
           if (loginEmail) updated[loginEmail] = cleanPassword;
           if (contactEmail) updated[contactEmail] = cleanPassword;
           return updated;
         });
-        setUsers(prev => prev.map(u => u.id === targetUserId ? { ...u, raw_password: cleanPassword } : u));
-        toast.success(`Password updated for ${settingPasswordUser.full_name || settingPasswordUser.username || loginEmail}! User can log in immediately.`);
+        setUsers(prev => prev.map(u => u.id === targetUserId ? {
+          ...u,
+          raw_password: cleanPassword,
+          email: u.email || resolvedEmail || u.email,
+          contact_email: u.contact_email || resolvedEmail || u.contact_email
+        } : u));
+        toast.success(`Password updated for ${settingPasswordUser.full_name || settingPasswordUser.username || resolvedEmail || loginEmail}! User can log in immediately.`);
         setSettingPasswordUser(null);
         setNewPasswordInput('');
         setPasswordModalError('');
@@ -1843,7 +1890,13 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           )}
                           <div>
                             <div className="font-semibold text-neutral-950 dark:text-white text-sm">{u.full_name || 'No Name'}</div>
-                            <div className="font-mono text-[11px] text-neutral-400 truncate max-w-[140px]" title={u.id}>{u.id}</div>
+                            {(u.email || u.contact_email) ? (
+                              <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-[190px]" title={u.email || u.contact_email}>
+                                {u.email || u.contact_email}
+                              </div>
+                            ) : (
+                              <div className="font-mono text-[11px] text-neutral-400 truncate max-w-[140px]" title={u.id}>{u.id}</div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -1855,10 +1908,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       {/* Password Column (Super Admin Only) */}
                       <td className="py-3.5 px-4">
                         {(() => {
-                          const loginEmailKey = String(u?.email || '').toLowerCase().trim();
-                          const contactEmailKey = String(u?.contact_email || '').toLowerCase().trim();
-                          const creds = (userCredentials && typeof userCredentials === 'object') ? userCredentials : {};
-                          const pass = (u?.id ? creds[u.id] : undefined) || (loginEmailKey ? creds[loginEmailKey] : undefined) || (contactEmailKey ? creds[contactEmailKey] : undefined) || u?.raw_password;
+                          const pass = getUserStoredPassword(u);
                           const isRevealed = Boolean(u?.id && revealedPasswords && revealedPasswords[u.id]);
 
                           if (pass) {
@@ -1890,14 +1940,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setPasswordModalError('');
-                                    setShowModalPassword(true);
-                                    setSettingPasswordUser(u);
-                                    setNewPasswordInput(pass);
-                                  }}
+                                  onClick={() => openManagePasswordModal(u)}
                                   className="p-1 text-neutral-400 hover:text-[#16a34a] transition-colors cursor-pointer"
-                                  title="Change Password"
+                                  title="Manage User Password"
                                 >
                                   <Key className="w-3.5 h-3.5" />
                                 </button>
@@ -1912,14 +1957,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                               </span>
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setPasswordModalError('');
-                                  setShowModalPassword(true);
-                                  setSettingPasswordUser(u);
-                                  setNewPasswordInput('');
-                                }}
+                                onClick={() => openManagePasswordModal(u)}
                                 className="px-2.5 py-1 rounded-lg bg-[#16a34a]/10 hover:bg-[#16a34a]/20 text-[#16a34a] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                                title="Set / View Password for this account"
+                                title="Set / Manage User Password"
                               >
                                 <Key className="w-3 h-3" /> Set
                               </button>
@@ -1949,6 +1989,15 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openManagePasswordModal(u)}
+                            className="px-3 py-1.5 rounded-full border border-[#16a34a]/35 bg-[#16a34a]/10 hover:bg-[#16a34a]/20 text-[#16a34a] font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                            title="Manage User Password"
+                          >
+                            <Key className="w-3.5 h-3.5" />
+                            <span>Manage Password</span>
+                          </button>
                           <button 
                             onClick={() => toggleVerification(u)}
                             className="px-3 py-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors cursor-pointer text-neutral-700 dark:text-neutral-300"
@@ -1957,7 +2006,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           </button>
                           <button 
                             onClick={() => toggleAdmin(u.id, u.is_admin)}
-                            className="px-3 py-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors disabled:opacity-40 cursor-pointer text-neutral-700 dark:text-neutral-300"
+                            className="px-3 py-1.5 rounded-full border border-neutral-200/80 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 font-semibold text-xs transition-colors disabled:opacity-40 cursor-pointer text-neutral-700 dark:text-neutral-300 whitespace-nowrap"
                             disabled={u.id === currentUserId}
                           >
                             {u.is_admin ? 'Revoke Admin' : 'Make Admin'}
@@ -2069,12 +2118,22 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       </div>
                     </div>
 
-                    <button 
-                      onClick={() => setEditingUser(null)} 
-                      className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openManagePasswordModal(editingUser)}
+                        className="px-3 py-1.5 rounded-full border border-[#16a34a]/35 bg-[#16a34a]/10 hover:bg-[#16a34a]/20 text-[#16a34a] font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Key className="w-3.5 h-3.5" />
+                        <span>Manage Password</span>
+                      </button>
+                      <button 
+                        onClick={() => setEditingUser(null)} 
+                        className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Tab Navigation Strip */}
@@ -2800,9 +2859,34 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       </div>
                     )}
 
-                    {/* TAB 8: ROLES, VERIFICATION & ENTERPRISE */}
+                    {/* TAB 8: ROLES, VERIFICATION, PASSWORD & ENTERPRISE */}
                     {adminEditTab === 'roles' && (
                       <div className="space-y-4 animate-in fade-in-50 duration-150">
+                        {/* Manage User Password Card */}
+                        <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#16a34a]/15 text-[#16a34a] flex items-center justify-center shrink-0">
+                              <Key className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <span className="text-sm font-bold text-neutral-900 dark:text-white block">Manage User Password</span>
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400 block mt-0.5">
+                                {getUserStoredPassword(editingUser)
+                                  ? 'Update or copy this user’s login password across Supabase Auth & Credentials Vault.'
+                                  : 'Set a login password so this user can sign in immediately.'}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => openManagePasswordModal(editingUser)}
+                            className="px-4 py-2 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+                          >
+                            <Key className="w-3.5 h-3.5" />
+                            <span>{getUserStoredPassword(editingUser) ? 'Change Password' : 'Set Password'}</span>
+                          </button>
+                        </div>
+
                         {/* Verified Toggle */}
                         <div className="p-4 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">

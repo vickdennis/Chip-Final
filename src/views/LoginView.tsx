@@ -23,21 +23,36 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
   const [copiedUrl, setCopiedUrl] = useState(false);
   const inAppBrowser = React.useMemo(() => getInAppBrowserName(), []);
 
-  // Check URL hash and search params on mount (handles Supabase OAuth callbacks, error redirects, etc.)
+  // Check URL hash, search params, and preserved OAuth errors on mount
   React.useEffect(() => {
     try {
       const hash = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
       const search = window.location.search.startsWith('?') ? window.location.search.substring(1) : window.location.search;
-      const params = new URLSearchParams(hash || search);
-      const errDesc = params.get('error_description') || params.get('error');
+      const hashParams = new URLSearchParams(hash);
+      const searchParams = new URLSearchParams(search);
+      let errDesc =
+        hashParams.get('error_description') ||
+        hashParams.get('error') ||
+        searchParams.get('error_description') ||
+        searchParams.get('error');
+
+      if (!errDesc) {
+        try {
+          const savedErr = window.sessionStorage.getItem('chipng_oauth_error');
+          if (savedErr) {
+            errDesc = savedErr;
+            window.sessionStorage.removeItem('chipng_oauth_error');
+          }
+        } catch (_e) {}
+      } else {
+        try {
+          window.sessionStorage.removeItem('chipng_oauth_error');
+        } catch (_e) {}
+      }
+
       if (errDesc) {
         const decoded = decodeURIComponent(errDesc.replace(/\+/g, ' '));
-        if (/server error/i.test(decoded)) {
-          setErrorMsg('Third-party authentication (Google) is temporarily unavailable or not enabled on this environment. Please sign in directly using your email and password below.');
-        } else {
-          setErrorMsg(decoded);
-        }
-        // Clean URL to prevent error banner on subsequent reloads
+        setErrorMsg(extractAuthErrorMessage(decoded, 'oauth'));
         window.history.replaceState({}, '', window.location.pathname);
       }
     } catch (e) {
@@ -163,16 +178,30 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
   };
 
   const handleGoogleLogin = async () => {
+    if (inAppBrowser) {
+      const browserWarn = `Google blocks sign-in inside ${inAppBrowser}'s built-in browser. Tap "Copy" above and open this link in Chrome or Safari to continue with Google.`;
+      setErrorMsg(browserWarn);
+      toast.error(browserWarn);
+      return;
+    }
     setLoading(true);
     setErrorMsg('');
+    setSuccessMsg('');
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/dashboard',
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+          },
         },
       });
       if (error) throw error;
+      if (data?.url && typeof window !== 'undefined') {
+        window.location.assign(data.url);
+      }
     } catch (err: any) {
       console.error('Google login error:', err);
       const msg = extractAuthErrorMessage(err, 'oauth');

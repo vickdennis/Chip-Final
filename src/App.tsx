@@ -251,16 +251,104 @@ export default function App() {
     return p.endsWith('/vcard') || p.endsWith('.vcf');
   });
 
+  const [initialOAuthState] = useState(() => {
+    if (typeof window === 'undefined') {
+      return { hasCodeOrToken: false, oauthError: null as string | null };
+    }
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const rawHash = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
+      const hashParams = new URLSearchParams(rawHash);
+      const oauthError =
+        searchParams.get('error_description') ||
+        searchParams.get('error') ||
+        hashParams.get('error_description') ||
+        hashParams.get('error');
+      const hasCodeOrToken = Boolean(
+        searchParams.get('code') ||
+        hashParams.get('access_token') ||
+        hashParams.get('refresh_token')
+      );
+      if (oauthError) {
+        try {
+          window.sessionStorage.setItem('chipng_oauth_error', decodeURIComponent(oauthError.replace(/\+/g, ' ')));
+        } catch (_e) {}
+      }
+      return { hasCodeOrToken, oauthError };
+    } catch (_e) {
+      return { hasCodeOrToken: false, oauthError: null as string | null };
+    }
+  });
+
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [oauthExchanging, setOauthExchanging] = useState(initialOAuthState.hasCodeOrToken);
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
+    // Sync Google/OAuth user profile into public.profiles without invalid schema columns
+    const syncAuthUserProfile = async (user: any) => {
+      if (!user?.id) return;
+      try {
+        const cleanEmail = (user.email || '').toLowerCase().trim();
+        const userMeta = user.user_metadata || {};
+        const metaName = (userMeta.full_name || userMeta.name || '').trim();
+        const metaAvatar = (userMeta.avatar_url || userMeta.picture || '').trim() || null;
+
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id, full_name, username, email, contact_email, cover_image_url')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (existing) {
+          const updates: Record<string, any> = {};
+          if (!existing.email && cleanEmail) updates.email = cleanEmail;
+          if (!existing.contact_email && cleanEmail) updates.contact_email = cleanEmail;
+          if (!existing.full_name && metaName) updates.full_name = metaName;
+          if (!existing.cover_image_url && metaAvatar) updates.cover_image_url = metaAvatar;
+          if (Object.keys(updates).length > 0) {
+            await supabase.from('profiles').update(updates).eq('id', user.id);
+          }
+        } else {
+          const baseUsername = (cleanEmail.split('@')[0] || 'user')
+            .replace(/[^a-z0-9_.-]/g, '')
+            .toLowerCase() || `user${Math.floor(Math.random() * 10000)}`;
+          const newProfilePayload: Record<string, any> = {
+            id: user.id,
+            full_name: metaName || baseUsername,
+            username: baseUsername,
+            headline: 'Executive Member',
+            email: cleanEmail || null,
+            contact_email: cleanEmail || null,
+            cover_image_url: metaAvatar || 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.8384244203439832.jpeg',
+            is_verified: true,
+            theme: 'default'
+          };
+          const { error: upsertErr } = await supabase.from('profiles').upsert(newProfilePayload, { onConflict: 'id' });
+          if (upsertErr && upsertErr.code === '23505') {
+            newProfilePayload.username = `${baseUsername}${Math.floor(100 + Math.random() * 9000)}`;
+            await supabase.from('profiles').upsert(newProfilePayload, { onConflict: 'id' });
+          }
+        }
+      } catch (_syncErr) {
+        // Non-blocking profile sync fallback handled inside UserDashboard
+      }
+    };
+
     // Smooth scroll if landing on /shop
     if (typeof window !== 'undefined' && window.location.pathname.replace(/\/+$/, '') === '/shop') {
       setTimeout(() => {
         const el = document.getElementById('shop');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }, 150);
+    }
+
+    // If OAuth redirected back with an error, route immediately to /login with error preserved
+    if (initialOAuthState.oauthError) {
+      setOauthExchanging(false);
+      setSessionLoading(false);
+      window.history.replaceState({}, '', '/login');
+      setCurrentView('login');
     }
 
     // Browser back/forward navigation sync
@@ -275,23 +363,34 @@ export default function App() {
     };
     window.addEventListener('popstate', handlePopState);
 
-    // Safety timeout: ensure sessionLoading never hangs indefinitely on slow networks or blocked requests
+    let oauthSettled = !initialOAuthState.hasCodeOrToken;
+
+    // Safety timeout: give OAuth PKCE code exchange enough time on slower mobile connections before unblocking
     const timeoutId = setTimeout(() => {
+      oauthSettled = true;
+      setOauthExchanging(false);
       setSessionLoading(false);
-    }, 1500);
+    }, initialOAuthState.hasCodeOrToken ? 6000 : 2000);
 
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
         clearTimeout(timeoutId);
+        oauthSettled = true;
         setSession(session);
         setSessionLoading(false);
-        // Protect dashboard routes if session is absent or redirect to dashboard if logged in on login page
+        setOauthExchanging(false);
+
+        if (session?.user) {
+          syncAuthUserProfile(session.user);
+        }
+
+        // Protect dashboard routes if session is absent or route completed OAuth/login cleanly to /dashboard
         setCurrentView(prev => {
           const isProtected = prev === 'user-dashboard' || prev === 'admin-dashboard' || prev === 'enterprise-dashboard';
           if (!session && isProtected) {
             window.history.replaceState({}, '', '/login');
             return 'login';
-          } else if (session && prev === 'login') {
+          } else if (session && (prev === 'login' || initialOAuthState.hasCodeOrToken)) {
             window.history.replaceState({}, '', '/dashboard');
             return 'user-dashboard';
           }
@@ -301,18 +400,30 @@ export default function App() {
       .catch((err) => {
         console.warn('Session check encountered error or timeout, proceeding:', err);
         clearTimeout(timeoutId);
+        oauthSettled = true;
+        setOauthExchanging(false);
         setSessionLoading(false);
       });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+        syncAuthUserProfile(session.user);
+      }
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'SIGNED_OUT') {
+        oauthSettled = true;
+        setOauthExchanging(false);
+        setSessionLoading(false);
+      }
+
       // Use functional state update to avoid dependency on currentView
       setCurrentView((prevView) => {
         const isProtected = prevView === 'user-dashboard' || prevView === 'admin-dashboard' || prevView === 'enterprise-dashboard';
         if (!session && isProtected) {
+          if (!oauthSettled) return prevView;
           window.history.replaceState({}, '', '/login');
           return 'login';
-        } else if (session && prevView === 'login') {
+        } else if (session && (prevView === 'login' || (event === 'SIGNED_IN' && initialOAuthState.hasCodeOrToken))) {
           window.history.replaceState({}, '', '/dashboard');
           return 'user-dashboard';
         }
@@ -327,10 +438,14 @@ export default function App() {
     };
   }, []);
 
-  // Only block rendering for protected views while session is being verified
+  // Only block rendering for protected views or active OAuth callback exchange
   const isProtectedView = currentView === 'user-dashboard' || currentView === 'admin-dashboard' || currentView === 'enterprise-dashboard';
-  if (sessionLoading && isProtectedView) {
-    return <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] font-sans flex items-center justify-center font-bold text-xs uppercase tracking-wider text-neutral-400">Loading CHIP NG...</div>;
+  if ((sessionLoading && isProtectedView) || oauthExchanging) {
+    return (
+      <div className="min-h-screen bg-[#f9f9f9] dark:bg-black text-[#1a1c1c] dark:text-neutral-200 font-sans flex items-center justify-center font-bold text-xs uppercase tracking-wider text-neutral-400">
+        {oauthExchanging ? 'Completing Google Sign-In...' : 'Loading CHIP NG...'}
+      </div>
+    );
   }
 
   // Set the browser URL back to root when navigating away from a public profile to a core app view.

@@ -890,23 +890,22 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         }
 
         const userMeta = user.user_metadata || {};
-        const metaName = userMeta.full_name || userMeta.name || '';
-        const metaAvatar = userMeta.avatar_url || userMeta.picture || null;
+        const metaName = (userMeta.full_name || userMeta.name || '').trim();
+        const metaAvatar = (userMeta.avatar_url || userMeta.picture || '').trim() || null;
 
         const updatesToSave: any = {};
         if (!profileData.contact_email && user.email) {
-          updatesToSave.contact_email = user.email;
-          updatesToSave.email = user.email;
+          updatesToSave.contact_email = user.email.toLowerCase().trim();
+          updatesToSave.email = user.email.toLowerCase().trim();
         }
         if (!profileData.email && user.email) {
-          updatesToSave.email = user.email;
+          updatesToSave.email = user.email.toLowerCase().trim();
         }
         if (!profileData.full_name && metaName) {
           updatesToSave.full_name = metaName;
         }
-        if (!profileData.cover_image_url && !profileData.avatar_url && metaAvatar) {
+        if (!profileData.cover_image_url && metaAvatar) {
           updatesToSave.cover_image_url = metaAvatar;
-          updatesToSave.avatar_url = metaAvatar;
         }
         if (Object.keys(updatesToSave).length > 0) {
           supabase.from('profiles').update(updatesToSave).eq('id', user.id).then(() => {});
@@ -917,10 +916,10 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         if (profileData.cover_image_url) setCoverUrl(profileData.cover_image_url);
       } else {
         const userMeta = user.user_metadata || {};
-        const metaName = userMeta.full_name || userMeta.name || '';
-        const metaAvatar = userMeta.avatar_url || userMeta.picture || null;
+        const metaName = (userMeta.full_name || userMeta.name || '').trim();
+        const metaAvatar = (userMeta.avatar_url || userMeta.picture || '').trim() || null;
         const cleanEmail = (user.email || '').toLowerCase().trim();
-        const baseUsername = (cleanEmail.split('@')[0] || 'user').replace(/[^a-z0-9_.-]/g, '').toLowerCase();
+        const baseUsername = (cleanEmail.split('@')[0] || 'user').replace(/[^a-z0-9_.-]/g, '').toLowerCase() || `user${Math.floor(Math.random() * 1000)}`;
 
         // Check if user submitted an onboarding form earlier with this email
         let onboardingSub: any = null;
@@ -938,11 +937,11 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
         const initialProfile: any = {
           id: user.id,
           full_name: onboardingSub?.full_name || metaName || (user.email ? user.email.split('@')[0] : 'CHIP Member'),
-          username: onboardingSub?.username || baseUsername || ('user' + Math.floor(Math.random() * 1000)),
+          username: (onboardingSub?.username || baseUsername || ('user' + Math.floor(Math.random() * 1000))).toLowerCase().replace(/[^a-z0-9_.-]/g, ''),
           headline: onboardingSub?.headline || 'Executive Member',
           bio: onboardingSub?.bio || '',
-          contact_email: cleanEmail,
-          email: cleanEmail,
+          contact_email: cleanEmail || null,
+          email: cleanEmail || null,
           phone_number: onboardingSub?.phone_number || '',
           address: onboardingSub?.address || 'Lagos, Nigeria',
           booking_provider: 'Calendly (Integrated)',
@@ -953,13 +952,13 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
           is_verified: true,
           is_admin: isSuperAdminEmail,
           theme: 'default',
-          cover_image_url: onboardingSub?.avatar_url || metaAvatar || 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.8384244203439832.jpeg',
-          avatar_url: onboardingSub?.avatar_url || metaAvatar || null
+          cover_image_url: onboardingSub?.avatar_url || metaAvatar || 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.8384244203439832.jpeg'
         };
 
         const { data: newProfile, error: insertError } = await supabase.from('profiles').upsert(initialProfile).select().single();
         if (newProfile) {
           setProfile({ ...newProfile, email: user.email });
+          if (newProfile.cover_image_url) setCoverUrl(newProfile.cover_image_url);
         } else if (insertError) {
           // Check if trigger handle_new_user already created the profile
           const { data: existingProfile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -967,7 +966,7 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
             setProfile({ ...existingProfile, email: user.email });
             if (existingProfile.cover_image_url) setCoverUrl(existingProfile.cover_image_url);
           } else if (insertError.code === '23505') {
-            initialProfile.username = initialProfile.username + Math.floor(Math.random()*10000);
+            initialProfile.username = initialProfile.username + Math.floor(100 + Math.random() * 9000);
             const { data: retryProfile } = await supabase.from('profiles').upsert(initialProfile).select().single();
             setProfile({ ...(retryProfile || initialProfile), email: user.email });
           } else {
