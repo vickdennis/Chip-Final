@@ -400,6 +400,12 @@ CREATE TABLE IF NOT EXISTS public.posts (
   keywords TEXT[],
   is_published BOOLEAN DEFAULT false,
   published_at TIMESTAMP WITH TIME ZONE,
+  author TEXT DEFAULT 'CHIP NG Editorial',
+  category TEXT DEFAULT 'NFC Technology',
+  focus_keyword TEXT,
+  faq_json TEXT,
+  product_json TEXT,
+  views INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -412,6 +418,15 @@ ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS meta_description TEXT;
 ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS keywords TEXT[];
 ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false;
 ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS author TEXT DEFAULT 'CHIP NG Editorial';
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'NFC Technology';
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS focus_keyword TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS faq_json TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS product_json TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0;
+
+GRANT SELECT ON TABLE public.posts TO anon;
+GRANT ALL ON TABLE public.posts TO authenticated, service_role;
 
 -- Trigger to auto-update 'updated_at' on posts
 DROP TRIGGER IF EXISTS update_posts_updated_at ON public.posts;
@@ -423,28 +438,73 @@ EXECUTE FUNCTION update_modified_column();
 -- Enable RLS for posts
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 
--- Blog Posts Policies
+-- Blog Posts Policies (Admin profile flag OR Super Admin email allowlist)
 DROP POLICY IF EXISTS "Public posts are viewable by everyone." ON public.posts;
 CREATE POLICY "Public posts are viewable by everyone."
   ON public.posts FOR SELECT
-  USING ( is_published = true OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING (
+    is_published = true
+    OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  );
 
 DROP POLICY IF EXISTS "Admins can insert posts." ON public.posts;
 CREATE POLICY "Admins can insert posts."
   ON public.posts FOR INSERT
-  WITH CHECK ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  );
 
 DROP POLICY IF EXISTS "Admins can update posts." ON public.posts;
 CREATE POLICY "Admins can update posts."
   ON public.posts FOR UPDATE
-  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  )
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  );
 
 DROP POLICY IF EXISTS "Admins can delete posts." ON public.posts;
 CREATE POLICY "Admins can delete posts."
   ON public.posts FOR DELETE
-  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
-
-
+  USING (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  );
 
 -- Blog Views Table for Analytics
 CREATE TABLE IF NOT EXISTS public.blog_views (
@@ -464,10 +524,19 @@ CREATE POLICY "Anyone can insert blog views"
 DROP POLICY IF EXISTS "Admins can read blog views" ON public.blog_views;
 CREATE POLICY "Admins can read blog views"
   ON public.blog_views FOR SELECT
-  USING ( EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  );
 
 -- Storage setup for Blog Covers
-INSERT INTO storage.buckets (id, name, public) VALUES ('blog', 'blog', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('blog', 'blog', true) ON CONFLICT (id) DO UPDATE SET public = true;
 
 DROP POLICY IF EXISTS "Storage blog is publicly accessible." ON storage.objects;
 CREATE POLICY "Storage blog is publicly accessible."
@@ -477,27 +546,63 @@ CREATE POLICY "Storage blog is publicly accessible."
 DROP POLICY IF EXISTS "Admins can upload to blog." ON storage.objects;
 CREATE POLICY "Admins can upload to blog."
   ON storage.objects FOR INSERT
-  WITH CHECK ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  WITH CHECK (
+    bucket_id = 'blog'
+    AND auth.uid() IS NOT NULL
+    AND (
+      EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+      OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+        'vickthor.dennis@gmail.com',
+        'victhtor.dennis@gmail.com',
+        'victor.dennis@gmail.com',
+        'vickthorden@gmail.com',
+        'support@chipng.com'
+      ])
+    )
+  );
 
 DROP POLICY IF EXISTS "Admins can update blog." ON storage.objects;
 CREATE POLICY "Admins can update blog."
   ON storage.objects FOR UPDATE
-  USING ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
+  USING (
+    bucket_id = 'blog'
+    AND auth.uid() IS NOT NULL
+    AND (
+      EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+      OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+        'vickthor.dennis@gmail.com',
+        'victhtor.dennis@gmail.com',
+        'victor.dennis@gmail.com',
+        'vickthorden@gmail.com',
+        'support@chipng.com'
+      ])
+    )
+  );
 
 DROP POLICY IF EXISTS "Admins can delete from blog." ON storage.objects;
 CREATE POLICY "Admins can delete from blog."
   ON storage.objects FOR DELETE
-  USING ( bucket_id = 'blog' AND auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true) );
-
+  USING (
+    bucket_id = 'blog'
+    AND auth.uid() IS NOT NULL
+    AND (
+      EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+      OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+        'vickthor.dennis@gmail.com',
+        'victhtor.dennis@gmail.com',
+        'victor.dennis@gmail.com',
+        'vickthorden@gmail.com',
+        'support@chipng.com'
+      ])
+    )
+  );
 
 ALTER TABLE public.links ADD COLUMN IF NOT EXISTS size TEXT DEFAULT 'Button';
 ALTER TABLE public.links ADD COLUMN IF NOT EXISTS image_url TEXT;
 ALTER TABLE public.links ADD COLUMN IF NOT EXISTS cover_image_url TEXT;
 ALTER TABLE public.links ADD COLUMN IF NOT EXISTS use_link_icon BOOLEAN DEFAULT true;
-ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS focus_keyword TEXT;
-ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS faq_json TEXT;
-ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS product_json TEXT;
-ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0;
+
+NOTIFY pgrst, 'reload schema';
 
 -- Leads Table for WhatsApp Capture and 2-Way Contact Exchange
 CREATE TABLE IF NOT EXISTS public.leads (

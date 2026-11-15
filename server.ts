@@ -574,6 +574,119 @@ function getSupabase() {
   });
 }
 
+function getSupabaseForRequest(req?: any) {
+  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (serviceRoleKey) {
+    return createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+  const authHeader = req?.headers?.authorization;
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    return createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+  return getSupabase();
+}
+
+const BLOG_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function extractMissingPostColumnName(error: any): string | null {
+  const msg = String(error?.message || error?.details || error?.hint || '');
+  const pgMatch = msg.match(/column\s+["']?([a-zA-Z0-9_]+)["']?\s+(?:of relation\s+["']?posts["']?\s+)?does not exist/i);
+  if (pgMatch?.[1]) return pgMatch[1];
+  const pgrstMatch = msg.match(/Could not find the ['"]([a-zA-Z0-9_]+)['"] column/i);
+  if (pgrstMatch?.[1]) return pgrstMatch[1];
+  return null;
+}
+
+async function resilientUpsertBlogPost(
+  sbClient: any,
+  initialPayload: Record<string, any>,
+  options: { id?: string; oldSlug?: string } = {}
+): Promise<{ data: any; error: any }> {
+  const candidatePayload: Record<string, any> = { ...initialPayload };
+  const validUuid = options.id && BLOG_UUID_REGEX.test(String(options.id)) ? String(options.id) : null;
+  const optionalCols = ['author', 'category', 'focus_keyword', 'views', 'faq_json', 'product_json'];
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    let result: any = null;
+
+    if (validUuid) {
+      result = await sbClient
+        .from('posts')
+        .update(candidatePayload)
+        .eq('id', validUuid)
+        .select('*')
+        .maybeSingle();
+
+      if (!result.error && !result.data) {
+        result = await sbClient
+          .from('posts')
+          .upsert([{ id: validUuid, ...candidatePayload }], { onConflict: 'slug' })
+          .select('*')
+          .maybeSingle();
+      }
+    } else if (options.oldSlug && options.oldSlug !== candidatePayload.slug) {
+      result = await sbClient
+        .from('posts')
+        .update(candidatePayload)
+        .eq('slug', options.oldSlug)
+        .select('*')
+        .maybeSingle();
+
+      if (!result.error && !result.data) {
+        result = await sbClient
+          .from('posts')
+          .upsert([candidatePayload], { onConflict: 'slug' })
+          .select('*')
+          .maybeSingle();
+      }
+    } else {
+      result = await sbClient
+        .from('posts')
+        .upsert([candidatePayload], { onConflict: 'slug' })
+        .select('*')
+        .maybeSingle();
+    }
+
+    if (!result.error) {
+      return { data: result.data, error: null };
+    }
+
+    const code = String(result.error?.code || '');
+    const msg = String(result.error?.message || '');
+    if (code === '42703' || code === 'PGRST204' || /does not exist|Could not find the/i.test(msg)) {
+      const missingCol = extractMissingPostColumnName(result.error);
+      if (missingCol && missingCol in candidatePayload) {
+        delete candidatePayload[missingCol];
+        continue;
+      }
+      const nextOptional = optionalCols.find((col) => col in candidatePayload);
+      if (nextOptional) {
+        delete candidatePayload[nextOptional];
+        continue;
+      }
+    }
+
+    return { data: null, error: result.error };
+  }
+
+  return { data: null, error: { message: 'Failed to save post after schema retries.' } };
+}
+
 const SUPER_ADMIN_ALLOWLIST = new Set([
   'vickthor.dennis@gmail.com',
   'victhtor.dennis@gmail.com',
@@ -4255,7 +4368,14 @@ Return ONLY valid JSON matching this structure:
     try {
       let supabasePosts: any[] = [];
       try {
-        const { data } = await getSupabase().from('posts').select('*').order('created_at', { ascending: false });
+        let sbClient = getSupabase();
+        if (req.headers?.authorization) {
+          const check = await verifyAdminRequest(req);
+          if (check.authorized) {
+            sbClient = getSupabaseForRequest(req);
+          }
+        }
+        const { data } = await sbClient.from('posts').select('*').order('created_at', { ascending: false });
         if (data) supabasePosts = data;
       } catch (e) {}
 
@@ -4286,8 +4406,11 @@ Return ONLY valid JSON matching this structure:
         for (const sp of supabasePosts) {
           try {
             const existing = checkStmt.get(sp.slug) as any;
-            const kwJson = JSON.stringify(Array.isArray(sp.keywords) ? sp.keywords : []);
+            const kwArray = Array.isArray(sp.keywords) ? sp.keywords : [];
+            const kwJson = JSON.stringify(kwArray);
             const spUpdatedAt = sp.updated_at || sp.created_at || new Date().toISOString();
+            const spAuthor = sp.author || 'CHIP NG Editorial';
+            const spCategory = sp.category || kwArray[0] || 'NFC Technology';
 
             if (!existing) {
               insertStmt.run(
@@ -4303,8 +4426,8 @@ Return ONLY valid JSON matching this structure:
                 sp.is_published ? 1 : 0,
                 sp.published_at || sp.created_at || new Date().toISOString(),
                 spUpdatedAt,
-                'CHIP NG Editorial',
-                (Array.isArray(sp.keywords) && sp.keywords[0]) || 'NFC Technology'
+                spAuthor,
+                spCategory
               );
             } else {
               // ONLY update from Supabase if Supabase timestamp is strictly newer than local edits
@@ -4322,8 +4445,8 @@ Return ONLY valid JSON matching this structure:
                   sp.is_published ? 1 : 0,
                   sp.published_at || sp.created_at || new Date().toISOString(),
                   spUpdatedAt,
-                  'CHIP NG Editorial',
-                  (Array.isArray(sp.keywords) && sp.keywords[0]) || 'NFC Technology',
+                  spAuthor,
+                  spCategory,
                   sp.slug
                 );
               }
@@ -4394,7 +4517,7 @@ Return ONLY valid JSON matching this structure:
         });
       }
 
-      const { data } = await getSupabase().from('posts').select('*').eq('slug', slug).single();
+      const { data } = await getSupabase().from('posts').select('*').eq('slug', slug).maybeSingle();
       if (data) {
         const meta = db.prepare('SELECT views, focus_keyword FROM post_meta WHERE post_slug = ?').get(slug) as any;
         const catRow = db.prepare('SELECT category FROM post_categories WHERE post_slug = ?').get(slug) as any;
@@ -4438,7 +4561,12 @@ Return ONLY valid JSON matching this structure:
       }
 
       const now = new Date().toISOString();
-      const kwJson = JSON.stringify(Array.isArray(keywords) ? keywords : []);
+      const kwArray = Array.isArray(keywords)
+        ? keywords.map((k: any) => String(k).trim()).filter(Boolean)
+        : [];
+      const kwJson = JSON.stringify(kwArray);
+      const sbClient = getSupabaseForRequest(req);
+      const validUuid = id && BLOG_UUID_REGEX.test(String(id)) ? String(id) : undefined;
 
       // Check if this is an update to an existing article
       let existingPost: any = null;
@@ -4453,10 +4581,13 @@ Return ONLY valid JSON matching this structure:
       }
 
       // If not in SQLite yet, check Supabase before assuming it is new
-      if (!existingPost && (old_slug || id || slug)) {
+      if (!existingPost && (old_slug || validUuid || slug)) {
         try {
           const targetSlug = old_slug || slug;
-          const { data: spMatch } = await getSupabase().from('posts').select('*').or(`slug.eq.${targetSlug},id.eq.${id}`).limit(1);
+          const query = validUuid
+            ? sbClient.from('posts').select('*').or(`slug.eq.${targetSlug},id.eq.${validUuid}`).limit(1)
+            : sbClient.from('posts').select('*').eq('slug', targetSlug).limit(1);
+          const { data: spMatch } = await query;
           if (spMatch && spMatch.length > 0) {
             existingPost = spMatch[0];
           }
@@ -4561,9 +4692,15 @@ Return ONLY valid JSON matching this structure:
         } catch (e) {}
       }
 
-      // Sync to Supabase
+      // Sync to Supabase using forwarded admin auth / service role & resilient schema stripping
+      let supabaseSynced = false;
+      let supabaseError: string | undefined;
       try {
-        const payload = {
+        const spUuid = existingPost?.id && BLOG_UUID_REGEX.test(String(existingPost.id))
+          ? String(existingPost.id)
+          : validUuid;
+
+        const payload: Record<string, any> = {
           title,
           slug,
           content: content || '',
@@ -4571,33 +4708,51 @@ Return ONLY valid JSON matching this structure:
           cover_image_url: cover_image_url || '',
           meta_title: meta_title || title,
           meta_description: meta_description || excerpt || '',
-          keywords: Array.isArray(keywords) ? keywords : [],
+          keywords: kwArray,
           is_published: Boolean(is_published),
-          published_at: published_at || now,
-          updated_at: now
+          published_at: is_published ? (published_at || now) : (published_at ?? null),
+          updated_at: now,
+          author: (author && String(author).trim()) || 'CHIP NG Editorial',
+          category: targetCategory,
+          focus_keyword: (focus_keyword && String(focus_keyword).trim()) || '',
         };
-        await getSupabase().from('posts').upsert([payload], { onConflict: 'slug' });
 
-        // If old slug was different, remove old post in Supabase
-        if (old_slug && old_slug !== slug) {
+        const { data: savedSp, error: spErr } = await resilientUpsertBlogPost(sbClient, payload, {
+          id: spUuid,
+          oldSlug: old_slug ? String(old_slug).trim() : undefined,
+        });
+
+        if (spErr) {
+          supabaseError = spErr.message;
+          console.warn('Supabase blog post sync warning:', spErr.message);
+        } else {
+          supabaseSynced = true;
+          if (savedSp?.id) {
+            recordId = savedSp.id;
+          }
+        }
+
+        if (old_slug && old_slug !== slug && !spUuid) {
           try {
-            await getSupabase().from('posts').delete().eq('slug', old_slug);
+            await sbClient.from('posts').delete().eq('slug', old_slug);
           } catch (e) {}
         }
-      } catch (e) {}
+      } catch (e: any) {
+        supabaseError = e?.message;
+      }
 
-      res.json({ success: true, slug, id: recordId });
+      res.json({ success: true, slug, id: recordId, supabaseSynced, supabaseError });
     } catch (e: any) {
       console.error('Save post error:', e);
       res.status(500).json({ error: e.message });
     }
   };
 
-  app.post('/api/posts', handleSavePostApi);
-  app.put('/api/posts', handleSavePostApi);
-  app.put('/api/posts/:id', handleSavePostApi);
+  app.post('/api/posts', requireAdminMiddleware, handleSavePostApi);
+  app.put('/api/posts', requireAdminMiddleware, handleSavePostApi);
+  app.put('/api/posts/:id', requireAdminMiddleware, handleSavePostApi);
 
-  app.delete('/api/posts/:id', async (req, res) => {
+  app.delete('/api/posts/:id', requireAdminMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
       const post = db.prepare('SELECT slug FROM local_posts WHERE id = ? OR slug = ?').get(id, id) as any;
@@ -4608,7 +4763,12 @@ Return ONLY valid JSON matching this structure:
       try { db.prepare('DELETE FROM post_meta WHERE post_slug = ?').run(slug); } catch (e) {}
 
       try {
-        await getSupabase().from('posts').delete().or(`id.eq.${id},slug.eq.${slug}`);
+        const sbClient = getSupabaseForRequest(req);
+        if (BLOG_UUID_REGEX.test(String(id))) {
+          await sbClient.from('posts').delete().or(`id.eq.${id},slug.eq.${slug}`);
+        } else {
+          await sbClient.from('posts').delete().eq('slug', slug);
+        }
       } catch (e) {}
       res.json({ success: true });
     } catch (e: any) {

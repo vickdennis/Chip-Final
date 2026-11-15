@@ -22,6 +22,119 @@ function getSupabase() {
   });
 }
 
+function getSupabaseForRequest(req?: Request) {
+  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (serviceRoleKey) {
+    return createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+  const authHeader = req?.headers?.authorization;
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    return createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+  return getSupabase();
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function extractMissingColumnName(error: any): string | null {
+  const msg = String(error?.message || error?.details || error?.hint || '');
+  const pgMatch = msg.match(/column\s+["']?([a-zA-Z0-9_]+)["']?\s+(?:of relation\s+["']?posts["']?\s+)?does not exist/i);
+  if (pgMatch?.[1]) return pgMatch[1];
+  const pgrstMatch = msg.match(/Could not find the ['"]([a-zA-Z0-9_]+)['"] column/i);
+  if (pgrstMatch?.[1]) return pgrstMatch[1];
+  return null;
+}
+
+async function resilientUpsertBlogPost(
+  sbClient: any,
+  initialPayload: Record<string, any>,
+  options: { id?: string; oldSlug?: string } = {}
+): Promise<{ data: any; error: any }> {
+  const candidatePayload: Record<string, any> = { ...initialPayload };
+  const validUuid = options.id && UUID_REGEX.test(String(options.id)) ? String(options.id) : null;
+  const optionalCols = ['author', 'category', 'focus_keyword', 'views', 'faq_json', 'product_json'];
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    let result: any = null;
+
+    if (validUuid) {
+      result = await sbClient
+        .from('posts')
+        .update(candidatePayload)
+        .eq('id', validUuid)
+        .select('*')
+        .maybeSingle();
+
+      if (!result.error && !result.data) {
+        result = await sbClient
+          .from('posts')
+          .upsert([{ id: validUuid, ...candidatePayload }], { onConflict: 'slug' })
+          .select('*')
+          .maybeSingle();
+      }
+    } else if (options.oldSlug && options.oldSlug !== candidatePayload.slug) {
+      result = await sbClient
+        .from('posts')
+        .update(candidatePayload)
+        .eq('slug', options.oldSlug)
+        .select('*')
+        .maybeSingle();
+
+      if (!result.error && !result.data) {
+        result = await sbClient
+          .from('posts')
+          .upsert([candidatePayload], { onConflict: 'slug' })
+          .select('*')
+          .maybeSingle();
+      }
+    } else {
+      result = await sbClient
+        .from('posts')
+        .upsert([candidatePayload], { onConflict: 'slug' })
+        .select('*')
+        .maybeSingle();
+    }
+
+    if (!result.error) {
+      return { data: result.data, error: null };
+    }
+
+    const code = String(result.error?.code || '');
+    const msg = String(result.error?.message || '');
+    if (code === '42703' || code === 'PGRST204' || /does not exist|Could not find the/i.test(msg)) {
+      const missingCol = extractMissingColumnName(result.error);
+      if (missingCol && missingCol in candidatePayload) {
+        delete candidatePayload[missingCol];
+        continue;
+      }
+      const nextOptional = optionalCols.find((col) => col in candidatePayload);
+      if (nextOptional) {
+        delete candidatePayload[nextOptional];
+        continue;
+      }
+    }
+
+    return { data: null, error: result.error };
+  }
+
+  return { data: null, error: { message: 'Failed to save post after schema retries.' } };
+}
+
 const SUPER_ADMIN_ALLOWLIST = new Set([
   'vickthor.dennis@gmail.com',
   'victhtor.dennis@gmail.com',
@@ -3455,6 +3568,250 @@ app.post('/api/auth/signup', async (req: Request, res: Response) => {
       code: 'internal_error',
       error: 'Unable to complete registration right now. Please check your connection and try again.'
     });
+  }
+});
+
+// --- Blog Posts Endpoints (Vercel Serverless) ---
+app.get('/api/posts', async (req: Request, res: Response) => {
+  try {
+    let client = getSupabase();
+    if (req.headers?.authorization) {
+      const check = await verifyAdminRequest(req);
+      if (check.authorized) {
+        client = getSupabaseForRequest(req);
+      }
+    }
+
+    const { data, error } = await client
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return res.status(500).json({ error: error.message || 'Failed to fetch blog posts.' });
+    }
+
+    const normalized = (data || []).map((p: any) => {
+      const keywords = Array.isArray(p.keywords)
+        ? p.keywords
+        : typeof p.keywords === 'string' && p.keywords.trim()
+        ? (() => { try { return JSON.parse(p.keywords); } catch { return p.keywords.split(',').map((s: string) => s.trim()).filter(Boolean); } })()
+        : [];
+      return {
+        author: 'CHIP NG Editorial',
+        category: keywords[0] || 'NFC Technology',
+        views: 0,
+        focus_keyword: '',
+        ...p,
+        keywords,
+        is_published: Boolean(p.is_published),
+      };
+    });
+
+    normalized.sort((a: any, b: any) => {
+      const dateA = new Date(a.published_at || a.created_at || 0).getTime();
+      const dateB = new Date(b.published_at || b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+
+    return res.json(normalized);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message || 'Failed to load blog posts.' });
+  }
+});
+
+app.get('/api/posts/:slug', async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    let client = getSupabase();
+    if (req.headers?.authorization) {
+      const check = await verifyAdminRequest(req);
+      if (check.authorized) {
+        client = getSupabaseForRequest(req);
+      }
+    }
+
+    const { data, error } = await client
+      .from('posts')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({ error: error.message || 'Failed to fetch blog post.' });
+    }
+    if (!data) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const keywords = Array.isArray(data.keywords) ? data.keywords : [];
+    return res.json({
+      author: 'CHIP NG Editorial',
+      category: keywords[0] || 'NFC Technology',
+      views: 0,
+      focus_keyword: '',
+      ...data,
+      keywords,
+      is_published: Boolean(data.is_published),
+    });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message || 'Failed to load post.' });
+  }
+});
+
+app.get('/api/post-categories-all', async (req: Request, res: Response) => {
+  try {
+    const { data } = await getSupabase().from('posts').select('slug, keywords');
+    const map: Record<string, string> = {};
+    (data || []).forEach((p: any) => {
+      if (p.slug) {
+        map[p.slug] = p.category || (Array.isArray(p.keywords) && p.keywords[0]) || 'NFC Technology';
+      }
+    });
+    return res.json(map);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/post-view/:slug', async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    const sb = getSupabaseForRequest(req);
+    const { data: post } = await sb.from('posts').select('id').eq('slug', slug).maybeSingle();
+    if (post?.id) {
+      try {
+        await sb.from('blog_views').insert([{ post_id: post.id }]);
+      } catch (_e) {}
+    }
+    return res.json({ success: true });
+  } catch (e: any) {
+    return res.json({ success: true });
+  }
+});
+
+const handleSavePostApi = async (req: Request, res: Response) => {
+  try {
+    const {
+      id,
+      old_slug,
+      title,
+      slug,
+      content,
+      excerpt,
+      cover_image_url,
+      meta_title,
+      meta_description,
+      keywords,
+      is_published,
+      published_at,
+      author,
+      category,
+      focus_keyword,
+    } = req.body || {};
+
+    const cleanTitle = String(title || '').trim();
+    const cleanSlug = String(slug || '').trim();
+
+    if (!cleanTitle || !cleanSlug) {
+      return res.status(400).json({ error: 'Title and slug are required.' });
+    }
+
+    const sbClient = getSupabaseForRequest(req);
+    const now = new Date().toISOString();
+    const validUuid = id && UUID_REGEX.test(String(id)) ? String(id) : undefined;
+
+    // Check slug conflict with another post
+    const { data: existingBySlug } = await sbClient
+      .from('posts')
+      .select('id, slug')
+      .eq('slug', cleanSlug)
+      .maybeSingle();
+
+    if (existingBySlug) {
+      const sameById = validUuid && existingBySlug.id === validUuid;
+      const sameByOldSlug = old_slug && existingBySlug.slug === old_slug;
+      const editingSameNewPost = !old_slug && !validUuid;
+      if (!sameById && !sameByOldSlug && !editingSameNewPost) {
+        return res.status(400).json({ error: `The slug "/blog/${cleanSlug}" is already in use by another article.` });
+      }
+    }
+
+    const keywordsArray = Array.isArray(keywords)
+      ? keywords.map((k: any) => String(k).trim()).filter(Boolean)
+      : typeof keywords === 'string' && keywords.trim()
+      ? keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
+      : [];
+
+    const payload: Record<string, any> = {
+      title: cleanTitle,
+      slug: cleanSlug,
+      content: content || '',
+      excerpt: excerpt || '',
+      cover_image_url: cover_image_url || '',
+      meta_title: (meta_title && String(meta_title).trim()) || cleanTitle,
+      meta_description: (meta_description && String(meta_description).trim()) || excerpt || '',
+      keywords: keywordsArray.length > 0 ? keywordsArray : [category || 'NFC Technology'],
+      is_published: Boolean(is_published),
+      published_at: is_published ? (published_at || now) : (published_at ?? null),
+      updated_at: now,
+      author: (author && String(author).trim()) || 'CHIP NG Editorial',
+      category: (category && String(category).trim()) || 'NFC Technology',
+      focus_keyword: (focus_keyword && String(focus_keyword).trim()) || '',
+    };
+
+    const { data: savedPost, error: saveError } = await resilientUpsertBlogPost(sbClient, payload, {
+      id: validUuid,
+      oldSlug: old_slug ? String(old_slug).trim() : undefined,
+    });
+
+    if (saveError) {
+      console.error('[Serverless Save Post Error]', saveError);
+      return res.status(500).json({
+        error: saveError.message || 'Failed to save article to database.',
+        code: saveError.code || undefined,
+      });
+    }
+
+    if (old_slug && old_slug !== cleanSlug && !validUuid) {
+      try {
+        await sbClient.from('posts').delete().eq('slug', old_slug);
+      } catch (_e) {}
+    }
+
+    return res.json({
+      success: true,
+      supabaseSynced: true,
+      slug: savedPost?.slug || cleanSlug,
+      id: savedPost?.id || validUuid || cleanSlug,
+      post: savedPost || payload,
+    });
+  } catch (e: any) {
+    console.error('[Serverless Save Post Exception]', e);
+    return res.status(500).json({ error: e.message || 'Failed to save article on server.' });
+  }
+};
+
+app.post('/api/posts', requireAdminMiddleware, handleSavePostApi);
+app.put('/api/posts', requireAdminMiddleware, handleSavePostApi);
+app.put('/api/posts/:id', requireAdminMiddleware, handleSavePostApi);
+
+app.delete('/api/posts/:id', requireAdminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const sbClient = getSupabaseForRequest(req);
+    let delRes: any;
+    if (UUID_REGEX.test(String(id))) {
+      delRes = await sbClient.from('posts').delete().eq('id', id);
+    } else {
+      delRes = await sbClient.from('posts').delete().eq('slug', id);
+    }
+    if (delRes?.error) {
+      return res.status(500).json({ error: delRes.error.message || 'Failed to delete article.' });
+    }
+    return res.json({ success: true });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message || 'Failed to delete article.' });
   }
 });
 

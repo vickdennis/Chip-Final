@@ -9,6 +9,123 @@ import {
 import TiptapEditor from '../components/TiptapEditor';
 import BlogPreviewModal from '../components/blog/BlogPreviewModal';
 import { extractCleanExcerpt, calculateReadingTime } from '../utils/sanitizeHtml';
+import { getAdminAuthHeaders } from '../utils/adminApi';
+
+const BLOG_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function extractMissingBlogCol(error: any): string | null {
+  const msg = String(error?.message || error?.details || error?.hint || '');
+  const pgMatch = msg.match(/column\s+["']?([a-zA-Z0-9_]+)["']?\s+(?:of relation\s+["']?posts["']?\s+)?does not exist/i);
+  if (pgMatch?.[1]) return pgMatch[1];
+  const pgrstMatch = msg.match(/Could not find the ['"]([a-zA-Z0-9_]+)['"] column/i);
+  if (pgrstMatch?.[1]) return pgrstMatch[1];
+  return null;
+}
+
+async function resilientClientPostUpsert(
+  initialPayload: Record<string, any>,
+  options: { id?: string; oldSlug?: string } = {}
+): Promise<{ data: any; error: any }> {
+  const candidatePayload: Record<string, any> = { ...initialPayload };
+  const validUuid = options.id && BLOG_UUID_REGEX.test(String(options.id)) ? String(options.id) : null;
+  const optionalCols = ['author', 'category', 'focus_keyword', 'views', 'faq_json', 'product_json'];
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    let result: any = null;
+
+    if (validUuid) {
+      result = await supabase
+        .from('posts')
+        .update(candidatePayload)
+        .eq('id', validUuid)
+        .select('*')
+        .maybeSingle();
+
+      if (!result.error && !result.data) {
+        result = await supabase
+          .from('posts')
+          .upsert([{ id: validUuid, ...candidatePayload }], { onConflict: 'slug' })
+          .select('*')
+          .maybeSingle();
+      }
+    } else if (options.oldSlug && options.oldSlug !== candidatePayload.slug) {
+      result = await supabase
+        .from('posts')
+        .update(candidatePayload)
+        .eq('slug', options.oldSlug)
+        .select('*')
+        .maybeSingle();
+
+      if (!result.error && !result.data) {
+        result = await supabase
+          .from('posts')
+          .upsert([candidatePayload], { onConflict: 'slug' })
+          .select('*')
+          .maybeSingle();
+      }
+    } else {
+      result = await supabase
+        .from('posts')
+        .upsert([candidatePayload], { onConflict: 'slug' })
+        .select('*')
+        .maybeSingle();
+    }
+
+    if (!result.error) {
+      return { data: result.data, error: null };
+    }
+
+    const code = String(result.error?.code || '');
+    const msg = String(result.error?.message || '');
+    if (code === '42703' || code === 'PGRST204' || /does not exist|Could not find the/i.test(msg)) {
+      const missingCol = extractMissingBlogCol(result.error);
+      if (missingCol && missingCol in candidatePayload) {
+        delete candidatePayload[missingCol];
+        continue;
+      }
+      const nextOptional = optionalCols.find((col) => col in candidatePayload);
+      if (nextOptional) {
+        delete candidatePayload[nextOptional];
+        continue;
+      }
+    }
+
+    return { data: null, error: result.error };
+  }
+
+  return { data: null, error: { message: 'Failed to save blog post to database.' } };
+}
+
+async function compressImageDataUrlIfLarge(dataUrl: string, maxChars = 900_000): Promise<string> {
+  if (!dataUrl.startsWith('data:image/') || dataUrl.length <= maxChars || dataUrl.startsWith('data:image/svg')) {
+    return dataUrl;
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const maxWidth = 1200;
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        const height = Math.round(img.height * scale);
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressed = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(compressed.length < dataUrl.length ? compressed : dataUrl);
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 interface BlogPostRecord {
   id: string;
@@ -145,9 +262,10 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
     setLoading(true);
     setFetchError(null);
     try {
-      // 1. Try backend robust API first
+      // 1. Try backend robust API first (with admin token so drafts are included)
       try {
-        const res = await fetch('/api/posts');
+        const headers = await getAdminAuthHeaders();
+        const res = await fetch('/api/posts', { headers });
         if (res.ok) {
           const apiPosts = await res.json();
           if (Array.isArray(apiPosts) && apiPosts.length > 0) {
@@ -158,7 +276,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
         }
       } catch (e) {}
 
-      // 2. Fallback to Supabase
+      // 2. Fallback to Supabase directly
       const { data, error } = await supabase
         .from('posts')
         .select('*')
@@ -167,7 +285,15 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
       if (error) throw error;
 
       if (data) {
-        setPosts(data as BlogPostRecord[]);
+        setPosts(
+          data.map((p: any) => ({
+            author: 'CHIP NG Editorial',
+            category: (Array.isArray(p.keywords) && p.keywords[0]) || 'NFC Technology',
+            views: 0,
+            ...p,
+            keywords: Array.isArray(p.keywords) ? p.keywords : [],
+          })) as BlogPostRecord[]
+        );
       }
     } catch (err: any) {
       setFetchError(err.message || 'Failed to load blog posts.');
@@ -227,32 +353,10 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
 
     setUploadingImage(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-      });
-
-      try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: dataUrl, filename: file.name })
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.url) {
-            setPostForm({ ...postForm, cover_image_url: json.url });
-            showToast('Cover image uploaded successfully.', 'success');
-            return;
-          }
-        }
-      } catch (e) {}
-
+      // 1. Try Supabase Storage first for clean CDN URLs (avoids large base64 bodies on serverless)
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const filePath = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      
+
       let bucket = 'blog';
       let uploadRes = await supabase.storage.from(bucket).upload(filePath, file, {
         cacheControl: '3600',
@@ -268,12 +372,41 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
 
       if (!uploadRes.error) {
         const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-        setPostForm({ ...postForm, cover_image_url: data.publicUrl });
+        setPostForm((prev) => ({ ...prev, cover_image_url: data.publicUrl }));
         showToast('Cover image uploaded successfully.', 'success');
         return;
       }
 
-      setPostForm({ ...postForm, cover_image_url: dataUrl });
+      // 2. Fallback to backend /api/upload or compressed data URL
+      const rawDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+      const dataUrl = await compressImageDataUrlIfLarge(rawDataUrl);
+
+      try {
+        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ image: dataUrl, filename: file.name })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            const finalUrl = json.url.startsWith('data:')
+              ? await compressImageDataUrlIfLarge(json.url)
+              : json.url;
+            setPostForm((prev) => ({ ...prev, cover_image_url: finalUrl }));
+            showToast('Cover image uploaded successfully.', 'success');
+            return;
+          }
+        }
+      } catch (e) {}
+
+      setPostForm((prev) => ({ ...prev, cover_image_url: dataUrl }));
       showToast('Cover image attached successfully.', 'success');
     } catch (error: any) {
       showToast('Error uploading cover image: ' + error.message, 'error');
@@ -321,6 +454,10 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
         .filter(Boolean);
 
       const finalExcerpt = (postForm.excerpt || '').trim() || extractCleanExcerpt(postForm.content || '', 160);
+      const now = new Date().toISOString();
+      const safeCoverUrl = postForm.cover_image_url?.startsWith('data:image/')
+        ? await compressImageDataUrlIfLarge(postForm.cover_image_url)
+        : (postForm.cover_image_url || '');
 
       const payload = {
         id: editingPost?.id,
@@ -329,61 +466,85 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
         slug,
         content: postForm.content || '',
         excerpt: finalExcerpt,
-        cover_image_url: postForm.cover_image_url || '',
+        cover_image_url: safeCoverUrl,
         meta_title: (postForm.meta_title || '').trim() || cleanTitle,
         meta_description: (postForm.meta_description || '').trim() || finalExcerpt,
         keywords: tagsArray.length > 0 ? tagsArray : [postForm.category || 'NFC Technology'],
         is_published: publish,
-        published_at: publish ? (editingPost?.published_at || new Date().toISOString()) : (editingPost?.is_published ? editingPost.published_at : null),
-        updated_at: new Date().toISOString(),
+        published_at: publish ? (editingPost?.published_at || now) : (editingPost?.is_published ? editingPost.published_at : null),
+        updated_at: now,
         author: (postForm.author || '').trim() || 'CHIP NG Editorial',
         category: postForm.category || 'NFC Technology',
         focus_keyword: (postForm.focus_keyword || '').trim(),
       };
 
-      // 1. Save via backend API
-      const apiRes = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const supabasePayload: Record<string, any> = {
+        title: cleanTitle,
+        slug,
+        content: postForm.content || '',
+        excerpt: finalExcerpt,
+        cover_image_url: safeCoverUrl,
+        meta_title: (postForm.meta_title || '').trim() || cleanTitle,
+        meta_description: (postForm.meta_description || '').trim() || finalExcerpt,
+        keywords: tagsArray.length > 0 ? tagsArray : (postForm.category ? [postForm.category] : []),
+        is_published: publish,
+        published_at: publish ? (editingPost?.published_at || now) : (editingPost?.is_published ? editingPost.published_at : null),
+        updated_at: now,
+        author: (postForm.author || '').trim() || 'CHIP NG Editorial',
+        category: postForm.category || 'NFC Technology',
+        focus_keyword: (postForm.focus_keyword || '').trim(),
+      };
 
-      if (!apiRes.ok) {
-        const errData = await apiRes.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to save article on server.');
+      // 1. Save via backend API with authenticated admin headers
+      let apiSucceeded = false;
+      let serverAlreadySyncedSupabase = false;
+      let apiErrorMessage = '';
+
+      try {
+        const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+        const apiRes = await fetch('/api/posts', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+        });
+
+        const apiJson = await apiRes.json().catch(() => ({}));
+        if (apiRes.ok) {
+          apiSucceeded = true;
+          serverAlreadySyncedSupabase = Boolean(apiJson?.supabaseSynced);
+        } else {
+          apiErrorMessage = apiJson?.error || `Server returned status ${apiRes.status}`;
+          // Validation error like duplicate slug should fail immediately
+          if (apiRes.status === 400) {
+            throw new Error(apiErrorMessage);
+          }
+        }
+      } catch (fetchErr: any) {
+        if (!apiErrorMessage) {
+          apiErrorMessage = fetchErr?.message || 'Unable to reach /api/posts';
+        }
+        if (apiErrorMessage.includes('already in use') || apiErrorMessage.includes('required')) {
+          throw new Error(apiErrorMessage);
+        }
       }
 
-      // 2. Also attempt Supabase insert/update if authenticated
-      try {
-        const supabasePayload: any = {
-          title: cleanTitle,
-          slug,
-          content: postForm.content || '',
-          excerpt: finalExcerpt,
-          cover_image_url: postForm.cover_image_url || '',
-          meta_title: (postForm.meta_title || '').trim() || cleanTitle,
-          meta_description: (postForm.meta_description || '').trim() || finalExcerpt,
-          keywords: tagsArray.length > 0 ? tagsArray : (postForm.category ? [postForm.category] : null),
-          is_published: publish,
-          published_at: publish ? (editingPost?.published_at || new Date().toISOString()) : (editingPost?.is_published ? editingPost.published_at : null),
-          updated_at: new Date().toISOString(),
-        };
+      // 2. If server failed OR didn't confirm Supabase sync, perform direct authenticated Supabase upsert with schema resilience
+      if (!apiSucceeded || !serverAlreadySyncedSupabase) {
+        const { error: sbErr } = await resilientClientPostUpsert(supabasePayload, {
+          id: editingPost?.id,
+          oldSlug: editingPost?.slug,
+        });
 
-        if (editingPost?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(editingPost.id)) {
-          supabasePayload.id = editingPost.id;
-          await supabase.from('posts').update(supabasePayload).eq('id', editingPost.id);
-        } else {
-          await supabase.from('posts').upsert([supabasePayload], { onConflict: 'slug' });
+        if (sbErr && !apiSucceeded) {
+          throw new Error(sbErr.message || apiErrorMessage || 'Failed to save article.');
         }
 
-        // Clean up old slug in Supabase if renamed
-        if (editingPost?.slug && editingPost.slug !== slug) {
+        // Clean up old slug in Supabase if renamed without a UUID match
+        if (!sbErr && editingPost?.slug && editingPost.slug !== slug && !BLOG_UUID_REGEX.test(String(editingPost.id || ''))) {
           try {
             await supabase.from('posts').delete().eq('slug', editingPost.slug);
           } catch (e) {}
         }
-      } catch (e) {
-        console.warn('Supabase post sync warning:', e);
       }
 
       localStorage.removeItem('chipng_blog_autosave');
@@ -392,7 +553,7 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
       setEditingPost(null);
       await fetchPosts();
     } catch (err: any) {
-      showToast('Error saving article: ' + err.message, 'error');
+      showToast('Error saving article: ' + (err?.message || 'Unknown error'), 'error');
     } finally {
       setSavingPost(false);
     }
@@ -401,29 +562,35 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
   const togglePublishStatus = async (post: BlogPostRecord) => {
     const nextStatus = !post.is_published;
     try {
+      const now = new Date().toISOString();
       const updated = {
         ...post,
         is_published: nextStatus,
-        published_at: nextStatus ? (post.published_at || new Date().toISOString()) : post.published_at,
-        updated_at: new Date().toISOString(),
+        published_at: nextStatus ? (post.published_at || now) : post.published_at,
+        updated_at: now,
       };
 
-      await fetch('/api/posts', {
+      const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
+      const apiRes = await fetch('/api/posts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(updated),
       });
 
-      try {
-        await supabase
-          .from('posts')
-          .update({
-            is_published: nextStatus,
-            published_at: updated.published_at,
-            updated_at: updated.updated_at,
-          })
-          .eq('id', post.id);
-      } catch (e) {}
+      const apiJson = await apiRes.json().catch(() => ({}));
+      if (!apiRes.ok || !apiJson?.supabaseSynced) {
+        const updatePayload = {
+          is_published: nextStatus,
+          published_at: updated.published_at,
+          updated_at: updated.updated_at,
+        };
+        const sbRes = BLOG_UUID_REGEX.test(String(post.id))
+          ? await supabase.from('posts').update(updatePayload).eq('id', post.id)
+          : await supabase.from('posts').update(updatePayload).eq('slug', post.slug);
+        if (sbRes.error && !apiRes.ok) {
+          throw new Error(sbRes.error.message || apiJson?.error || 'Failed to update status.');
+        }
+      }
 
       fetchPosts();
       showToast(nextStatus ? 'Article published.' : 'Article changed to draft.', 'success');
@@ -436,11 +603,23 @@ export default function AdminBlogManager({ initialEditSlug }: AdminBlogManagerPr
     if (!deleteConfirmPost) return;
     setDeletingId(deleteConfirmPost.id);
     try {
-      await fetch(`/api/posts/${deleteConfirmPost.id}`, { method: 'DELETE' });
+      const headers = await getAdminAuthHeaders();
+      const apiRes = await fetch(`/api/posts/${encodeURIComponent(deleteConfirmPost.id || deleteConfirmPost.slug)}`, {
+        method: 'DELETE',
+        headers,
+      });
 
+      let sbErr: any = null;
       try {
-        await supabase.from('posts').delete().eq('id', deleteConfirmPost.id);
+        const res = BLOG_UUID_REGEX.test(String(deleteConfirmPost.id))
+          ? await supabase.from('posts').delete().eq('id', deleteConfirmPost.id)
+          : await supabase.from('posts').delete().eq('slug', deleteConfirmPost.slug);
+        sbErr = res.error;
       } catch (e) {}
+
+      if (!apiRes.ok && sbErr) {
+        throw new Error(sbErr.message || 'Failed to delete article.');
+      }
 
       setDeleteConfirmPost(null);
       showToast('Article deleted successfully.', 'success');
