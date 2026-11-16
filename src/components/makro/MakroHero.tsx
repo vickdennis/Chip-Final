@@ -137,31 +137,35 @@ export const MakroHero: React.FC<MakroHeroProps> = ({ onGetStarted, onExploreCar
 
               {/* Solopreneur Social Proof */}
               <div className="flex items-center gap-3 pt-1 sm:pt-0">
-                <div className="flex -space-x-2.5 overflow-hidden">
-                  <img
-                    className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 object-cover"
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                    alt="Creator avatar"
-                    referrerPolicy="no-referrer"
-                  />
-                  <img
-                    className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 object-cover"
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                    alt="Creator avatar"
-                    referrerPolicy="no-referrer"
-                  />
-                  <img
-                    className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 object-cover"
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
-                    alt="Creator avatar"
-                    referrerPolicy="no-referrer"
-                  />
-                  <img
-                    className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 object-cover"
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                    alt="Creator avatar"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="flex -space-x-2.5">
+                  <div className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0">
+                    <img
+                      className="w-full h-full object-cover object-[50%_18%]"
+                      src="/assets/aistudio/IMG_4122_16592321.jpeg"
+                      alt="CHIP NG executive member"
+                    />
+                  </div>
+                  <div className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0">
+                    <img
+                      className="w-full h-full object-cover object-[50%_18%]"
+                      src="/assets/aistudio/b92fad1d-e4df-4e9a-b3e5-cf19fa2f5381_9d2b70bf.jpeg"
+                      alt="CHIP NG founder member"
+                    />
+                  </div>
+                  <div className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0">
+                    <img
+                      className="w-full h-full object-cover object-[50%_28%] scale-125"
+                      src="/assets/aistudio/b0a8adf8-8e4d-4db0-9c7f-efd805181087_abedf72d.jpeg"
+                      alt="CHIP NG business leader"
+                    />
+                  </div>
+                  <div className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-neutral-950 overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0">
+                    <img
+                      className="w-full h-full object-cover object-[50%_30%] scale-[1.4]"
+                      src="/assets/aistudio/243e95f0-ea79-49b1-8dc5-25cf02a6feb4_6f491c12.jpeg"
+                      alt="CHIP NG creator member"
+                    />
+                  </div>
                 </div>
                 <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 leading-tight">
                   <span className="font-semibold text-neutral-900 dark:text-white block">
