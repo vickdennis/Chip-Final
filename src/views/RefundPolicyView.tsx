@@ -3,6 +3,7 @@ import { ViewState } from '../App';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { ShieldCheck, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface RefundPolicyViewProps {
   onNavigate: (view: ViewState) => void;
@@ -17,6 +18,12 @@ export default function RefundPolicyView({
 }: RefundPolicyViewProps) {
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950 font-sans">
+      <SeoHead
+        title="Refund & 12-Month Hardware Warranty Policy | CHIP NG"
+        description="Learn about CHIP NG's 12-month NFC microchip warranty, digital proof approval workflow, and fast replacement guarantee across Nigeria."
+        canonicalPath="/refund-policy"
+        keywords="CHIP NG warranty, NFC card refund policy, 12 month hardware guarantee"
+      />
       <MakroNavbar
         currentView="landing"
         onNavigate={onNavigate}

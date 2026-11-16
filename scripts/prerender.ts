@@ -10,6 +10,13 @@ import { createClient } from '@supabase/supabase-js';
 import Database from 'better-sqlite3';
 import { applyUniversalSsr } from '../src/utils/universalSsrEngine';
 import { COMMERCIAL_PAGES } from '../src/data/commercialPagesData';
+import {
+  collectDiscoveryDataset,
+  generateDynamicSitemapXml,
+  generateRobotsTxt,
+  generateLlmsTxt,
+  generateLlmsFullTxt,
+} from '../src/utils/aiDiscovery';
 
 const BASE_URL = 'https://www.chipng.com';
 
@@ -79,88 +86,10 @@ async function main() {
     priority: '0.85'
   }));
 
-  // 3. Blog Articles (from Supabase & SQLite)
-  const blogSlugs = new Set<string>();
-  const blogArticles: { slug: string; updated_at?: string }[] = [];
-
-  try {
-    const { data: remotePosts } = await supabase
-      .from('posts')
-      .select('slug, updated_at')
-      .eq('is_published', true);
-
-    if (remotePosts) {
-      for (const p of remotePosts) {
-        if (p.slug && !blogSlugs.has(p.slug)) {
-          blogSlugs.add(p.slug);
-          blogArticles.push({ slug: p.slug, updated_at: p.updated_at });
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('Failed to fetch remote posts:', err);
-  }
-
-  if (db) {
-    try {
-      const localPosts = db.prepare('SELECT slug, updated_at FROM local_posts').all() as any[];
-      for (const p of localPosts) {
-        if (p.slug && !blogSlugs.has(p.slug)) {
-          blogSlugs.add(p.slug);
-          blogArticles.push({ slug: p.slug, updated_at: p.updated_at });
-        }
-      }
-    } catch (e) {
-      // table might not exist
-    }
-  }
-
-  // Fallback known articles from sitemap
-  const fallbackBlogSlugs = [
-    'hardware-engineering-sub-10ms-nfc',
-    'nfc-card-price-in-lagos-best-digital-card-for-nigerian-realtors',
-    'how-much-do-nfc-business-cards-cost-in-2026-nigeria-global-price-guide',
-    'nfc-card-price-lagos-realtors-2026',
-    'nfc-business-card-price-lagos-for-realtors-2026-choose-your-card-close-faster',
-    'the-future-of-car-sales-why-nfc-business-cards-are-a-game-changer-for-dealerships',
-    'predictive-ai-cash-runway-forecasting',
-    'nfc-business-card-guide'
-  ];
-
-  for (const s of fallbackBlogSlugs) {
-    if (!blogSlugs.has(s)) {
-      blogSlugs.add(s);
-      blogArticles.push({ slug: s });
-    }
-  }
-
-  // 4. User Profiles
-  const profileList: { username: string; updated_at?: string }[] = [];
-  try {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('username, updated_at')
-      .not('username', 'is', null)
-      .limit(300);
-
-    const RESERVED = new Set([
-      'admin', 'login', 'dashboard', 'settings', 'checkout', 'api',
-      'blog', 'company', 'contact', 'updates', 'shipping', 'faq',
-      'pricing', 'buy-card', 'shop', 'about', 'refund-policy',
-      'privacy-policy', 'terms-of-service', 'terms', 'privacy'
-    ]);
-
-    if (profiles) {
-      for (const prof of profiles) {
-        const clean = prof.username ? prof.username.toLowerCase().trim() : '';
-        if (clean && !RESERVED.has(clean) && !COMMERCIAL_PAGES[clean]) {
-          profileList.push({ username: prof.username, updated_at: prof.updated_at });
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('Failed to fetch profiles:', err);
-  }
+  // 3 & 4. Blog Articles & Public User Profiles via shared AI Discovery collector
+  const dataset = await collectDiscoveryDataset(supabase, db);
+  const blogArticles = dataset.posts;
+  const profileList = dataset.profiles;
 
   console.log(`📊 Found ${coreRoutes.length} core routes, ${commercialRoutes.length} commercial routes, ${blogArticles.length} blog posts, and ${profileList.length} profiles.`);
 
@@ -281,115 +210,25 @@ async function main() {
 
   console.log('✅ All pages & vCard routes successfully pre-rendered into static HTML in dist/!');
 
-  // Generate Master Sitemap.xml
-  const today = new Date().toISOString().split('T')[0];
-
-  const sitemapEntries: string[] = [];
-
-  // Core pages (skip duplicates like /about vs /company)
-  const canonicalCore = [
-    { loc: `${BASE_URL}/`, changefreq: 'daily', priority: '1.0' },
-    { loc: `${BASE_URL}/buy-card`, changefreq: 'weekly', priority: '0.95' },
-    { loc: `${BASE_URL}/shop`, changefreq: 'weekly', priority: '0.95' },
-    { loc: `${BASE_URL}/corporate-bundle`, changefreq: 'weekly', priority: '0.95' },
-    { loc: `${BASE_URL}/vcard`, changefreq: 'daily', priority: '0.9' },
-    { loc: `${BASE_URL}/app`, changefreq: 'weekly', priority: '0.9' },
-    { loc: `${BASE_URL}/android`, changefreq: 'weekly', priority: '0.9' },
-    { loc: `${BASE_URL}/pricing`, changefreq: 'weekly', priority: '0.9' },
-    { loc: `${BASE_URL}/faq`, changefreq: 'weekly', priority: '0.85' },
-    { loc: `${BASE_URL}/company`, changefreq: 'monthly', priority: '0.7' },
-    { loc: `${BASE_URL}/updates`, changefreq: 'weekly', priority: '0.7' },
-    { loc: `${BASE_URL}/contact`, changefreq: 'monthly', priority: '0.7' },
-    { loc: `${BASE_URL}/blog`, changefreq: 'daily', priority: '0.9' },
-    { loc: `${BASE_URL}/shipping`, changefreq: 'monthly', priority: '0.6' },
-    { loc: `${BASE_URL}/refund-policy`, changefreq: 'monthly', priority: '0.6' },
-    { loc: `${BASE_URL}/privacy-policy`, changefreq: 'monthly', priority: '0.5' },
-    { loc: `${BASE_URL}/terms-of-service`, changefreq: 'monthly', priority: '0.5' },
-  ];
-
-  for (const item of canonicalCore) {
-    sitemapEntries.push(`  <url>
-    <loc>${item.loc}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>${item.changefreq}</changefreq>
-    <priority>${item.priority}</priority>
-  </url>`);
-  }
-
-  // Commercial pages
-  for (const page of commercialRoutes) {
-    sitemapEntries.push(`  <url>
-    <loc>${BASE_URL}/${page.path}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`);
-  }
-
-  // Blog posts
-  for (const article of blogArticles) {
-    const lastmod = article.updated_at ? new Date(article.updated_at).toISOString().split('T')[0] : today;
-    sitemapEntries.push(`  <url>
-    <loc>${BASE_URL}/blog/${article.slug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`);
-  }
-
-  // User profiles & Contact vCards
-  for (const prof of profileList) {
-    const lastmod = prof.updated_at ? new Date(prof.updated_at).toISOString().split('T')[0] : today;
-    sitemapEntries.push(`  <url>
-    <loc>${BASE_URL}/@${prof.username}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`);
-    sitemapEntries.push(`  <url>
-    <loc>${BASE_URL}/${prof.username}/vcard</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>`);
-  }
-
-  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapEntries.join('\n')}
-</urlset>`;
-
+  // Generate Master Sitemap.xml, robots.txt, llms.txt & llms-full.txt via aiDiscovery
+  const sitemapXml = await generateDynamicSitemapXml(supabase, db);
   fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemapXml.trim(), 'utf-8');
   fs.writeFileSync(path.resolve('public/sitemap.xml'), sitemapXml.trim(), 'utf-8');
-  console.log(`✅ Generated sitemap.xml with ${sitemapEntries.length} verified canonical URLs!`);
+  console.log('✅ Generated sitemap.xml with image extensions and verified canonical URLs!');
 
-  // Generate robots.txt
-  const robotsTxt = `User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /dashboard/
-Disallow: /api/
-Disallow: /settings/
-Disallow: /login
-
-# Answer Engine Optimization (AEO) Bots
-User-agent: Googlebot
-User-agent: Bingbot
-User-agent: GPTBot
-User-agent: ChatGPT-User
-User-agent: PerplexityBot
-User-agent: ClaudeBot
-User-agent: Applebot
-User-agent: Google-Extended
-Allow: /
-
-Sitemap: https://www.chipng.com/sitemap.xml
-Host: https://www.chipng.com
-`;
-
+  const robotsTxt = generateRobotsTxt();
   fs.writeFileSync(path.join(distDir, 'robots.txt'), robotsTxt.trim(), 'utf-8');
   fs.writeFileSync(path.resolve('public/robots.txt'), robotsTxt.trim(), 'utf-8');
-  console.log('✅ Generated robots.txt pointing to https://www.chipng.com/sitemap.xml!');
+  console.log('✅ Generated robots.txt pointing to https://www.chipng.com/sitemap.xml and AI discovery files!');
+
+  const llmsTxt = await generateLlmsTxt(supabase, db);
+  fs.writeFileSync(path.join(distDir, 'llms.txt'), llmsTxt.trim(), 'utf-8');
+  fs.writeFileSync(path.resolve('public/llms.txt'), llmsTxt.trim(), 'utf-8');
+
+  const llmsFullTxt = await generateLlmsFullTxt(supabase, db);
+  fs.writeFileSync(path.join(distDir, 'llms-full.txt'), llmsFullTxt.trim(), 'utf-8');
+  fs.writeFileSync(path.resolve('public/llms-full.txt'), llmsFullTxt.trim(), 'utf-8');
+  console.log('✅ Generated llms.txt & llms-full.txt for AI Search Agents (ChatGPT, Perplexity, Claude, Gemini)!');
 
   // Generate 404.html SPA fallback so Vercel CDN immediately serves the app shell on any un-prerendered route
   fs.writeFileSync(path.join(distDir, '404.html'), baseHtml, 'utf-8');

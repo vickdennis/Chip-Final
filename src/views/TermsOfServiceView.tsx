@@ -3,6 +3,7 @@ import { ViewState } from '../App';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { ArrowLeft, FileText } from 'lucide-react';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface TermsOfServiceViewProps {
   onNavigate: (view: ViewState) => void;
@@ -13,6 +14,11 @@ interface TermsOfServiceViewProps {
 export default function TermsOfServiceView({ onNavigate, isDarkMode, toggleDarkMode }: TermsOfServiceViewProps) {
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950">
+      <SeoHead
+        title="Terms of Service — Platform & Hardware Agreement | CHIP NG"
+        description="Official terms of service, handle ownership rules, and hardware warranty provisions for CHIP NG smart business cards and digital profiles."
+        canonicalPath="/terms-of-service"
+      />
       <MakroNavbar
         currentView="terms-of-service"
         onNavigate={onNavigate}

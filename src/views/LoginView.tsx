@@ -5,6 +5,7 @@ import { ArrowRight, Check, Sparkles, Moon, Sun, ArrowLeft, Loader2, ExternalLin
 import BrandLogo from '../components/BrandLogo';
 import { toast } from '../components/Toast';
 import { extractAuthErrorMessage, getInAppBrowserName } from '../utils/authError';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface LoginViewProps {
   onNavigate: (view: ViewState) => void;
@@ -238,6 +239,12 @@ export default function LoginView({ onNavigate, isDarkMode, toggleDarkMode }: Lo
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950 transition-colors">
+      <SeoHead
+        title="Sign In or Create Account | CHIP NG"
+        description="Sign in to manage your CHIP NG digital business card, links, leads, and NFC hardware."
+        canonicalPath="/login"
+        noindex={true}
+      />
       
       {/* Top Bar */}
       <header className="px-6 sm:px-8 py-6 flex items-center justify-between">

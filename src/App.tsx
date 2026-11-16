@@ -476,7 +476,7 @@ export default function App() {
     } else if (view === 'enterprise-dashboard') {
       window.history.pushState({}, '', '/enterprise');
     } else if (view === 'nfc-sales') {
-      window.history.pushState({}, '', '/buycard');
+      window.history.pushState({}, '', '/buy-card');
     } else if (view === 'corporate-bundle') {
       window.history.pushState({}, '', '/corporate-bundle');
     } else if (view === 'privacy-policy') {

@@ -4,6 +4,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { MakroCTA } from '../components/makro/MakroCTA';
 import { Sparkles, Shield, Cpu, Zap, Globe, ArrowRight } from 'lucide-react';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface MakroCompanyViewProps {
   onNavigate: (view: ViewState) => void;
@@ -74,6 +75,12 @@ export const MakroCompanyView: React.FC<MakroCompanyViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between">
+      <SeoHead
+        title="About CHIP NG — NFC Smart Hardware & Digital Identity Platform in Nigeria"
+        description="Meet the engineering and design team building CHIP NG in Lekki Phase 1, Lagos. Sub-10ms NTAG216 smart business cards and dynamic profiles for Nigerian leaders."
+        canonicalPath="/company"
+        keywords="About CHIP NG, CHIPNG Technologies, NFC business card Lagos team, smart card engineering Nigeria"
+      />
       <MakroNavbar
         currentView={'company' as ViewState}
         onNavigate={onNavigate}

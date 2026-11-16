@@ -92,13 +92,13 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://chipng.com/"
+          "item": "https://www.chipng.com/"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Buy Smart NFC Card",
-          "item": "https://chipng.com/buy-card"
+          "item": "https://www.chipng.com/buy-card"
         }
       ]
     },

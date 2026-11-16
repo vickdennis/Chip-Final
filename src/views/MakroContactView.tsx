@@ -5,6 +5,7 @@ import { MakroFooter } from '../components/makro/MakroFooter';
 import { Mail, Phone, MapPin, Clock, Check, ArrowRight, Sparkles, Loader2, Star, ExternalLink } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface MakroContactViewProps {
   onNavigate: (view: ViewState) => void;
@@ -115,6 +116,12 @@ export const MakroContactView: React.FC<MakroContactViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between">
+      <SeoHead
+        title="Contact CHIP NG — Order Support, Corporate Fleet & Lekki Workshop"
+        description="Contact CHIP NG Technologies in Lekki Phase 1, Lagos via WhatsApp (+234 810 076 4154) or email (hello@chipng.com) for smart NFC cards and corporate orders."
+        canonicalPath="/contact"
+        keywords="contact CHIP NG, CHIP NG WhatsApp, NFC business card Lagos Lekki address, CHIP NG support"
+      />
       <MakroNavbar
         currentView={'contact' as ViewState}
         onNavigate={onNavigate}

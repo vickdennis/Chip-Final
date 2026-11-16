@@ -11,6 +11,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { formatCurrencyAmount } from '../utils/currency';
 import { toast } from '../components/Toast';
 import { extractAuthErrorMessage } from '../utils/authError';
+import { SeoHead } from '../components/seo/SeoHead';
 
 export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const { currency, formatNgn, getCheckout } = useCurrency();
@@ -251,6 +252,12 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
     // Upsell state
     return (
       <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#16a34a] selection:text-neutral-950 font-sans flex items-center justify-center p-4">
+        <SeoHead
+          title="Enterprise Organization Fleet | CHIP NG"
+          description="Manage corporate NFC card seats, brand guidelines, and team analytics."
+          canonicalPath="/enterprise"
+          noindex={true}
+        />
         <div className="bg-white dark:bg-[#111318] max-w-xl w-full p-8 sm:p-10 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 text-center">
           <div className="flex justify-center mb-6">
             <BrandLogo size="lg" iconOnly />
@@ -342,6 +349,12 @@ export default function EnterpriseDashboard({ onNavigate, isDarkMode, toggleDark
   // Dashboard state
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white font-sans selection:bg-[#16a34a] selection:text-neutral-950 transition-colors pb-20">
+      <SeoHead
+        title={`${enterprise.name || 'Enterprise Fleet'} | CHIP NG`}
+        description="Manage corporate NFC card seats, brand guidelines, and team analytics."
+        canonicalPath="/enterprise"
+        noindex={true}
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 backdrop-blur-md border-b border-neutral-200/80 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

@@ -24,6 +24,7 @@ import BrandLogo from '../components/BrandLogo';
 import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge';
 import InternationalPhoneInput from '../components/InternationalPhoneInput';
 import { getAdminAuthHeaders, parseTimestamp, getProductPreviewImage, SUPER_ADMIN_ALLOWLIST } from '../utils/adminApi';
+import { SeoHead } from '../components/seo/SeoHead';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -1444,6 +1445,12 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#16a34a] selection:text-neutral-950 font-sans transition-colors pb-24">
+      <SeoHead
+        title="Super Admin Console | CHIP NG"
+        description="Internal CHIP NG administration dashboard."
+        canonicalPath="/admin"
+        noindex={true}
+      />
       {/* Top Navbar matching homepage MakroNavbar */}
       <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FAFAFA]/85 dark:bg-[#0A0B0E]/85 border-b border-neutral-200/80 dark:border-white/10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">

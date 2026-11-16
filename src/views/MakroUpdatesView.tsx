@@ -4,6 +4,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { MakroCTA } from '../components/makro/MakroCTA';
 import { Sparkles, Zap, Smartphone, Check, ArrowRight, Tag } from 'lucide-react';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface MakroUpdatesViewProps {
   onNavigate: (view: ViewState) => void;
@@ -85,6 +86,12 @@ export const MakroUpdatesView: React.FC<MakroUpdatesViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between">
+      <SeoHead
+        title="Product Updates & Hardware Releases — CHIP NG Changelog"
+        description="Explore the latest NFC hardware releases, Apple Wallet integration, 2-way contact exchange, and multi-currency storefront updates from CHIP NG."
+        canonicalPath="/updates"
+        keywords="CHIP NG updates, NFC card hardware releases, link in bio changelog"
+      />
       <MakroNavbar
         currentView={'updates' as ViewState}
         onNavigate={onNavigate}

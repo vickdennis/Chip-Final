@@ -4,6 +4,7 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { Truck, Clock, ShieldCheck, MapPin, PackageCheck, AlertCircle } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface ShippingPolicyViewProps {
   onNavigate: (view: ViewState) => void;
@@ -19,6 +20,12 @@ export default function ShippingPolicyView({
   const { formatNgn } = useCurrency();
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950 font-sans">
+      <SeoHead
+        title="Shipping & Nationwide Delivery Policy — 24h Lagos Dispatch | CHIP NG"
+        description="Express 24–48 hour smart NFC business card delivery across Lagos Island & Mainland, plus 2–4 day shipping nationwide across all 36 Nigerian states and worldwide."
+        canonicalPath="/shipping"
+        keywords="CHIP NG shipping policy, NFC card delivery Lagos, smart card delivery Nigeria"
+      />
       <MakroNavbar
         currentView="landing"
         onNavigate={onNavigate}

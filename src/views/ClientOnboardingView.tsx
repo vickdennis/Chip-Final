@@ -23,6 +23,7 @@ import { toast } from '../components/Toast';
 import InternationalPhoneInput from '../components/InternationalPhoneInput';
 import { getInternationalWhatsAppUrl } from '../utils/countryData';
 import { useCurrency } from '../context/CurrencyContext';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface ClientOnboardingViewProps {
   onNavigate?: (view: any) => void;
@@ -241,6 +242,12 @@ export default function ClientOnboardingView({ onNavigate }: ClientOnboardingVie
 
   return (
     <div className="min-h-screen bg-[#07090E] text-white flex flex-col selection:bg-emerald-500 selection:text-black">
+      <SeoHead
+        title="Client Profile Setup & Card Onboarding | CHIP NG"
+        description="Private client onboarding portal for custom CHIP NG smart card orders."
+        canonicalPath="/onboarding"
+        noindex={true}
+      />
       {/* Top Navigation */}
       <header className="border-b border-white/5 bg-[#0B0E14]/80 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

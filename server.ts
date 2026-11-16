@@ -10,6 +10,7 @@ import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { GoogleGenAI } from '@google/genai';
 import { applyUniversalSsr } from './src/utils/universalSsrEngine';
+import { generateDynamicSitemapXml, generateRobotsTxt, generateLlmsTxt, generateLlmsFullTxt } from './src/utils/aiDiscovery';
 import { generateVCardString } from './src/utils/vcardGenerator';
 import { formatResendHtmlEmail, wrapChipngSupportEmail } from './src/utils/resendEmailTemplates';
 import { parseCsvText, mapCsvRowsToProfiles, convertGoogleUrlToCsvExport, ParsedFormUser } from './src/utils/googleFormParser';
@@ -5238,106 +5239,47 @@ Return ONLY valid JSON matching this structure:
     next();
   });
 
-  // SEO Automation Routes
-  app.get("/sitemap.xml", async (req, res) => {
+  // SEO & AI Discovery Automation Routes
+  app.get(["/sitemap.xml", "/api/sitemap.xml"], async (req, res) => {
     try {
-      const { data: posts } = await getSupabase()
-        .from("posts")
-        .select("slug, updated_at")
-        .eq("is_published", true);
-
-      const { data: profiles } = await getSupabase()
-        .from("profiles")
-        .select("username, updated_at")
-        .not("username", "is", null)
-        .limit(200);
-
-      const baseUrl = "https://www.chipng.com";
-      const corePages = [
-        { path: '', changefreq: 'daily', priority: '1.0' },
-        { path: 'buy-card', changefreq: 'weekly', priority: '0.95' },
-        { path: 'shop', changefreq: 'weekly', priority: '0.95' },
-        { path: 'pricing', changefreq: 'weekly', priority: '0.9' },
-        { path: 'faq', changefreq: 'weekly', priority: '0.85' },
-        { path: 'company', changefreq: 'monthly', priority: '0.7' },
-        { path: 'updates', changefreq: 'weekly', priority: '0.7' },
-        { path: 'contact', changefreq: 'monthly', priority: '0.7' },
-        { path: 'blog', changefreq: 'daily', priority: '0.9' },
-        { path: 'shipping', changefreq: 'monthly', priority: '0.6' },
-        { path: 'refund-policy', changefreq: 'monthly', priority: '0.6' },
-        { path: 'privacy-policy', changefreq: 'monthly', priority: '0.5' },
-        { path: 'terms-of-service', changefreq: 'monthly', priority: '0.5' },
-        // Commercial Regional & Persona Landing Pages
-        { path: 'nfc-business-card-nigeria', changefreq: 'weekly', priority: '0.9' },
-        { path: 'nfc-business-card-lagos', changefreq: 'weekly', priority: '0.9' },
-        { path: 'nfc-business-card-lekki', changefreq: 'weekly', priority: '0.85' },
-        { path: 'nfc-business-card-ajah', changefreq: 'weekly', priority: '0.85' },
-        { path: 'nfc-metal-business-card', changefreq: 'weekly', priority: '0.9' },
-        { path: 'digital-business-card-nigeria', changefreq: 'weekly', priority: '0.9' },
-        { path: 'nfc-business-card-price-nigeria', changefreq: 'weekly', priority: '0.85' },
-        { path: 'nfc-business-card-for-real-estate', changefreq: 'weekly', priority: '0.85' },
-        { path: 'nfc-business-card-for-sales-teams', changefreq: 'weekly', priority: '0.85' },
-        { path: 'nfc-business-card-for-corporate-teams', changefreq: 'weekly', priority: '0.85' },
-      ];
-
-      const validProfiles = (profiles || []).filter(p => p.username && !['admin', 'login', 'dashboard', 'settings', 'checkout', 'api', 'blog', 'company', 'contact', 'updates', 'shipping'].includes(p.username.toLowerCase()));
-
-      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${corePages.map(p => `
-  <url>
-    <loc>${baseUrl}/${p.path ? p.path : ''}</loc>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('')}
-  ${(posts || []).map(post => `
-  <url>
-    <loc>${baseUrl}/blog/${post.slug}</loc>
-    <lastmod>${post.updated_at ? new Date(post.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`).join("")}
-  ${validProfiles.map(prof => `
-  <url>
-    <loc>${baseUrl}/@${prof.username}</loc>
-    <lastmod>${prof.updated_at ? new Date(prof.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`).join("")}
-</urlset>`;
-
-      res.header("Content-Type", "application/xml");
-      res.send(sitemap.trim());
+      const sitemap = await generateDynamicSitemapXml(getSupabase(), db);
+      res.header("Content-Type", "application/xml; charset=utf-8");
+      res.header("Cache-Control", "public, max-age=3600, s-maxage=3600");
+      res.send(sitemap);
     } catch (err) {
-      console.error(err);
+      console.error("Sitemap error:", err);
       res.status(500).send("Error generating sitemap");
     }
   });
 
-  app.get("/robots.txt", (req, res) => {
-    const robots = `User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /dashboard/
-Disallow: /api/
-Disallow: /settings/
-Disallow: /login
+  app.get(["/robots.txt", "/api/robots.txt"], (_req, res) => {
+    res.header("Content-Type", "text/plain; charset=utf-8");
+    res.header("Cache-Control", "public, max-age=3600, s-maxage=3600");
+    res.send(generateRobotsTxt());
+  });
 
-# Answer Engine Optimization (AEO) Bots
-User-agent: Googlebot
-User-agent: Bingbot
-User-agent: GPTBot
-User-agent: ChatGPT-User
-User-agent: PerplexityBot
-User-agent: ClaudeBot
-User-agent: Applebot
-User-agent: Google-Extended
-Allow: /
+  app.get(["/llms.txt", "/api/llms.txt"], async (_req, res) => {
+    try {
+      const content = await generateLlmsTxt(getSupabase(), db);
+      res.header("Content-Type", "text/plain; charset=utf-8");
+      res.header("Cache-Control", "public, max-age=3600, s-maxage=3600");
+      res.send(content);
+    } catch (err) {
+      console.error("llms.txt error:", err);
+      res.status(500).send("Error generating llms.txt");
+    }
+  });
 
-Sitemap: https://www.chipng.com/sitemap.xml
-Host: https://www.chipng.com`;
-    res.header("Content-Type", "text/plain");
-    res.send(robots);
+  app.get(["/llms-full.txt", "/api/llms-full.txt"], async (_req, res) => {
+    try {
+      const content = await generateLlmsFullTxt(getSupabase(), db);
+      res.header("Content-Type", "text/plain; charset=utf-8");
+      res.header("Cache-Control", "public, max-age=3600, s-maxage=3600");
+      res.send(content);
+    } catch (err) {
+      console.error("llms-full.txt error:", err);
+      res.status(500).send("Error generating llms-full.txt");
+    }
   });
 
   
@@ -6096,7 +6038,13 @@ Ref: ${payment_reference}`,
           console.error("Universal SSR error in dev:", e);
         }
 
-        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+        const resolvedPath = (req.originalUrl || req.path || '').split('?')[0].toLowerCase();
+        const noindexPrefixes = ['/admin', '/dashboard', '/enterprise', '/settings', '/login', '/checkout', '/onboarding'];
+        const isPrivate = noindexPrefixes.some((p) => resolvedPath === p || resolvedPath.startsWith(`${p}/`));
+        res.status(200).set({
+          'Content-Type': 'text/html',
+          'X-Robots-Tag': isPrivate ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+        }).end(template);
       } catch (e) {
         vite.ssrFixStacktrace(e);
         next(e);
@@ -6108,8 +6056,8 @@ Ref: ${payment_reference}`,
     app.get('*', async (req, res) => {
       let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
       
+      const rawPath = (req.path || '').replace(/\/$/, '') || '/';
       try {
-        const rawPath = (req.path || '').replace(/\/$/, '') || '/';
         const queryRef = (req.query?.ref || req.query?.u || req.query?.user || req.query?.username) as string;
         let urlPath = rawPath;
         if (rawPath === '/' && queryRef) {
@@ -6129,6 +6077,10 @@ Ref: ${payment_reference}`,
       } catch (e) {
         console.error("Universal SSR error in production:", e);
       }
+      const resolvedPath = rawPath.toLowerCase();
+      const noindexPrefixes = ['/admin', '/dashboard', '/enterprise', '/settings', '/login', '/checkout', '/onboarding'];
+      const isPrivate = noindexPrefixes.some((p) => resolvedPath === p || resolvedPath.startsWith(`${p}/`));
+      res.setHeader('X-Robots-Tag', isPrivate ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
       res.send(html);
     });
   }

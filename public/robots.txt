@@ -1,21 +1,47 @@
 User-agent: *
 Allow: /
+Allow: /api/cover/
 Disallow: /admin/
 Disallow: /dashboard/
-Disallow: /api/
+Disallow: /enterprise/
 Disallow: /settings/
+Disallow: /checkout
 Disallow: /login
+Disallow: /api/admin/
+Disallow: /api/auth/
 
-# Answer Engine Optimization (AEO) Bots
+# Search Engine & Answer Engine Optimization (AEO) Bots
 User-agent: Googlebot
+User-agent: Google-InspectionTool
+User-agent: Googlebot-Image
+User-agent: Google-Extended
 User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: DuckAssistBot
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: OAI-SearchBot
 User-agent: GPTBot
 User-agent: ChatGPT-User
 User-agent: PerplexityBot
+User-agent: Perplexity-User
 User-agent: ClaudeBot
-User-agent: Applebot
-User-agent: Google-Extended
+User-agent: Claude-Web
+User-agent: anthropic-ai
+User-agent: cohere-ai
+User-agent: YouBot
+User-agent: meta-externalagent
+User-agent: facebookexternalhit
+User-agent: Twitterbot
+User-agent: LinkedInBot
 Allow: /
+Allow: /api/cover/
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+# AI Agent Knowledge Files
+# Primary: https://www.chipng.com/llms.txt
+# Full: https://www.chipng.com/llms-full.txt
 
 Sitemap: https://www.chipng.com/sitemap.xml
 Host: https://www.chipng.com

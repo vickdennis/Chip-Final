@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface CommercialLandingViewProps {
   slug: string;
@@ -69,8 +70,44 @@ export default function CommercialLandingView({
     }
   };
 
+  const pageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        name: page.headline,
+        description: page.metaDescription,
+        brand: { '@type': 'Brand', name: 'CHIP NG' },
+        areaServed: page.locationFocus || 'Nigeria',
+        offers: {
+          '@type': 'AggregateOffer',
+          priceCurrency: 'NGN',
+          lowPrice: '30000',
+          highPrice: '100000',
+          availability: 'https://schema.org/InStock',
+          url: `https://www.chipng.com/${page.slug}`,
+        },
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: (page.faqs || []).map((f) => ({
+          '@type': 'Question',
+          name: f.question,
+          acceptedAnswer: { '@type': 'Answer', text: f.answer },
+        })),
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950 font-sans">
+      <SeoHead
+        title={page.metaTitle}
+        description={page.metaDescription}
+        canonicalPath={`/${page.slug}`}
+        keywords={`${page.headline}, ${page.locationFocus || 'Nigeria'}, NFC business card, smart card Nigeria, CHIP NG`}
+        schemaJsonLd={pageSchema}
+      />
       <MakroNavbar
         currentView="landing"
         onNavigate={onNavigate}

@@ -196,7 +196,7 @@ export default function BlogArticleView({
     }
   };
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : `https://chipng.com/blog/${slug}`;
+  const currentUrl = `https://www.chipng.com/blog/${post?.slug || slug}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(currentUrl);
@@ -269,7 +269,7 @@ export default function BlogArticleView({
   const cleanExcerpt = extractCleanExcerpt(post.excerpt || post.content, 160);
   const ogTitle = post.meta_title || `${post.title} — CHIP NG`;
   const ogDesc = post.meta_description || cleanExcerpt;
-  const ogImage = post.cover_image_url || 'https://chipng.com/chipng_3d_logo.jpg';
+  const ogImage = post.cover_image_url || 'https://www.chipng.com/chipng_3d_logo.jpg';
   const categoryName = post.keywords?.[0] || articleCategory || 'NFC Technology';
 
   // Article structured data for search engines
@@ -284,14 +284,14 @@ export default function BlogArticleView({
     author: {
       '@type': 'Organization',
       name: post.author || 'CHIP NG Editorial Team',
-      url: 'https://chipng.com',
+      url: 'https://www.chipng.com',
     },
     publisher: {
       '@type': 'Organization',
       name: 'CHIP NG',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://chipng.com/chipng_exact_tile.png',
+        url: 'https://www.chipng.com/chipng_exact_tile.png',
       },
     },
     mainEntityOfPage: {

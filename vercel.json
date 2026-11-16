@@ -1,6 +1,11 @@
 {
   "framework": "vite",
   "outputDirectory": "dist",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "redirects": [
     {
       "source": "/review",
@@ -33,6 +38,15 @@
       ]
     },
     {
+      "source": "/(admin|dashboard|enterprise|settings|login|checkout|onboarding)(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -46,7 +60,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/xml"
+          "value": "application/xml; charset=utf-8"
         },
         {
           "key": "Cache-Control",
@@ -59,11 +73,37 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "text/plain"
+          "value": "text/plain; charset=utf-8"
         },
         {
           "key": "Cache-Control",
           "value": "public, max-age=3600, s-maxage=3600"
+        }
+      ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/llms-full.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
         }
       ]
     }
@@ -91,11 +131,19 @@
     },
     {
       "source": "/sitemap.xml",
-      "destination": "/sitemap.xml"
+      "destination": "/api/sitemap.xml"
     },
     {
       "source": "/robots.txt",
-      "destination": "/robots.txt"
+      "destination": "/api/robots.txt"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api/llms.txt"
+    },
+    {
+      "source": "/llms-full.txt",
+      "destination": "/api/llms-full.txt"
     },
     {
       "source": "/buycard",
@@ -114,12 +162,23 @@
       "destination": "/api"
     },
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawler|spider|whatsapp|facebookexternalhit|facebot|twitterbot|slackbot|telegrambot|linkedinbot|discordbot|applebot|googlebot|google-inspectiontool|google-extended|bingbot|baiduspider|yandexbot|skypeuripreview|pinterest|preview|flipboard|tumblr|bitly|vkshare|meta-externalagent|gptbot|oai-searchbot|chatgpt|openai|perplexity|claudebot|claude-web|anthropic|gemini|cohere|duckassist).*"
+        }
+      ],
+      "destination": "/api?ssrPath=/"
+    },
+    {
       "source": "/((?!api/|assets/|favicon|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|css|js|map|vcf|apk|xml|txt)).*)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(bot|crawler|spider|whatsapp|facebookexternalhit|facebot|twitterbot|slackbot|telegrambot|linkedinbot|discordbot|applebot|googlebot|bingbot|baiduspider|yandexbot|skypeuripreview|pinterest|preview|flipboard|tumblr|bitly|vkshare|meta-externalagent).*"
+          "value": "(?i).*(bot|crawler|spider|whatsapp|facebookexternalhit|facebot|twitterbot|slackbot|telegrambot|linkedinbot|discordbot|applebot|googlebot|google-inspectiontool|google-extended|bingbot|baiduspider|yandexbot|skypeuripreview|pinterest|preview|flipboard|tumblr|bitly|vkshare|meta-externalagent|gptbot|oai-searchbot|chatgpt|openai|perplexity|claudebot|claude-web|anthropic|gemini|cohere|duckassist).*"
         }
       ],
       "destination": "/api?ssrPath=$1"

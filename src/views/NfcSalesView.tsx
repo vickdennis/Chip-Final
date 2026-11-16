@@ -42,6 +42,8 @@ import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
 import { useCurrency } from '../context/CurrencyContext';
+import { SeoHead } from '../components/seo/SeoHead';
+import { BUY_CARD_META, BUY_CARD_SCHEMA_JSON_LD } from '../utils/buyCardSeo';
 
 // Lazy-load heavier checkout & customization modals to keep the initial page bundle lean
 const CardCustomizerModal = lazy(() =>
@@ -340,7 +342,16 @@ export default function NfcSalesView({
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#16a34a] selection:text-neutral-950 relative overflow-x-hidden font-sans transition-colors flex flex-col justify-between pb-24 md:pb-0">
-      
+      <SeoHead
+        title={BUY_CARD_META.title}
+        description={BUY_CARD_META.description}
+        canonicalPath="/buy-card"
+        ogType="product"
+        image={BUY_CARD_META.image}
+        keywords="buy NFC card Nigeria, smart business card Lagos price, NFC metal card Nigeria, custom NFC card Lagos, CHIP NG shop"
+        schemaJsonLd={BUY_CARD_SCHEMA_JSON_LD}
+      />
+
       {/* Background Ambience Light Glows */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-[#16a34a]/10 via-emerald-500/5 to-transparent blur-[140px] pointer-events-none z-0" />
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#16a34a]/5 blur-[160px] pointer-events-none z-0" />

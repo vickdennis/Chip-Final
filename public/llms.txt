@@ -1,0 +1,56 @@
+# CHIP NG (chipng.com)
+
+> CHIP NG is Nigeria's premier contactless NFC smart business card hardware company and dynamic link-in-bio platform for founders, executives, realtors, corporate teams, and creators. Headquartered in Lekki Phase 1, Lagos, Nigeria.
+
+## Key Facts & Identity
+- Brand Name: CHIP NG (CHIP NG Technologies Ltd)
+- Website: https://www.chipng.com
+- Location: Lekki Phase 1, Lagos, Nigeria (Lat: 6.4474, Lng: 3.4831)
+- Contact Email: hello@chipng.com / support@chipng.com
+- Phone / WhatsApp: +234 810 076 4154
+- Core Hardware Tech: Genuine NXP NTAG216 microchip (13.56 MHz, 888 bytes EEPROM, sub-10ms tap response, zero app required on iPhone iOS 13+ and Android)
+- Delivery: 24–48h Express in Lagos State; 2–4 business days across all 36 Nigerian states via DHL Express & GIG Logistics; international shipping supported with local currency checkout.
+
+## Official Product Pricing (2026)
+- [NFC Smart White / Black PVC Card](https://www.chipng.com/buy-card): ₦30,000 – ₦35,000 NGN (Matte polymer daily driver with dynamic QR + NTAG216 chip, lifetime free profile hosting)
+- [NFC Smart Metal Card](https://www.chipng.com/buy-card): ₦50,000 NGN (22.5g brushed stainless steel, precision laser-engraved, matte obsidian/silver/gold)
+- [Metal Debit Card + Custom Design](https://www.chipng.com/buy-card): ₦80,000 – ₦100,000 NGN (Ultra-dense custom engraved luxury metal card + white-glove profile setup)
+- [Corporate Fleet Bundle](https://www.chipng.com/corporate-bundle): ₦300,000 NGN (10 Custom PVC Smart Cards + 1 Free CEO Stainless Steel Metal Card + centralized team bio management)
+
+## Core Pages
+- [Home](https://www.chipng.com/): Platform overview, hardware comparison, testimonials, and instant card builder
+- [Order NFC Smart Cards](https://www.chipng.com/buy-card): Hardware catalog and interactive card customizer
+- [Transparent 2026 Pricing](https://www.chipng.com/pricing): Card tier pricing and free cloud profile details
+- [Corporate Fleet Bundle](https://www.chipng.com/corporate-bundle): Team & enterprise smart card packages (10+1 free)
+- [Frequently Asked Questions](https://www.chipng.com/faq): NFC compatibility, shipping, vCard saving, and setup answers
+- [CHIP NG Mobile Companion App](https://www.chipng.com/app): iOS & Android NTAG216 programming & live tap radar
+- [Blog & Engineering Guides](https://www.chipng.com/blog): Articles on NFC tech, Lagos real estate networking, and pricing
+- [About CHIP NG](https://www.chipng.com/company): Company story and hardware architecture
+- [Shipping & Logistics Policy](https://www.chipng.com/shipping): Lagos 24h and nationwide 36-state delivery timelines
+- [Contact & Support](https://www.chipng.com/contact): Direct WhatsApp, email, and Lekki workshop inquiries
+
+## Regional & Industry Solutions
+- [The Smart NFC Business Card Engineered for Nigeria.](https://www.chipng.com/nfc-business-card-nigeria): Order the definitive NFC smart business card in Nigeria. 1-tap contact sharing, zero app needed, instant WhatsApp connection & live analytics. Nationwide dispatch.
+- [Stand Out in Lagos Business Meetings with One Tap.](https://www.chipng.com/nfc-business-card-lagos): Get laser-engraved NFC smart business cards in Lagos. Precision fabrication in our Lagos workshop. 1-tap contact exchange for Victoria Island, Ikoyi, Lekki & Ikeja dealmakers.
+- [The Premier Smart Business Card for Lekki Professionals.](https://www.chipng.com/nfc-business-card-lekki): Smart NFC business cards tailored for Lekki Phase 1, Chevron, Ikate, and Ajah professionals. 1-tap property brochures, portfolio links, and WhatsApp lead capture.
+- [Modernize Your Business in Ajah with Smart NFC Cards.](https://www.chipng.com/nfc-business-card-ajah): Affordable, durable NFC smart business cards for Ajah, Sangotedo, and Ibeju-Lekki business owners. Share your store catalog, WhatsApp, and phone number with 1 tap.
+- [The Ultimate Executive NFC Metal Business Card.](https://www.chipng.com/nfc-metal-business-card): Order custom metal NFC business cards in Nigeria. Heavyweight 304 aerospace stainless steel, fiber-laser engraving, 24K gold mirror & matte obsidian finishes.
+- [Your All-in-One Digital Business Card & Bio Platform.](https://www.chipng.com/digital-business-card-nigeria): Create your free digital business card in Nigeria. Custom username (chipng.com/you), interactive bio links, vCard download, product catalog, and lead capture.
+- [Transparent NFC Business Card Pricing in Nigeria.](https://www.chipng.com/nfc-business-card-price-nigeria): Compare NFC business card prices in Nigeria. Matte PVC from ₦30,000, laser-engraved stainless steel from ₦50,000. No hidden fees, free lifetime profile hosting.
+- [Close More Property Deals with Smart NFC Business Cards.](https://www.chipng.com/nfc-business-card-for-real-estate): The ultimate smart business card for Nigerian real estate agents and developers. Share property catalogs, virtual tours, and WhatsApp with 1 tap at open houses.
+- [Supercharge Your Sales Team with Smart NFC Networking.](https://www.chipng.com/nfc-business-card-for-sales-teams): Equip your B2B sales team with NFC smart business cards. 3x contact save rate, centralized lead capture, aggregate tap telemetry, and CRM export.
+- [The Smart Corporate Identity Solution for Modern Enterprises.](https://www.chipng.com/nfc-business-card-for-corporate-teams): Enterprise NFC smart business card solutions for Nigerian companies. Centralized admin, custom corporate branding, employee seat management, and unified billing.
+
+## Published Guides & Articles
+- [NFC Business Card Price in Nigeria (2026): Cost, Benefits, Best Cards & Where to Buy](https://www.chipng.com/blog/nfc-business-card-price-in-nigeria-2026-cost-benefits-best-cards-where-to-buy): Discover NFC business card prices in Nigeria, how smart cards work, free digital business cards, benefits and where to buy yours from CHIPNG.
+- [NFC Business Cards: The Future of Networking (2026 Guide)](https://www.chipng.com/blog/nfc-business-card-guide): Discover how NFC business cards work, why they beat paper, and how to choose the right one. See top options, prices, and the one thing most buyers get wrong.
+- [NFC Card Price Lagos for Realtors 2026: 1 Tap to Close More Deals](https://www.chipng.com/blog/nfc-card-price-lagos-realtors-2026): Tired of paper cards people lose? Lagos Realtors are switching to NFC cards for ₦20,000. Tap, share contact + property catalog, close deals faster.
+- [NFC Card Price in Lagos: Best Digital Card for Nigerian Realtors](https://www.chipng.com/blog/nfc-card-price-in-lagos-best-digital-card-for-nigerian-realtors)
+- [How Solopreneurs are Using Predictive AI to Forecast 180-Day Cash Runway](https://www.chipng.com/blog/predictive-ai-cash-runway-forecasting): Eliminate the uncertainty of 30-to-60-day invoice delays. A breakdown of machine learning algorithms predicting bank liquidity for modern independent practices.
+- [The Hardware Engineering Behind Sub-10ms NFC Touchpoints](https://www.chipng.com/blog/hardware-engineering-sub-10ms-nfc): From custom dual-loop antenna coils to ceramic titanium coatings: how we engineered an instant digital handshake that converts 4x higher than paper business cards.
+- [How Much Do NFC Business Cards Cost in 2026? Nigeria & Global Price Guide](https://www.chipng.com/blog/how-much-do-nfc-business-cards-cost-in-2026-nigeria-global-price-guide): Transparent breakdown of Smart PVC, Stainless Steel Metal, and Custom Metal NFC card pricing in NGN and USD with zero recurring fees.
+- [Choose Your NFC Business Card & Close Real Estate Deals Faster in Lagos](https://www.chipng.com/blog/nfc-business-card-price-lagos-for-realtors-2026-choose-your-card-close-faster): Practical ROI guide on replacing paper business cards with dynamic CHIP NG contactless profiles.
+- [The Future of Car Sales: Why NFC Business Cards Are a Game-Changer for Dealerships](https://www.chipng.com/blog/the-future-of-car-sales-why-nfc-business-cards-are-a-game-changer-for-dealerships): Instant test-drive booking, WhatsApp lead capture, and vehicle inventory sharing for Nigerian auto dealers.
+
+## Extended Knowledge Document
+- [Full AI Context (llms-full.txt)](https://www.chipng.com/llms-full.txt): Complete product specs, FAQs, regional pages, and verified profile directory.

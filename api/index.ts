@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 import { applyUniversalSsr } from '../src/utils/universalSsrEngine';
+import { generateDynamicSitemapXml, generateRobotsTxt, generateLlmsTxt, generateLlmsFullTxt } from '../src/utils/aiDiscovery';
 import { generateVCardString } from '../src/utils/vcardGenerator';
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
@@ -225,10 +226,12 @@ function getBaseHtml(): string {
       return cachedBaseHtml;
     }
   } catch (e) {}
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CHIP NG</title></head><body><div id="root"></div></body></html>';
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CHIP NG — Smart NFC Business Cards &amp; Link-in-Bio Platform</title><meta name="title" content="CHIP NG — Smart NFC Business Cards &amp; Link-in-Bio Platform" /><meta name="description" content="The premier contactless NFC smart business cards and dynamic link-in-bio platform in Nigeria. Sub-10ms NTAG216 response, zero app needed." /><meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" /><link rel="canonical" href="https://www.chipng.com/" /><meta property="og:type" content="website" /><meta property="og:url" content="https://www.chipng.com/" /><meta property="og:title" content="CHIP NG — Smart NFC Business Cards &amp; Link-in-Bio Platform" /><meta property="og:description" content="The premier contactless NFC smart business cards and dynamic link-in-bio platform in Nigeria." /><meta property="og:image" content="https://www.chipng.com/chipng_3d_logo.jpg" /><meta property="og:site_name" content="CHIP NG" /><meta property="twitter:card" content="summary_large_image" /><meta property="twitter:url" content="https://www.chipng.com/" /><meta property="twitter:title" content="CHIP NG" /><meta property="twitter:description" content="Contactless smart NFC business cards in Nigeria." /><meta property="twitter:image" content="https://www.chipng.com/chipng_3d_logo.jpg" /></head><body><div id="root"></div></body></html>';
 }
 
-// Serverless SSR Handler for User Profiles & Social Crawlers on Vercel
+const NOINDEX_PATH_PREFIXES = ['/admin', '/dashboard', '/enterprise', '/settings', '/login', '/checkout', '/onboarding'];
+
+// Serverless SSR Handler for Pages, User Profiles, Search Engines & AI Crawlers on Vercel
 async function handleServerlessSsr(urlPath: string, req: Request, res: Response) {
   try {
     const supabase = getSupabase();
@@ -241,9 +244,12 @@ async function handleServerlessSsr(urlPath: string, req: Request, res: Response)
       db: null
     });
 
+    const cleanLower = (urlPath || '/').toLowerCase();
+    const isPrivate = NOINDEX_PATH_PREFIXES.some((prefix) => cleanLower === prefix || cleanLower.startsWith(`${prefix}/`));
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400');
-    res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    res.setHeader('Cache-Control', isPrivate ? 'private, no-store' : 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400');
+    res.setHeader('X-Robots-Tag', isPrivate ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
     return res.send(html);
   } catch (err: any) {
     console.error('Serverless SSR Error:', err);
@@ -253,10 +259,14 @@ async function handleServerlessSsr(urlPath: string, req: Request, res: Response)
 
 // SSR rewrite interception middleware for Vercel
 app.use(async (req, res, next) => {
-  if (req.query.ssrPath || req.query.profile) {
-    const rawTarget = (req.query.ssrPath || req.query.profile || '') as string;
+  if (req.query.ssrPath !== undefined || req.query.profile !== undefined) {
+    const rawTarget = (req.query.ssrPath ?? req.query.profile ?? '') as string;
     let targetPath = String(rawTarget).trim();
-    if (!targetPath.startsWith('/') && !targetPath.startsWith('@')) {
+    if (!targetPath || targetPath === '/') {
+      targetPath = '/';
+    } else if (!targetPath.startsWith('/') && !targetPath.startsWith('@')) {
+      targetPath = `/${targetPath}`;
+    } else if (targetPath.startsWith('@')) {
       targetPath = `/${targetPath}`;
     }
     return handleServerlessSsr(targetPath, req, res);
@@ -267,6 +277,52 @@ app.use(async (req, res, next) => {
 // Root & Health check
 app.get(['/', '/api', '/health', '/api/health'], (req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'CHIP NG API', timestamp: new Date().toISOString() });
+});
+
+// Live Search Engine & AI Agent Discovery Endpoints
+app.get(['/sitemap.xml', '/api/sitemap.xml'], async (_req: Request, res: Response) => {
+  try {
+    const xml = await generateDynamicSitemapXml(getSupabase(), null);
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400');
+    res.setHeader('X-Robots-Tag', 'all');
+    return res.status(200).send(xml);
+  } catch (err: any) {
+    console.error('Sitemap generation error:', err);
+    return res.status(500).send('Error generating sitemap');
+  }
+});
+
+app.get(['/robots.txt', '/api/robots.txt'], (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  return res.status(200).send(generateRobotsTxt());
+});
+
+app.get(['/llms.txt', '/api/llms.txt'], async (_req: Request, res: Response) => {
+  try {
+    const content = await generateLlmsTxt(getSupabase(), null);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400');
+    res.setHeader('X-Robots-Tag', 'all');
+    return res.status(200).send(content);
+  } catch (err: any) {
+    console.error('llms.txt generation error:', err);
+    return res.status(500).send('Error generating llms.txt');
+  }
+});
+
+app.get(['/llms-full.txt', '/api/llms-full.txt'], async (_req: Request, res: Response) => {
+  try {
+    const content = await generateLlmsFullTxt(getSupabase(), null);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400');
+    res.setHeader('X-Robots-Tag', 'all');
+    return res.status(200).send(content);
+  } catch (err: any) {
+    console.error('llms-full.txt generation error:', err);
+    return res.status(500).send('Error generating llms-full.txt');
+  }
 });
 
 // Direct Review Redirect Route

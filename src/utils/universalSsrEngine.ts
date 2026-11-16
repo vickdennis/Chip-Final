@@ -20,9 +20,12 @@ import {
 
 export const BOT_USER_AGENTS = [
   'googlebot',
+  'google-inspectiontool',
+  'googlebot-image',
   'bingbot',
   'yandexbot',
   'duckduckbot',
+  'duckassistbot',
   'baiduspider',
   'slurp',
   'sogou',
@@ -36,21 +39,29 @@ export const BOT_USER_AGENTS = [
   'whatsapp',
   'telegrambot',
   'applebot',
+  'applebot-extended',
   'skypeuripreview',
   'pinterest',
-  // AI Search & LLM Web Crawlers
+  // AI Search & LLM Web Crawlers / Agents
   'gptbot',
+  'oai-searchbot',
   'chatgpt-user',
+  'chatgpt',
+  'openai',
   'perplexitybot',
+  'perplexity-user',
   'claudebot',
+  'claude-web',
   'anthropic-ai',
   'google-extended',
+  'gemini',
   'cohere-ai',
   'bytespider',
   'ccbot',
   'diffbot',
   'youbot',
-  'meta-externalagent'
+  'meta-externalagent',
+  'amazonbot'
 ];
 
 export function isCrawler(userAgent: string | undefined): boolean {
@@ -491,7 +502,7 @@ export async function renderBlogArticleSsr(
         name: 'CHIP NG',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://chipng.com/chipng_exact_tile.png'
+          url: 'https://www.chipng.com/chipng_exact_tile.png'
         }
       }
     };
@@ -667,9 +678,19 @@ export async function renderBlogDirectorySsr(
   };
 }
 
+function upsertMetaTag(html: string, attrKey: 'name' | 'property', attrVal: string, content: string): string {
+  const safeVal = escapeHtml(content);
+  const regex = new RegExp(`<meta\\s+${attrKey}=["']${attrVal}["'][^>]*\\/?>`, 'i');
+  const tag = `<meta ${attrKey}="${attrVal}" content="${safeVal}" />`;
+  if (regex.test(html)) {
+    return html.replace(regex, tag);
+  }
+  return html.replace('</head>', `  ${tag}\n</head>`);
+}
+
 /**
  * Helper to inject synchronized, single-canonical SEO metadata and pre-rendered HTML.
- * Ensures zero duplicate canonical tags and consistent OpenGraph / Twitter / Schema markup.
+ * Upserts head tags safely (even on minimal HTML fallback) and injects preRenderedHtml into #root.
  */
 export function injectSeoMetadata(
   html: string,
@@ -680,39 +701,51 @@ export function injectSeoMetadata(
     ogType?: string;
     image?: string;
     secondaryImage?: string;
+    robots?: string;
     schemaJsonLd?: string;
     preRenderedHtml?: string;
   }
 ): string {
   let output = html;
 
-  // 1. Title
-  output = output.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`);
-  output = output.replace(/<meta name="title" content=".*?"\s*\/?>/i, `<meta name="title" content="${escapeHtml(meta.title)}" />`);
-  output = output.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${escapeHtml(meta.title)}" />`);
-  output = output.replace(/<meta name="twitter:title" content=".*?"\s*\/?>/i, `<meta name="twitter:title" content="${escapeHtml(meta.title)}" />`);
-  output = output.replace(/<meta property="twitter:title" content=".*?"\s*\/?>/i, `<meta property="twitter:title" content="${escapeHtml(meta.title)}" />`);
+  // 1. Title & Social Titles
+  if (/<title>[\s\S]*?<\/title>/i.test(output)) {
+    output = output.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`);
+  } else {
+    output = output.replace('</head>', `  <title>${escapeHtml(meta.title)}</title>\n</head>`);
+  }
+  output = upsertMetaTag(output, 'name', 'title', meta.title);
+  output = upsertMetaTag(output, 'property', 'og:title', meta.title);
+  output = upsertMetaTag(output, 'name', 'twitter:title', meta.title);
+  output = upsertMetaTag(output, 'property', 'twitter:title', meta.title);
 
-  // 2. Description
-  output = output.replace(/<meta name="description" content=".*?"\s*\/?>/i, `<meta name="description" content="${escapeHtml(meta.description)}" />`);
-  output = output.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${escapeHtml(meta.description)}" />`);
-  output = output.replace(/<meta name="twitter:description" content=".*?"\s*\/?>/i, `<meta name="twitter:description" content="${escapeHtml(meta.description)}" />`);
-  output = output.replace(/<meta property="twitter:description" content=".*?"\s*\/?>/i, `<meta property="twitter:description" content="${escapeHtml(meta.description)}" />`);
+  // 2. Descriptions
+  output = upsertMetaTag(output, 'name', 'description', meta.description);
+  output = upsertMetaTag(output, 'property', 'og:description', meta.description);
+  output = upsertMetaTag(output, 'name', 'twitter:description', meta.description);
+  output = upsertMetaTag(output, 'property', 'twitter:description', meta.description);
 
-  // 3. Absolute Single Canonical Enforcement (Strip ANY existing canonical tag first)
+  // 3. Absolute Single Canonical Enforcement
   output = output.replace(/<link\s+rel=["']canonical["'][^>]*\/?>/gi, '');
   output = output.replace('</head>', `  <link rel="canonical" href="${meta.canonical}" />\n</head>`);
 
-  // 4. URL
-  output = output.replace(/<meta property="og:url" content=".*?"\s*\/?>/i, `<meta property="og:url" content="${meta.canonical}" />`);
-  output = output.replace(/<meta property="twitter:url" content=".*?"\s*\/?>/i, `<meta property="twitter:url" content="${meta.canonical}" />`);
-  if (meta.ogType) {
-    output = output.replace(/<meta property="og:type" content=".*?"\s*\/?>/i, `<meta property="og:type" content="${meta.ogType}" />`);
+  // 4. AI Discovery llms.txt Link Hint
+  if (!output.includes('rel="alternate" type="text/plain"')) {
+    output = output.replace(
+      '</head>',
+      `  <link rel="alternate" type="text/plain" title="CHIP NG AI Knowledge Summary (llms.txt)" href="https://www.chipng.com/llms.txt" />\n</head>`
+    );
   }
 
-  // 5. Image (Full OpenGraph & Twitter Card compliance for WhatsApp, Facebook, Twitter/X, LinkedIn, iMessage)
+  // 5. URL & Type
+  output = upsertMetaTag(output, 'property', 'og:url', meta.canonical);
+  output = upsertMetaTag(output, 'property', 'twitter:url', meta.canonical);
+  if (meta.ogType) {
+    output = upsertMetaTag(output, 'property', 'og:type', meta.ogType);
+  }
+
+  // 6. Image (Full OpenGraph & Twitter Card compliance)
   if (meta.image) {
-    // Strip existing image and card tags to avoid conflicts or stale previews
     output = output.replace(/<meta\s+property=["']og:image["'][^>]*\/?>/gi, '');
     output = output.replace(/<meta\s+property=["']og:image:secure_url["'][^>]*\/?>/gi, '');
     output = output.replace(/<meta\s+property=["']og:image:type["'][^>]*\/?>/gi, '');
@@ -748,19 +781,174 @@ export function injectSeoMetadata(
     output = output.replace('</head>', `${imageBlock}\n</head>`);
   }
 
-  // 6. Robots Tag
-  if (!output.includes('name="robots"')) {
-    output = output.replace('</head>', `  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n</head>`);
-  }
+  // 7. Robots Tag (enforce explicit index or noindex)
+  const robotsValue = meta.robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+  output = upsertMetaTag(output, 'name', 'robots', robotsValue);
 
-  // 7. Schema.org JSON-LD
+  // 8. Schema.org JSON-LD
   if (meta.schemaJsonLd) {
     output = output.replace('</head>', `  <script type="application/ld+json">\n${meta.schemaJsonLd}\n  </script>\n</head>`);
   }
 
-  // 8. Clean root element strictly preserved for React Makro UI
+  // 9. Inject Semantic Pre-Rendered Body into #root for Crawlers, AI Agents & Instant First Paint
+  if (meta.preRenderedHtml) {
+    const trimmedBody = meta.preRenderedHtml.trim();
+    const rootMarkerRegex = /<div\s+id=["']root["'][^>]*>[\s\S]*?(?=<script\s+type=["']module["']|<\/body>)/i;
+    if (rootMarkerRegex.test(output)) {
+      output = output.replace(rootMarkerRegex, `${trimmedBody}\n    `);
+    }
+  }
+
   return output;
 }
+
+function buildSsrShell(contentHtml: string): string {
+  return `
+<div id="root">
+  <div style="min-height: 100vh; background: #0A0B0E; color: #F4F4F5; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 32px 20px 72px 20px; line-height: 1.65;">
+    <header style="max-width: 1040px; margin: 0 auto 40px auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 18px;">
+      <a href="/" style="color: #FFFFFF; font-weight: 800; font-size: 20px; text-decoration: none; letter-spacing: -0.02em;">CHIP NG</a>
+      <nav aria-label="Primary Navigation" style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px;">
+        <a href="/" style="color: #D4D4D8; text-decoration: none;">Home</a>
+        <a href="/buy-card" style="color: #16a34a; font-weight: 700; text-decoration: none;">Order NFC Card</a>
+        <a href="/corporate-bundle" style="color: #D4D4D8; text-decoration: none;">Corporate Fleet</a>
+        <a href="/pricing" style="color: #D4D4D8; text-decoration: none;">Pricing</a>
+        <a href="/faq" style="color: #D4D4D8; text-decoration: none;">FAQ</a>
+        <a href="/blog" style="color: #D4D4D8; text-decoration: none;">Blog</a>
+        <a href="/company" style="color: #D4D4D8; text-decoration: none;">Company</a>
+        <a href="/contact" style="color: #D4D4D8; text-decoration: none;">Contact</a>
+      </nav>
+    </header>
+    <main style="max-width: 1040px; margin: 0 auto;">
+      ${contentHtml}
+    </main>
+    <footer style="max-width: 1040px; margin: 64px auto 0 auto; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #A1A1AA;">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
+        <a href="/nfc-business-card-nigeria" style="color: #A1A1AA; text-decoration: none;">NFC Business Card Nigeria</a>
+        <a href="/nfc-business-card-lagos" style="color: #A1A1AA; text-decoration: none;">NFC Card Lagos</a>
+        <a href="/nfc-business-card-lekki" style="color: #A1A1AA; text-decoration: none;">NFC Card Lekki</a>
+        <a href="/nfc-metal-business-card" style="color: #A1A1AA; text-decoration: none;">Metal NFC Card</a>
+        <a href="/nfc-business-card-for-real-estate" style="color: #A1A1AA; text-decoration: none;">Realtor NFC Cards</a>
+        <a href="/shipping" style="color: #A1A1AA; text-decoration: none;">Shipping Policy</a>
+        <a href="/refund-policy" style="color: #A1A1AA; text-decoration: none;">Refund Policy</a>
+        <a href="/privacy-policy" style="color: #A1A1AA; text-decoration: none;">Privacy Policy</a>
+        <a href="/llms.txt" style="color: #A1A1AA; text-decoration: none;">AI Context (llms.txt)</a>
+      </div>
+      <p style="margin: 0;">CHIP NG Technologies Ltd · Lekki Phase 1, Lagos, Nigeria · +234 810 076 4154 · hello@chipng.com</p>
+    </footer>
+  </div>
+</div>`;
+}
+
+const HOME_SSR_HTML = buildSsrShell(`
+  <section style="margin-bottom: 48px;">
+    <p style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #16a34a; margin: 0 0 12px 0;">
+      Contactless NFC Smart Business Cards & Dynamic Link-in-Bio Platform · Nigeria
+    </p>
+    <h1 style="font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px 0; color: #FFFFFF;">
+      Share Your Identity, Contacts & Portfolio in One Sub-10ms Tap.
+    </h1>
+    <p style="font-size: 17px; color: #D4D4D8; max-width: 740px; margin: 0 0 24px 0;">
+      CHIP NG builds genuine NXP NTAG216 contactless smart business cards and dynamic cloud profiles for founders, realtors, corporate teams, and creators in Nigeria and worldwide. Recipients need zero app—one tap opens your digital card and saves your vCard directly to their phonebook.
+    </p>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+      <a href="/buy-card" style="padding: 12px 24px; border-radius: 999px; background: #16a34a; color: #050507; font-weight: 800; text-decoration: none;">Order Smart Card (From ₦30,000)</a>
+      <a href="/corporate-bundle" style="padding: 12px 24px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); color: #FFFFFF; font-weight: 700; text-decoration: none;">Corporate Fleet (10 + 1 Free Metal)</a>
+    </div>
+  </section>
+
+  <section style="margin-bottom: 48px;">
+    <h2 style="font-size: 26px; font-weight: 800; color: #FFFFFF; margin: 0 0 16px 0;">2026 Smart NFC Business Card Tiers & Pricing</h2>
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; border: 1px solid rgba(255,255,255,0.12);">
+      <thead>
+        <tr style="background: rgba(255,255,255,0.05);">
+          <th style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.12);">Card Edition</th>
+          <th style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.12);">Price (NGN)</th>
+          <th style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.12);">Hardware & Features</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">NFC Smart White / Black PVC Card</td>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">₦30,000 – ₦35,000</td>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">NTAG216 chip, matte UV polymer finish, backup dynamic QR, lifetime free cloud bio profile.</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">NFC Smart Metal Card</td>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">₦50,000</td>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">Brushed 304 stainless steel, fiber-laser engraving, executive 22.5g weight, lifetime profile hosting.</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">Metal Debit Card + Custom Design</td>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">₦80,000 – ₦100,000</td>
+          <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">Dual-sided custom CNC/fiber artwork, mirror gold or obsidian finish, concierge profile setup.</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px;">Corporate Fleet Bundle (10 + 1 Free CEO Metal)</td>
+          <td style="padding: 12px;">₦300,000</td>
+          <td style="padding: 12px;">10 custom team PVC cards + 1 complimentary CEO Stainless Steel card + unified team management.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 style="font-size: 24px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Frequently Asked Questions</h2>
+    <dl style="margin: 0; display: grid; gap: 16px;">
+      <div>
+        <dt style="font-weight: 700; color: #FFFFFF;">How does a CHIP NG contactless card work?</dt>
+        <dd style="margin: 4px 0 0 0; color: #A1A1AA;">Tap your CHIP NG card on the back of any iPhone (iOS 13+) or NFC-enabled Android smartphone. The embedded 13.56 MHz NTAG216 chip opens your dynamic profile in under 10ms with no app download required.</dd>
+      </div>
+      <div>
+        <dt style="font-weight: 700; color: #FFFFFF;">How fast is delivery in Lagos and across Nigeria?</dt>
+        <dd style="margin: 4px 0 0 0; color: #A1A1AA;">Lagos orders dispatch in 24–48 hours from our Lekki Phase 1 workshop. Nationwide delivery to Abuja, Port Harcourt, Ibadan, and all 36 states takes 2–4 business days via DHL Express and GIG Logistics.</dd>
+      </div>
+      <div>
+        <dt style="font-weight: 700; color: #FFFFFF;">Is there a monthly subscription fee?</dt>
+        <dd style="margin: 4px 0 0 0; color: #A1A1AA;">No monthly fee is required. Every physical card includes lifetime hosting for your dynamic link-in-bio, contact exchange, and analytics.</dd>
+      </div>
+    </dl>
+  </section>
+`);
+
+const BUY_CARD_SSR_HTML = buildSsrShell(`
+  <section style="margin-bottom: 40px;">
+    <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Buy Contactless NFC Smart Business Cards in Nigeria</h1>
+    <p style="font-size: 16px; color: #D4D4D8; max-width: 720px;">
+      Crafted in our Lagos workshop with genuine NXP NTAG216 microchips and dynamic cloud profiles. Works instantly on iPhone and Android with zero app required. Multi-currency international checkout supported.
+    </p>
+  </section>
+  <section style="display: grid; gap: 20px; margin-bottom: 40px;">
+    <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">NFC Smart White / Black PVC Card — ₦30,000 / ₦35,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">Lightweight matte polymer smart card with 1-tap vCard sharing, custom logo print, dynamic QR backup, and lifetime cloud bio link.</p>
+    </article>
+    <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">NFC Smart Metal Card — ₦50,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">Solid brushed 304 stainless steel smart business card with precision fiber-laser engraving and executive weight.</p>
+    </article>
+    <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Metal Debit Card + Custom Design — ₦80,000 – ₦100,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">Full custom dual-sided CNC/fiber design in Matte Black, 24K Gold Mirror, or Brushed Titanium + VIP onboarding.</p>
+    </article>
+  </section>
+`);
+
+const CORPORATE_BUNDLE_SSR_HTML = buildSsrShell(`
+  <section style="margin-bottom: 40px;">
+    <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">CHIP NG Corporate Fleet Bundle — 10 Smart PVC Cards + 1 Free CEO Metal Card</h1>
+    <p style="font-size: 16px; color: #D4D4D8; max-width: 740px;">
+      Equip your Nigerian sales team, real estate agency, dealership, or executive staff with unified contactless NFC business cards. One-time package price: ₦300,000 NGN with centralized team dashboard control and 24–48h Lagos delivery.
+    </p>
+    <ul style="color: #D4D4D8; margin-top: 20px; padding-left: 20px;">
+      <li>10x Custom Branded Matte PVC NFC Cards for staff</li>
+      <li>1x Complimentary Stainless Steel CEO Metal Card (₦50,000 value)</li>
+      <li>Centralized Enterprise Team Hub to update staff titles, phone numbers, and brochures remotely</li>
+      <li>Instant 2-Way Lead Capture & WhatsApp routing</li>
+    </ul>
+    <p style="margin-top: 24px;"><a href="/buy-card" style="color: #16a34a; font-weight: 700;">Compare Individual Card Editions →</a></p>
+  </section>
+`);
 
 /**
  * Master Universal SSR Transformer.
@@ -771,20 +959,79 @@ export async function applyUniversalSsr(
   html: string,
   context: UniversalSsrContext
 ): Promise<string> {
-  const { urlPath, userAgent, supabase, db } = context;
+  const { urlPath, supabase, db } = context;
   let output = html;
 
   const normalizedPath = (urlPath || '/').split('?')[0].replace(/\/$/, '') || '/';
 
+  // 0. Non-Indexable Auth / Private App Routes
+  if (
+    normalizedPath === '/admin' ||
+    normalizedPath.startsWith('/admin/') ||
+    normalizedPath === '/dashboard' ||
+    normalizedPath.startsWith('/dashboard/') ||
+    normalizedPath === '/enterprise' ||
+    normalizedPath.startsWith('/enterprise/') ||
+    normalizedPath === '/login' ||
+    normalizedPath.startsWith('/login/') ||
+    normalizedPath === '/settings' ||
+    normalizedPath.startsWith('/settings/') ||
+    normalizedPath === '/checkout' ||
+    normalizedPath === '/onboarding' ||
+    normalizedPath === '/client-onboarding' ||
+    normalizedPath === '/setup-profile' ||
+    normalizedPath === '/setup'
+  ) {
+    return injectSeoMetadata(output, {
+      title: 'CHIP NG Account Portal',
+      description: 'Sign in or manage your CHIP NG contactless smart business card and digital profile.',
+      canonical: `https://www.chipng.com${normalizedPath}`,
+      robots: 'noindex, nofollow',
+    });
+  }
+
   // 1. Hardware Shop & Sales Pages
-  if (normalizedPath === '/buy-card' || normalizedPath === '/shop' || normalizedPath === '/nfc-sales') {
+  if (normalizedPath === '/buy-card' || normalizedPath === '/buycard' || normalizedPath === '/shop' || normalizedPath === '/nfc-sales') {
     return injectSeoMetadata(output, {
       title: BUY_CARD_META.title,
       description: BUY_CARD_META.description,
-      canonical: BUY_CARD_META.canonical,
+      canonical: normalizedPath === '/shop' ? 'https://www.chipng.com/shop' : BUY_CARD_META.canonical,
       ogType: 'product',
       image: BUY_CARD_META.image,
-      schemaJsonLd: BUY_CARD_SCHEMA_JSON_LD
+      schemaJsonLd: BUY_CARD_SCHEMA_JSON_LD,
+      preRenderedHtml: BUY_CARD_SSR_HTML,
+    });
+  }
+
+  // 1.5 Corporate Fleet Bundle Pages
+  if (
+    normalizedPath === '/corporate-bundle' ||
+    normalizedPath === '/corporate-fleet' ||
+    normalizedPath === '/fleet' ||
+    normalizedPath === '/corporate'
+  ) {
+    const corpSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: 'CHIP NG Corporate Fleet NFC Business Card Bundle (10 PVC + 1 Free CEO Metal)',
+      description: 'Enterprise NFC business card package in Nigeria: 10 custom Smart PVC cards + 1 complimentary Stainless Steel CEO Metal card for ₦300,000.',
+      brand: { '@type': 'Brand', name: 'CHIP NG' },
+      offers: {
+        '@type': 'Offer',
+        price: '300000',
+        priceCurrency: 'NGN',
+        availability: 'https://schema.org/InStock',
+        url: 'https://www.chipng.com/corporate-bundle',
+      },
+    });
+    return injectSeoMetadata(output, {
+      title: 'Corporate Fleet NFC Card Bundle (10 PVC + 1 Free Metal) | CHIP NG Nigeria',
+      description: 'Equip your team with 10 custom NFC smart PVC cards + 1 free Stainless Steel CEO metal card for ₦300,000. Centralized team bio management and 24–48h Lagos delivery.',
+      canonical: 'https://www.chipng.com/corporate-bundle',
+      ogType: 'product',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: corpSchema,
+      preRenderedHtml: CORPORATE_BUNDLE_SSR_HTML,
     });
   }
 
@@ -794,7 +1041,9 @@ export async function applyUniversalSsr(
       title: 'CHIP NG — Contactless Smart NFC Business Cards & Link-in-Bio Platform Nigeria',
       description: 'The premier contactless NFC smart business cards & dynamic link-in-bio platform in Nigeria. 1-tap contact sharing, zero app needed, NTAG216 chip, sub-10ms response. 24h Lagos delivery.',
       canonical: 'https://www.chipng.com/',
-      schemaJsonLd: HOME_SCHEMA_JSON_LD
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: HOME_SCHEMA_JSON_LD,
+      preRenderedHtml: HOME_SSR_HTML,
     });
   }
 
@@ -804,7 +1053,9 @@ export async function applyUniversalSsr(
       title: 'NFC Business Card Price in Nigeria — 2026 Transparent Pricing | CHIP NG',
       description: 'Official 2026 prices for CHIP NG contactless smart cards: Smart PVC (₦30,000 / ₦35,000), Smart Metal (₦50,000), and Metal Debit Card + Custom Design (₦80,000–₦100,000). Zero monthly subscription fees.',
       canonical: 'https://www.chipng.com/pricing',
-      schemaJsonLd: PRICING_SCHEMA_JSON_LD
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: PRICING_SCHEMA_JSON_LD,
+      preRenderedHtml: HOME_SSR_HTML,
     });
   }
 
@@ -814,7 +1065,9 @@ export async function applyUniversalSsr(
       title: 'Frequently Asked Questions & Hardware Guide | CHIP NG Nigeria',
       description: 'Everything you need to know about CHIP NG contactless smart business cards. How NFC works, compatibility, delivery times, and vCard address book saving in Nigeria.',
       canonical: 'https://www.chipng.com/faq',
-      schemaJsonLd: FAQ_SCHEMA_JSON_LD
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: FAQ_SCHEMA_JSON_LD,
+      preRenderedHtml: HOME_SSR_HTML,
     });
   }
 
@@ -831,6 +1084,7 @@ export async function applyUniversalSsr(
           '@type': 'Product',
           name: page.headline,
           description: page.overview,
+          image: 'https://www.chipng.com/chipng_3d_logo.jpg',
           brand: { '@type': 'Brand', name: 'CHIP NG' },
           offers: {
             '@type': 'AggregateOffer',
@@ -847,15 +1101,46 @@ export async function applyUniversalSsr(
             name: f.question,
             acceptedAnswer: { '@type': 'Answer', text: f.answer }
           }))
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.chipng.com/' },
+            { '@type': 'ListItem', position: 2, name: page.headline, item: canonical }
+          ]
         }
       ]
     });
+
+    const commercialHtml = buildSsrShell(`
+      <article>
+        <p style="font-size: 12px; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.08em;">${escapeHtml(page.heroBadge)}</p>
+        <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 8px 0 14px 0;">${escapeHtml(page.headline)}</h1>
+        <p style="font-size: 17px; color: #D4D4D8; max-width: 760px;">${escapeHtml(page.subheadline)}</p>
+        <p style="font-size: 15px; color: #A1A1AA; max-width: 760px;">${escapeHtml(page.overview)}</p>
+        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 32px;">Key Advantages</h2>
+        <ul style="color: #D4D4D8;">
+          ${page.keyBenefits.map(b => `<li><strong>${escapeHtml(b.title)}:</strong> ${escapeHtml(b.description)}</li>`).join('\n')}
+        </ul>
+        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Technical Specifications</h2>
+        <dl style="color: #D4D4D8;">
+          ${page.technicalSpecs.map(s => `<dt style="font-weight:700;">${escapeHtml(s.label)}</dt><dd style="margin: 0 0 8px 0; color:#A1A1AA;">${escapeHtml(s.value)}</dd>`).join('\n')}
+        </dl>
+        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Frequently Asked Questions</h2>
+        <dl style="color: #D4D4D8;">
+          ${page.faqs.map(f => `<dt style="font-weight:700;">${escapeHtml(f.question)}</dt><dd style="margin: 4px 0 12px 0; color:#A1A1AA;">${escapeHtml(f.answer)}</dd>`).join('\n')}
+        </dl>
+        <p style="margin-top: 24px;"><a href="/buy-card" style="padding: 12px 24px; border-radius: 999px; background: #16a34a; color: #050507; font-weight: 800; text-decoration: none;">Order Your CHIP NG Card →</a></p>
+      </article>
+    `);
 
     return injectSeoMetadata(output, {
       title: page.metaTitle,
       description: page.metaDescription,
       canonical,
-      schemaJsonLd: commercialSchema
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: commercialSchema,
+      preRenderedHtml: commercialHtml,
     });
   }
 
@@ -866,6 +1151,7 @@ export async function applyUniversalSsr(
       title: blogDir.title,
       description: blogDir.description,
       canonical: blogDir.canonical,
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
       schemaJsonLd: blogDir.schemaJsonLd,
       preRenderedHtml: blogDir.preRenderedHtml
     });
@@ -888,8 +1174,8 @@ export async function applyUniversalSsr(
     }
   }
 
-  // 7.5. Official Mobile App Companion (/app, /download, /mobile, /android)
-  if (normalizedPath === '/app' || normalizedPath === '/download' || normalizedPath === '/mobile' || normalizedPath === '/android') {
+  // 7.5. Official Mobile App Companion (/app, /download, /mobile, /android, /get-app)
+  if (normalizedPath === '/app' || normalizedPath === '/download' || normalizedPath === '/mobile' || normalizedPath === '/android' || normalizedPath === '/get-app') {
     const appSchema = {
       '@context': 'https://schema.org',
       '@type': 'MobileApplication',
@@ -909,26 +1195,19 @@ export async function applyUniversalSsr(
       description: 'Official companion app for CHIP NG contactless smart business cards. Program NTAG216 microchips, receive real-time push alerts on card taps, exchange contacts offline, and manage dynamic link-in-bio profiles across Nigeria.'
     };
 
-    const appPreRender = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0c0d12; color: #ffffff; min-height: 100vh; padding: 48px 16px 80px 16px;">
-    <main style="max-width: 960px; margin: 0 auto; text-align: center;">
-      <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(22, 163, 74, 0.15); color: #16a34a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">
-        Official Mobile Companion v2.4.0
-      </span>
-      <h1 style="font-size: 44px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px 0; color: #ffffff;">
-        Program Cards. Track Live Taps in Real-Time.
-      </h1>
-      <p style="font-size: 17px; color: rgba(255, 255, 255, 0.7); max-width: 680px; margin: 0 auto 32px auto; line-height: 1.6;">
-        The official mobile companion for Nigerian dealmakers. Write NTAG216 microchips on iOS & Android in under 10ms, receive real-time push alerts on card taps, and swap contacts offline.
-      </p>
-      <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
-        <a href="https://apps.apple.com/app/chip-ng/id6470000000" style="padding: 14px 28px; border-radius: 16px; background: #ffffff; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for iOS</a>
-        <a href="https://play.google.com/store/apps/details?id=com.chipng.app" style="padding: 14px 28px; border-radius: 16px; background: #16a34a; color: #000000; font-weight: 700; text-decoration: none; font-size: 14px;">Download for Android</a>
+    const appPreRender = buildSsrShell(`
+      <div style="text-align: center;">
+        <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(22, 163, 74, 0.15); color: #16a34a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">
+          Official Mobile Companion v2.4.0
+        </span>
+        <h1 style="font-size: 42px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px 0; color: #ffffff;">
+          Program Cards. Track Live Taps in Real-Time.
+        </h1>
+        <p style="font-size: 17px; color: rgba(255, 255, 255, 0.75); max-width: 680px; margin: 0 auto 32px auto; line-height: 1.6;">
+          The official mobile companion for Nigerian dealmakers. Write NTAG216 microchips on iOS & Android in under 10ms, receive real-time push alerts on card taps, and swap contacts offline.
+        </p>
       </div>
-    </main>
-  </div>
-</div>`;
+    `);
 
     return injectSeoMetadata(output, {
       title: 'CHIP NG Official Mobile App — Program NFC Cards & Track Live Radar Telemetry (iOS & Android)',
@@ -963,49 +1242,229 @@ export async function applyUniversalSsr(
       }
     };
 
+    const portfolioHtml = buildSsrShell(`
+      <article>
+        <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Victor Okoye — Full-Stack Developer & Hardware-Software Architect</h1>
+        <p style="font-size: 16px; color: #D4D4D8; max-width: 720px;">Founder and lead architect of CHIP NG contactless NFC smart business cards and dynamic cloud bio infrastructure in Lagos, Nigeria.</p>
+      </article>
+    `);
+
     return injectSeoMetadata(output, {
       title: 'Victor Okoye — Full-stack Developer & Hardware-Software Architect | Portfolio',
-      description: 'Explore the full-stack engineering portfolio of Victor Okoye. Founder and lead engineer behind CHIP NG contactless smart cards and Alvora luxury e-commerce.',
+      description: 'Explore the full-stack engineering portfolio of Victor Okoye. Founder and lead engineer behind CHIP NG contactless smart cards and digital commerce platforms.',
       canonical: 'https://www.chipng.com/portfolio',
       ogType: 'profile',
       image: 'https://www.chipng.com/chipng_3d_logo.jpg',
-      schemaJsonLd: JSON.stringify(portfolioSchema)
+      schemaJsonLd: JSON.stringify(portfolioSchema),
+      preRenderedHtml: portfolioHtml,
     });
   }
 
-  // 7.9. Official Client Onboarding Portal (/onboarding)
-  if (normalizedPath === '/onboarding') {
-    const onboardingSchema = {
+  // 8. Institutional & Policy Pages
+  if (normalizedPath === '/company' || normalizedPath === '/about') {
+    const companyHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">About CHIP NG</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7;">
+        CHIP NG is Nigeria’s premier contactless smart business card and dynamic digital identity platform. Headquartered in Lekki Phase 1, Lagos, we engineer precision NTAG216 NFC hardware paired with a cloud bio engine for modern entrepreneurs and enterprises across Africa.
+      </p>
+    `);
+    const companySchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      '@id': 'https://www.chipng.com/company#about',
+      name: 'About CHIP NG',
+      url: 'https://www.chipng.com/company',
+      description: 'Nigeria’s premier contactless smart business card and dynamic digital identity platform.'
+    });
+    return injectSeoMetadata(output, {
+      title: 'About CHIP NG — Contactless NFC Hardware & Digital Identity',
+      description: 'CHIP NG is Nigeria’s premier contactless smart business card and dynamic digital identity platform. Headquartered in Lagos, engineering precision NTAG216 NFC hardware.',
+      canonical: 'https://www.chipng.com/company',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: companySchema,
+      preRenderedHtml: companyHtml
+    });
+  }
+
+  if (normalizedPath === '/contact') {
+    const contactHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">Contact CHIP NG Support & Sales</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7; margin-bottom: 24px;">
+        Direct inquiries for custom corporate NFC card deployments, bulk orders, and API integration in Nigeria.
+      </p>
+      <ul style="font-size: 15px; color: #D4D4D8; line-height: 2;">
+        <li><strong>Location:</strong> Lekki Phase 1, Lagos, Nigeria</li>
+        <li><strong>Email:</strong> <a href="mailto:hello@chipng.com" style="color: #16a34a;">hello@chipng.com</a></li>
+        <li><strong>Phone / WhatsApp:</strong> +234 810 076 4154</li>
+        <li><strong>Operating Hours:</strong> Monday – Saturday, 08:00 – 20:00 GMT+1</li>
+      </ul>
+    `);
+    const contactSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ContactPage',
+      '@id': 'https://www.chipng.com/contact#contact',
+      name: 'Contact CHIP NG Support & Sales',
+      url: 'https://www.chipng.com/contact'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Contact CHIP NG — Direct Inquiries & Lagos Support',
+      description: 'Contact CHIP NG for enterprise NFC cards, custom laser engraving, and Lagos 24h express delivery. Direct phone, WhatsApp, and office address in Lekki Phase 1.',
+      canonical: 'https://www.chipng.com/contact',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: contactSchema,
+      preRenderedHtml: contactHtml
+    });
+  }
+
+  if (normalizedPath === '/shipping') {
+    const shippingHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">CHIP NG Shipping & Nationwide Logistics Policy</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7; margin-bottom: 24px;">
+        Fast, reliable delivery of your custom laser-engraved NFC smart cards across Lagos and all 36 Nigerian states.
+      </p>
+      <ul style="font-size: 15px; color: #D4D4D8; line-height: 1.8;">
+        <li><strong>Lagos State (Island & Mainland):</strong> 24–48 hours express dispatch via vetted dispatch riders.</li>
+        <li><strong>Abuja (FCT) & Port Harcourt:</strong> 2–3 business days via DHL Express & GIG Logistics.</li>
+        <li><strong>All Other States:</strong> 3–4 business days with trackable parcel waybill.</li>
+      </ul>
+    `);
+    const shippingSchema = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: 'CHIP NG Client Onboarding Portal',
-      description: 'Complete your executive profile setup for CHIP NG contactless smart business cards and dynamic link-in-bio platform.',
-      url: 'https://www.chipng.com/onboarding'
-    };
-
+      '@id': 'https://www.chipng.com/shipping#policy',
+      name: 'Shipping & Nationwide Delivery Policy | CHIP NG',
+      url: 'https://www.chipng.com/shipping'
+    });
     return injectSeoMetadata(output, {
-      title: 'Client Onboarding Portal — Set Up Your Contactless Smart Profile | CHIP NG',
-      description: 'Complete your executive profile setup for CHIP NG contactless smart business cards and dynamic link-in-bio platform in Nigeria. Configure your bio link, social channels, avatar, and vCard.',
-      canonical: 'https://www.chipng.com/onboarding',
-      ogType: 'website',
+      title: 'Shipping & Express Delivery Policy | CHIP NG Nigeria',
+      description: 'Fast, reliable delivery of your custom laser-engraved NFC smart cards across Lagos (24-48h) and all 36 Nigerian states via DHL Express & GIG Logistics.',
+      canonical: 'https://www.chipng.com/shipping',
       image: 'https://www.chipng.com/chipng_3d_logo.jpg',
-      schemaJsonLd: JSON.stringify(onboardingSchema)
+      schemaJsonLd: shippingSchema,
+      preRenderedHtml: shippingHtml
     });
   }
 
-  // 8. Dynamic User Profiles (/@username & /username)
+  if (normalizedPath === '/refund-policy') {
+    const refundHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">Refund Policy & Hardware Warranty</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7; margin-bottom: 24px;">
+        Every CHIP NG contactless card is manufactured with genuine NTAG216 microchips and tested before dispatch.
+      </p>
+      <h2 style="font-size: 20px; font-weight: 800; color: #FFFFFF;">30-Day Defect Replacement Guarantee</h2>
+      <p style="font-size: 15px; color: #A1A1AA; line-height: 1.7;">
+        If your card chip fails to scan within 30 days of arrival due to manufacturing defect, we will laser-engrave and re-dispatch a brand new replacement card at zero cost.
+      </p>
+    `);
+    const refundSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/refund-policy#policy',
+      name: 'Refund Policy & Hardware Warranty | CHIP NG',
+      url: 'https://www.chipng.com/refund-policy'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Refund Policy & Hardware Warranty | CHIP NG Nigeria',
+      description: 'CHIP NG 30-Day Defect Replacement Guarantee. Genuine NTAG216 microchips tested before dispatch. Free laser engraving and replacement if card fails.',
+      canonical: 'https://www.chipng.com/refund-policy',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: refundSchema,
+      preRenderedHtml: refundHtml
+    });
+  }
+
+  if (normalizedPath === '/privacy-policy' || normalizedPath === '/privacy') {
+    const privacyHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">Privacy Policy</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7; margin-bottom: 24px;">
+        CHIP NG complies with the Nigeria Data Protection Act (NDPA) and international privacy best practices.
+      </p>
+      <p style="font-size: 15px; color: #A1A1AA; line-height: 1.8;">
+        We only store information you explicitly add to your public bio profile (such as name, WhatsApp, email, links, and avatar) so that contacts who tap your physical card can view your contact information.
+      </p>
+    `);
+    const privacySchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/privacy-policy#policy',
+      name: 'Privacy Policy | CHIP NG',
+      url: 'https://www.chipng.com/privacy-policy'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Privacy Policy | CHIP NG Nigeria',
+      description: 'CHIP NG Privacy Policy. Fully compliant with Nigeria Data Protection Act (NDPA). How we safeguard and handle your contactless profile data.',
+      canonical: 'https://www.chipng.com/privacy-policy',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: privacySchema,
+      preRenderedHtml: privacyHtml
+    });
+  }
+
+  if (normalizedPath === '/terms-of-service' || normalizedPath === '/terms') {
+    const termsHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">Terms of Service</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7; margin-bottom: 24px;">
+        Terms governing your purchase of CHIP NG contactless hardware and usage of our dynamic bio engine.
+      </p>
+      <p style="font-size: 15px; color: #A1A1AA; line-height: 1.8;">
+        By activating a CHIP NG card, you agree to utilize the platform for lawful personal and commercial networking. We guarantee 99.9% uptime of your hosted bio link.
+      </p>
+    `);
+    const termsSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/terms-of-service#policy',
+      name: 'Terms of Service | CHIP NG',
+      url: 'https://www.chipng.com/terms-of-service'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Terms of Service | CHIP NG Nigeria',
+      description: 'Terms of Service governing your purchase of CHIP NG contactless NFC hardware and hosted digital identity engine in Nigeria.',
+      canonical: 'https://www.chipng.com/terms-of-service',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: termsSchema,
+      preRenderedHtml: termsHtml
+    });
+  }
+
+  if (normalizedPath === '/updates') {
+    const updatesHtml = buildSsrShell(`
+      <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #FFFFFF;">CHIP NG Platform Updates & Changelog</h1>
+      <p style="font-size: 16px; color: #D4D4D8; line-height: 1.7; margin-bottom: 24px;">
+        Recent releases for our NFC card hardware firmware, multi-currency international checkout, live telemetry analytics, and digital bio link engine.
+      </p>
+    `);
+    const updatesSchema = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://www.chipng.com/updates#changelog',
+      name: 'CHIP NG Platform Updates & Changelog',
+      url: 'https://www.chipng.com/updates'
+    });
+    return injectSeoMetadata(output, {
+      title: 'Updates & Changelog | CHIP NG Nigeria',
+      description: 'Platform updates, firmware improvements, and new dynamic profile features for CHIP NG contactless smart card owners in Nigeria.',
+      canonical: 'https://www.chipng.com/updates',
+      image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+      schemaJsonLd: updatesSchema,
+      preRenderedHtml: updatesHtml
+    });
+  }
+
+  // 9. Dynamic User Profiles (/@username & /username)
   const RESERVED_ROUTES = [
     '/admin', '/enterprise', '/login', '/dashboard', '/api', '/blog',
-    '/app', '/download', '/mobile', '/android', '/onboarding',
+    '/app', '/download', '/get-app', '/mobile', '/android', '/onboarding',
+    '/client-onboarding', '/setup-profile', '/setup', '/settings', '/checkout',
     '/company', '/about', '/updates', '/contact', '/buy-card', '/buycard', '/shop',
     '/pricing', '/faq', '/shipping', '/refund-policy', '/privacy-policy',
-    '/privacy', '/terms-of-service', '/terms', '/nfc-sales', '/portfolio'
+    '/privacy', '/terms-of-service', '/terms', '/nfc-sales', '/portfolio',
+    '/corporate-bundle', '/corporate-fleet', '/fleet', '/corporate', '/review', '/reviews', '/drop-review'
   ];
 
   const isReserved = RESERVED_ROUTES.some(r => normalizedPath === r || normalizedPath.startsWith(r + '/'));
 
   if (!isReserved && normalizedPath !== '/') {
-    // Extract username (supports /@username, /username, /@username/vcard, /username/vcard, /p/username, /u/username)
     let rawUsername = extractUsernameFromPath(normalizedPath) || normalizedPath.replace(/^\//, '');
     try {
       rawUsername = decodeURIComponent(rawUsername);
@@ -1030,223 +1489,6 @@ export async function applyUniversalSsr(
         });
       }
     }
-  }
-
-  // 9. Institutional & Policy Pages
-  if (normalizedPath === '/company' || normalizedPath === '/about') {
-    const companyHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 960px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">About CHIP NG</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7;">
-      CHIP NG is Nigeria’s premier contactless smart business card and dynamic digital identity platform. Headquartered in Lagos, we engineer precision NTAG216 NFC hardware paired with a cloud bio engine for modern entrepreneurs and enterprises across Africa.
-    </p>
-  </div>
-</div>
-    `;
-    const companySchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'AboutPage',
-      '@id': 'https://www.chipng.com/company#about',
-      name: 'About CHIP NG',
-      url: 'https://www.chipng.com/company',
-      description: 'Nigeria’s premier contactless smart business card and dynamic digital identity platform.'
-    });
-    return injectSeoMetadata(output, {
-      title: 'About CHIP NG — Contactless NFC Hardware & Digital Identity',
-      description: 'CHIP NG is Nigeria’s premier contactless smart business card and dynamic digital identity platform. Headquartered in Lagos, engineering precision NTAG216 NFC hardware.',
-      canonical: 'https://www.chipng.com/company',
-      schemaJsonLd: companySchema,
-      preRenderedHtml: companyHtml
-    });
-  }
-
-  if (normalizedPath === '/contact') {
-    const contactHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 800px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">Contact CHIP NG Support & Sales</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7; margin-bottom: 24px;">
-      Direct inquiries for custom corporate NFC card deployments, bulk orders, and API integration in Nigeria.
-    </p>
-    <ul style="font-size: 15px; color: #3f3f46; line-height: 2;">
-      <li><strong>Location:</strong> Lekki Phase 1, Lagos, Nigeria</li>
-      <li><strong>Email:</strong> <a href="mailto:hello@chipng.com">hello@chipng.com</a></li>
-      <li><strong>Phone / WhatsApp:</strong> +234 810 076 4154</li>
-      <li><strong>Operating Hours:</strong> Monday – Saturday, 08:00 – 20:00 GMT+1</li>
-    </ul>
-  </div>
-</div>
-    `;
-    const contactSchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'ContactPage',
-      '@id': 'https://www.chipng.com/contact#contact',
-      name: 'Contact CHIP NG Support & Sales',
-      url: 'https://www.chipng.com/contact'
-    });
-    return injectSeoMetadata(output, {
-      title: 'Contact CHIP NG — Direct Inquiries & Lagos Support',
-      description: 'Contact CHIP NG for enterprise NFC cards, custom laser engraving, and Lagos 24h express delivery. Direct phone, WhatsApp, and office address in Lekki Phase 1.',
-      canonical: 'https://www.chipng.com/contact',
-      schemaJsonLd: contactSchema,
-      preRenderedHtml: contactHtml
-    });
-  }
-
-  if (normalizedPath === '/shipping') {
-    const shippingHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 800px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">CHIP NG Shipping & Nationwide Logistics Policy</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7; margin-bottom: 24px;">
-      Fast, reliable delivery of your custom laser-engraved NFC smart cards across Lagos and all 36 Nigerian states.
-    </p>
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-      <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px 0;">Delivery Timelines</h2>
-      <ul style="font-size: 15px; color: #334155; line-height: 1.8; margin: 0; padding-left: 20px;">
-        <li><strong>Lagos State (Island & Mainland):</strong> 24–48 hours express dispatch via vetted dispatch riders.</li>
-        <li><strong>Abuja (FCT) & Port Harcourt:</strong> 2–3 business days via DHL Express & GIG Logistics.</li>
-        <li><strong>All Other States:</strong> 3–4 business days with trackable parcel waybill.</li>
-      </ul>
-    </div>
-  </div>
-</div>
-    `;
-    const shippingSchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      '@id': 'https://www.chipng.com/shipping#policy',
-      name: 'Shipping & Nationwide Delivery Policy | CHIP NG',
-      url: 'https://www.chipng.com/shipping'
-    });
-    return injectSeoMetadata(output, {
-      title: 'Shipping & Express Delivery Policy | CHIP NG Nigeria',
-      description: 'Fast, reliable delivery of your custom laser-engraved NFC smart cards across Lagos (24-48h) and all 36 Nigerian states via DHL Express & GIG Logistics.',
-      canonical: 'https://www.chipng.com/shipping',
-      schemaJsonLd: shippingSchema,
-      preRenderedHtml: shippingHtml
-    });
-  }
-
-  if (normalizedPath === '/refund-policy') {
-    const refundHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 800px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">Refund Policy & Hardware Warranty</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7; margin-bottom: 24px;">
-      Every CHIP NG contactless card is manufactured with genuine NTAG216 microchips and tested before dispatch.
-    </p>
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;">
-      <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px 0;">30-Day Defect Replacement Guarantee</h2>
-      <p style="font-size: 15px; color: #334155; line-height: 1.7; margin: 0;">
-        If your card chip fails to scan within 30 days of arrival due to manufacturing defect, we will laser-engrave and re-dispatch a brand new replacement card at zero cost.
-      </p>
-    </div>
-  </div>
-</div>
-    `;
-    const refundSchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      '@id': 'https://www.chipng.com/refund-policy#policy',
-      name: 'Refund Policy & Hardware Warranty | CHIP NG',
-      url: 'https://www.chipng.com/refund-policy'
-    });
-    return injectSeoMetadata(output, {
-      title: 'Refund Policy & Hardware Warranty | CHIP NG Nigeria',
-      description: 'CHIP NG 30-Day Defect Replacement Guarantee. Genuine NTAG216 microchips tested before dispatch. Free laser engraving and replacement if card fails.',
-      canonical: 'https://www.chipng.com/refund-policy',
-      schemaJsonLd: refundSchema,
-      preRenderedHtml: refundHtml
-    });
-  }
-
-  if (normalizedPath === '/privacy-policy' || normalizedPath === '/privacy') {
-    const privacyHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 800px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">Privacy Policy</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7; margin-bottom: 24px;">
-      CHIP NG complies with the Nigeria Data Protection Act (NDPA) and international privacy best practices.
-    </p>
-    <p style="font-size: 15px; color: #334155; line-height: 1.8;">
-      We only store information you explicitly add to your public bio profile (such as name, WhatsApp, email, links, and avatar) so that contacts who tap your physical card can view your contact information.
-    </p>
-  </div>
-</div>
-    `;
-    const privacySchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      '@id': 'https://www.chipng.com/privacy-policy#policy',
-      name: 'Privacy Policy | CHIP NG',
-      url: 'https://www.chipng.com/privacy-policy'
-    });
-    return injectSeoMetadata(output, {
-      title: 'Privacy Policy | CHIP NG Nigeria',
-      description: 'CHIP NG Privacy Policy. Fully compliant with Nigeria Data Protection Act (NDPA). How we safeguard and handle your contactless profile data.',
-      canonical: 'https://www.chipng.com/privacy-policy',
-      schemaJsonLd: privacySchema,
-      preRenderedHtml: privacyHtml
-    });
-  }
-
-  if (normalizedPath === '/terms-of-service' || normalizedPath === '/terms') {
-    const termsHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 800px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">Terms of Service</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7; margin-bottom: 24px;">
-      Terms governing your purchase of CHIP NG contactless hardware and usage of our dynamic bio engine.
-    </p>
-    <p style="font-size: 15px; color: #334155; line-height: 1.8;">
-      By activating a CHIP NG card, you agree to utilize the platform for lawful personal and commercial networking. We guarantee 99.9% uptime of your hosted bio link.
-    </p>
-  </div>
-</div>
-    `;
-    const termsSchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      '@id': 'https://www.chipng.com/terms-of-service#policy',
-      name: 'Terms of Service | CHIP NG',
-      url: 'https://www.chipng.com/terms-of-service'
-    });
-    return injectSeoMetadata(output, {
-      title: 'Terms of Service | CHIP NG Nigeria',
-      description: 'Terms of Service governing your purchase of CHIP NG contactless NFC hardware and hosted digital identity engine in Nigeria.',
-      canonical: 'https://www.chipng.com/terms-of-service',
-      schemaJsonLd: termsSchema,
-      preRenderedHtml: termsHtml
-    });
-  }
-
-  if (normalizedPath === '/updates') {
-    const updatesHtml = `
-<div id="root">
-  <div style="font-family: system-ui, -apple-system, sans-serif; color: #18181b; max-width: 800px; margin: 0 auto; padding: 48px 16px;">
-    <h1 style="font-size: 36px; font-weight: 900; margin-bottom: 12px;">CHIP NG Platform Updates & Changelog</h1>
-    <p style="font-size: 16px; color: #52525b; line-height: 1.7; margin-bottom: 24px;">
-      Recent releases for our NFC card hardware firmware, live telemetry analytics, and digital bio link engine.
-    </p>
-  </div>
-</div>
-    `;
-    const updatesSchema = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      '@id': 'https://www.chipng.com/updates#changelog',
-      name: 'CHIP NG Platform Updates & Changelog',
-      url: 'https://www.chipng.com/updates'
-    });
-    return injectSeoMetadata(output, {
-      title: 'Updates & Changelog | CHIP NG Nigeria',
-      description: 'Platform updates, firmware improvements, and new dynamic profile features for CHIP NG contactless smart card owners in Nigeria.',
-      canonical: 'https://www.chipng.com/updates',
-      schemaJsonLd: updatesSchema,
-      preRenderedHtml: updatesHtml
-    });
   }
 
   return output;

@@ -5,6 +5,7 @@ import { CorporateBundleSection } from '../components/makro/CorporateBundleSecti
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { ShieldCheck, ArrowLeft, Building2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface CorporateBundleViewProps {
   onNavigate: (view: ViewState) => void;
@@ -21,13 +22,35 @@ export const CorporateBundleView: React.FC<CorporateBundleViewProps> = ({
 }) => {
   const { formatNgn } = useCurrency();
   useEffect(() => {
-    // Scroll to top on page mount
     window.scrollTo({ top: 0, behavior: 'instant' });
-    document.title = 'Corporate Fleet Bundle (10 PVC + 1 Free CEO Metal) | CHIP NG';
   }, []);
+
+  const corporateSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'CHIP NG Corporate Fleet NFC Smart Card Bundle (10 PVC + 1 Free CEO Metal)',
+    description:
+      'Equip your entire team with 10 custom printed PVC smart business cards plus 1 complimentary laser-engraved Stainless Steel CEO metal NFC card and unified analytics dashboard.',
+    brand: { '@type': 'Brand', name: 'CHIP NG' },
+    offers: {
+      '@type': 'Offer',
+      price: '300000',
+      priceCurrency: 'NGN',
+      availability: 'https://schema.org/InStock',
+      url: 'https://www.chipng.com/corporate-bundle',
+    },
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950">
+      <SeoHead
+        title="Corporate Fleet NFC Card Bundle (10 PVC + 1 Free CEO Metal — ₦300,000) | CHIP NG"
+        description="Equip your Nigerian company or sales team with 10 custom printed NFC smart business cards plus 1 free Stainless Steel CEO Metal Card for ₦300,000. Zero recurring fees."
+        canonicalPath="/corporate-bundle"
+        ogType="product"
+        keywords="corporate NFC business cards Nigeria, team smart business cards Lagos, bulk NFC cards Nigeria, enterprise digital business card"
+        schemaJsonLd={corporateSchema}
+      />
       {/* Global Makro Navigation Top Bar */}
       <MakroNavbar
         currentView="landing"

@@ -24,6 +24,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { formatCurrencyAmount, getInternationalShippingNgn } from '../utils/currency';
 import { WORLD_COUNTRIES } from '../utils/countryData';
 import { CurrencySelector } from '../components/CurrencySelector';
+import { SeoHead } from '../components/seo/SeoHead';
 
 export const SOCIAL_PLATFORMS = SOCIAL_PLATFORMS_CONFIG;
 
@@ -1313,6 +1314,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
       isAdmin={profile?.is_admin}
       userHeaderProfile={profile}
     >
+      <SeoHead
+        title="Creator & Executive Dashboard | CHIP NG"
+        description="Manage your CHIP NG digital profile, links, analytics, and NFC cards."
+        canonicalPath="/dashboard"
+        noindex={true}
+      />
       <div className="pb-32">
       <div className={`${activeTab === 'leads' || activeTab === 'analytics' ? 'max-w-5xl' : 'max-w-2xl'} mx-auto px-4 sm:px-6 pt-3 pb-24 transition-all duration-200`}>
         

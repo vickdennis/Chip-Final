@@ -3,6 +3,7 @@ import { ViewState } from '../App';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { SeoHead } from '../components/seo/SeoHead';
 
 interface PrivacyPolicyViewProps {
   onNavigate: (view: ViewState) => void;
@@ -13,6 +14,11 @@ interface PrivacyPolicyViewProps {
 export default function PrivacyPolicyView({ onNavigate, isDarkMode, toggleDarkMode }: PrivacyPolicyViewProps) {
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white transition-colors flex flex-col justify-between selection:bg-[#16a34a] selection:text-neutral-950">
+      <SeoHead
+        title="Privacy Policy — Sovereign Data Protection | CHIP NG"
+        description="Read how CHIP NG Technologies protects your digital identity, vCard contact records, and NFC tap analytics under strict privacy standards."
+        canonicalPath="/privacy-policy"
+      />
       <MakroNavbar
         currentView="privacy-policy"
         onNavigate={onNavigate}
