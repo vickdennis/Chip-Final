@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertCircle, Play, X, ExternalLink, RefreshCw, Terminal, Activity } from 'lucide-react';
 import { 
   TIKTOK_PIXEL_ID, 
+  initTikTokPixel,
   trackTikTokEvent, 
   trackTikTokPageView, 
   checkTikTokPixelStatus 
@@ -15,20 +16,38 @@ interface TikTokPixelTesterModalProps {
 
 export const TikTokPixelTesterModal: React.FC<TikTokPixelTesterModalProps> = ({ isOpen, onClose }) => {
   const [pixelStatus, setPixelStatus] = useState<any>(null);
-  const [logs, setLogs] = useState<Array<{ name: string; time: string; payload?: any }>>([]);
+  const [capiConfigured, setCapiConfigured] = useState<boolean | null>(null);
+  const [testEventCode, setTestEventCode] = useState('');
+  const [logs, setLogs] = useState<Array<{ name: string; time: string; payload?: any; capiStatus?: string }>>([]);
   const [lastTestedEvent, setLastTestedEvent] = useState<string | null>(null);
+
+  const syncLogs = () => {
+    if (typeof window !== 'undefined' && window.__tiktokPixelEvents) {
+      setLogs(
+        window.__tiktokPixelEvents.map((e) => ({
+          name: e.event,
+          time: e.timestamp,
+          payload: e.params,
+          capiStatus: e.capiStatus,
+        }))
+      );
+    }
+  };
 
   const refreshStatus = () => {
     const status = checkTikTokPixelStatus();
     setPixelStatus(status);
+    syncLogs();
   };
 
   useEffect(() => {
     if (isOpen) {
+      initTikTokPixel(TIKTOK_PIXEL_ID, { force: true, sendPageView: false });
       refreshStatus();
-      if (typeof window !== 'undefined' && window.__tiktokPixelEvents) {
-        setLogs(window.__tiktokPixelEvents.map(e => ({ name: e.event, time: e.timestamp, payload: e.params })));
-      }
+      fetch('/api/tiktok/status')
+        .then((r) => r.json())
+        .then((d) => setCapiConfigured(Boolean(d?.configured)))
+        .catch(() => setCapiConfigured(false));
     }
   }, [isOpen]);
 
@@ -36,15 +55,14 @@ export const TikTokPixelTesterModal: React.FC<TikTokPixelTesterModalProps> = ({ 
 
   const handleTestEvent = (eventName: string, params?: Record<string, any>) => {
     setLastTestedEvent(eventName);
+    const opts = { force: true, test_event_code: testEventCode.trim() || undefined };
     if (eventName === 'PageView') {
-      trackTikTokPageView();
+      trackTikTokPageView(opts);
     } else {
-      trackTikTokEvent(eventName, params);
+      trackTikTokEvent(eventName, params, opts);
     }
     refreshStatus();
-    if (typeof window !== 'undefined' && window.__tiktokPixelEvents) {
-      setLogs(window.__tiktokPixelEvents.map(e => ({ name: e.event, time: e.timestamp, payload: e.params })));
-    }
+    setTimeout(syncLogs, 800);
   };
 
   return (
@@ -105,21 +123,37 @@ export const TikTokPixelTesterModal: React.FC<TikTokPixelTesterModalProps> = ({ 
               </div>
             </div>
             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4">
-              <span className="text-[11px] text-white/50 uppercase font-mono tracking-wider">Script Injection</span>
+              <span className="text-[11px] text-white/50 uppercase font-mono tracking-wider">Events API (CAPI)</span>
               <div className="flex items-center gap-2 mt-1">
-                {pixelStatus?.hasScriptTag ? (
+                {capiConfigured ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span className="text-sm font-semibold text-emerald-300">Active in DOM</span>
+                    <span className="text-sm font-semibold text-emerald-300">Server Token Active</span>
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="w-4 h-4 text-white/60" />
-                    <span className="text-sm text-white/70">events.js queued</span>
+                    <AlertCircle className="w-4 h-4 text-amber-400" />
+                    <span className="text-sm text-amber-300">
+                      {capiConfigured === null ? 'Checking...' : 'Token Env Pending'}
+                    </span>
                   </>
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Optional TikTok Test Event Code */}
+          <div className="mb-5">
+            <label className="text-[11px] text-white/50 uppercase font-mono tracking-wider block mb-1.5">
+              Optional TikTok Events Manager Test Code
+            </label>
+            <input
+              type="text"
+              value={testEventCode}
+              onChange={(e) => setTestEventCode(e.target.value)}
+              placeholder="e.g. TEST12345 (from TikTok Events Manager → Test Events)"
+              className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-white placeholder-white/30 outline-none focus:border-[#25F4EE]"
+            />
           </div>
 
           {/* Test Buttons Section */}

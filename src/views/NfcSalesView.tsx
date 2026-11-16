@@ -37,7 +37,7 @@ import { Card3DRotator, CardMaterial } from '../components/funnel/Card3DRotator'
 import { LiveBioPreview } from '../components/funnel/LiveBioPreview';
 import type { CardCustomizationData } from '../components/funnel/CardCustomizerModal';
 import { SocialMediaIconSet, SocialPlatform } from '../components/social/SocialMediaIconSet';
-import { trackTikTokEvent } from '../utils/tiktokPixel';
+import { initTikTokPixel, trackTikTokEvent } from '../utils/tiktokPixel';
 import { MakroNavbar } from '../components/makro/MakroNavbar';
 import { MakroFooter } from '../components/makro/MakroFooter';
 import { SocialProofToast } from '../components/funnel/SocialProofToast';
@@ -195,8 +195,9 @@ export default function NfcSalesView({
     return () => clearTimeout(idleTimer);
   }, []);
 
-  // Parse UTM parameters on mount & track TikTok ViewContent
+  // Parse UTM parameters on mount, initialize buy-card TikTok Pixel & track ViewContent
   useEffect(() => {
+    initTikTokPixel();
     const viewCheckout = getCheckout(50000);
     trackTikTokEvent('ViewContent', {
       content_type: 'product',

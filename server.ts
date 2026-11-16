@@ -1,4 +1,5 @@
 import fs from 'fs';
+import crypto from 'crypto';
 import * as cheerio from 'cheerio';
 import express from "express";
 import path from "path";
@@ -5994,6 +5995,132 @@ Ref: ${payment_reference}`,
         success: false,
         code: 'internal_error',
         error: 'Unable to complete registration right now. Please check your connection and try again.'
+      });
+    }
+  });
+
+  // ==================== TIKTOK EVENTS API v1.3 PROXY (BUY-CARD FUNNEL) ====================
+  const DEFAULT_TIKTOK_PIXEL_ID = 'DBTOMKRC77U4UD9J3JI0';
+
+  const hashTikTokSha256 = (raw: any, isPhone = false): string | undefined => {
+    if (!raw) return undefined;
+    let value = String(raw).trim().toLowerCase();
+    if (!value) return undefined;
+    if (/^[a-f0-9]{64}$/i.test(value)) return value.toLowerCase();
+    if (isPhone) {
+      let cleaned = value.replace(/[^\d+]/g, '');
+      if (cleaned.startsWith('0') && cleaned.length === 11) {
+        cleaned = `+234${cleaned.slice(1)}`;
+      } else if (!cleaned.startsWith('+') && cleaned.length >= 10) {
+        cleaned = `+${cleaned}`;
+      }
+      value = cleaned;
+    } else {
+      value = value.replace(/\s+/g, '');
+    }
+    return crypto.createHash('sha256').update(value).digest('hex');
+  };
+
+  app.get('/api/tiktok/status', (_req, res) => {
+    const pixelId = (process.env.TIKTOK_PIXEL_ID || DEFAULT_TIKTOK_PIXEL_ID).trim();
+    const hasAccessToken = Boolean((process.env.TIKTOK_ACCESS_TOKEN || '').trim());
+    res.json({
+      configured: hasAccessToken,
+      pixel_id: pixelId,
+      scoped_route: '/buy-card',
+    });
+  });
+
+  app.post('/api/tiktok/event', async (req, res) => {
+    try {
+      const pixelCode = (process.env.TIKTOK_PIXEL_ID || DEFAULT_TIKTOK_PIXEL_ID).trim();
+      const accessToken = (process.env.TIKTOK_ACCESS_TOKEN || '').trim();
+      const { event, event_id, url, referrer, properties, user, test_event_code } = req.body || {};
+
+      const cleanEvent = String(event || '').trim();
+      if (!cleanEvent) {
+        return res.status(400).json({ success: false, error: 'Event name is required.' });
+      }
+
+      if (!accessToken) {
+        return res.status(200).json({
+          success: false,
+          skipped: true,
+          pixel_id: pixelCode,
+          event: cleanEvent,
+          event_id: event_id || null,
+          reason: 'TIKTOK_ACCESS_TOKEN not configured on server environment.',
+        });
+      }
+
+      const forwarded = String(req.headers['x-forwarded-for'] || '');
+      const clientIp = forwarded.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || undefined;
+      const userAgent = String(req.headers['user-agent'] || '').trim() || undefined;
+
+      const userPayload: Record<string, any> = {};
+      const hashedEmail = hashTikTokSha256(user?.email, false);
+      const hashedPhone = hashTikTokSha256(user?.phone, true);
+      const hashedExternalId = hashTikTokSha256(user?.external_id, false);
+      if (hashedEmail) userPayload.email = hashedEmail;
+      if (hashedPhone) userPayload.phone = hashedPhone;
+      if (hashedExternalId) userPayload.external_id = hashedExternalId;
+      if (user?.ttp) userPayload.ttp = String(user.ttp).trim();
+      if (user?.ttclid) userPayload.ttclid = String(user.ttclid).trim();
+      if (clientIp) userPayload.ip = clientIp;
+      if (userAgent) userPayload.user_agent = userAgent;
+
+      const cleanProps = properties && typeof properties === 'object' ? { ...properties } : undefined;
+      if (cleanProps && typeof cleanProps.value === 'number' && !cleanProps.currency) {
+        cleanProps.currency = 'NGN';
+      }
+
+      const eventEntry: Record<string, any> = {
+        event: cleanEvent,
+        event_time: Math.floor(Date.now() / 1000),
+        user: userPayload,
+        page: {
+          url: url ? String(url) : 'https://www.chipng.com/buy-card',
+          ...(referrer ? { referrer: String(referrer) } : {}),
+        },
+      };
+      if (event_id) eventEntry.event_id = String(event_id);
+      if (cleanProps && Object.keys(cleanProps).length > 0) {
+        eventEntry.properties = cleanProps;
+      }
+
+      const apiBody: Record<string, any> = {
+        event_source: 'web',
+        event_source_id: pixelCode,
+        data: [eventEntry],
+      };
+      if (test_event_code && String(test_event_code).trim()) {
+        apiBody.test_event_code = String(test_event_code).trim();
+      }
+
+      const ttRes = await fetch('https://business-api.tiktok.com/open_api/v1.3/event/track/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Token': accessToken,
+        },
+        body: JSON.stringify(apiBody),
+      });
+
+      const ttJson: any = await ttRes.json().catch(() => ({}));
+      return res.status(200).json({
+        success: ttRes.ok && ttJson?.code === 0,
+        pixel_id: pixelCode,
+        event: cleanEvent,
+        event_id: event_id || null,
+        code: ttJson?.code,
+        message: ttJson?.message,
+        request_id: ttJson?.request_id,
+      });
+    } catch (err: any) {
+      console.warn('[TikTok Events API] Dispatch error:', err?.message || err);
+      return res.status(200).json({
+        success: false,
+        error: err?.message || 'Failed to dispatch TikTok server event.',
       });
     }
   });

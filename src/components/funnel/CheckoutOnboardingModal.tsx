@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { CardCustomizationData } from './CardCustomizerModal';
 import { ShieldCheck, CheckCircle2, Copy, MessageCircle, ArrowRight, Sparkles, Building2, CreditCard, ChevronDown, ChevronUp, Lock, Loader2, AlertCircle } from 'lucide-react';
@@ -77,6 +77,33 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
   const totalAmountNgn = subtotalNgn + shippingNgn;
   const checkout = getCheckout(totalAmountNgn);
   const formattedCheckoutPay = formatCurrencyAmount(checkout.checkoutAmount, checkout.checkoutCurrency);
+
+  const trackedOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && !trackedOpenRef.current) {
+      trackedOpenRef.current = true;
+      trackTikTokEvent(
+        'InitiateCheckout',
+        {
+          content_type: 'product',
+          content_name: `${(data?.tier || 'plastic').toUpperCase()} NFC Card (${data?.material || 'plastic_black'})`,
+          content_id: data?.material || data?.tier || 'plastic_black',
+          quantity: 1,
+          value: checkout.checkoutAmount,
+          currency: checkout.checkoutCurrency,
+        },
+        {
+          user: {
+            email: data?.email,
+            phone: data?.whatsapp,
+          },
+        }
+      );
+    } else if (!isOpen) {
+      trackedOpenRef.current = false;
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleFlutterwaveSuccess = async (reference: any) => {
@@ -127,15 +154,25 @@ export const CheckoutOnboardingModal: React.FC<CheckoutOnboardingModalProps> = (
         }),
       });
 
-      // Track TikTok CompletePayment
-      trackTikTokEvent('CompletePayment', {
-        content_type: 'product',
-        content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
-        content_id: data.tier,
-        quantity: 1,
-        value: checkout.checkoutAmount,
-        currency: checkout.checkoutCurrency,
-      });
+      // Track TikTok CompletePayment (browser Pixel + deduplicated Events API)
+      trackTikTokEvent(
+        'CompletePayment',
+        {
+          event_id: refString,
+          content_type: 'product',
+          content_name: `${data.tier.toUpperCase()} NFC Card (${data.material})`,
+          content_id: data.tier,
+          quantity: 1,
+          value: checkout.checkoutAmount,
+          currency: checkout.checkoutCurrency,
+        },
+        {
+          user: {
+            email: data?.email,
+            phone: data?.whatsapp,
+          },
+        }
+      );
     } catch (err) {
       console.error('Failed to register converted sale:', err);
     } finally {

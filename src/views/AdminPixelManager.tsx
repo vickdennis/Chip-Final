@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { 
   TIKTOK_PIXEL_ID, 
+  initTikTokPixel,
   trackTikTokEvent, 
   trackTikTokPageView, 
   checkTikTokPixelStatus 
@@ -24,54 +25,58 @@ import { toast } from '../components/Toast';
 
 export default function AdminPixelManager() {
   const [pixelStatus, setPixelStatus] = useState<any>(null);
+  const [capiConfigured, setCapiConfigured] = useState<boolean | null>(null);
+  const [testEventCode, setTestEventCode] = useState<string>('');
   const [metaPixelId, setMetaPixelId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('chip_meta_pixel_id') || '102938475618293';
     }
     return '102938475618293';
   });
-  const [logs, setLogs] = useState<Array<{ name: string; time: string; payload?: any; status?: string }>>([]);
+  const [logs, setLogs] = useState<Array<{ name: string; time: string; payload?: any; status?: string; capiStatus?: string }>>([]);
   const [lastTestedEvent, setLastTestedEvent] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
   const [activeTab, setActiveTab] = useState<'tiktok' | 'meta' | 'events'>('tiktok');
 
+  const syncLogsFromWindow = () => {
+    if (typeof window !== 'undefined' && window.__tiktokPixelEvents) {
+      setLogs(
+        window.__tiktokPixelEvents.map((e) => ({
+          name: e.event,
+          time: e.timestamp,
+          payload: e.params,
+          status: e.status,
+          capiStatus: e.capiStatus,
+        }))
+      );
+    }
+  };
+
   const refreshStatus = () => {
     const status = checkTikTokPixelStatus();
     setPixelStatus(status);
+    syncLogsFromWindow();
   };
 
   useEffect(() => {
     refreshStatus();
-    if (typeof window !== 'undefined' && window.__tiktokPixelEvents) {
-      setLogs(
-        window.__tiktokPixelEvents.map((e) => ({
-          name: e.event,
-          time: e.timestamp,
-          payload: e.params,
-          status: e.status,
-        }))
-      );
-    }
+    fetch('/api/tiktok/status')
+      .then((r) => r.json())
+      .then((d) => setCapiConfigured(Boolean(d?.configured)))
+      .catch(() => setCapiConfigured(false));
   }, []);
 
   const handleTestEvent = (eventName: string, params?: Record<string, any>) => {
     setLastTestedEvent(eventName);
+    initTikTokPixel(TIKTOK_PIXEL_ID, { force: true, sendPageView: false });
+    const opts = { force: true, test_event_code: testEventCode.trim() || undefined };
     if (eventName === 'PageView') {
-      trackTikTokPageView();
+      trackTikTokPageView(opts);
     } else {
-      trackTikTokEvent(eventName, params);
+      trackTikTokEvent(eventName, params, opts);
     }
     refreshStatus();
-    if (typeof window !== 'undefined' && window.__tiktokPixelEvents) {
-      setLogs(
-        window.__tiktokPixelEvents.map((e) => ({
-          name: e.event,
-          time: e.timestamp,
-          payload: e.params,
-          status: e.status,
-        }))
-      );
-    }
+    setTimeout(syncLogsFromWindow, 800);
   };
 
   const handleClearLogs = () => {
@@ -165,7 +170,7 @@ export default function AdminPixelManager() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm">
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">
-                Pixel ID
+                Buy-Card Pixel ID
               </span>
               <div className="flex items-center justify-between gap-2 mt-1">
                 <span className="text-sm font-mono font-bold text-neutral-950 dark:text-white truncate">
@@ -179,6 +184,7 @@ export default function AdminPixelManager() {
                   {copiedId ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
+              <span className="text-[11px] text-neutral-400 mt-1 block">Scoped to /buy-card</span>
             </div>
 
             <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm">
@@ -197,7 +203,7 @@ export default function AdminPixelManager() {
                   <>
                     <AlertCircle className="w-4 h-4 text-amber-500" />
                     <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                      Waiting for window.ttq
+                      Idle outside /buy-card
                     </span>
                   </>
                 )}
@@ -206,21 +212,21 @@ export default function AdminPixelManager() {
 
             <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm">
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">
-                Script Injection
+                Events API (CAPI)
               </span>
               <div className="flex items-center gap-2 mt-2">
-                {pixelStatus?.hasScriptTag ? (
+                {capiConfigured ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      Script Active
+                      Access Token Active
                     </span>
                   </>
                 ) : (
                   <>
                     <AlertCircle className="w-4 h-4 text-amber-500" />
                     <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                      Script Pending
+                      {capiConfigured === null ? 'Checking...' : 'Token Pending Env'}
                     </span>
                   </>
                 )}
@@ -242,20 +248,29 @@ export default function AdminPixelManager() {
 
           {/* Interactive Diagnostic Test Suite */}
           <div className="bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="font-bold text-base text-neutral-950 dark:text-white">
-                  Interactive Conversion Event Tester
+                  Interactive Conversion Event Tester (/buy-card Funnel)
                 </h3>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Click any standard e-commerce event below to dispatch real-time tracking signals to TikTok Ads Manager.
+                  Dispatch real-time browser + Server Events API signals to TikTok Pixel {TIKTOK_PIXEL_ID}.
                 </p>
               </div>
-              {lastTestedEvent && (
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30">
-                  Last Fired: {lastTestedEvent}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={testEventCode}
+                  onChange={(e) => setTestEventCode(e.target.value)}
+                  placeholder="Optional Test Code (e.g. TEST12345)"
+                  className="px-3 py-1.5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50 dark:bg-[#151821] text-xs font-mono text-neutral-950 dark:text-white outline-none focus:border-[#16a34a]"
+                />
+                {lastTestedEvent && (
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30">
+                    Last Fired: {lastTestedEvent}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
