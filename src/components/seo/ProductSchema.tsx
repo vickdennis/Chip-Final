@@ -1,4 +1,8 @@
 import React from 'react';
+import {
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+} from '../../utils/productSchemaData';
 
 export interface ProductSchemaProps {
   name?: string;
@@ -20,7 +24,7 @@ export default function ProductSchema({
   price = 50000,
   currency = 'NGN',
   inStock = true,
-  image = 'https://chipng.com/assets/nfc-metal-card.jpg',
+  image = 'https://www.chipng.com/chipng_3d_logo.jpg',
   sku = 'CHIPNG-MET-001',
   description = 'CHIP NG NFC Smart Metal Card engineered with laser-etched stainless steel and an embedded NTAG216 high-frequency microchip (888 bytes memory, sub-10ms transmission). Instant contactless contact and link-in-bio sharing with zero mobile app required.'
 }: ProductSchemaProps) {
@@ -35,19 +39,21 @@ export default function ProductSchema({
     brand: {
       '@type': 'Brand',
       name: 'CHIP NG',
-      url: 'https://chipng.com'
+      url: 'https://www.chipng.com'
     },
     manufacturer: {
       '@type': 'Organization',
       name: 'CHIP NG Technologies Ltd',
-      url: 'https://chipng.com'
+      url: 'https://www.chipng.com'
     },
     model: 'Smart Metal Card (NTAG216)',
     material: 'Stainless Steel / Matte Ceramic Core',
     category: 'Contactless Smart Business Cards',
+    aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+    review: CHIPNG_PRODUCT_REVIEWS,
     offers: {
       '@type': 'Offer',
-      url: 'https://chipng.com/nfc-metal-business-card',
+      url: 'https://www.chipng.com/nfc-metal-business-card',
       priceCurrency: currency,
       price: price.toString(),
       priceValidUntil: '2027-12-31',
@@ -57,7 +63,7 @@ export default function ProductSchema({
         : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
-        name: 'CHIP NG'
+        name: 'CHIP NG Technologies Ltd'
       },
       shippingDetails: {
         '@type': 'OfferShippingDetails',

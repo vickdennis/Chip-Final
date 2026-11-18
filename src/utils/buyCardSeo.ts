@@ -4,6 +4,13 @@
  * Clean <div id="root"></div> is preserved for the React application.
  */
 
+import {
+  CHIPNG_PRODUCT_IMAGES,
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+  buildChipngAggregateOffers,
+} from './productSchemaData';
+
 export const BUY_CARD_META = {
   title: 'Buy Contactless NFC Smart Business Cards in Nigeria | CHIP NG',
   description: 'Order official CHIP NG contactless NFC smart business cards. Sub-10ms response, zero app needed. NFC Smart Black/White PVC (₦30,000 / ₦35,000), NFC Smart Metal Card (₦50,000), Metal Debit Card + Custom Design (₦80,000–₦100,000). 24h Lagos & nationwide delivery.',
@@ -18,10 +25,7 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
       "@type": "Product",
       "@id": "https://www.chipng.com/buy-card#product",
       "name": "CHIP NG Contactless Smart NFC Business Card",
-      "image": [
-        "https://www.chipng.com/chipng_3d_logo.jpg",
-        "https://www.chipng.com/chipng_exact_tile.png"
-      ],
+      "image": CHIPNG_PRODUCT_IMAGES,
       "description": "Nigeria's premier contactless smart business card and dynamic profile platform. Built with embedded NTAG216 chip, sub-10ms response, and zero app needed. Available in NFC Smart Black/White PVC Card (₦30,000 / ₦35,000), NFC Smart Metal Card (₦50,000), and Metal Debit Card + Custom Design (₦80,000 - ₦100,000).",
       "brand": {
         "@type": "Brand",
@@ -30,60 +34,9 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
       "sku": "CHIP-NFC-NG-01",
       "mpn": "NTAG216-NG",
       "category": "Smart Business Cards",
-      "offers": {
-        "@type": "AggregateOffer",
-        "priceCurrency": "NGN",
-        "lowPrice": "30000",
-        "highPrice": "100000",
-        "offerCount": "3",
-        "offers": [
-          {
-            "@type": "Offer",
-            "name": "NFC Smart Black/White PVC Card",
-            "sku": "CHIP-PVC-30K",
-            "price": "30000",
-            "priceCurrency": "NGN",
-            "priceValidUntil": "2027-12-31",
-            "itemCondition": "https://schema.org/NewCondition",
-            "availability": "https://schema.org/InStock",
-            "url": "https://www.chipng.com/buy-card",
-            "seller": {
-              "@type": "Organization",
-              "name": "CHIP NG Technologies Ltd"
-            }
-          },
-          {
-            "@type": "Offer",
-            "name": "NFC Smart Metal Card",
-            "sku": "CHIP-METAL-50K",
-            "price": "50000",
-            "priceCurrency": "NGN",
-            "priceValidUntil": "2027-12-31",
-            "itemCondition": "https://schema.org/NewCondition",
-            "availability": "https://schema.org/InStock",
-            "url": "https://www.chipng.com/buy-card",
-            "seller": {
-              "@type": "Organization",
-              "name": "CHIP NG Technologies Ltd"
-            }
-          },
-          {
-            "@type": "Offer",
-            "name": "Metal Debit Card + Custom Design",
-            "sku": "CHIP-DEBIT-CUSTOM-100K",
-            "price": "80000",
-            "priceCurrency": "NGN",
-            "priceValidUntil": "2027-12-31",
-            "itemCondition": "https://schema.org/NewCondition",
-            "availability": "https://schema.org/InStock",
-            "url": "https://www.chipng.com/buy-card",
-            "seller": {
-              "@type": "Organization",
-              "name": "CHIP NG Technologies Ltd"
-            }
-          }
-        ]
-      }
+      "aggregateRating": CHIPNG_PRODUCT_AGGREGATE_RATING,
+      "review": CHIPNG_PRODUCT_REVIEWS,
+      "offers": buildChipngAggregateOffers("https://www.chipng.com/buy-card")
     },
     {
       "@type": "BreadcrumbList",

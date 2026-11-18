@@ -3,6 +3,12 @@ import type { Metadata } from 'next';
 import { JsonLd } from '../components/seo/JsonLd';
 import { Breadcrumbs } from '../components/seo/Breadcrumbs';
 import { AeoAnswerBox } from '../components/seo/AeoAnswerBox';
+import {
+  CHIPNG_PRODUCT_IMAGES,
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+  buildChipngAggregateOffers,
+} from '../../utils/productSchemaData';
 
 export const metadata: Metadata = {
   title: 'Buy Contactless NFC Smart Business Cards in Nigeria | CHIP NG',
@@ -25,12 +31,9 @@ const buyCardSchema = {
   '@graph': [
     {
       '@type': 'Product',
-      '@id': 'https://chipng.com/buy-card#product',
+      '@id': 'https://www.chipng.com/buy-card#product',
       name: 'CHIP NG Contactless Smart NFC Business Card',
-      image: [
-        'https://chipng.com/chipng_3d_logo.jpg',
-        'https://chipng.com/chipng_exact_tile.png'
-      ],
+      image: CHIPNG_PRODUCT_IMAGES,
       description:
         'Nigeria premier contactless smart business card and dynamic profile platform. Built with embedded NTAG216 chip, sub-10ms response, zero app needed. Available in Smart PVC (₦30,000 / ₦35,000), Smart Metal (₦50,000), and Metal Debit Card + Custom Design (₦80,000 - ₦100,000).',
       brand: {
@@ -40,75 +43,9 @@ const buyCardSchema = {
       sku: 'CHIP-NFC-NG-01',
       mpn: 'NTAG216-NG',
       category: 'Smart Business Cards',
-      offers: {
-        '@type': 'AggregateOffer',
-        priceCurrency: 'NGN',
-        lowPrice: '30000',
-        highPrice: '100000',
-        offerCount: '4',
-        offers: [
-          {
-            '@type': 'Offer',
-            name: 'CHIP NG NFC Smart PVC Card (Glacier White)',
-            sku: 'CHIP-PVC-WHITE-30K',
-            price: '30000',
-            priceCurrency: 'NGN',
-            priceValidUntil: '2027-12-31',
-            itemCondition: 'https://schema.org/NewCondition',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=pvc',
-            seller: {
-              '@type': 'Organization',
-              name: 'CHIP NG Technologies Ltd'
-            }
-          },
-          {
-            '@type': 'Offer',
-            name: 'CHIP NG NFC Smart PVC Card (Matte Obsidian Black)',
-            sku: 'CHIP-PVC-BLACK-35K',
-            price: '35000',
-            priceCurrency: 'NGN',
-            priceValidUntil: '2027-12-31',
-            itemCondition: 'https://schema.org/NewCondition',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=pvc',
-            seller: {
-              '@type': 'Organization',
-              name: 'CHIP NG Technologies Ltd'
-            }
-          },
-          {
-            '@type': 'Offer',
-            name: 'CHIP NG NFC Smart Metal Card',
-            sku: 'CHIP-METAL-50K',
-            price: '50000',
-            priceCurrency: 'NGN',
-            priceValidUntil: '2027-12-31',
-            itemCondition: 'https://schema.org/NewCondition',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=metal',
-            seller: {
-              '@type': 'Organization',
-              name: 'CHIP NG Technologies Ltd'
-            }
-          },
-          {
-            '@type': 'Offer',
-            name: 'CHIP NG Metal Debit Card + Custom Design',
-            sku: 'CHIP-DEBIT-CUSTOM-100K',
-            price: '80000',
-            priceCurrency: 'NGN',
-            priceValidUntil: '2027-12-31',
-            itemCondition: 'https://schema.org/NewCondition',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=heavy_metal',
-            seller: {
-              '@type': 'Organization',
-              name: 'CHIP NG Technologies Ltd'
-            }
-          }
-        ]
-      }
+      aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+      review: CHIPNG_PRODUCT_REVIEWS,
+      offers: buildChipngAggregateOffers('https://www.chipng.com/buy-card')
     },
     {
       '@type': 'FAQPage',

@@ -29,6 +29,12 @@ import {
 import BrandLogo from '../components/BrandLogo';
 import chipngExactTile from '../assets/images/chipng_exact_tile.png';
 import { SeoHead } from '../components/seo/SeoHead';
+import {
+  CHIPNG_PRODUCT_IMAGES,
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+  buildChipngAggregateOffers,
+} from '../utils/productSchemaData';
 
 interface CommercialLandingViewProps {
   slug: string;
@@ -70,23 +76,23 @@ export default function CommercialLandingView({
     }
   };
 
+  const canonicalUrl = `https://www.chipng.com/${page.slug}`;
   const pageSchema = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'Product',
+        '@id': `${canonicalUrl}#product`,
         name: page.headline,
         description: page.metaDescription,
+        image: CHIPNG_PRODUCT_IMAGES,
+        sku: `CHIP-${page.slug.toUpperCase()}`,
+        mpn: 'NTAG216-NG',
         brand: { '@type': 'Brand', name: 'CHIP NG' },
         areaServed: page.locationFocus || 'Nigeria',
-        offers: {
-          '@type': 'AggregateOffer',
-          priceCurrency: 'NGN',
-          lowPrice: '30000',
-          highPrice: '100000',
-          availability: 'https://schema.org/InStock',
-          url: `https://www.chipng.com/${page.slug}`,
-        },
+        aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+        review: CHIPNG_PRODUCT_REVIEWS,
+        offers: buildChipngAggregateOffers(canonicalUrl),
       },
       {
         '@type': 'FAQPage',
@@ -362,6 +368,46 @@ export default function CommercialLandingView({
             </div>
           </section>
         )}
+
+        {/* Verified Customer Reviews (matches Product JSON-LD) */}
+        <section className="py-16 bg-[#FAFAFA] dark:bg-[#0A0B0E] border-b border-neutral-200/80 dark:border-neutral-800">
+          <div className="max-w-6xl mx-auto px-6 sm:px-8">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-1.5 text-amber-500 text-xs font-bold mb-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className="w-3.5 h-3.5 fill-current" />
+                ))}
+                <span className="text-neutral-700 dark:text-neutral-300 ml-1">4.9 / 5 Average Rating (47 Verified Reviews)</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
+                Trusted by Nigerian Founders & Executives
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {CHIPNG_PRODUCT_REVIEWS.map((rev, idx) => (
+                <div
+                  key={idx}
+                  className="p-6 rounded-2xl bg-white dark:bg-[#12141B] border border-neutral-200/80 dark:border-neutral-800 flex flex-col justify-between shadow-xs"
+                >
+                  <div>
+                    <div className="flex items-center gap-1 text-amber-500 mb-3">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className="w-3.5 h-3.5 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                      "{rev.reviewBody}"
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs font-bold text-neutral-950 dark:text-white">
+                    {rev.author.name} · <span className="text-neutral-500 font-normal">{rev.datePublished}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Conversion CTA Banner */}
         <section className="py-20 bg-neutral-950 text-white relative overflow-hidden">

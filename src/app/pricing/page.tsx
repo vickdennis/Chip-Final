@@ -3,6 +3,12 @@ import type { Metadata } from 'next';
 import { JsonLd } from '../components/seo/JsonLd';
 import { Breadcrumbs } from '../components/seo/Breadcrumbs';
 import { AeoAnswerBox } from '../components/seo/AeoAnswerBox';
+import {
+  CHIPNG_PRODUCT_IMAGES,
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+  buildChipngAggregateOffers,
+} from '../../utils/productSchemaData';
 
 export const metadata: Metadata = {
   title: 'NFC Business Card Price in Nigeria — 2026 Transparent Pricing | CHIP NG',
@@ -25,47 +31,20 @@ const pricingSchema = {
   '@graph': [
     {
       '@type': 'Product',
-      '@id': 'https://chipng.com/pricing#product-pricing',
+      '@id': 'https://www.chipng.com/pricing#product-pricing',
       name: 'CHIP NG Smart Business Card Range',
+      image: CHIPNG_PRODUCT_IMAGES,
       description:
         'Official 2026 price lineup for CHIP NG contactless smart cards in Nigeria. Three hardware tiers with zero monthly subscription fees.',
+      sku: 'CHIP-NFC-RANGE-2026',
+      mpn: 'NTAG216-NG',
       brand: {
         '@type': 'Brand',
         name: 'CHIP NG'
       },
-      offers: {
-        '@type': 'AggregateOffer',
-        priceCurrency: 'NGN',
-        lowPrice: '30000',
-        highPrice: '100000',
-        offerCount: '3',
-        offers: [
-          {
-            '@type': 'Offer',
-            name: 'NFC Smart Black/White PVC Card',
-            price: '30000',
-            priceCurrency: 'NGN',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=pvc'
-          },
-          {
-            '@type': 'Offer',
-            name: 'NFC Smart Metal Card',
-            price: '50000',
-            priceCurrency: 'NGN',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=metal'
-          },
-          {
-            '@type': 'Offer',
-            name: 'Metal Debit Card + Custom Design',
-            price: '80000',
-            priceCurrency: 'NGN',
-            availability: 'https://schema.org/InStock',
-            url: 'https://chipng.com/buy-card?tier=heavy_metal'
-          }
-        ]
-      }
+      aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+      review: CHIPNG_PRODUCT_REVIEWS,
+      offers: buildChipngAggregateOffers('https://www.chipng.com/buy-card')
     },
     {
       '@type': 'FAQPage',

@@ -44,6 +44,7 @@ import { SocialProofToast } from '../components/funnel/SocialProofToast';
 import { useCurrency } from '../context/CurrencyContext';
 import { SeoHead } from '../components/seo/SeoHead';
 import { BUY_CARD_META, BUY_CARD_SCHEMA_JSON_LD } from '../utils/buyCardSeo';
+import { CHIPNG_PRODUCT_REVIEWS } from '../utils/productSchemaData';
 
 // Lazy-load heavier checkout & customization modals to keep the initial page bundle lean
 const CardCustomizerModal = lazy(() =>
@@ -1090,6 +1091,48 @@ export default function NfcSalesView({
             </button>
           </div>
 
+        </div>
+      </section>
+
+      {/* ================= VERIFIED CUSTOMER REVIEWS (4.9 / 5) ================= */}
+      <section className="py-14 sm:py-20 px-6 sm:px-8 border-t border-neutral-200/80 dark:border-white/10 relative z-10 content-auto">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10 sm:mb-12">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs font-bold mb-3">
+              <div className="flex items-center gap-0.5 text-amber-500">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className="w-3.5 h-3.5 fill-current" />
+                ))}
+              </div>
+              <span>4.9 / 5 Average Rating · 47 Verified Reviews</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-neutral-950 dark:text-white">
+              Verified Client Reviews Across Nigeria
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {CHIPNG_PRODUCT_REVIEWS.map((rev, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-white dark:bg-[#111318] border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between shadow-xs"
+              >
+                <div>
+                  <div className="flex items-center gap-1 text-amber-500 mb-3">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                    "{rev.reviewBody}"
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-white/10 text-xs font-bold text-neutral-950 dark:text-white">
+                  {rev.author.name} · <span className="text-neutral-500 font-normal">{rev.datePublished}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

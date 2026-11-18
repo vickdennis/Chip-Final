@@ -12,6 +12,12 @@
 import { COMMERCIAL_PAGES } from '../data/commercialPagesData';
 import { extractUsernameFromPath } from './usernameHelper';
 import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo';
+import {
+  CHIPNG_PRODUCT_IMAGES,
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+  buildChipngAggregateOffers,
+} from './productSchemaData';
 import { 
   HOME_SCHEMA_JSON_LD, 
   PRICING_SCHEMA_JSON_LD, 
@@ -915,7 +921,7 @@ const BUY_CARD_SSR_HTML = buildSsrShell(`
   <section style="margin-bottom: 40px;">
     <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Buy Contactless NFC Smart Business Cards in Nigeria</h1>
     <p style="font-size: 16px; color: #D4D4D8; max-width: 720px;">
-      Crafted in our Lagos workshop with genuine NXP NTAG216 microchips and dynamic cloud profiles. Works instantly on iPhone and Android with zero app required. Multi-currency international checkout supported.
+      Crafted in our Lagos workshop with genuine NXP NTAG216 microchips and dynamic cloud profiles. Works instantly on iPhone and Android with zero app required. Multi-currency international checkout supported. Rated 4.9/5 across 47 verified reviews.
     </p>
   </section>
   <section style="display: grid; gap: 20px; margin-bottom: 40px;">
@@ -932,13 +938,21 @@ const BUY_CARD_SSR_HTML = buildSsrShell(`
       <p style="margin: 0; color: #A1A1AA;">Full custom dual-sided CNC/fiber design in Matte Black, 24K Gold Mirror, or Brushed Titanium + VIP onboarding.</p>
     </article>
   </section>
+  <section style="margin-bottom: 32px;">
+    <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Verified Customer Reviews (4.9 / 5)</h2>
+    <ul style="list-style: none; padding: 0; display: grid; gap: 12px; color: #D4D4D8;">
+      <li><strong>Amara Nwosu (5/5):</strong> "I swapped out my box of paper business cards for the CHIPNG Matte Obsidian NFC Card. In our first tech conference in Lagos, I closed 8 enterprise contracts."</li>
+      <li><strong>David Adebayo (5/5):</strong> "My CHIPNG link-in-bio page converts 4x higher than standard link hubs. Clients love tapping my physical card to save my vCard."</li>
+      <li><strong>Elena Rostova (5/5):</strong> "Every executive meeting I attend starts with an NFC tap. The physical weight of the metal card immediately sparks conversation."</li>
+    </ul>
+  </section>
 `);
 
 const CORPORATE_BUNDLE_SSR_HTML = buildSsrShell(`
   <section style="margin-bottom: 40px;">
     <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">CHIP NG Corporate Fleet Bundle — 10 Smart PVC Cards + 1 Free CEO Metal Card</h1>
     <p style="font-size: 16px; color: #D4D4D8; max-width: 740px;">
-      Equip your Nigerian sales team, real estate agency, dealership, or executive staff with unified contactless NFC business cards. One-time package price: ₦300,000 NGN with centralized team dashboard control and 24–48h Lagos delivery.
+      Equip your Nigerian sales team, real estate agency, dealership, or executive staff with unified contactless NFC business cards. One-time package price: ₦300,000 NGN with centralized team dashboard control and 24–48h Lagos delivery. Rated 4.9/5 by 47 verified enterprise reviewers.
     </p>
     <ul style="color: #D4D4D8; margin-top: 20px; padding-left: 20px;">
       <li>10x Custom Branded Matte PVC NFC Cards for staff</li>
@@ -1013,15 +1027,24 @@ export async function applyUniversalSsr(
     const corpSchema = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Product',
+      '@id': 'https://www.chipng.com/corporate-bundle#product',
       name: 'CHIP NG Corporate Fleet NFC Business Card Bundle (10 PVC + 1 Free CEO Metal)',
+      image: CHIPNG_PRODUCT_IMAGES,
       description: 'Enterprise NFC business card package in Nigeria: 10 custom Smart PVC cards + 1 complimentary Stainless Steel CEO Metal card for ₦300,000.',
+      sku: 'CHIP-CORP-FLEET-11',
+      mpn: 'NTAG216-CORP-11',
       brand: { '@type': 'Brand', name: 'CHIP NG' },
+      aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+      review: CHIPNG_PRODUCT_REVIEWS,
       offers: {
         '@type': 'Offer',
         price: '300000',
         priceCurrency: 'NGN',
+        priceValidUntil: '2027-12-31',
+        itemCondition: 'https://schema.org/NewCondition',
         availability: 'https://schema.org/InStock',
         url: 'https://www.chipng.com/corporate-bundle',
+        seller: { '@type': 'Organization', name: 'CHIP NG Technologies Ltd' },
       },
     });
     return injectSeoMetadata(output, {
@@ -1082,17 +1105,16 @@ export async function applyUniversalSsr(
       '@graph': [
         {
           '@type': 'Product',
+          '@id': `${canonical}#product`,
           name: page.headline,
           description: page.overview,
-          image: 'https://www.chipng.com/chipng_3d_logo.jpg',
+          image: CHIPNG_PRODUCT_IMAGES,
+          sku: `CHIP-${page.slug.toUpperCase()}`,
+          mpn: 'NTAG216-NG',
           brand: { '@type': 'Brand', name: 'CHIP NG' },
-          offers: {
-            '@type': 'AggregateOffer',
-            priceCurrency: 'NGN',
-            lowPrice: '30000',
-            highPrice: '100000',
-            offerCount: '3'
-          }
+          aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+          review: CHIPNG_PRODUCT_REVIEWS,
+          offers: buildChipngAggregateOffers(canonical),
         },
         {
           '@type': 'FAQPage',
@@ -1118,6 +1140,7 @@ export async function applyUniversalSsr(
         <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 8px 0 14px 0;">${escapeHtml(page.headline)}</h1>
         <p style="font-size: 17px; color: #D4D4D8; max-width: 760px;">${escapeHtml(page.subheadline)}</p>
         <p style="font-size: 15px; color: #A1A1AA; max-width: 760px;">${escapeHtml(page.overview)}</p>
+        <p style="font-size: 14px; color: #16a34a; font-weight: 700;">Rated 4.9/5 across 47 verified customer reviews</p>
         <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 32px;">Key Advantages</h2>
         <ul style="color: #D4D4D8;">
           ${page.keyBenefits.map(b => `<li><strong>${escapeHtml(b.title)}:</strong> ${escapeHtml(b.description)}</li>`).join('\n')}
@@ -1126,6 +1149,12 @@ export async function applyUniversalSsr(
         <dl style="color: #D4D4D8;">
           ${page.technicalSpecs.map(s => `<dt style="font-weight:700;">${escapeHtml(s.label)}</dt><dd style="margin: 0 0 8px 0; color:#A1A1AA;">${escapeHtml(s.value)}</dd>`).join('\n')}
         </dl>
+        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Verified Customer Reviews</h2>
+        <ul style="color: #D4D4D8;">
+          <li><strong>Amara Nwosu (5/5):</strong> "I swapped out my box of paper business cards for the CHIPNG Matte Obsidian NFC Card and closed 8 enterprise contracts in Lagos."</li>
+          <li><strong>David Adebayo (5/5):</strong> "My CHIPNG link-in-bio page converts 4x higher than standard link hubs."</li>
+          <li><strong>Elena Rostova (5/5):</strong> "Every executive meeting I attend starts with an NFC tap."</li>
+        </ul>
         <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Frequently Asked Questions</h2>
         <dl style="color: #D4D4D8;">
           ${page.faqs.map(f => `<dt style="font-weight:700;">${escapeHtml(f.question)}</dt><dd style="margin: 4px 0 12px 0; color:#A1A1AA;">${escapeHtml(f.answer)}</dd>`).join('\n')}

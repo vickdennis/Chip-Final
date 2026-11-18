@@ -6,6 +6,11 @@ import { MakroFooter } from '../components/makro/MakroFooter';
 import { ShieldCheck, ArrowLeft, Building2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 import { SeoHead } from '../components/seo/SeoHead';
+import {
+  CHIPNG_PRODUCT_IMAGES,
+  CHIPNG_PRODUCT_AGGREGATE_RATING,
+  CHIPNG_PRODUCT_REVIEWS,
+} from '../utils/productSchemaData';
 
 interface CorporateBundleViewProps {
   onNavigate: (view: ViewState) => void;
@@ -28,16 +33,25 @@ export const CorporateBundleView: React.FC<CorporateBundleViewProps> = ({
   const corporateSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
+    '@id': 'https://www.chipng.com/corporate-bundle#product',
     name: 'CHIP NG Corporate Fleet NFC Smart Card Bundle (10 PVC + 1 Free CEO Metal)',
+    image: CHIPNG_PRODUCT_IMAGES,
     description:
       'Equip your entire team with 10 custom printed PVC smart business cards plus 1 complimentary laser-engraved Stainless Steel CEO metal NFC card and unified analytics dashboard.',
+    sku: 'CHIP-CORP-FLEET-11',
+    mpn: 'NTAG216-CORP-11',
     brand: { '@type': 'Brand', name: 'CHIP NG' },
+    aggregateRating: CHIPNG_PRODUCT_AGGREGATE_RATING,
+    review: CHIPNG_PRODUCT_REVIEWS,
     offers: {
       '@type': 'Offer',
       price: '300000',
       priceCurrency: 'NGN',
+      priceValidUntil: '2027-12-31',
+      itemCondition: 'https://schema.org/NewCondition',
       availability: 'https://schema.org/InStock',
       url: 'https://www.chipng.com/corporate-bundle',
+      seller: { '@type': 'Organization', name: 'CHIP NG Technologies Ltd' },
     },
   };
 
