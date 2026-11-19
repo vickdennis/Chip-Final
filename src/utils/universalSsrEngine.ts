@@ -919,15 +919,15 @@ const HOME_SSR_HTML = buildSsrShell(`
 
 const BUY_CARD_SSR_HTML = buildSsrShell(`
   <section style="margin-bottom: 40px;">
-    <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Buy Contactless NFC Smart Business Cards in Nigeria</h1>
+    <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">YOUR BUSINESS DESERVES MORE THAN A PAPER BUSINESS CARD.</h1>
     <p style="font-size: 16px; color: #D4D4D8; max-width: 720px;">
-      Crafted in our Lagos workshop with genuine NXP NTAG216 microchips and dynamic cloud profiles. Works instantly on iPhone and Android with zero app required. Multi-currency international checkout supported. Rated 4.9/5 across 47 verified reviews.
+      Make unforgettable first impressions with CHIPNG NFC smart business cards. Share your contact details, social media, website and business information with a single tap—zero app needed. Includes pre-production design proof approval, lifetime CHIP Core hosting, 3 months free CHIP Pro, and Flutterwave checkout.
     </p>
   </section>
   <section style="display: grid; gap: 20px; margin-bottom: 40px;">
     <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
-      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">NFC Smart White / Black PVC Card — ₦30,000 / ₦35,000</h2>
-      <p style="margin: 0; color: #A1A1AA;">Lightweight matte polymer smart card with 1-tap vCard sharing, custom logo print, dynamic QR backup, and lifetime cloud bio link.</p>
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">PVC NFC Card (₦30,000) &amp; Premium PVC NFC Card (₦35,000)</h2>
+      <p style="margin: 0; color: #A1A1AA;">Waterproof custom-printed smart business cards with genuine NXP NTAG216 chip, dynamic QR backup, and pre-production design proof approval.</p>
     </article>
     <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
       <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">NFC Smart Metal Card — ₦50,000</h2>
@@ -994,11 +994,13 @@ export async function applyUniversalSsr(
     normalizedPath === '/onboarding' ||
     normalizedPath === '/client-onboarding' ||
     normalizedPath === '/setup-profile' ||
-    normalizedPath === '/setup'
+    normalizedPath === '/setup' ||
+    normalizedPath === '/buy-card/payment-status' ||
+    normalizedPath === '/buycard/payment-status'
   ) {
     return injectSeoMetadata(output, {
-      title: 'CHIP NG Account Portal',
-      description: 'Sign in or manage your CHIP NG contactless smart business card and digital profile.',
+      title: 'CHIPNG Order & Account Portal',
+      description: 'Order status and account portal for CHIPNG contactless smart business cards.',
       canonical: `https://www.chipng.com${normalizedPath}`,
       robots: 'noindex, nofollow',
     });

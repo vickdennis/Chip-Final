@@ -148,7 +148,12 @@ function resolveRouteFromUrl(rawPath: string): {
   if (path === '/contact') {
     return { view: 'contact', publicUsername: null, blogSlug: null, commercialSlug: null };
   }
-  if (path === '/buy-card' || path === '/buycard') {
+  if (
+    path === '/buy-card' ||
+    path === '/buycard' ||
+    path === '/buy-card/payment-status' ||
+    path === '/buycard/payment-status'
+  ) {
     return { view: 'nfc-sales', publicUsername: null, blogSlug: null, commercialSlug: null };
   }
   if (path === '/shop') {

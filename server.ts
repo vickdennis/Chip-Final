@@ -15,6 +15,7 @@ import { generateDynamicSitemapXml, generateRobotsTxt, generateLlmsTxt, generate
 import { generateVCardString } from './src/utils/vcardGenerator';
 import { formatResendHtmlEmail, wrapChipngSupportEmail } from './src/utils/resendEmailTemplates';
 import { parseCsvText, mapCsvRowsToProfiles, convertGoogleUrlToCsvExport, ParsedFormUser } from './src/utils/googleFormParser';
+import { registerFlutterwaveOrderRoutes } from './src/server/flutterwaveOrderService';
 
 // Initialize SQLite database
 const db = new Database('leads.sqlite', { verbose: console.log });
@@ -3519,170 +3520,12 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
-  // Secure Server-Side Flutterwave Transaction Verification (Multi-Currency Aware)
-  const verifyFlutterwaveHandler = async (req: any, res: any) => {
-    try {
-      const reference = req.params.reference || req.params.tx_ref || req.params.id;
-      const flwSecret = process.env.FLWSECK || process.env.FLUTTERWAVE_SECRET_KEY || 'FLWSECK-6db7e86214783ad04fe0b4131b7c647e-19d9b3fb89bvt-X';
-
-      let verificationData: any = null;
-      let isVerified = false;
-
-      if (flwSecret && reference) {
-        try {
-          // If reference is numeric, verify by transaction ID, else verify by tx_ref
-          const isNumericId = /^\d+$/.test(reference);
-          const flwUrl = isNumericId 
-            ? `https://api.flutterwave.com/v3/transactions/${encodeURIComponent(reference)}/verify`
-            : `https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=${encodeURIComponent(reference)}`;
-
-          const verifyResp = await fetch(flwUrl, {
-            headers: {
-              Authorization: `Bearer ${flwSecret}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          const json = await verifyResp.json();
-          if (json.status === 'success' && json.data && (json.data.status === 'successful' || json.data.status === 'completed')) {
-            verificationData = json.data;
-            isVerified = true;
-          } else if (json.status === 'success' && json.data) {
-            verificationData = json.data;
-            isVerified = true;
-          } else {
-            console.warn('Flutterwave verification warning:', json.message);
-            // Fallback for dev or sandbox simulation
-            isVerified = true;
-          }
-        } catch (apiErr: any) {
-          console.error('Flutterwave API call error:', apiErr);
-          isVerified = true; // graceful fallback if provider network is down
-        }
-      } else {
-        isVerified = true;
-      }
-
-      if (isVerified) {
-        const orderPayload = req.body || {};
-        const paidCurrency = String(
-          verificationData?.currency || orderPayload.currency || 'NGN'
-        ).toUpperCase();
-        const paidAmount = Number(
-          verificationData?.amount || orderPayload.paid_amount || orderPayload.amount || 0
-        );
-
-        // Compute normalized NGN equivalent for reporting & commissions
-        let amountInNaira = Number(orderPayload.amount_ngn || 0);
-        if (!amountInNaira) {
-          if (paidCurrency === 'NGN') {
-            amountInNaira = Math.round(paidAmount);
-          } else {
-            const { rates } = await getLiveNgnRates();
-            const rate = rates[paidCurrency] || FALLBACK_NGN_RATES[paidCurrency] || FALLBACK_NGN_RATES.USD;
-            amountInNaira = rate > 0 ? Math.round(paidAmount / rate) : Math.round(paidAmount * 1550);
-          }
-        }
-
-        const email = verificationData?.customer?.email || orderPayload.email || '';
-        const name = verificationData?.metadata?.name || orderPayload.name || 'Customer';
-        const baseCardType = verificationData?.metadata?.card_tier || orderPayload.card_type || 'Custom NFC Card';
-        const cardType = paidCurrency !== 'NGN'
-          ? `${baseCardType} [Paid ${paidAmount.toLocaleString()} ${paidCurrency}]`
-          : baseCardType;
-        const phone = verificationData?.metadata?.phone || orderPayload.phone || '';
-
-        // Check for duplicate reference
-        const existingSale = db.prepare('SELECT id FROM nfc_sales WHERE payment_reference = ?').get(reference);
-        let saleId = existingSale ? (existingSale as any).id : null;
-
-        if (!existingSale) {
-          const insertStmt = db.prepare(`
-            INSERT INTO nfc_sales (name, email, phone, card_type, amount, payment_reference)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `);
-          const info = insertStmt.run(name, email, phone, cardType, amountInNaira, reference);
-          saleId = info.lastInsertRowid;
-
-          // Synchronize with Supabase purchases table
-          try {
-            await getSupabase().from('purchases').insert([{
-              buyer_email: email,
-              amount: amountInNaira,
-              platform_fee: 0,
-              net_earnings: amountInNaira,
-              reference,
-              status: 'completed',
-              purchase_type: 'nfc_card'
-            }]);
-          } catch(sbErr) {
-            console.warn('Supabase purchase record sync skipped:', sbErr);
-          }
-
-          // Send email receipt notification via nodemailer
-          try {
-            const port = parseInt(process.env.SMTP_PORT || '465');
-            const transporter = nodemailer.createTransport({
-              host: process.env.SMTP_HOST || 'smtp.gmail.com',
-              port,
-              secure: port === 465,
-              auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-              },
-            });
-            if (process.env.SMTP_USER) {
-              const formattedPayment = paidCurrency === 'NGN'
-                ? `₦${amountInNaira.toLocaleString()} NGN`
-                : `${paidAmount.toLocaleString()} ${paidCurrency} (~₦${amountInNaira.toLocaleString()} NGN)`;
-              await transporter.sendMail({
-                from: `"CHIP NG Orders" <${process.env.SMTP_USER}>`,
-                to: 'vickthor.dennis@gmail.com',
-                subject: `[CONFIRMED ORDER] ${formattedPayment} - ${cardType} (${name})`,
-                text: `Verified CHIP NG Order Received:\n\nReference: ${reference}\nCustomer: ${name} (${email})\nPhone/WhatsApp: ${phone}\nCard Type: ${cardType}\nPaid: ${formattedPayment}\nDelivery Country: ${orderPayload.country || 'Nigeria'}\nDelivery Address: ${orderPayload.delivery_address || 'See dashboard'}\n\nStatus: Paid & Verified.`
-              });
-            }
-          } catch (emailErr) {
-            console.warn('Order confirmation email skipped:', emailErr);
-          }
-
-          // Attribute Referral Incentive: 10% cash commission per physical card sold
-          const rawReferrer = verificationData?.metadata?.referrer || orderPayload.referrer || orderPayload.ref || null;
-          if (rawReferrer && typeof rawReferrer === 'string' && rawReferrer.trim()) {
-            const cleanReferrer = rawReferrer.trim().replace(/^@/, '').toLowerCase();
-            const commissionRate = 0.10; // 10% cash commission
-            const commissionAmount = Math.round(amountInNaira * commissionRate);
-            try {
-              db.prepare(`
-                INSERT OR IGNORE INTO referral_sales 
-                  (referrer, buyer_name, buyer_email, card_type, card_amount, commission_rate, commission_amount, payment_reference, payout_status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-              `).run(cleanReferrer, name, email, cardType, amountInNaira, commissionRate, commissionAmount, reference);
-              console.log(`[Referral Incentive] Credited 10% cash commission (₦${commissionAmount}) to @${cleanReferrer} for sale ref: ${reference}`);
-            } catch (refErr) {
-              console.warn('[Referral Attribution Warning]', refErr);
-            }
-          }
-        }
-
-        res.json({
-          success: true,
-          verified: true,
-          reference,
-          sale_id: saleId,
-          message: 'Payment confirmed and verified successfully.'
-        });
-      } else {
-        res.status(400).json({ success: false, error: 'Could not verify payment' });
-      }
-    } catch (err: any) {
-      console.error('Verify error:', err);
-      res.status(500).json({ error: err.message });
-    }
-  };
-
-  app.post('/api/flutterwave/verify/:id', verifyFlutterwaveHandler);
-  app.post('/api/flutterwave/verify-ref/:tx_ref', verifyFlutterwaveHandler);
-  app.post('/api/paystack/verify/:reference', verifyFlutterwaveHandler);
+  // Register CHIPNG Buy-Card Flutterwave Standard Checkout, Verification, Webhook, Catalog, Logo Upload & Sales Routes
+  registerFlutterwaveOrderRoutes(app, {
+    getSupabase,
+    getAdminSupabase: getSupabaseForRequest,
+    db,
+  });
 
   // ================= The Incentive: Referral & Affiliate Endpoints =================
   // GET /api/referrals/stats/:username - Comprehensive metrics, milestone tracker, and sales history
@@ -5477,14 +5320,7 @@ Ref: ${payment_reference}`,
     }
   });
 
-  app.get('/api/sales', (req, res) => {
-    try {
-      const rows = db.prepare('SELECT * FROM nfc_sales ORDER BY created_at DESC').all();
-      res.json({ sales: rows });
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  });
+  // /api/sales is served by registerFlutterwaveOrderRoutes above (aggregates nfc_orders, nfc_sales & purchases)
 
   const handleBroadcastNotification = (req: any, res: any) => {
     const title = req.body.title;

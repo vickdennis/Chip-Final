@@ -1217,3 +1217,139 @@ USING (bucket_id = 'covers' AND (auth.uid() IS NOT NULL OR true));
 -- 5. Grant access permissions on storage schemas to roles
 GRANT ALL ON TABLE storage.objects TO anon, authenticated, service_role;
 GRANT ALL ON TABLE storage.buckets TO anon, authenticated, service_role;
+
+-- =====================================================================
+-- 11. BUY-CARD FLUTTERWAVE ORDERS & ABANDONED CHECKOUT RECOVERY (ADDITIVE)
+-- Non-destructive migration: preserves all existing tables & order history.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.nfc_orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_number TEXT UNIQUE NOT NULL,
+  access_token TEXT NOT NULL,
+  product_id TEXT NOT NULL,
+  product_name TEXT NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity >= 1 AND quantity <= 500),
+  unit_price_ngn NUMERIC(12, 2) NOT NULL,
+  delivery_fee_ngn NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  total_amount_ngn NUMERIC(12, 2) NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'NGN',
+  customer_name TEXT NOT NULL,
+  customer_email TEXT NOT NULL,
+  customer_phone TEXT NOT NULL,
+  business_name TEXT,
+  delivery_address TEXT NOT NULL,
+  delivery_state TEXT NOT NULL,
+  delivery_instructions TEXT,
+  customization_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  design_approval_acknowledged BOOLEAN NOT NULL DEFAULT false,
+  marketing_consent BOOLEAN NOT NULL DEFAULT false,
+  payment_gateway TEXT NOT NULL DEFAULT 'flutterwave',
+  payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'under_verification', 'successful', 'failed', 'cancelled')),
+  tx_ref TEXT UNIQUE NOT NULL,
+  flw_transaction_id TEXT,
+  flw_ref TEXT,
+  payment_history JSONB NOT NULL DEFAULT '[]'::jsonb,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_nfc_orders_tx_ref ON public.nfc_orders(tx_ref);
+CREATE INDEX IF NOT EXISTS idx_nfc_orders_order_number ON public.nfc_orders(order_number);
+CREATE INDEX IF NOT EXISTS idx_nfc_orders_email ON public.nfc_orders(customer_email);
+CREATE INDEX IF NOT EXISTS idx_nfc_orders_status ON public.nfc_orders(payment_status);
+
+DROP TRIGGER IF EXISTS update_nfc_orders_updated_at ON public.nfc_orders;
+CREATE TRIGGER update_nfc_orders_updated_at
+BEFORE UPDATE ON public.nfc_orders
+FOR EACH ROW
+EXECUTE FUNCTION update_modified_column();
+
+ALTER TABLE public.nfc_orders ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can manage nfc_orders" ON public.nfc_orders;
+CREATE POLICY "Admins can manage nfc_orders"
+  ON public.nfc_orders FOR ALL
+  USING (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  )
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  );
+
+DROP POLICY IF EXISTS "Service role full access to nfc_orders" ON public.nfc_orders;
+CREATE POLICY "Service role full access to nfc_orders"
+  ON public.nfc_orders FOR ALL
+  USING (auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'service_role');
+
+GRANT ALL ON TABLE public.nfc_orders TO service_role;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.nfc_orders TO authenticated;
+
+CREATE TABLE IF NOT EXISTS public.card_funnel_leads (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  whatsapp TEXT,
+  business_name TEXT,
+  product_id TEXT,
+  product_name TEXT,
+  quantity INTEGER DEFAULT 1,
+  estimated_amount NUMERIC(12, 2) DEFAULT 0,
+  delivery_state TEXT,
+  customization_json JSONB DEFAULT '{}'::jsonb,
+  funnel_stage TEXT DEFAULT 'incomplete_checkout',
+  marketing_consent BOOLEAN DEFAULT false,
+  opted_out BOOLEAN DEFAULT false,
+  reminder_sent_count INTEGER DEFAULT 0,
+  last_reminder_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_card_funnel_leads_email ON public.card_funnel_leads(email);
+CREATE INDEX IF NOT EXISTS idx_card_funnel_leads_stage ON public.card_funnel_leads(funnel_stage);
+
+ALTER TABLE public.card_funnel_leads ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can insert consented funnel lead" ON public.card_funnel_leads;
+CREATE POLICY "Anyone can insert consented funnel lead"
+  ON public.card_funnel_leads FOR INSERT
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can manage funnel leads" ON public.card_funnel_leads;
+CREATE POLICY "Admins can manage funnel leads"
+  ON public.card_funnel_leads FOR ALL
+  USING (
+    auth.role() = 'service_role'
+    OR EXISTS (SELECT 1 FROM public.profiles AS p WHERE p.id = auth.uid() AND p.is_admin = true)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) = ANY(ARRAY[
+      'vickthor.dennis@gmail.com',
+      'victhtor.dennis@gmail.com',
+      'victor.dennis@gmail.com',
+      'vickthorden@gmail.com',
+      'support@chipng.com'
+    ])
+  )
+  WITH CHECK (true);
+
+GRANT ALL ON TABLE public.card_funnel_leads TO service_role, authenticated;
+GRANT INSERT ON TABLE public.card_funnel_leads TO anon;
+
+NOTIFY pgrst, 'reload schema';
+

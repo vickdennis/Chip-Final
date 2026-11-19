@@ -11,6 +11,7 @@ import { Resend } from 'resend';
 import { GoogleGenAI } from '@google/genai';
 import { formatResendHtmlEmail, wrapChipngSupportEmail } from '../src/utils/resendEmailTemplates';
 import { parseCsvText, mapCsvRowsToProfiles, convertGoogleUrlToCsvExport, ParsedFormUser } from '../src/utils/googleFormParser';
+import { registerFlutterwaveOrderRoutes } from '../src/server/flutterwaveOrderService';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthyjd.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
@@ -230,7 +231,7 @@ function getBaseHtml(): string {
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CHIP NG — Smart NFC Business Cards &amp; Link-in-Bio Platform</title><meta name="title" content="CHIP NG — Smart NFC Business Cards &amp; Link-in-Bio Platform" /><meta name="description" content="The premier contactless NFC smart business cards and dynamic link-in-bio platform in Nigeria. Sub-10ms NTAG216 response, zero app needed." /><meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" /><link rel="canonical" href="https://www.chipng.com/" /><meta property="og:type" content="website" /><meta property="og:url" content="https://www.chipng.com/" /><meta property="og:title" content="CHIP NG — Smart NFC Business Cards &amp; Link-in-Bio Platform" /><meta property="og:description" content="The premier contactless NFC smart business cards and dynamic link-in-bio platform in Nigeria." /><meta property="og:image" content="https://www.chipng.com/chipng_3d_logo.jpg" /><meta property="og:site_name" content="CHIP NG" /><meta property="twitter:card" content="summary_large_image" /><meta property="twitter:url" content="https://www.chipng.com/" /><meta property="twitter:title" content="CHIP NG" /><meta property="twitter:description" content="Contactless smart NFC business cards in Nigeria." /><meta property="twitter:image" content="https://www.chipng.com/chipng_3d_logo.jpg" /></head><body><div id="root"></div></body></html>';
 }
 
-const NOINDEX_PATH_PREFIXES = ['/admin', '/dashboard', '/enterprise', '/settings', '/login', '/checkout', '/onboarding'];
+const NOINDEX_PATH_PREFIXES = ['/admin', '/dashboard', '/enterprise', '/settings', '/login', '/checkout', '/onboarding', '/buy-card/payment-status', '/buycard/payment-status'];
 
 // Serverless SSR Handler for Pages, User Profiles, Search Engines & AI Crawlers on Vercel
 async function handleServerlessSsr(urlPath: string, req: Request, res: Response) {
@@ -3996,6 +3997,13 @@ app.post('/api/tiktok/event', async (req: Request, res: Response) => {
       error: err?.message || 'Failed to dispatch TikTok server event.',
     });
   }
+});
+
+// Register CHIPNG Buy-Card Flutterwave Standard Checkout, Webhook, Verification & Sales Routes
+registerFlutterwaveOrderRoutes(app, {
+  getSupabase,
+  getAdminSupabase: getSupabaseForRequest,
+  db: null,
 });
 
 // 404 Catch-All
