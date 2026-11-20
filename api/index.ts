@@ -466,16 +466,42 @@ const handleVCardServerless = async (req: Request, res: Response) => {
     return res.send(vCardContent);
   } catch (err: any) {
     console.error('vCard generation error:', err);
+    return res.status(500).send('Failed to generate vCard');
   }
 };
 
-app.get(['/api/vcard/:username', '/api/vcard', '/:username.vcf', '/@:username.vcf'], handleVCardServerless);
-app.get(['/:username/vcard', '/@:username/vcard'], (req: Request, res: Response, next: express.NextFunction) => {
-  if (req.query.download === '1' || req.query.format === 'vcf' || (req.headers.accept && req.headers.accept.includes('text/vcard'))) {
-    return handleVCardServerless(req, res);
+app.get(
+  [
+    '/api/vcard/:username',
+    '/api/vcard',
+    '/:username.vcf',
+    '/@:username.vcf',
+    '/api/:username.vcf',
+    '/api/@:username.vcf',
+  ],
+  handleVCardServerless
+);
+
+app.get(
+  [
+    '/:username/vcard',
+    '/@:username/vcard',
+    '/api/:username/vcard',
+    '/api/@:username/vcard',
+  ],
+  async (req: Request, res: Response) => {
+    if (
+      req.query.download === '1' ||
+      req.query.format === 'vcf' ||
+      (req.headers.accept && req.headers.accept.includes('text/vcard'))
+    ) {
+      return handleVCardServerless(req, res);
+    }
+    const rawUser = String(req.params.username || req.query.username || '').replace(/^@+/, '').trim();
+    const targetPath = rawUser ? `/${rawUser}/vcard` : '/';
+    return handleServerlessSsr(targetPath, req, res);
   }
-  next();
-});
+);
 
 // --- Dynamic Cover Photo Proxy for Open Graph & Social Sharing ---
 // Bypasses Supabase storage 'x-robots-tag: none' so WhatsApp, Twitter/X, iMessage, LinkedIn preview cards work
