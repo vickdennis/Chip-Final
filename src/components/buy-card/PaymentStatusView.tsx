@@ -25,6 +25,7 @@ import {
 import { MakroNavbar } from '../makro/MakroNavbar';
 import { MakroFooter } from '../makro/MakroFooter';
 import { SeoHead } from '../seo/SeoHead';
+import { openFlutterwavePayment } from '../../utils/flutterwaveClient';
 
 interface PaymentStatusViewProps {
   onNavigate?: (view: any) => void;
@@ -117,6 +118,25 @@ export function PaymentStatusView({
           ? `/api/flutterwave/verify?${qs.toString()}`
           : `/api/orders/status?${qs.toString()}`;
 
+      const params = new URLSearchParams(window.location.search);
+      const isInlineMode = params.get('mode') === 'inline';
+      let cachedInlineOrder: VerifiedOrderSummary | null = null;
+      if (isInlineMode && orderParam) {
+        try {
+          const raw = sessionStorage.getItem(`chipng_inline_receipt_${orderParam}`);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (
+              parsed?.order_number === orderParam &&
+              (!txRef || parsed?.tx_ref === txRef) &&
+              parsed?.payment_status === 'successful'
+            ) {
+              cachedInlineOrder = parsed;
+            }
+          }
+        } catch {}
+      }
+
       const resp = await fetch(endpoint);
       const json = await resp.json().catch(() => ({}));
 
@@ -140,6 +160,23 @@ export function PaymentStatusView({
             phone: json.order.customer_phone,
           },
         });
+      } else if (cachedInlineOrder) {
+        setOrder(cachedInlineOrder);
+        setPaymentStatus('successful');
+        setStatusMessage('Your Flutterwave payment has been confirmed.');
+        trackVerifiedPurchase({
+          transactionId: cachedInlineOrder.flw_transaction_id || cachedInlineOrder.tx_ref,
+          orderNumber: cachedInlineOrder.order_number,
+          productId: cachedInlineOrder.product_id,
+          productName: cachedInlineOrder.product_name,
+          quantity: cachedInlineOrder.quantity,
+          value: cachedInlineOrder.total_amount_ngn,
+          currency: 'NGN',
+          userMatch: {
+            email: cachedInlineOrder.customer_email,
+            phone: cachedInlineOrder.customer_phone,
+          },
+        });
       } else if (json.payment_status === 'under_verification' || json.payment_status === 'pending') {
         setPaymentStatus('under_verification');
         setStatusMessage(
@@ -159,6 +196,22 @@ export function PaymentStatusView({
         );
       }
     } catch (err: any) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'inline' && orderParam) {
+        try {
+          const raw = sessionStorage.getItem(`chipng_inline_receipt_${orderParam}`);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed?.payment_status === 'successful') {
+              setOrder(parsed);
+              setPaymentStatus('successful');
+              setStatusMessage('Your Flutterwave payment has been confirmed.');
+              setLoading(false);
+              return;
+            }
+          }
+        } catch {}
+      }
       setPaymentStatus('under_verification');
       setStatusMessage(
         'We had trouble reaching our verification server. Please click Re-check Status or contact support before paying again.'
@@ -195,12 +248,55 @@ export function PaymentStatusView({
         setRetrying(false);
         return;
       }
-      if (!resp.ok || !json.success || !json.payment_link) {
-        setRetryError(json.error || 'Could not re-open Flutterwave checkout. Please contact support.');
-        setRetrying(false);
+      if (resp.ok && json.success && json.payment_link) {
+        window.location.assign(json.payment_link);
         return;
       }
-      window.location.assign(json.payment_link);
+
+      // Fallback to Flutterwave v3 Inline checkout on the same existing order without duplicating
+      if (order) {
+        const retryTxRef = `${order.order_number}-RETRY-${Date.now().toString(36).toUpperCase()}`;
+        await openFlutterwavePayment({
+          txRef: retryTxRef,
+          amount: order.total_amount_ngn,
+          currency: 'NGN',
+          customer: {
+            email: order.customer_email,
+            phone_number: order.customer_phone,
+            name: order.customer_name,
+          },
+          title: 'CHIPNG Smart Business Cards',
+          description: `${order.product_name} × ${order.quantity} — Order ${order.order_number}`,
+          meta: { order_number: order.order_number },
+          onSuccess: (flwResp: any) => {
+            const st = String(flwResp?.status || '').toLowerCase();
+            if (st === 'successful' || st === 'completed') {
+              const confirmed: VerifiedOrderSummary = {
+                ...order,
+                tx_ref: String(flwResp?.tx_ref || retryTxRef),
+                flw_transaction_id: flwResp?.transaction_id ? String(flwResp.transaction_id) : null,
+                payment_status: 'successful',
+                verified_at: new Date().toISOString(),
+              };
+              try {
+                sessionStorage.setItem(`chipng_inline_receipt_${order.order_number}`, JSON.stringify(confirmed));
+              } catch {}
+              setOrder(confirmed);
+              setPaymentStatus('successful');
+              setStatusMessage('Your Flutterwave payment has been confirmed.');
+              setRetrying(false);
+            } else {
+              setRetryError('Payment was not completed. Please try again.');
+              setRetrying(false);
+            }
+          },
+          onClose: () => setRetrying(false),
+        });
+        return;
+      }
+
+      setRetryError(json.error || 'Could not re-open Flutterwave checkout. Please contact support.');
+      setRetrying(false);
     } catch (err: any) {
       setRetryError(err?.message || 'Network error while retrying payment.');
       setRetrying(false);

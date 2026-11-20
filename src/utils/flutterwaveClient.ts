@@ -62,7 +62,8 @@ export async function openFlutterwavePayment(options: FlutterwaveCheckoutOptions
   await ensureFlutterwaveScript();
 
   if (typeof (window as any).FlutterwaveCheckout === 'function') {
-    (window as any).FlutterwaveCheckout({
+    let modalHandle: any = null;
+    modalHandle = (window as any).FlutterwaveCheckout({
       public_key: FLUTTERWAVE_PUBLIC_KEY,
       tx_ref,
       amount: options.amount,
@@ -83,7 +84,12 @@ export async function openFlutterwavePayment(options: FlutterwaveCheckoutOptions
         checkout_currency: activeCurrency,
       },
       callback: (data: any) => {
-        options.onSuccess(data || { tx_ref, status: 'successful', currency: activeCurrency, amount: options.amount });
+        try {
+          if (modalHandle && typeof modalHandle.close === 'function') {
+            modalHandle.close();
+          }
+        } catch {}
+        options.onSuccess(data || { tx_ref, status: 'unknown', currency: activeCurrency, amount: options.amount });
       },
       onclose: () => {
         if (options.onClose) options.onClose();

@@ -10,8 +10,8 @@ import {
   CHIPNG_PRODUCT_AGGREGATE_RATING,
   CHIPNG_PRODUCT_REVIEWS,
   buildChipngAggregateOffers,
-} from './productSchemaData';
-import { BUY_CARD_FAQS } from '../data/buyCardCatalog';
+} from './productSchemaData.js';
+import { BUY_CARD_FAQS } from '../data/buyCardCatalog.js';
 
 export const BUY_CARD_META = {
   title: 'CHIPNG NFC Business Cards | Custom Smart Business Cards in Nigeria',

@@ -9,20 +9,20 @@
  * - Institutional & Policy Pages (/company, /contact, /shipping, etc.)
  */
 
-import { COMMERCIAL_PAGES } from '../data/commercialPagesData';
-import { extractUsernameFromPath } from './usernameHelper';
-import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo';
+import { COMMERCIAL_PAGES } from '../data/commercialPagesData.js';
+import { extractUsernameFromPath } from './usernameHelper.js';
+import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo.js';
 import {
   CHIPNG_PRODUCT_IMAGES,
   CHIPNG_PRODUCT_AGGREGATE_RATING,
   CHIPNG_PRODUCT_REVIEWS,
   buildChipngAggregateOffers,
-} from './productSchemaData';
+} from './productSchemaData.js';
 import { 
   HOME_SCHEMA_JSON_LD, 
   PRICING_SCHEMA_JSON_LD, 
   FAQ_SCHEMA_JSON_LD 
-} from './ssrEngine';
+} from './ssrEngine.js';
 
 export const BOT_USER_AGENTS = [
   'googlebot',

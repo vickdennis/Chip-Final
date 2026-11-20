@@ -4,7 +4,7 @@
  * while preserving a pristine <div id="root"></div> for the client-side React Makro screens.
  */
 
-import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo';
+import { BUY_CARD_SCHEMA_JSON_LD, BUY_CARD_META } from './buyCardSeo.js';
 
 const BOT_USER_AGENTS = [
   'googlebot',

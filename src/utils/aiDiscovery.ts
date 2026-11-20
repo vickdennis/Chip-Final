@@ -4,7 +4,7 @@
  * Markdown knowledge files (/llms.txt & /llms-full.txt) for AI search engines and crawlers.
  */
 
-import { COMMERCIAL_PAGES } from '../data/commercialPagesData';
+import { COMMERCIAL_PAGES } from '../data/commercialPagesData.js';
 
 export const BASE_URL = 'https://www.chipng.com';
 

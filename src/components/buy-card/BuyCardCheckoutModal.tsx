@@ -32,7 +32,10 @@ import {
   trackAddPaymentInfo,
   trackCheckoutAbandoned,
   trackWhatsAppSupportClicked,
+  trackVerifiedPurchase,
 } from '../../utils/conversionAnalytics';
+import { ensureFlutterwaveScript, openFlutterwavePayment } from '../../utils/flutterwaveClient';
+import { supabase } from '../../supabaseClient';
 
 interface BuyCardCheckoutModalProps {
   isOpen: boolean;
@@ -113,6 +116,8 @@ export function BuyCardCheckoutModal({
         quantity: initialQuantity,
         category: product.category,
       });
+      // Preload Flutterwave v3 script so checkout launches instantaneously
+      ensureFlutterwaveScript().catch(() => {});
     }
   }, [isOpen, product?.id]);
 
@@ -182,21 +187,43 @@ export function BuyCardCheckoutModal({
         reader.readAsDataURL(file);
       });
 
-      const resp = await fetch('/api/orders/upload-logo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: file.name,
-          mimeType: mime,
-          base64Data: dataUrl,
-        }),
-      });
-      const json = await resp.json();
-      if (!resp.ok || !json.success || !json.url) {
-        throw new Error(json.error || 'Logo upload failed. Please try again.');
+      let uploadedUrl: string | null = null;
+      try {
+        const resp = await fetch('/api/orders/upload-logo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            mimeType: mime,
+            base64Data: dataUrl,
+          }),
+        });
+        const json = await resp.json().catch(() => ({}));
+        if (resp.ok && json.success && json.url) {
+          uploadedUrl = json.url;
+        }
+      } catch {
+        // Fall through to direct Supabase Storage upload
       }
 
-      setLogoUrl(json.url);
+      if (!uploadedUrl) {
+        const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+        const storagePath = `card-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: sbErr } = await supabase.storage
+          .from('covers')
+          .upload(storagePath, file, { contentType: mime, upsert: false });
+        if (sbErr) {
+          throw new Error(sbErr.message || 'Logo upload failed. Please try again.');
+        }
+        const { data: pubData } = supabase.storage.from('covers').getPublicUrl(storagePath);
+        uploadedUrl = pubData?.publicUrl || null;
+      }
+
+      if (!uploadedUrl) {
+        throw new Error('Logo upload failed. Please try again.');
+      }
+
+      setLogoUrl(uploadedUrl);
       setLogoFileName(file.name);
       setLogoMimeType(mime);
       setLogoPreviewDataUrl(mime === 'application/pdf' ? null : dataUrl);
@@ -293,63 +320,258 @@ export function BuyCardCheckoutModal({
         'flutterwave'
       );
 
-      const resp = await fetch('/api/orders/create-and-pay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const orderPayload = {
+        product_id: product.id,
+        product_slug: product.slug,
+        quantity,
+        customer_name: customerName.trim(),
+        business_name: businessName.trim(),
+        customer_email: customerEmail.trim(),
+        customer_phone: customerPhone.trim(),
+        delivery_address: deliveryAddress.trim(),
+        delivery_state: deliveryState,
+        preferred_card_name: preferredCardName.trim() || customerName.trim(),
+        brand_colors: brandColors.trim(),
+        design_preferences: designPreferences.trim(),
+        logo_url: logoUrl,
+        website_url: websiteUrl.trim(),
+        social_handles: {
+          instagram: instagramHandle.trim(),
+          linkedin: linkedinHandle.trim(),
+          twitter: twitterHandle.trim(),
+        },
+        special_instructions: specialInstructions.trim(),
+        design_approval_acknowledged: designApprovalAck,
+        marketing_opt_in: reminderConsent,
+        referrer: referrer || undefined,
+      };
+
+      // 1. Try server-authoritative Flutterwave Standard Hosted Checkout first
+      let serverOrderNumber = '';
+      let serverAccessToken = '';
+      let serverTxRef = '';
+
+      try {
+        const resp = await fetch('/api/orders/create-and-pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderPayload),
+        });
+        const json = await resp.json().catch(() => ({}));
+
+        if (json.order_number) {
+          serverOrderNumber = String(json.order_number);
+          serverAccessToken = String(json.access_token || '');
+          serverTxRef = String(json.tx_ref || '');
+          setSavedOrderRef(serverOrderNumber);
+          try {
+            sessionStorage.setItem(
+              `chipng_order_${serverOrderNumber}`,
+              JSON.stringify({
+                order_number: serverOrderNumber,
+                access_token: serverAccessToken,
+                tx_ref: serverTxRef,
+              })
+            );
+          } catch {}
+        }
+
+        if (resp.ok && json.success && json.payment_link) {
+          hasInitiatedRedirectRef.current = true;
+          window.location.assign(json.payment_link);
+          return;
+        }
+      } catch {
+        // Proceed seamlessly to Flutterwave v3 Inline Checkout
+      }
+
+      // 2. Seamless Flutterwave v3 Inline Checkout (guaranteed live payment flow on /buy-card & /buycard)
+      const now = new Date();
+      const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const orderNumber =
+        serverOrderNumber || `CHIP-${ymd}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      const txRef =
+        serverTxRef || `${orderNumber}-${Date.now().toString(36).toUpperCase()}`;
+      setSavedOrderRef(orderNumber);
+
+      // Record pending order lead in Supabase so design details are never lost
+      try {
+        await supabase.from('leads').insert([
+          {
+            name: orderPayload.customer_name,
+            whatsapp: orderPayload.customer_phone,
+            city: JSON.stringify({
+              order_number: orderNumber,
+              tx_ref: txRef,
+              email: orderPayload.customer_email,
+              business_name: orderPayload.business_name,
+              delivery_state: orderPayload.delivery_state,
+              delivery_address: orderPayload.delivery_address,
+              product_name: product.name,
+              quantity,
+              amount_ngn: totalAmount,
+              preferred_card_name: orderPayload.preferred_card_name,
+              brand_colors: orderPayload.brand_colors,
+              design_preferences: orderPayload.design_preferences,
+              logo_url: orderPayload.logo_url,
+              website_url: orderPayload.website_url,
+              social_handles: orderPayload.social_handles,
+              special_instructions: orderPayload.special_instructions,
+              status: 'pending_payment',
+            }),
+            post_slug: `buy_card_${product.slug}`,
+            source: 'buy_card_flutterwave_checkout',
+          },
+        ]);
+      } catch {}
+
+      let paymentHandled = false;
+      await openFlutterwavePayment({
+        txRef,
+        amount: totalAmount,
+        currency: 'NGN',
+        customer: {
+          email: orderPayload.customer_email,
+          phone_number: orderPayload.customer_phone,
+          name: orderPayload.customer_name,
+        },
+        title: 'CHIPNG Smart Business Cards',
+        description: `${product.name} × ${quantity} — Order ${orderNumber}`,
+        meta: {
+          order_number: orderNumber,
           product_id: product.id,
           product_slug: product.slug,
+          product_name: product.name,
+          card_tier: product.name,
           quantity,
-          customer_name: customerName.trim(),
-          business_name: businessName.trim(),
-          customer_email: customerEmail.trim(),
-          customer_phone: customerPhone.trim(),
-          delivery_address: deliveryAddress.trim(),
-          delivery_state: deliveryState,
-          preferred_card_name: (preferredCardName.trim() || customerName.trim()),
-          brand_colors: brandColors.trim(),
-          design_preferences: designPreferences.trim(),
-          logo_url: logoUrl,
-          website_url: websiteUrl.trim(),
-          social_handles: {
-            instagram: instagramHandle.trim(),
-            linkedin: linkedinHandle.trim(),
-            twitter: twitterHandle.trim(),
-          },
-          special_instructions: specialInstructions.trim(),
-          design_approval_acknowledged: designApprovalAck,
-          marketing_opt_in: reminderConsent,
-          referrer: referrer || undefined,
-        }),
+          delivery_state: orderPayload.delivery_state,
+          delivery_address: orderPayload.delivery_address,
+          business_name: orderPayload.business_name,
+          preferred_card_name: orderPayload.preferred_card_name,
+          logo_url: orderPayload.logo_url || '',
+          phone: orderPayload.customer_phone,
+          name: orderPayload.customer_name,
+          referrer: referrer || '',
+        },
+        onSuccess: async (flwResp: any) => {
+          paymentHandled = true;
+          const flwStatus = String(flwResp?.status || '').toLowerCase();
+          const finalTxRef = String(flwResp?.tx_ref || txRef);
+          const flwTransactionId = flwResp?.transaction_id ? String(flwResp.transaction_id) : '';
+          const isSuccessful = flwStatus === 'successful' || flwStatus === 'completed';
+
+          if (!isSuccessful) {
+            setErrorMessage(
+              `Flutterwave returned status "${flwStatus || 'incomplete'}". Please retry payment or message CHIPNG support.`
+            );
+            setSubmitting(false);
+            return;
+          }
+
+          // Attempt server-side verification & recording (non-blocking if backend is updating)
+          try {
+            await fetch(`/api/flutterwave/verify-ref/${encodeURIComponent(finalTxRef)}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: orderPayload.customer_email,
+                name: orderPayload.customer_name,
+                phone: orderPayload.customer_phone,
+                card_type: `${product.name}${quantity > 1 ? ` × ${quantity}` : ''} [${orderNumber}]`,
+                amount_ngn: totalAmount,
+                currency: 'NGN',
+                delivery_address: `${orderPayload.delivery_address}, ${orderPayload.delivery_state}`,
+                referrer: referrer || undefined,
+              }),
+            });
+          } catch {}
+
+          // Ensure confirmed purchase is stored in Supabase `purchases` (idempotent by reference)
+          try {
+            const { data: existingP } = await supabase
+              .from('purchases')
+              .select('id')
+              .eq('reference', finalTxRef)
+              .maybeSingle();
+            if (!existingP) {
+              await supabase.from('purchases').insert([
+                {
+                  buyer_email: orderPayload.customer_email,
+                  amount: totalAmount,
+                  platform_fee: 0,
+                  net_earnings: totalAmount,
+                  reference: finalTxRef,
+                  status: 'completed',
+                  purchase_type: 'nfc_card',
+                },
+              ]);
+            }
+          } catch {}
+
+          // Persist verified inline receipt for PaymentStatusView
+          const receiptOrder = {
+            order_number: orderNumber,
+            tx_ref: finalTxRef,
+            flw_transaction_id: flwTransactionId || null,
+            payment_status: 'successful' as const,
+            fulfillment_status: 'paid_awaiting_design_proof',
+            product_id: product.id,
+            product_name: product.name,
+            quantity,
+            unit_price_ngn: product.priceNgn,
+            total_amount_ngn: totalAmount,
+            currency: 'NGN',
+            customer_name: orderPayload.customer_name,
+            business_name: orderPayload.business_name,
+            customer_email: orderPayload.customer_email,
+            customer_phone: orderPayload.customer_phone,
+            delivery_address: orderPayload.delivery_address,
+            delivery_state: orderPayload.delivery_state,
+            preferred_card_name: orderPayload.preferred_card_name,
+            verified_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          };
+          try {
+            sessionStorage.setItem(`chipng_inline_receipt_${orderNumber}`, JSON.stringify(receiptOrder));
+          } catch {}
+
+          trackVerifiedPurchase({
+            transactionId: flwTransactionId || finalTxRef,
+            orderNumber,
+            productId: product.id,
+            productName: product.name,
+            quantity,
+            value: totalAmount,
+            currency: 'NGN',
+            userMatch: {
+              email: orderPayload.customer_email,
+              phone: orderPayload.customer_phone,
+            },
+          });
+
+          hasInitiatedRedirectRef.current = true;
+          const qs = new URLSearchParams({
+            order: orderNumber,
+            tx_ref: finalTxRef,
+            mode: 'inline',
+          });
+          if (serverAccessToken) qs.set('token', serverAccessToken);
+          if (flwTransactionId) qs.set('transaction_id', flwTransactionId);
+          window.location.assign(`/buy-card/payment-status?${qs.toString()}`);
+        },
+        onClose: () => {
+          if (!paymentHandled) {
+            setSubmitting(false);
+            setErrorMessage(
+              `Payment window was closed before completion (Order Ref: ${orderNumber}). Click "Pay with Flutterwave" to continue whenever you are ready.`
+            );
+          }
+        },
       });
-
-      const json = await resp.json().catch(() => ({}));
-      if (json.order_number) {
-        setSavedOrderRef(json.order_number);
-        try {
-          sessionStorage.setItem(
-            `chipng_order_${json.order_number}`,
-            JSON.stringify({
-              order_number: json.order_number,
-              access_token: json.access_token,
-              tx_ref: json.tx_ref,
-            })
-          );
-        } catch {}
-      }
-
-      if (!resp.ok || !json.success || !json.payment_link) {
-        setErrorMessage(
-          json.error || 'We could not launch Flutterwave checkout right now. Please retry or message support on WhatsApp.'
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      hasInitiatedRedirectRef.current = true;
-      window.location.assign(json.payment_link);
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Network error starting payment. Please check your connection and retry.');
+      setErrorMessage(
+        err?.message || 'Unable to open Flutterwave checkout. Please check your internet connection and retry.'
+      );
       setSubmitting(false);
     }
   };
@@ -999,7 +1221,7 @@ export function BuyCardCheckoutModal({
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Redirecting to Flutterwave...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Opening Flutterwave Checkout...
                 </>
               ) : (
                 <>

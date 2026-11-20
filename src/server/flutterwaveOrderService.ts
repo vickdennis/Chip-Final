@@ -10,7 +10,7 @@ import {
   parseProductImages,
   CHIPNG_DISPLAY_PHONE,
   CHIPNG_SUPPORT_EMAIL,
-} from '../data/buyCardCatalog';
+} from '../data/buyCardCatalog.js';
 
 export type OrderPaymentStatus =
   | 'pending'
