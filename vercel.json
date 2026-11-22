@@ -38,7 +38,7 @@
       ]
     },
     {
-      "source": "/(admin|dashboard|enterprise|settings|login|checkout|onboarding|buy-card/payment-status|buycard/payment-status)(.*)",
+      "source": "/(admin|dashboard|enterprise|settings|login|checkout|onboarding|buy-card/checkout|buycard/checkout|buy-card/payment-status|buycard/payment-status)(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -150,11 +150,19 @@
       "destination": "/index.html"
     },
     {
+      "source": "/buycard/checkout",
+      "destination": "/index.html"
+    },
+    {
       "source": "/buycard/payment-status",
       "destination": "/index.html"
     },
     {
       "source": "/buy-card",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/buy-card/checkout",
       "destination": "/index.html"
     },
     {

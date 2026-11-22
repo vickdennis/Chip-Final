@@ -151,6 +151,8 @@ function resolveRouteFromUrl(rawPath: string): {
   if (
     path === '/buy-card' ||
     path === '/buycard' ||
+    path === '/buy-card/checkout' ||
+    path === '/buycard/checkout' ||
     path === '/buy-card/payment-status' ||
     path === '/buycard/payment-status'
   ) {

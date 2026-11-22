@@ -53,9 +53,9 @@ import {
 } from '../utils/conversionAnalytics';
 import { PaymentStatusView } from '../components/buy-card/PaymentStatusView';
 
-const BuyCardCheckoutModal = lazy(() =>
-  import('../components/buy-card/BuyCardCheckoutModal').then((m) => ({
-    default: m.BuyCardCheckoutModal,
+const BuyCardCheckoutScreen = lazy(() =>
+  import('../components/buy-card/BuyCardCheckoutScreen').then((m) => ({
+    default: m.BuyCardCheckoutScreen,
   }))
 );
 
@@ -200,18 +200,56 @@ function BuyCardSalesExperience({
   toggleDarkMode = () => {},
   session,
 }: NfcSalesViewProps) {
+  const isCheckoutPath = (pathname: string) => {
+    const p = pathname.toLowerCase().replace(/\/+$/, '');
+    return p === '/buy-card/checkout' || p === '/buycard/checkout';
+  };
+
+  const resolveProductFromSearch = (catalog: BuyCardProduct[], search: string): BuyCardProduct => {
+    try {
+      const slug = new URLSearchParams(search).get('product')?.trim().toLowerCase();
+      if (slug) {
+        const match = catalog.find(
+          (item) => item.slug.toLowerCase() === slug || item.id.toLowerCase() === slug
+        );
+        if (match) return match;
+      }
+    } catch {}
+    return catalog.find((item) => item.recommended) || catalog[0];
+  };
+
   const [products, setProducts] = useState<BuyCardProduct[]>(CANONICAL_BUY_CARD_PRODUCTS);
   const [activeImageByProduct, setActiveImageByProduct] = useState<Record<string, number>>({});
   const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>('all');
   const [activeDemoStep, setActiveDemoStep] = useState<number>(0);
   const [openFaqId, setOpenFaqId] = useState<string | null>(BUY_CARD_FAQS[0].id);
-  const [selectedProduct, setSelectedProduct] = useState<BuyCardProduct | null>(null);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isCheckoutScreen, setIsCheckoutScreen] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? isCheckoutPath(window.location.pathname) : false
+  );
+  const [selectedProductSlug, setSelectedProductSlug] = useState<string>(() =>
+    typeof window !== 'undefined'
+      ? resolveProductFromSearch(CANONICAL_BUY_CARD_PRODUCTS, window.location.search).slug
+      : (CANONICAL_BUY_CARD_PRODUCTS.find((p) => p.recommended) || CANONICAL_BUY_CARD_PRODUCTS[0]).slug
+  );
   const [activeVideoIds, setActiveVideoIds] = useState<Record<string, boolean>>({});
   const [showStickyMobileCta, setShowStickyMobileCta] = useState(false);
   const [referrer, setReferrer] = useState<string | null>(null);
 
   const heroCtaRef = useRef<HTMLDivElement | null>(null);
+
+  // Sync browser back/forward navigation between /buy-card and /buy-card/checkout
+  useEffect(() => {
+    const handlePopState = () => {
+      const onCheckout = isCheckoutPath(window.location.pathname);
+      setIsCheckoutScreen(onCheckout);
+      if (onCheckout) {
+        const resolved = resolveProductFromSearch(products, window.location.search);
+        setSelectedProductSlug(resolved.slug);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [products]);
 
   // Initialize scoped Buy-Card TikTok Pixel + unified analytics + live Supabase catalog hydration
   useEffect(() => {
@@ -235,9 +273,9 @@ function BuyCardSalesExperience({
 
     trackBuyCardViewContent(30000);
 
-    // Preload checkout modal chunk during idle time
+    // Preload checkout screen chunk during idle time
     const idleTimer = setTimeout(() => {
-      import('../components/buy-card/BuyCardCheckoutModal');
+      import('../components/buy-card/BuyCardCheckoutScreen');
     }, 1500);
 
     return () => {
@@ -248,14 +286,16 @@ function BuyCardSalesExperience({
 
   // Gentle auto-cycle for 3-step NFC demonstration
   useEffect(() => {
+    if (isCheckoutScreen) return;
     const interval = setInterval(() => {
       setActiveDemoStep((prev) => (prev + 1) % DEMO_STEPS.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, []);
+  }, [isCheckoutScreen]);
 
   // Show slim mobile sticky CTA once hero CTA scrolls out of view
   useEffect(() => {
+    if (isCheckoutScreen) return;
     const target = heroCtaRef.current;
     if (!target || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
@@ -266,7 +306,7 @@ function BuyCardSalesExperience({
     );
     observer.observe(target);
     return () => observer.disconnect();
-  }, []);
+  }, [isCheckoutScreen]);
 
   const lowestPrice = Math.min(...products.map((p) => p.priceNgn).filter((n) => n > 0), 30000);
 
@@ -275,11 +315,26 @@ function BuyCardSalesExperience({
       ? products
       : products.filter((p) => p.audienceTag === audienceFilter);
 
+  const selectedProduct =
+    products.find((p) => p.slug === selectedProductSlug) ||
+    products.find((p) => p.recommended) ||
+    products[0];
+
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const buildCheckoutUrl = (productSlug: string) => {
+    const qs = new URLSearchParams({ product: productSlug });
+    if (referrer) qs.set('ref', referrer);
+    const basePath =
+      typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/buycard')
+        ? '/buycard/checkout'
+        : '/buy-card/checkout';
+    return `${basePath}?${qs.toString()}`;
   };
 
   const handleSelectProduct = (product: BuyCardProduct) => {
@@ -296,8 +351,37 @@ function BuyCardSalesExperience({
       quantity: 1,
       category: product.category,
     });
-    setSelectedProduct(product);
-    setIsCheckoutOpen(true);
+    setSelectedProductSlug(product.slug);
+    setIsCheckoutScreen(true);
+    try {
+      window.history.pushState({ buyCardCheckout: true, product: product.slug }, '', buildCheckoutUrl(product.slug));
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    } catch {}
+  };
+
+  const handleSwitchProductInCheckout = (nextProduct: BuyCardProduct) => {
+    setSelectedProductSlug(nextProduct.slug);
+    try {
+      window.history.replaceState(
+        { buyCardCheckout: true, product: nextProduct.slug },
+        '',
+        buildCheckoutUrl(nextProduct.slug)
+      );
+    } catch {}
+  };
+
+  const handleExitCheckout = () => {
+    setIsCheckoutScreen(false);
+    try {
+      const qs = new URLSearchParams();
+      if (referrer) qs.set('ref', referrer);
+      const basePath = window.location.pathname.toLowerCase().startsWith('/buycard')
+        ? '/buycard'
+        : '/buy-card';
+      const targetUrl = qs.toString() ? `${basePath}?${qs.toString()}` : basePath;
+      window.history.pushState({}, '', targetUrl);
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    } catch {}
   };
 
   const handleToggleFaq = (faqId: string, question: string) => {
@@ -307,6 +391,29 @@ function BuyCardSalesExperience({
       trackFaqOpened(faqId, question);
     }
   };
+
+  // Dedicated Full-Page Checkout Screen (not a popup modal)
+  if (isCheckoutScreen && selectedProduct) {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-neutral-50 dark:bg-[#08090b] text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-sm font-semibold">
+            Loading CHIPNG Checkout...
+          </div>
+        }
+      >
+        <BuyCardCheckoutScreen
+          product={selectedProduct}
+          allProducts={products}
+          onSelectProduct={handleSwitchProductInCheckout}
+          onBack={handleExitCheckout}
+          referrer={referrer}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
+        />
+      </Suspense>
+    );
+  }
 
   const activeDemo = DEMO_STEPS[activeDemoStep];
 
@@ -1169,8 +1276,8 @@ function BuyCardSalesExperience({
 
       <MakroFooter onNavigate={onNavigate} />
 
-      {/* Mobile-Only Slim Sticky Purchase CTA (hidden when modal open or hero CTA visible) */}
-      {showStickyMobileCta && !isCheckoutOpen && (
+      {/* Mobile-Only Slim Sticky Purchase CTA (hidden when hero CTA visible) */}
+      {showStickyMobileCta && (
         <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 px-4 py-2.5 flex items-center gap-2.5 shadow-lg">
           <button
             type="button"
@@ -1190,18 +1297,6 @@ function BuyCardSalesExperience({
             <MessageCircle className="w-5 h-5" />
           </a>
         </div>
-      )}
-
-      {/* Lazy-loaded 4-step Checkout Modal */}
-      {isCheckoutOpen && (
-        <Suspense fallback={null}>
-          <BuyCardCheckoutModal
-            isOpen={isCheckoutOpen}
-            onClose={() => setIsCheckoutOpen(false)}
-            product={selectedProduct}
-            referrer={referrer}
-          />
-        </Suspense>
       )}
     </div>
   );
