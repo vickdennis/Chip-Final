@@ -16,9 +16,9 @@ export const CHIPNG_PRODUCT_REVIEWS = [
     '@type': 'Review',
     author: {
       '@type': 'Person',
-      name: 'Amara Nwosu',
+      name: 'Tony Zola',
     },
-    datePublished: '2026-02-14',
+    datePublished: '2026-09-01',
     reviewRating: {
       '@type': 'Rating',
       ratingValue: 5,
@@ -26,15 +26,15 @@ export const CHIPNG_PRODUCT_REVIEWS = [
       worstRating: 1,
     },
     reviewBody:
-      'I swapped out my box of paper business cards for the CHIPNG Matte Obsidian NFC Card. In our first tech conference in Lagos, I closed 8 enterprise contracts from executives who tapped my card and saved my vCard directly to their contacts.',
+      'Excellent work on the metal card. The finishing is clean, the card feels strong and premium, and the overall quality is impressive. It looks much more luxurious than a regular plastic ATM card. The customization and attention to detail are also top-notch. Highly recommended for anyone looking for a durable and stylish metal card.',
   },
   {
     '@type': 'Review',
     author: {
       '@type': 'Person',
-      name: 'David Adebayo',
+      name: 'Samirah Ade-Adebiyi',
     },
-    datePublished: '2026-03-02',
+    datePublished: '2026-08-07',
     reviewRating: {
       '@type': 'Rating',
       ratingValue: 5,
@@ -42,15 +42,15 @@ export const CHIPNG_PRODUCT_REVIEWS = [
       worstRating: 1,
     },
     reviewBody:
-      'My CHIPNG link-in-bio page converts 4x higher than standard link hubs. Clients love that they can tap my physical card or click my bio to save my vCard and book a paid strategy session in under 15 seconds.',
+      'Our team ordered custom branded CHIPNG NFC cards and received clean softcopy design proofs on WhatsApp to approve before printing. The layout, QR placement, and card finish came out crisp for our leadership team.',
   },
   {
     '@type': 'Review',
     author: {
       '@type': 'Person',
-      name: 'Elena Rostova',
+      name: 'Star Capital Lagos',
     },
-    datePublished: '2026-03-19',
+    datePublished: '2026-08-22',
     reviewRating: {
       '@type': 'Rating',
       ratingValue: 5,
@@ -58,7 +58,7 @@ export const CHIPNG_PRODUCT_REVIEWS = [
       worstRating: 1,
     },
     reviewBody:
-      'Every executive meeting I attend starts with an NFC tap. The physical weight of the metal card immediately sparks conversation. They touch their phone to the card and my entire portfolio appears instantly.',
+      'Fast Lagos dispatch with live courier tracking right to our office door. The card taps cleanly on both iPhone and Android in one second without asking clients to download any app.',
   },
 ];
 
@@ -66,12 +66,12 @@ export const buildChipngAggregateOffers = (baseUrl = 'https://www.chipng.com/buy
   '@type': 'AggregateOffer',
   priceCurrency: 'NGN',
   lowPrice: '30000',
-  highPrice: '100000',
-  offerCount: 4,
+  highPrice: '300000',
+  offerCount: 5,
   offers: [
     {
       '@type': 'Offer',
-      name: 'NFC Smart White PVC Card (Custom Print)',
+      name: 'Standard White PVC NFC Card (Custom Full-Color Print)',
       sku: 'CHIP-PVC-WHITE-30K',
       price: '30000',
       priceCurrency: 'NGN',
@@ -86,7 +86,7 @@ export const buildChipngAggregateOffers = (baseUrl = 'https://www.chipng.com/buy
     },
     {
       '@type': 'Offer',
-      name: 'NFC Smart Black PVC Card (Custom UV Print)',
+      name: 'Premium Matte Black PVC Card (Raised Anti-Scratch UV Print)',
       sku: 'CHIP-PVC-BLACK-35K',
       price: '35000',
       priceCurrency: 'NGN',
@@ -101,7 +101,7 @@ export const buildChipngAggregateOffers = (baseUrl = 'https://www.chipng.com/buy
     },
     {
       '@type': 'Offer',
-      name: 'NFC Smart Metal Card',
+      name: 'Executive Metal NFC Card (Scratch-Proof Laser Engraved)',
       sku: 'CHIP-METAL-50K',
       price: '50000',
       priceCurrency: 'NGN',
@@ -116,9 +116,24 @@ export const buildChipngAggregateOffers = (baseUrl = 'https://www.chipng.com/buy
     },
     {
       '@type': 'Offer',
-      name: 'Metal Debit Card + Custom Design',
+      name: 'Custom Metal Card (Bespoke Design & Flagship NFC)',
       sku: 'CHIP-DEBIT-CUSTOM-100K',
       price: '80000',
+      priceCurrency: 'NGN',
+      priceValidUntil: '2027-12-31',
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: 'https://schema.org/InStock',
+      url: baseUrl,
+      seller: {
+        '@type': 'Organization',
+        name: 'CHIP NG Technologies Ltd',
+      },
+    },
+    {
+      '@type': 'Offer',
+      name: 'Corporate Team Pack (10 PVC + 1 CEO Metal Card)',
+      sku: 'CHIP-CORP-PACK-300K',
+      price: '300000',
       priceCurrency: 'NGN',
       priceValidUntil: '2027-12-31',
       itemCondition: 'https://schema.org/NewCondition',

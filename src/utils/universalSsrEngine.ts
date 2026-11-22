@@ -918,32 +918,44 @@ const HOME_SSR_HTML = buildSsrShell(`
 `);
 
 const BUY_CARD_SSR_HTML = buildSsrShell(`
-  <section style="margin-bottom: 40px;">
+  <section style="margin-bottom: 36px;">
     <h1 style="font-size: 38px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">YOUR BUSINESS DESERVES MORE THAN A PAPER BUSINESS CARD.</h1>
     <p style="font-size: 16px; color: #D4D4D8; max-width: 720px;">
-      Make unforgettable first impressions with CHIPNG NFC smart business cards. Share your contact details, social media, website and business information with a single tap—zero app needed. Includes pre-production design proof approval, lifetime CHIP Core hosting, 3 months free CHIP Pro, and Flutterwave checkout.
+      Share your contact details, website, WhatsApp, and social media in 1 second on every iPhone &amp; Android—no app needed. Delivered in 24–48 hours in Lagos, 2–4 days nationwide via DHL &amp; GIG Logistics, and backed by our 12-Month Free NFC Chip Replacement Guarantee.
     </p>
   </section>
-  <section style="display: grid; gap: 20px; margin-bottom: 40px;">
+  <section style="display: grid; gap: 18px; margin-bottom: 36px;">
     <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
-      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">PVC NFC Card (₦30,000) &amp; Premium PVC NFC Card (₦35,000)</h2>
-      <p style="margin: 0; color: #A1A1AA;">Waterproof custom-printed smart business cards with genuine NXP NTAG216 chip, dynamic QR backup, and pre-production design proof approval.</p>
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Standard White PVC NFC Card — ₦30,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">Clean ceramic white waterproof finish with vibrant full-color front &amp; back printing. Ideal for colorful logos, works on every iPhone &amp; Android in 1 second + QR backup.</p>
+    </article>
+    <article style="padding: 20px; border: 1px solid rgba(22,163,74,0.5); border-radius: 16px;">
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Premium Matte Black PVC Card — ₦35,000 (+₦5,000 Upgrade)</h2>
+      <p style="margin: 0; color: #A1A1AA;">Upgrades to a sleek Matte Black soft-touch body with raised waterproof UV print and anti-scratch coat that resists wallet scuffs and fingerprints on both sides.</p>
     </article>
     <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
-      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">NFC Smart Metal Card — ₦50,000</h2>
-      <p style="margin: 0; color: #A1A1AA;">Solid brushed 304 stainless steel smart business card with precision fiber-laser engraving and executive weight.</p>
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Executive Metal NFC Card — ₦50,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">Solid stainless steel weight with scratch-proof laser engraving that never peels or fades. Works in 1 second on iPhone &amp; Android with an engraved QR backup.</p>
     </article>
     <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
-      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Metal Debit Card + Custom Design — ₦80,000 – ₦100,000</h2>
-      <p style="margin: 0; color: #A1A1AA;">Full custom dual-sided CNC/fiber design in Matte Black, 24K Gold Mirror, or Brushed Titanium + VIP onboarding.</p>
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Custom Metal Card (Bespoke &amp; Flagship) — ₦80,000 – ₦100,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">1-on-1 custom front &amp; back engraving in Matte Black, 24K Gold Mirror, or Brushed Steel—scratch-proof artwork that never fades, plus pre-dispatch video check.</p>
+    </article>
+    <article style="padding: 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
+      <h2 style="margin: 0 0 6px 0; font-size: 20px; color: #FFFFFF;">Corporate Team Pack (10 PVC + 1 CEO Metal) — ₦300,000</h2>
+      <p style="margin: 0; color: #A1A1AA;">Equip your team with 10 branded staff PVC cards + 1 complimentary CEO Metal card, centralized profile updates, and softcopy proofs before printing.</p>
     </article>
   </section>
   <section style="margin-bottom: 32px;">
-    <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Verified Customer Reviews (4.9 / 5)</h2>
+    <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Delivery Speed &amp; 12-Month Chip Warranty</h2>
+    <p style="margin: 0; color: #D4D4D8;">24–48 hr Lagos delivery with live courier tracking · 2–4 business days nationwide via DHL &amp; GIG Logistics · 12-Month Free NFC Chip Replacement Guarantee if your chip ever stops scanning · WhatsApp softcopy proof approval before production.</p>
+  </section>
+  <section style="margin-bottom: 32px;">
+    <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px 0;">Verified Nigerian Client Reviews</h2>
     <ul style="list-style: none; padding: 0; display: grid; gap: 12px; color: #D4D4D8;">
-      <li><strong>Amara Nwosu (5/5):</strong> "I swapped out my box of paper business cards for the CHIPNG Matte Obsidian NFC Card. In our first tech conference in Lagos, I closed 8 enterprise contracts."</li>
-      <li><strong>David Adebayo (5/5):</strong> "My CHIPNG link-in-bio page converts 4x higher than standard link hubs. Clients love tapping my physical card to save my vCard."</li>
-      <li><strong>Elena Rostova (5/5):</strong> "Every executive meeting I attend starts with an NFC tap. The physical weight of the metal card immediately sparks conversation."</li>
+      <li><strong>Tony Zola — Kano (5/5):</strong> "Excellent work on the metal card. The finishing is clean, the card feels strong and premium, and the overall quality is impressive. It looks much more luxurious than a regular plastic ATM card. Highly recommended."</li>
+      <li><strong>Samirah Ade-Adebiyi — Managing Director, Lagos (5/5):</strong> "Clean softcopy design proofs sent on WhatsApp to approve before printing for our leadership team."</li>
+      <li><strong>Star Capital — Lagos (5/5):</strong> "Fast Lagos courier dispatch with live rider tracking straight to our office. Taps open cleanly on iPhone and Android without an app."</li>
     </ul>
   </section>
 `);
@@ -1151,11 +1163,11 @@ export async function applyUniversalSsr(
         <dl style="color: #D4D4D8;">
           ${page.technicalSpecs.map(s => `<dt style="font-weight:700;">${escapeHtml(s.label)}</dt><dd style="margin: 0 0 8px 0; color:#A1A1AA;">${escapeHtml(s.value)}</dd>`).join('\n')}
         </dl>
-        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Verified Customer Reviews</h2>
+        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Verified Nigerian Client Reviews</h2>
         <ul style="color: #D4D4D8;">
-          <li><strong>Amara Nwosu (5/5):</strong> "I swapped out my box of paper business cards for the CHIPNG Matte Obsidian NFC Card and closed 8 enterprise contracts in Lagos."</li>
-          <li><strong>David Adebayo (5/5):</strong> "My CHIPNG link-in-bio page converts 4x higher than standard link hubs."</li>
-          <li><strong>Elena Rostova (5/5):</strong> "Every executive meeting I attend starts with an NFC tap."</li>
+          <li><strong>Tony Zola — Kano (5/5):</strong> "Excellent work on the metal card. The finishing is clean, the card feels strong and premium, and the overall quality is impressive."</li>
+          <li><strong>Samirah Ade-Adebiyi — Managing Director, Lagos (5/5):</strong> "Softcopy design proofs sent on WhatsApp before printing for our leadership team."</li>
+          <li><strong>Star Capital — Lagos (5/5):</strong> "Fast Lagos courier delivery with live rider tracking straight to our office."</li>
         </ul>
         <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-top: 28px;">Frequently Asked Questions</h2>
         <dl style="color: #D4D4D8;">

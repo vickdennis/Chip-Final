@@ -16,7 +16,7 @@ import { BUY_CARD_FAQS } from '../data/buyCardCatalog.js';
 export const BUY_CARD_META = {
   title: 'CHIPNG NFC Business Cards | Custom Smart Business Cards in Nigeria',
   description:
-    'Order custom CHIPNG NFC smart business cards in Nigeria. Share your contact details, website, and social media with one tap—no app needed. PVC cards from ₦30,000, Metal from ₦50,000, Corporate bundles from ₦300,000. Pre-production design proof & nationwide delivery.',
+    'Order custom CHIPNG NFC smart business cards in Nigeria. Works on every iPhone & Android in 1 second—no app needed. White PVC ₦30,000, Matte Black Raised UV PVC ₦35,000, Laser-Engraved Metal from ₦50,000. 24–48h Lagos delivery, nationwide DHL/GIG & 12-month free chip replacement warranty.',
   canonical: 'https://www.chipng.com/buy-card',
   image: 'https://www.chipng.com/chipng_3d_logo.jpg',
 };
@@ -30,7 +30,7 @@ export const BUY_CARD_SCHEMA_JSON_LD = JSON.stringify({
       name: 'CHIPNG Custom NFC Smart Business Card',
       image: CHIPNG_PRODUCT_IMAGES,
       description:
-        'Custom NFC smart business cards crafted in Lagos, Nigeria by CHIPNG. Built with genuine NXP NTAG216 chips and dynamic QR code backup—zero app needed. Available in PVC NFC Card (₦30,000), Premium PVC NFC Card (₦35,000), Metal NFC Card (₦50,000), Custom Metal Card (₦80,000–₦100,000), and Corporate Package (₦300,000).',
+        'Custom NFC smart business cards crafted in Lagos, Nigeria by CHIPNG. Works on every iPhone & Android in 1 second with built-in QR backup—no app needed. Standard White PVC (₦30,000), Premium Matte Black Raised UV PVC (₦35,000), Scratch-Proof Laser-Engraved Metal (₦50,000–₦100,000), and Corporate Team Pack (₦300,000). Includes WhatsApp softcopy proof approval, 24–48h Lagos delivery, nationwide DHL/GIG shipping, and 12-month free NFC chip replacement guarantee.',
       brand: {
         '@type': 'Brand',
         name: 'CHIPNG',

@@ -27,17 +27,20 @@ import {
   QrCode,
   Sparkles,
   CheckCircle2,
+  Moon,
+  Sun,
+  X,
+  ZoomIn,
 } from 'lucide-react';
-import { MakroNavbar } from '../components/makro/MakroNavbar';
-import { MakroFooter } from '../components/makro/MakroFooter';
 import { SeoHead } from '../components/seo/SeoHead';
 import { BUY_CARD_META, BUY_CARD_SCHEMA_JSON_LD } from '../utils/buyCardSeo';
-import { CHIPNG_PRODUCT_REVIEWS } from '../utils/productSchemaData';
 import {
   CANONICAL_BUY_CARD_PRODUCTS,
   PRODUCT_COMPARISON_ROWS,
   BUY_CARD_FAQS,
+  CLIENT_PROOF_GALLERY,
   BuyCardProduct,
+  ClientProofItem,
   formatNaira,
   buildChipngWhatsAppUrl,
   CHIPNG_DISPLAY_PHONE,
@@ -69,63 +72,93 @@ interface NfcSalesViewProps {
 const REAL_TIKTOK_DEMOS = [
   {
     id: '7628228439719398664',
-    title: 'One-Tap NFC Card Demo',
-    subtitle: 'Instant browser profile load with zero app needed',
+    title: '1-Second Tap Demo on iPhone & Android',
+    subtitle: 'Opens directly in the browser—zero app download needed',
     poster: 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.28640138450754493.jpeg',
   },
   {
     id: '7680709423232208146',
-    title: 'Custom Laser-Engraved Metal Showcase',
-    subtitle: 'Real Nigerian founder & executive cards crafted in Lagos',
+    title: 'Scratch-Proof Laser-Engraved Metal Cards',
+    subtitle: 'Finished Nigerian founder & corporate cards from our Lekki studio',
     poster: 'https://oxrzkdzcagvmgfuthyjd.supabase.co/storage/v1/object/public/covers/0.9650784343957072.jpeg',
+  },
+];
+
+const VERIFIED_CLIENT_STORIES = [
+  {
+    name: 'Tony Zola',
+    role: 'Custom Gold Metal Card Buyer',
+    location: 'Kano (Shipped via GIG Logistics)',
+    quote:
+      'Excellent work on the metal card. The finishing is clean, the card feels strong and premium, and the overall quality is impressive. It looks much more luxurious than a regular plastic ATM card. The customization and attention to detail are also top-notch. Highly recommended for anyone looking for a durable and stylish metal card.',
+    proofImage: '/assets/aistudio/IMG_2654_22e94953.jpeg',
+    proofLabel: '5-Star Review Screenshot',
+  },
+  {
+    name: 'Samirah Ade-Adebiyi',
+    role: 'Managing Director · Corporate Team Rollout',
+    location: 'Lagos · ₦200k+ Executive & Team Orders',
+    quote:
+      'We received clean softcopy card designs on WhatsApp to inspect and approve before printing. Having our Managing Director and leadership cards branded consistently with QR backup made team onboarding effortless.',
+    proofImage: '/assets/aistudio/IMG_2647_cf6c75ad.jpeg',
+    proofLabel: 'Verified Corporate Proof',
+  },
+  {
+    name: 'Star Capital',
+    role: 'Financial Services Team',
+    location: 'Lagos · Same-Day Courier Delivery',
+    quote:
+      'Live Lagos rider tracking right to our office door with zero guesswork. Clients simply tap our card on iPhone or Android and save our contact details in one second without downloading any app.',
+    proofImage: '/assets/aistudio/IMG_4323_7e949315.png',
+    proofLabel: 'Live Lagos Delivery Receipt',
   },
 ];
 
 const WHY_CHOOSE_ITEMS = [
   {
     icon: Wifi,
-    title: 'One-tap contact sharing',
-    desc: 'Tap your physical CHIPNG card near any NFC-enabled phone to transfer your full business identity immediately.',
+    title: 'Works on every iPhone & Android in 1 second',
+    desc: 'One gentle tap opens your business profile immediately—plus a built-in QR code lets older phones scan with their camera.',
   },
   {
     icon: Smartphone,
-    title: 'No special app required',
-    desc: 'Your contacts view your digital profile straight inside Safari or Chrome—zero downloads, zero friction.',
+    title: 'Your clients never need an app',
+    desc: 'Your profile opens straight inside Safari or Chrome. Zero downloads, zero logins, zero awkward friction during meetings.',
   },
   {
     icon: Palette,
-    title: 'Custom branding with your logo',
-    desc: 'Upload your brand logo, colors, and title. Approve your digital proof before we print or engrave.',
-  },
-  {
-    icon: Globe,
-    title: 'Share websites & social media',
-    desc: 'Connect prospects directly to your website, Instagram, LinkedIn, WhatsApp, portfolio, and booking links.',
-  },
-  {
-    icon: UserPlus,
-    title: 'Digital contact saving',
-    desc: 'Recipients save your phone number, email, role, and company into their phone contacts with one click.',
-  },
-  {
-    icon: RefreshCw,
-    title: 'Update anytime without reprinting',
-    desc: 'Changed roles, phone numbers, or links? Edit your digital profile in seconds while keeping the same card.',
+    title: 'Approve your design on WhatsApp before printing',
+    desc: 'Upload your logo at checkout. Our Lekki designers send your softcopy proof first—we only print after you say approved.',
   },
   {
     icon: Award,
-    title: 'Premium physical card designs',
-    desc: 'Choose waterproof UV-cured PVC or precision-weighted stainless steel with crisp fiber-laser engraving.',
+    title: 'Scratch-proof finishes that never fade',
+    desc: 'Choose waterproof ceramic white PVC, raised anti-scratch matte black UV PVC, or solid stainless steel with permanent laser engraving.',
   },
   {
-    icon: Briefcase,
-    title: 'Effortless networking',
-    desc: 'Replace stacks of paper cards that get lost or discarded with one lasting card built for every meeting.',
+    icon: UserPlus,
+    title: 'One-tap contact saving into their phonebook',
+    desc: 'Clients save your phone number, WhatsApp, email, company, and job title into their contacts in a single click.',
+  },
+  {
+    icon: RefreshCw,
+    title: 'Update your details anytime without reprinting',
+    desc: 'Changed phone numbers, office address, or social handles? Edit your digital profile in seconds—your physical card updates live.',
+  },
+  {
+    icon: Truck,
+    title: '24–48 hr Lagos delivery & 2–4 day nationwide',
+    desc: 'Dispatched fast from Lekki Phase 1 with live Lagos courier tracking, plus insured DHL & GIG Logistics shipping to all 36 states.',
   },
   {
     icon: ShieldCheck,
-    title: 'Lifetime core digital profile hosting',
-    desc: 'Includes lifetime hosting of CHIP Core profile features (subject to product terms) plus 3 months free CHIP Pro.',
+    title: '12-Month Free NFC Chip Replacement Warranty',
+    desc: 'If your NFC chip ever stops scanning under normal use within 12 months—or arrives damaged—we replace your card free of charge.',
+  },
+  {
+    icon: Briefcase,
+    title: 'No monthly fee for core networking',
+    desc: 'Pay once for your card and enjoy lifetime hosting of your core digital profile, plus 3 months free CHIP Pro analytics.',
   },
 ];
 
@@ -133,26 +166,26 @@ const DEMO_STEPS = [
   {
     step: 'STEP 1: TAP.',
     shortLabel: 'Tap',
-    headline: 'Simply tap your CHIPNG card against a compatible smartphone.',
+    headline: 'Tap your CHIPNG card against any iPhone or Android.',
     detail:
-      'Hold your CHIPNG card near the top back of an iPhone or the center back of an Android phone. The embedded NXP NTAG216 chip responds automatically—no battery needed.',
-    phoneStatus: 'NFC Tag Detected · chipng.com',
+      'Hold your card near the top back of an iPhone or the center back of an Android phone. It responds in under 1 second—no battery or charging ever needed.',
+    phoneStatus: 'Card Detected in 1s · chipng.com',
   },
   {
     step: 'STEP 2: CONNECT.',
     shortLabel: 'Connect',
-    headline: 'Your digital business profile opens instantly in the browser.',
+    headline: 'Your business profile opens instantly in their browser.',
     detail:
-      'A clean notification opens your branded CHIPNG business profile directly in Safari or Chrome. Recipients never need to install an application—and every card includes a dynamic QR backup.',
-    phoneStatus: 'Opening Digital Profile in Browser',
+      'Your branded CHIPNG profile opens right inside Safari or Chrome. Clients never download an app—and older phones can scan the printed QR backup with their camera.',
+    phoneStatus: 'Opening Profile · No App Needed',
   },
   {
     step: 'STEP 3: SHARE.',
     shortLabel: 'Share',
-    headline: 'Let customers save your contact, visit your website and connect with your social media.',
+    headline: 'They save your contact, message you on WhatsApp, or visit your site.',
     detail:
-      'In one click, clients download your verified vCard into their phonebook, message you on WhatsApp, browse your website, or follow your social accounts.',
-    phoneStatus: 'Contact Saved · Connected',
+      'One tap saves your phone number, email, role, and company straight into their phonebook, with direct buttons for WhatsApp, Instagram, LinkedIn, and your website.',
+    phoneStatus: 'Contact Saved · Ready to Follow Up',
   },
 ];
 
@@ -195,10 +228,8 @@ export default function NfcSalesView({
 }
 
 function BuyCardSalesExperience({
-  onNavigate,
   isDarkMode = false,
   toggleDarkMode = () => {},
-  session,
 }: NfcSalesViewProps) {
   const isCheckoutPath = (pathname: string) => {
     const p = pathname.toLowerCase().replace(/\/+$/, '');
@@ -234,6 +265,7 @@ function BuyCardSalesExperience({
   const [activeVideoIds, setActiveVideoIds] = useState<Record<string, boolean>>({});
   const [showStickyMobileCta, setShowStickyMobileCta] = useState(false);
   const [referrer, setReferrer] = useState<string | null>(null);
+  const [lightboxProof, setLightboxProof] = useState<ClientProofItem | null>(null);
 
   const heroCtaRef = useRef<HTMLDivElement | null>(null);
 
@@ -250,6 +282,16 @@ function BuyCardSalesExperience({
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [products]);
+
+  // Close proof lightbox on Escape
+  useEffect(() => {
+    if (!lightboxProof) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxProof(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [lightboxProof]);
 
   // Initialize scoped Buy-Card TikTok Pixel + unified analytics + live Supabase catalog hydration
   useEffect(() => {
@@ -319,6 +361,9 @@ function BuyCardSalesExperience({
     products.find((p) => p.slug === selectedProductSlug) ||
     products.find((p) => p.recommended) ||
     products[0];
+
+  const whitePvcProduct = products.find((p) => p.slug === 'pvc-nfc-card') || products[0];
+  const blackPvcProduct = products.find((p) => p.slug === 'premium-pvc-nfc-card') || products[1];
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -428,36 +473,109 @@ function BuyCardSalesExperience({
         schemaJsonLd={BUY_CARD_SCHEMA_JSON_LD}
       />
 
-      <MakroNavbar
-        currentView="nfc-sales"
-        onNavigate={onNavigate}
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-        session={session}
-      />
+      {/* ================================================================
+          CONVERSION-LOCKED FUNNEL HEADER (Zero Distracting Exit Links)
+         ================================================================ */}
+      <header className="fixed top-0 inset-x-0 z-40 h-16 bg-white/95 dark:bg-[#08090b]/95 backdrop-blur-md border-b border-neutral-200/90 dark:border-neutral-800/90">
+        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
+          {/* Zone 1: Single-line Brand Wordmark */}
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-neutral-950 dark:text-white whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <img
+              src="/chipng_3d_logo.jpg"
+              alt="CHIPNG"
+              className="h-7 w-7 rounded-lg object-cover border border-neutral-200 dark:border-neutral-800"
+            />
+            <span>CHIPNG</span>
+          </button>
 
-      <main className="pt-20 sm:pt-24">
+          {/* Zone 2: In-Page Anchor Navigation Only (No Blog/Company/Home Exit Leaks) */}
+          <nav
+            aria-label="Buy Card page sections"
+            className="hidden md:flex items-center gap-7 text-sm font-medium text-neutral-600 dark:text-neutral-300"
+          >
+            <button
+              type="button"
+              onClick={() => scrollToSection('how-it-works')}
+              className="hover:text-neutral-950 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              How It Works
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('select-card')}
+              className="hover:text-neutral-950 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              Compare Cards
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('client-proofs')}
+              className="hover:text-neutral-950 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              Real Client Proofs
+            </button>
+          </nav>
+
+          {/* Zone 3: WhatsApp Order/Help Escape Hatch + Primary Action */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            <a
+              href={buildChipngWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackWhatsAppSupportClicked('funnel_header_whatsapp')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-neutral-800 dark:text-neutral-200 hover:border-[#16a34a] hover:text-[#16a34a] transition-colors whitespace-nowrap shrink-0 min-h-[38px]"
+            >
+              <MessageCircle className="w-4 h-4 text-[#16a34a]" />
+              <span className="hidden sm:inline">WhatsApp Order</span>
+              <span className="sm:hidden">WhatsApp</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => scrollToSection('select-card')}
+              className="px-4 py-2 rounded-lg bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px]"
+            >
+              Order Card
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              aria-label="Toggle color theme"
+              className="h-9 w-9 rounded-lg border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="pt-16">
         {/* ================================================================
             SECTION 1: HIGH-CONVERTING HERO (ABOVE-THE-FOLD OPTIMIZED)
            ================================================================ */}
         <section className="relative overflow-hidden border-b border-neutral-200/80 dark:border-neutral-800/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-14 sm:pt-14 sm:pb-20 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16 lg:py-16">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left Copy Column */}
               <div className="lg:col-span-7 space-y-6">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-                  CHIPNG Smart NFC Business Cards · Nigeria
+                <p className="text-xs font-semibold tracking-wide text-[#16a34a]">
+                  CHIPNG Smart NFC Business Cards · Crafted in Lekki, Lagos
                 </p>
 
                 <h1
-                  className="text-3xl sm:text-5xl lg:text-[3.35rem] font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.06]"
+                  className="text-3xl sm:text-5xl lg:text-[3.3rem] font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.06]"
                   style={{ textWrap: 'balance' }}
                 >
                   YOUR BUSINESS DESERVES MORE THAN A PAPER BUSINESS CARD.
                 </h1>
 
                 <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300 max-w-xl leading-relaxed">
-                  Make unforgettable first impressions with CHIPNG NFC smart business cards. Share your contact details, social media, website and business information with a single tap.
+                  Share your phone number, WhatsApp, website, and social media in 1 second on every iPhone &amp; Android—no app needed. Approve your custom card proof on WhatsApp before we print.
                 </p>
 
                 {/* Primary & Secondary CTAs — Visible Above the Fold on Mobile */}
@@ -465,96 +583,98 @@ function BuyCardSalesExperience({
                   <button
                     type="button"
                     onClick={() => scrollToSection('select-card')}
-                    className="px-7 py-4 rounded-xl bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2.5 transition-colors shadow-sm cursor-pointer min-h-[52px]"
+                    className="px-7 py-4 rounded-xl bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2.5 transition-colors shadow-sm cursor-pointer min-h-[52px] whitespace-nowrap"
                   >
                     GET YOUR NFC CARD
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => scrollToSection('how-it-works')}
-                    className="px-7 py-4 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-950 dark:hover:border-white text-neutral-900 dark:text-white font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[52px]"
+                    onClick={() => scrollToSection('client-proofs')}
+                    className="px-7 py-4 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-950 dark:hover:border-white text-neutral-900 dark:text-white font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[52px] whitespace-nowrap"
                   >
-                    SEE HOW IT WORKS
+                    SEE REAL CLIENT CARDS
                   </button>
                 </div>
 
-                {/* Clear Pricing Entry Point & Trust Indicators */}
-                <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                {/* Clear Pricing Entry Point, Delivery Speed & 12-Month Warranty Strip */}
+                <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <p className="text-neutral-500 dark:text-neutral-400">Starting Price</p>
+                    <p className="text-neutral-500 dark:text-neutral-400">One-Time Price</p>
                     <p className="font-extrabold text-sm text-neutral-950 dark:text-white tabular-nums mt-0.5">
                       From {formatNaira(lowestPrice)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-neutral-500 dark:text-neutral-400">App Required</p>
-                    <p className="font-bold text-sm text-neutral-950 dark:text-white mt-0.5">None (Browser)</p>
+                    <p className="text-neutral-500 dark:text-neutral-400">Lagos Delivery</p>
+                    <p className="font-bold text-sm text-neutral-950 dark:text-white mt-0.5">24–48 Hours</p>
                   </div>
                   <div>
-                    <p className="text-neutral-500 dark:text-neutral-400">Design Proof</p>
-                    <p className="font-bold text-sm text-neutral-950 dark:text-white mt-0.5">Before Printing</p>
+                    <p className="text-neutral-500 dark:text-neutral-400">Nationwide</p>
+                    <p className="font-bold text-sm text-neutral-950 dark:text-white mt-0.5">DHL &amp; GIG (2–4d)</p>
                   </div>
                   <div>
-                    <p className="text-neutral-500 dark:text-neutral-400">Delivery</p>
-                    <p className="font-bold text-sm text-neutral-950 dark:text-white mt-0.5">Lagos &amp; Nationwide</p>
+                    <p className="text-neutral-500 dark:text-neutral-400">Chip Warranty</p>
+                    <p className="font-bold text-sm text-[#16a34a] mt-0.5">12-Mo Free Replace</p>
                   </div>
                 </div>
               </div>
 
               {/* Right Visual Column: NFC Card + Smartphone Tap Demonstration */}
               <div className="lg:col-span-5">
-                <div className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f1115] p-5 sm:p-7 overflow-hidden">
-                  {/* Real Product Photo Backdrop */}
+                <div className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f1115] p-5 sm:p-6 overflow-hidden">
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-950 border border-neutral-800">
                     <img
-                      src={products[1]?.images[0] || CANONICAL_BUY_CARD_PRODUCTS[1].images[0]}
+                      src={blackPvcProduct?.images[0] || CANONICAL_BUY_CARD_PRODUCTS[1].images[0]}
                       alt="CHIPNG Matte Black Custom NFC Smart Business Card"
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                    {/* Animated NFC Tap Signal Overlay */}
                     <motion.div
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6 }}
-                      className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3.5 shadow-lg flex items-center justify-between gap-3"
+                      transition={{ duration: 0.45 }}
+                      className="absolute bottom-3 left-3 right-3 rounded-xl bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3.5 shadow-lg flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-[#16a34a] text-white flex items-center justify-center shrink-0">
-                          <Wifi className="w-5 h-5" />
+                        <div className="h-9 w-9 rounded-lg bg-[#16a34a] text-white flex items-center justify-center shrink-0">
+                          <Wifi className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-neutral-950 dark:text-white truncate">
-                            CHIPNG Profile Opened Instantly
+                            Works on iPhone &amp; Android in 1 Second
                           </p>
                           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
-                            Save Contact · Website · WhatsApp · Socials
+                            Save Contact · WhatsApp · Website · QR Backup
                           </p>
                         </div>
                       </div>
-                      <span className="text-[11px] font-bold text-[#16a34a] shrink-0">1 Tap</span>
+                      <span className="text-[11px] font-bold text-[#16a34a] shrink-0 whitespace-nowrap">No App</span>
                     </motion.div>
                   </div>
 
-                  {/* Secondary Card Material Strip */}
-                  <div className="grid grid-cols-3 gap-3 mt-4">
+                  {/* Quick Jump Material Strip */}
+                  <div className="grid grid-cols-3 gap-2.5 mt-4">
                     {[
                       {
-                        label: 'PVC White',
-                        price: products[0]?.priceNgn || 30000,
-                        img: products[0]?.images[0],
+                        label: 'White PVC',
+                        price: whitePvcProduct?.priceNgn || 30000,
+                        img: whitePvcProduct?.images[0],
+                        product: whitePvcProduct,
                       },
                       {
-                        label: 'Premium PVC',
-                        price: products[1]?.priceNgn || 35000,
-                        img: products[1]?.images[0],
+                        label: 'Matte Black PVC',
+                        price: blackPvcProduct?.priceNgn || 35000,
+                        img: blackPvcProduct?.images[0],
+                        product: blackPvcProduct,
                       },
                       {
-                        label: 'Metal NFC',
+                        label: 'Metal Laser',
                         price: products[2]?.priceNgn || 50000,
                         img: products[2]?.images[0],
+                        product: products[2],
                       },
                     ].map((thumb) => (
                       <button
@@ -568,6 +688,7 @@ function BuyCardSalesExperience({
                             src={thumb.img}
                             alt={`CHIPNG ${thumb.label} NFC business card`}
                             loading="lazy"
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
@@ -585,230 +706,80 @@ function BuyCardSalesExperience({
         </section>
 
         {/* ================================================================
-            SECTION 2: PRODUCT DEMONSTRATION (3-STEP INTERACTIVE FLOW)
-           ================================================================ */}
-        <section
-          id="how-it-works"
-          className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-[#0b0d10]"
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-                How CHIPNG Works
-              </p>
-              <h2
-                className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-2"
-                style={{ textWrap: 'balance' }}
-              >
-                Share your entire business identity in three effortless seconds.
-              </h2>
-              <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 mt-3 leading-relaxed">
-                Your clients do not need to install any special application to view your shared profile. Every card works directly in their mobile browser and includes a backup QR code.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-10 items-center">
-              {/* Interactive 3-Step Cards */}
-              <div className="lg:col-span-7 space-y-3">
-                {DEMO_STEPS.map((item, idx) => {
-                  const isActive = activeDemoStep === idx;
-                  return (
-                    <button
-                      key={item.step}
-                      type="button"
-                      onClick={() => setActiveDemoStep(idx)}
-                      className={`w-full text-left rounded-2xl p-5 sm:p-6 border transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-white dark:bg-[#11141a] border-[#16a34a] shadow-sm'
-                          : 'bg-white/60 dark:bg-[#0e1014] border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1.5">
-                          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#16a34a]">
-                            {item.step}
-                          </p>
-                          <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white">
-                            {item.headline}
-                          </h3>
-                          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                            {item.detail}
-                          </p>
-                        </div>
-                        <span
-                          className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                            isActive
-                              ? 'bg-[#16a34a] text-white'
-                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
-                          }`}
-                        >
-                          0{idx + 1}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Animated Smartphone + Card Interactive Preview */}
-              <div className="lg:col-span-5">
-                <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-6 sm:p-8 flex flex-col items-center">
-                  {/* Minimalist Smartphone Frame */}
-                  <div className="w-full max-w-[280px] rounded-[2rem] border-4 border-neutral-900 dark:border-neutral-700 bg-neutral-950 text-white p-4 shadow-xl">
-                    <div className="w-16 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
-
-                    {/* Dynamic Step State Inside Phone */}
-                    <div className="rounded-2xl bg-neutral-900 border border-neutral-800 p-4 space-y-4 min-h-[260px] flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-[11px] text-neutral-400">
-                        <span className="font-semibold text-[#16a34a]">chipng.com/you</span>
-                        <span>No App Needed</span>
-                      </div>
-
-                      {activeDemoStep === 0 && (
-                        <motion.div
-                          key="demo-tap"
-                          initial={{ opacity: 0, scale: 0.96 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="flex flex-col items-center text-center py-6 space-y-3"
-                        >
-                          <div className="h-14 w-14 rounded-2xl bg-[#16a34a]/15 border border-[#16a34a]/40 text-[#16a34a] flex items-center justify-center">
-                            <Wifi className="w-7 h-7" />
-                          </div>
-                          <p className="text-sm font-bold">Tap CHIPNG Card Here</p>
-                          <p className="text-xs text-neutral-400">
-                            NXP NTAG216 chip detected instantly on compatible iPhone &amp; Android phones
-                          </p>
-                        </motion.div>
-                      )}
-
-                      {activeDemoStep === 1 && (
-                        <motion.div
-                          key="demo-connect"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="space-y-3 py-2"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-11 w-11 rounded-full bg-[#16a34a] text-white font-bold flex items-center justify-center text-sm">
-                              CO
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold">Chinedu Okafor</p>
-                              <p className="text-[11px] text-neutral-400">Managing Director · Lagos</p>
-                            </div>
-                          </div>
-                          <div className="rounded-xl bg-neutral-800/80 p-3 text-xs text-neutral-300 leading-relaxed">
-                            Browser opened directly—no app download or account required for the person you meet.
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {activeDemoStep === 2 && (
-                        <motion.div
-                          key="demo-share"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="space-y-2.5 py-1"
-                        >
-                          <div className="rounded-xl bg-[#16a34a] text-white px-3.5 py-2.5 text-xs font-bold flex items-center justify-between">
-                            <span>Save Contact (vCard)</span>
-                            <Check className="w-4 h-4" />
-                          </div>
-                          <div className="rounded-xl bg-neutral-800 px-3.5 py-2 text-xs text-neutral-200 flex items-center justify-between">
-                            <span>Visit Website</span>
-                            <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
-                          </div>
-                          <div className="rounded-xl bg-neutral-800 px-3.5 py-2 text-xs text-neutral-200 flex items-center justify-between">
-                            <span>WhatsApp &amp; Social Media</span>
-                            <Share2 className="w-3.5 h-3.5 text-neutral-400" />
-                          </div>
-                        </motion.div>
-                      )}
-
-                      <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
-                        <span>{activeDemo.phoneStatus}</span>
-                        <QrCode className="w-4 h-4 text-neutral-500" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ================================================================
-            SECTION 3: WHY CHOOSE CHIPNG? (9 VERIFIED BENEFITS)
-           ================================================================ */}
-        <section className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-                Why Choose CHIPNG?
-              </p>
-              <h2
-                className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-2"
-                style={{ textWrap: 'balance' }}
-              >
-                Built for Nigerian founders, executives, and modern teams.
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
-              {WHY_CHOOSE_ITEMS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.title}
-                    className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-6 space-y-3"
-                  >
-                    <div className="h-10 w-10 rounded-xl bg-[#16a34a]/10 text-[#16a34a] flex items-center justify-center">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <h3 className="text-base font-bold text-neutral-950 dark:text-white">{item.title}</h3>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{item.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ================================================================
-            SECTION 4: PRODUCT SELECTION, PRICING & COMPARISON (PHASE 2)
+            SECTION 2: PRODUCT SELECTION, ₦30K VS ₦35K CLARITY & GUARANTEE STRIP
            ================================================================ */}
         <section
           id="select-card"
-          className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-[#0b0d10]"
+          className="py-14 sm:py-20 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/70 dark:bg-[#0b0d10]"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Compact Delivery Speed + 12-Month Chip Warranty Strip Directly Above Card Selection */}
+            <div className="mb-10 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-start gap-3">
+                <Truck className="w-5 h-5 text-[#16a34a] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-neutral-950 dark:text-white">24–48 hr Lagos Delivery</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                    Live rider tracking straight from our Lekki Phase 1 studio.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Globe className="w-5 h-5 text-[#16a34a] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-neutral-950 dark:text-white">2–4 Day Nationwide Shipping</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                    Insured DHL &amp; GIG Logistics to Abuja, PH, Kano &amp; all 36 states.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-[#16a34a] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-neutral-950 dark:text-white">12-Month Chip Warranty</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                    Free replacement if your NFC chip ever stops scanning under normal use.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-[#16a34a] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-neutral-950 dark:text-white">Approve Proof Before Print</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                    We send your softcopy layout on WhatsApp before printing or engraving.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div className="max-w-2xl">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-                  Verified CHIPNG Catalog · NGN Pricing
+                <p className="text-xs font-semibold text-[#16a34a]">
+                  One-Time Payment · No Monthly Subscription Required
                 </p>
                 <h2
-                  className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-2"
+                  className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1.5"
                   style={{ textWrap: 'balance' }}
                 >
-                  Choose the right NFC smart business card for your brand.
+                  Choose your CHIPNG smart business card.
                 </h2>
                 <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 mt-2">
-                  Every card includes custom logo branding, pre-production design approval, lifetime CHIP Core hosting, and 3 months free CHIP Pro.
+                  Every card works on iPhone &amp; Android in 1 second, includes a backup QR code, WhatsApp proof approval before production, and our 12-month chip warranty.
                 </p>
               </div>
 
-              {/* Interactive Audience Filter (Smart Recommendation) */}
+              {/* Interactive Audience Filter */}
               <div
                 role="tablist"
                 aria-label="Filter cards by customer type"
-                className="flex flex-wrap gap-2"
+                className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-neutral-200/70 dark:bg-neutral-900"
               >
                 {[
                   { key: 'all' as AudienceFilter, label: 'All Cards' },
-                  { key: 'individual' as AudienceFilter, label: 'Individuals (PVC)' },
-                  { key: 'executive' as AudienceFilter, label: 'Executives (Metal)' },
-                  { key: 'business' as AudienceFilter, label: 'Businesses (Corporate)' },
+                  { key: 'individual' as AudienceFilter, label: 'PVC (₦30k–₦35k)' },
+                  { key: 'executive' as AudienceFilter, label: 'Metal (₦50k+)' },
+                  { key: 'business' as AudienceFilter, label: 'Teams (11 Cards)' },
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -816,10 +787,10 @@ function BuyCardSalesExperience({
                     role="tab"
                     aria-selected={audienceFilter === tab.key}
                     onClick={() => setAudienceFilter(tab.key)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer min-h-[42px] ${
+                    className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer min-h-[38px] whitespace-nowrap ${
                       audienceFilter === tab.key
-                        ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950'
-                        : 'bg-white dark:bg-[#11141a] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400'
+                        ? 'bg-white dark:bg-[#181b22] text-neutral-950 dark:text-white shadow-xs'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
                     }`}
                   >
                     {tab.label}
@@ -828,17 +799,54 @@ function BuyCardSalesExperience({
               </div>
             </div>
 
+            {/* 2-Second Clarity Callout: ₦30,000 White PVC vs. ₦35,000 Matte Black PVC */}
+            {(audienceFilter === 'all' || audienceFilter === 'individual') && (
+              <div className="mt-8 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-5 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-neutral-100 dark:border-neutral-800">
+                  <h3 className="text-sm sm:text-base font-extrabold text-neutral-950 dark:text-white">
+                    Deciding between ₦30,000 and ₦35,000 PVC? Here&apos;s what the extra ₦5,000 buys:
+                  </h3>
+                  <span className="text-xs font-semibold text-[#16a34a] whitespace-nowrap">
+                    Same 1-second NFC tap · Different finish
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 text-xs sm:text-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="font-bold text-neutral-950 dark:text-white">
+                        Standard White PVC — <span className="tabular-nums">{formatNaira(whitePvcProduct?.priceNgn || 30000)}</span>
+                      </p>
+                      <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                        Clean ceramic white finish with full-color front &amp; back printing. Pick this if your logo uses bright colors that look sharpest on a white background.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start justify-between gap-4 md:border-l md:border-neutral-200 md:dark:border-neutral-800 md:pl-5">
+                    <div className="space-y-1">
+                      <p className="font-bold text-neutral-950 dark:text-white">
+                        Premium Matte Black PVC — <span className="tabular-nums text-[#16a34a]">{formatNaira(blackPvcProduct?.priceNgn || 35000)}</span>
+                        <span className="text-xs font-semibold text-[#16a34a]"> (Most Popular · +₦5,000)</span>
+                      </p>
+                      <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                        Upgrades to a sleek Matte Black soft-touch card with raised, waterproof UV ink and an anti-scratch coat that resists wallet scuffs and fingerprints.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Product Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
               {filteredProducts.map((product) => {
                 const activeIdx = activeImageByProduct[product.id] || 0;
                 const currentImg = product.images[activeIdx] || product.images[0];
                 return (
                   <article
                     key={product.id}
-                    className={`flex flex-col rounded-3xl border bg-white dark:bg-[#0f1115] overflow-hidden transition-shadow hover:shadow-lg ${
+                    className={`flex flex-col rounded-2xl border bg-white dark:bg-[#0f1115] overflow-hidden transition-shadow hover:shadow-md ${
                       product.recommended
-                        ? 'border-[#16a34a] ring-1 ring-[#16a34a]/20'
+                        ? 'border-[#16a34a] ring-1 ring-[#16a34a]/25'
                         : 'border-neutral-200 dark:border-neutral-800'
                     }`}
                   >
@@ -848,13 +856,9 @@ function BuyCardSalesExperience({
                         src={currentImg}
                         alt={`${product.name} — CHIPNG NFC business card`}
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
-                      {product.recommended && (
-                        <span className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-[#16a34a] text-white text-[11px] font-bold uppercase tracking-wider shadow-sm">
-                          Most Popular
-                        </span>
-                      )}
                       {product.images.length > 1 && (
                         <div className="absolute bottom-3 left-3 flex gap-1.5">
                           {product.images.slice(0, 4).map((imgUrl, idx) => (
@@ -868,10 +872,10 @@ function BuyCardSalesExperience({
                               className={`h-8 w-8 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                                 activeIdx === idx
                                   ? 'border-[#16a34a] scale-105'
-                                  : 'border-white/70 opacity-80 hover:opacity-100'
+                                  : 'border-white/75 opacity-85 hover:opacity-100'
                               }`}
                             >
-                              <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                              <img src={imgUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                             </button>
                           ))}
                         </div>
@@ -882,7 +886,7 @@ function BuyCardSalesExperience({
                     <div className="flex-1 p-6 flex flex-col justify-between gap-5">
                       <div className="space-y-3">
                         <div>
-                          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#16a34a]">
+                          <p className="text-xs font-semibold text-[#16a34a]">
                             {product.tierLabel}
                           </p>
                           <h3 className="text-lg font-extrabold text-neutral-950 dark:text-white mt-1">
@@ -892,6 +896,12 @@ function BuyCardSalesExperience({
                             {formatNaira(product.priceNgn)}
                           </p>
                         </div>
+
+                        {product.upgradeHighlight && (
+                          <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-900 rounded-xl px-3 py-2.5 leading-relaxed">
+                            {product.upgradeHighlight}
+                          </p>
+                        )}
 
                         <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
                           {product.shortDescription}
@@ -918,7 +928,7 @@ function BuyCardSalesExperience({
                         <button
                           type="button"
                           onClick={() => handleSelectProduct(product)}
-                          className={`w-full py-3.5 px-5 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[48px] ${
+                          className={`w-full py-3.5 px-5 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[48px] whitespace-nowrap ${
                             product.recommended
                               ? 'bg-[#16a34a] hover:bg-[#15803d] text-white'
                               : 'bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950'
@@ -935,24 +945,24 @@ function BuyCardSalesExperience({
             </div>
 
             {/* Product Comparison Table */}
-            <div className="mt-14 rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] overflow-hidden">
+            <div className="mt-12 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] overflow-hidden">
               <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
                 <h3 className="text-lg font-extrabold text-neutral-950 dark:text-white">
-                  Compare CHIPNG Smart Card Editions
+                  Compare CHIPNG Smart Card Editions Side-by-Side
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-                  All editions use genuine NXP NTAG216 chips and include pre-production design approval.
+                  Every card works on iPhone &amp; Android in 1 second, includes a WhatsApp softcopy proof before print, and carries our 12-month free chip warranty.
                 </p>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[640px]">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[660px]">
                   <thead>
-                    <tr className="bg-neutral-50 dark:bg-neutral-950/60 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 uppercase text-[11px] font-bold tracking-wider">
-                      <th className="py-3.5 px-5">Feature</th>
-                      <th className="py-3.5 px-5">PVC Card</th>
-                      <th className="py-3.5 px-5 text-[#16a34a]">Premium PVC</th>
-                      <th className="py-3.5 px-5">Metal Editions</th>
-                      <th className="py-3.5 px-5">Corporate Package</th>
+                    <tr className="bg-neutral-50 dark:bg-neutral-950/60 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 text-xs font-bold">
+                      <th className="py-3.5 px-5">What Matters</th>
+                      <th className="py-3.5 px-5">White PVC (₦30k)</th>
+                      <th className="py-3.5 px-5 text-[#16a34a]">Matte Black PVC (₦35k)</th>
+                      <th className="py-3.5 px-5">Metal Editions (₦50k+)</th>
+                      <th className="py-3.5 px-5">Team Pack (₦300k)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
@@ -983,90 +993,187 @@ function BuyCardSalesExperience({
         </section>
 
         {/* ================================================================
-            SECTION 5: DESIGN APPROVAL PROMISE & TRUST / PROOF (PHASE 3 & 4)
+            SECTION 3: REAL NIGERIAN CLIENT PROOFS & WHATSAPP RECEIPTS
            ================================================================ */}
-        <section className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-            {/* Pre-Production Design Proof Banner */}
-            <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-neutral-950 text-white p-7 sm:p-10 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-7 space-y-4">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" /> Zero Guesswork Production
+        <section
+          id="client-proofs"
+          className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="max-w-2xl">
+                <p className="text-xs font-semibold text-[#16a34a]">
+                  Verified Orders, Reviews &amp; Delivery Receipts
                 </p>
-                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-                  YOUR BRAND. YOUR CARD. YOUR APPROVAL.
+                <h2
+                  className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1.5"
+                  style={{ textWrap: 'balance' }}
+                >
+                  Real Nigerian clients. Real WhatsApp receipts. Real deliveries.
                 </h2>
-                <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-xl">
-                  After you complete your order, our Lagos studio crafts your custom card mockup with your logo, name, and QR layout—and sends it to your WhatsApp &amp; email for sign-off before we print or laser-engrave a single card.
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 mt-2">
+                  No stock quotes or invented numbers—inspect actual WhatsApp reviews, live Lagos rider deliveries, Kano GIG waybills, and repeat corporate staff orders.
                 </p>
               </div>
-              <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {[
-                  { icon: CheckCircle2, label: 'Free layout revisions before print' },
-                  { icon: ShieldCheck, label: 'Genuine NXP NTAG216 hardware' },
-                  { icon: Lock, label: 'Verified Flutterwave checkout' },
-                  { icon: Truck, label: 'Insured DHL & GIG delivery' },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.label}
-                      className="rounded-2xl bg-white/[0.06] border border-white/10 p-4 flex items-start gap-2.5"
-                    >
-                      <Icon className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
-                      <span className="font-semibold text-neutral-100 leading-snug">{item.label}</span>
+              <a
+                href="https://g.page/r/CZGM0zQdEiY7EAE/review"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-[#16a34a] hover:underline inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+              >
+                Read Google Reviews <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            {/* 3 Attributable Verified Nigerian Client Reviews */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {VERIFIED_CLIENT_STORIES.map((story) => (
+                <blockquote
+                  key={story.name}
+                  className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-6 flex flex-col justify-between gap-5"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 text-[#16a34a]" aria-label="5 out of 5 stars">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-current" />
+                        ))}
+                      </div>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">{story.proofLabel}</span>
                     </div>
-                  );
-                })}
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                      &ldquo;{story.quote}&rdquo;
+                    </p>
+                  </div>
+                  <footer className="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-neutral-950 dark:text-white truncate">{story.name}</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                        {story.role} · {story.location}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const match = CLIENT_PROOF_GALLERY.find((p) => p.image === story.proofImage);
+                        if (match) setLightboxProof(match);
+                      }}
+                      aria-label={`Inspect WhatsApp proof from ${story.name}`}
+                      className="h-11 w-11 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0 hover:border-[#16a34a] transition-colors cursor-pointer"
+                    >
+                      <img
+                        src={story.proofImage}
+                        alt={`Proof screenshot for ${story.name}`}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
+
+            {/* Full 8-Screenshot Real WhatsApp Proof Gallery (Tap any card to zoom) */}
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h3 className="text-lg sm:text-xl font-extrabold text-neutral-950 dark:text-white">
+                  Unedited WhatsApp Reviews, Softcopy Proofs &amp; Delivery Receipts
+                </h3>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Tap any screenshot to view full size
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {CLIENT_PROOF_GALLERY.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setLightboxProof(item)}
+                    className="group text-left rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] overflow-hidden hover:border-[#16a34a] transition-colors cursor-pointer flex flex-col"
+                  >
+                    <div className="relative aspect-[4/5] bg-neutral-950 overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={`${item.tag} — ${item.title}`}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-300"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
+                      <span className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-lg bg-black/70 text-white flex items-center justify-center opacity-90 group-hover:bg-[#16a34a] transition-colors">
+                        <ZoomIn className="w-4 h-4" />
+                      </span>
+                    </div>
+                    <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-[11px] font-semibold text-[#16a34a]">
+                          {item.tag} · {item.location}
+                        </p>
+                        <p className="text-sm font-bold text-neutral-950 dark:text-white mt-1 leading-snug">
+                          {item.title}
+                        </p>
+                      </div>
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed pt-1">
+                        {item.caption}
+                      </p>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Real Product Demonstration Videos (Lazy-loaded Click-to-Play for Core Web Vitals) */}
-            <div>
+            {/* Real Workshop Videos (Click-to-Play for Fast Page Load) */}
+            <div className="pt-4">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
+                  <p className="text-xs font-semibold text-[#16a34a]">
                     See CHIPNG Cards In Action
                   </p>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1">
-                    Real cards crafted in our Lagos workshop.
-                  </h2>
+                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1">
+                    Real cards crafted in our Lekki studio.
+                  </h3>
                 </div>
                 <a
                   href="https://www.tiktok.com/@chipng_nfc"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-bold text-[#16a34a] hover:underline inline-flex items-center gap-1"
+                  className="text-xs font-bold text-[#16a34a] hover:underline inline-flex items-center gap-1 whitespace-nowrap"
                 >
-                  Follow @chipng_nfc on TikTok <ExternalLink className="w-3.5 h-3.5" />
+                  More videos on @chipng_nfc <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 {REAL_TIKTOK_DEMOS.map((vid) => (
                   <div
                     key={vid.id}
-                    className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f1115] overflow-hidden flex flex-col"
+                    className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] overflow-hidden"
                   >
-                    <div className="relative aspect-[16/10] bg-neutral-950">
+                    <div className="relative aspect-[16/10] bg-neutral-950 overflow-hidden">
                       {activeVideoIds[vid.id] ? (
                         <iframe
-                          src={`https://www.tiktok.com/player/v1/${vid.id}?autoplay=1&loop=1&music_info=0&description=0`}
+                          src={`https://www.tiktok.com/embed/v2/${vid.id}`}
                           title={vid.title}
                           className="w-full h-full border-0"
-                          allow="fullscreen; autoplay"
+                          allow="encrypted-media;"
+                          loading="lazy"
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => setActiveVideoIds((prev) => ({ ...prev, [vid.id]: true }))}
-                          className="relative w-full h-full group cursor-pointer text-left"
+                          className="relative w-full h-full group cursor-pointer"
+                          aria-label={`Play video: ${vid.title}`}
                         >
                           <img
                             src={vid.poster}
                             alt={vid.title}
                             loading="lazy"
-                            className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-300"
                           />
                           <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
                             <span className="h-14 w-14 rounded-full bg-[#16a34a] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -1077,106 +1184,158 @@ function BuyCardSalesExperience({
                       )}
                     </div>
                     <div className="p-5">
-                      <h3 className="text-base font-bold text-neutral-950 dark:text-white">{vid.title}</h3>
+                      <h4 className="text-base font-bold text-neutral-950 dark:text-white">{vid.title}</h4>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">{vid.subtitle}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Verified Customer Reviews */}
-            <div>
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-                    Trusted by Professionals Across Nigeria
-                  </p>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1">
-                    4.9 / 5 rated by Nigerian founders &amp; teams.
-                  </h2>
-                </div>
-                <a
-                  href="https://g.page/r/CZGM0zQdEiY7EAE/review"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-bold text-[#16a34a] hover:underline inline-flex items-center gap-1"
-                >
-                  View CHIPNG Google Reviews <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-                {CHIPNG_PRODUCT_REVIEWS.map((review) => (
-                  <blockquote
-                    key={review.author.name}
-                    className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-6 flex flex-col justify-between gap-4"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-1 text-[#16a34a]" aria-label="5 out of 5 stars">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-current" />
-                        ))}
-                      </div>
-                      <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                        &ldquo;{review.reviewBody}&rdquo;
-                      </p>
-                    </div>
-                    <footer className="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs">
-                      <span className="font-bold text-neutral-950 dark:text-white">{review.author.name}</span>
-                      <span className="text-neutral-400">Verified Buyer</span>
-                    </footer>
-                  </blockquote>
-                ))}
-              </div>
+        {/* ================================================================
+            SECTION 4: 3-STEP PRODUCT DEMONSTRATION (PLAIN-ENGLISH OUTCOMES)
+           ================================================================ */}
+        <section
+          id="how-it-works"
+          className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/70 dark:bg-[#0b0d10]"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold text-[#16a34a]">
+                How CHIPNG Works
+              </p>
+              <h2
+                className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1.5"
+                style={{ textWrap: 'balance' }}
+              >
+                Share your entire business identity in 1 second.
+              </h2>
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 mt-3 leading-relaxed">
+                Zero app required for the person you meet. Every card works straight in Safari or Chrome and includes a backup QR code for older phones.
+              </p>
             </div>
 
-            {/* Verified Support, Compatibility & Delivery Assurance Strip */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f1115] p-6 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#16a34a]">Device Compatibility</p>
-                <h3 className="text-base font-bold text-neutral-950 dark:text-white">
-                  Works on NFC-enabled iPhone &amp; Android
-                </h3>
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  Powered by passive NXP NTAG216 technology (iPhone XR/XS &amp; newer, modern Android phones with NFC enabled), plus a crisp dynamic QR code backup for any camera.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f1115] p-6 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#16a34a]">Lagos &amp; Nationwide Delivery</p>
-                <h3 className="text-base font-bold text-neutral-950 dark:text-white">
-                  Fast Insured Dispatch Across Nigeria
-                </h3>
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  Crafted in Lekki Phase 1, Lagos. Lagos delivery takes 24–48 hours after design approval; Abuja, Port Harcourt, and all 36 states ship in 2–4 business days via DHL &amp; GIG.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f1115] p-6 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#16a34a]">Real Nigerian Support</p>
-                <h3 className="text-base font-bold text-neutral-950 dark:text-white">
-                  Direct WhatsApp &amp; Email Concierge
-                </h3>
-                <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 space-y-1.5 pt-1">
-                  <p className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-[#16a34a] shrink-0" />
-                    <a
-                      href={buildChipngWhatsAppUrl()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => trackWhatsAppSupportClicked('trust_strip')}
-                      className="font-semibold text-neutral-900 dark:text-white hover:text-[#16a34a]"
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-10 items-center">
+              <div className="lg:col-span-7 space-y-3">
+                {DEMO_STEPS.map((item, idx) => {
+                  const isActive = activeDemoStep === idx;
+                  return (
+                    <button
+                      key={item.step}
+                      type="button"
+                      onClick={() => setActiveDemoStep(idx)}
+                      className={`w-full text-left rounded-2xl p-5 sm:p-6 border transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-white dark:bg-[#11141a] border-[#16a34a] shadow-xs'
+                          : 'bg-white/60 dark:bg-[#0e1014] border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600'
+                      }`}
                     >
-                      WhatsApp: {CHIPNG_DISPLAY_PHONE}
-                    </a>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#16a34a] shrink-0" />
-                    <span>{CHIPNG_SUPPORT_EMAIL}</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#16a34a] shrink-0" />
-                    <span>Lekki Phase 1, Lagos, Nigeria</span>
-                  </p>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1.5">
+                          <p className="text-xs font-extrabold tracking-wide text-[#16a34a]">
+                            {item.step}
+                          </p>
+                          <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white">
+                            {item.headline}
+                          </h3>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                            {item.detail}
+                          </p>
+                        </div>
+                        <span
+                          className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 tabular-nums ${
+                            isActive
+                              ? 'bg-[#16a34a] text-white'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
+                          }`}
+                        >
+                          0{idx + 1}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="lg:col-span-5">
+                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-6 sm:p-8 flex flex-col items-center">
+                  <div className="w-full max-w-[280px] rounded-[2rem] border-4 border-neutral-900 dark:border-neutral-700 bg-neutral-950 text-white p-4 shadow-xl">
+                    <div className="w-16 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
+                    <div className="rounded-2xl bg-neutral-900 border border-neutral-800 p-4 space-y-4 min-h-[250px] flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-[11px] text-neutral-400">
+                        <span className="font-semibold text-[#16a34a]">chipng.com/you</span>
+                        <span>No App Needed</span>
+                      </div>
+
+                      {activeDemoStep === 0 && (
+                        <motion.div
+                          key="demo-tap"
+                          initial={{ opacity: 0, scale: 0.96 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex flex-col items-center text-center py-5 space-y-3"
+                        >
+                          <div className="h-14 w-14 rounded-2xl bg-[#16a34a]/15 border border-[#16a34a]/40 text-[#16a34a] flex items-center justify-center">
+                            <Wifi className="w-7 h-7" />
+                          </div>
+                          <p className="text-sm font-bold">Tap Card Against Any Phone</p>
+                          <p className="text-xs text-neutral-400">
+                            Works on every iPhone &amp; Android in 1 second—never needs charging
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {activeDemoStep === 1 && (
+                        <motion.div
+                          key="demo-connect"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-3 py-2"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-11 w-11 rounded-full bg-[#16a34a] text-white font-bold flex items-center justify-center text-sm">
+                              SA
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold">Samirah Ade-Adebiyi</p>
+                              <p className="text-[11px] text-neutral-400">Managing Director · Lagos</p>
+                            </div>
+                          </div>
+                          <div className="rounded-xl bg-neutral-800/80 p-3 text-xs text-neutral-300 leading-relaxed">
+                            Opens straight in Safari or Chrome—no app download needed.
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {activeDemoStep === 2 && (
+                        <motion.div
+                          key="demo-share"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-2.5 py-1"
+                        >
+                          <div className="rounded-xl bg-[#16a34a] text-white px-3.5 py-2.5 text-xs font-bold flex items-center justify-between">
+                            <span>Save Contact to Phone</span>
+                            <Check className="w-4 h-4" />
+                          </div>
+                          <div className="rounded-xl bg-neutral-800 px-3.5 py-2 text-xs text-neutral-200 flex items-center justify-between">
+                            <span>Message on WhatsApp</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
+                          </div>
+                          <div className="rounded-xl bg-neutral-800 px-3.5 py-2 text-xs text-neutral-200 flex items-center justify-between">
+                            <span>Website &amp; Social Media</span>
+                            <Share2 className="w-3.5 h-3.5 text-neutral-400" />
+                          </div>
+                        </motion.div>
+                      )}
+
+                      <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
+                        <span>{activeDemo.phoneStatus}</span>
+                        <QrCode className="w-4 h-4 text-neutral-500" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1184,23 +1343,94 @@ function BuyCardSalesExperience({
         </section>
 
         {/* ================================================================
-            SECTION 6: 12-QUESTION INTERACTIVE FAQ (PHASE 4)
+            SECTION 5: WHY CHOOSE CHIPNG (OUTCOME-DRIVEN BENEFITS)
            ================================================================ */}
-        <section
-          id="faq"
-          className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-[#0b0d10]"
-        >
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-                Frequently Asked Questions
+        <section className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold text-[#16a34a]">
+                Why Nigerian Founders &amp; Teams Switch to CHIPNG
               </p>
-              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-2">
-                Everything you should know before ordering.
+              <h2
+                className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1.5"
+                style={{ textWrap: 'balance' }}
+              >
+                One smart card built to outlast thousands of paper reprints.
               </h2>
             </div>
 
-            <div className="mt-10 divide-y divide-neutral-200 dark:divide-neutral-800 rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {WHY_CHOOSE_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] p-6 space-y-3"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-[#16a34a]/10 text-[#16a34a] flex items-center justify-center">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-white">{item.title}</h3>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pre-Production Design Proof & Risk-Free Guarantee Banner */}
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-950 text-white p-7 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-7 space-y-3.5">
+                <p className="text-xs font-semibold text-[#16a34a] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" /> Zero Guesswork Production
+                </p>
+                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                  YOUR BRAND. YOUR CARD. YOUR APPROVAL.
+                </h2>
+                <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-xl">
+                  We never print or engrave blindly. After you order, our Lekki studio sends your custom softcopy proof to WhatsApp &amp; email—and every card is protected by our 12-Month Free NFC Chip Replacement Guarantee.
+                </p>
+              </div>
+              <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {[
+                  { icon: CheckCircle2, label: 'Free layout edits before print' },
+                  { icon: ShieldCheck, label: '12-Month Free Chip Warranty' },
+                  { icon: Lock, label: 'Encrypted Flutterwave checkout' },
+                  { icon: Truck, label: '24–48h Lagos · DHL & GIG nationwide' },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.label}
+                      className="rounded-xl bg-white/[0.06] border border-white/10 p-4 flex items-start gap-2.5"
+                    >
+                      <Icon className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
+                      <span className="font-semibold text-neutral-100 leading-snug">{item.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            SECTION 6: ESSENTIAL BUYER FAQ ACCORDION
+           ================================================================ */}
+        <section
+          id="faq"
+          className="py-16 sm:py-24 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/70 dark:bg-[#0b0d10]"
+        >
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-2xl mx-auto">
+              <p className="text-xs font-semibold text-[#16a34a]">
+                Quick Answers Before You Order
+              </p>
+              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 dark:text-white mt-1.5">
+                Everything you need to know about ordering.
+              </h2>
+            </div>
+
+            <div className="mt-10 divide-y divide-neutral-200 dark:divide-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f1115] overflow-hidden">
               {BUY_CARD_FAQS.map((faq) => {
                 const isOpen = openFaqId === faq.id;
                 return (
@@ -1233,30 +1463,30 @@ function BuyCardSalesExperience({
         </section>
 
         {/* ================================================================
-            SECTION 7: FINAL CONVERSION & WHATSAPP CONCIERGE CTA (PHASE 6)
+            SECTION 7: FINAL CONVERSION & WHATSAPP CONCIERGE CTA
            ================================================================ */}
         <section className="py-16 sm:py-24 pb-28 md:pb-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16a34a]">
-              Ready to Upgrade Your First Impression?
+            <p className="text-xs font-semibold text-[#16a34a]">
+              24–48 hr Lagos Delivery · Nationwide DHL &amp; GIG · 12-Month Chip Warranty
             </p>
             <h2
               className="text-3xl sm:text-5xl font-extrabold tracking-tight text-neutral-950 dark:text-white"
               style={{ textWrap: 'balance' }}
             >
-              Order your custom CHIPNG NFC card today.
+              Order your custom CHIPNG smart card today.
             </h2>
             <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto">
-              Select your card, upload your logo, approve your design proof, and pay securely via Flutterwave. Still deciding between PVC, Metal, or Corporate? Talk directly to our team.
+              Pick your card, upload your logo, approve your WhatsApp proof before production, and pay securely via Flutterwave. Prefer to chat first? Message our Lekki studio directly.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => scrollToSection('select-card')}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[52px]"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[52px] whitespace-nowrap"
               >
-                GET YOUR NFC CARD
+                CHOOSE YOUR NFC CARD
                 <ArrowRight className="w-4 h-4" />
               </button>
               <a
@@ -1264,17 +1494,49 @@ function BuyCardSalesExperience({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackWhatsAppSupportClicked('bottom_cta')}
-                className="w-full sm:w-auto px-7 py-4 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-[#16a34a] text-neutral-950 dark:text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors min-h-[52px]"
+                className="w-full sm:w-auto px-7 py-4 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-[#16a34a] text-neutral-950 dark:text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors min-h-[52px] whitespace-nowrap"
               >
                 <MessageCircle className="w-4 h-4 text-[#16a34a]" />
-                Chat on WhatsApp ({CHIPNG_DISPLAY_PHONE})
+                Order / Chat on WhatsApp ({CHIPNG_DISPLAY_PHONE})
               </a>
             </div>
           </div>
         </section>
       </main>
 
-      <MakroFooter onNavigate={onNavigate} />
+      {/* Compact Conversion-Safe Footer (No Funnel Exit Clutter) */}
+      <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0a0c0f] py-10 pb-24 md:pb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-xs text-neutral-600 dark:text-neutral-400">
+          <div className="space-y-1.5">
+            <p className="text-sm font-extrabold text-neutral-950 dark:text-white">CHIP NG Technologies Ltd</p>
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-[#16a34a]" /> Lekki Phase 1, Lagos, Nigeria
+              </span>
+              <span aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5 text-[#16a34a]" /> {CHIPNG_SUPPORT_EMAIL}
+              </span>
+              <span aria-hidden="true">·</span>
+              <a
+                href={buildChipngWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackWhatsAppSupportClicked('funnel_footer_whatsapp')}
+                className="inline-flex items-center gap-1 font-semibold text-neutral-900 dark:text-white hover:text-[#16a34a]"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-[#16a34a]" /> WhatsApp {CHIPNG_DISPLAY_PHONE}
+              </a>
+            </p>
+          </div>
+          <div className="space-y-1 md:text-right">
+            <p className="font-semibold text-neutral-800 dark:text-neutral-200">
+              12-Month Free NFC Chip Replacement Warranty · Insured DHL &amp; GIG Shipping
+            </p>
+            <p>© {new Date().getFullYear()} CHIPNG. Encrypted payments processed by Flutterwave.</p>
+          </div>
+        </div>
+      </footer>
 
       {/* Mobile-Only Slim Sticky Purchase CTA (hidden when hero CTA visible) */}
       {showStickyMobileCta && (
@@ -1282,9 +1544,9 @@ function BuyCardSalesExperience({
           <button
             type="button"
             onClick={() => scrollToSection('select-card')}
-            className="flex-1 py-3 px-4 rounded-xl bg-[#16a34a] active:bg-[#15803d] text-white font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-xl bg-[#16a34a] active:bg-[#15803d] text-white font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer whitespace-nowrap"
           >
-            GET YOUR CHIPNG CARD — FROM {formatNaira(lowestPrice)}
+            GET YOUR CARD — FROM {formatNaira(lowestPrice)}
           </button>
           <a
             href={buildChipngWhatsAppUrl()}
@@ -1296,6 +1558,52 @@ function BuyCardSalesExperience({
           >
             <MessageCircle className="w-5 h-5" />
           </a>
+        </div>
+      )}
+
+      {/* Real Client Proof Lightbox */}
+      {lightboxProof && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={lightboxProof.title}
+          onClick={() => setLightboxProof(null)}
+        >
+          <div
+            className="relative max-w-lg w-full rounded-2xl bg-white dark:bg-[#0f1115] border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-[#16a34a] truncate">
+                  {lightboxProof.tag} · {lightboxProof.location}
+                </p>
+                <p className="text-sm font-bold text-neutral-950 dark:text-white truncate">
+                  {lightboxProof.title}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLightboxProof(null)}
+                aria-label="Close proof screenshot"
+                className="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="bg-neutral-950 max-h-[70vh] overflow-y-auto flex items-center justify-center">
+              <img
+                src={lightboxProof.image}
+                alt={lightboxProof.title}
+                referrerPolicy="no-referrer"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+            <div className="px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300 border-t border-neutral-200 dark:border-neutral-800">
+              {lightboxProof.caption}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1293,15 +1293,27 @@ export function BuyCardCheckoutScreen({
                     </div>
                   </div>
 
-                  {/* Payment Assurance Notice */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-neutral-600 dark:text-neutral-300">
+                  {/* Compact Delivery Speed + 12-Month Chip Warranty Strip Right Above Checkout CTA */}
+                  <div className="rounded-xl border border-[#16a34a]/25 bg-[#16a34a]/[0.04] p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-neutral-700 dark:text-neutral-200">
                     <div className="flex items-start gap-2">
-                      <Lock className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
-                      <span>Encrypted Flutterwave checkout (Card, Bank Transfer, USSD)</span>
+                      <Truck className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
+                      <span>
+                        <strong className="text-neutral-950 dark:text-white">Fast Delivery:</strong> Lagos 24–48h · Nationwide DHL/GIG 2–4 days
+                      </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <ShieldCheck className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
-                      <span>Design proof sent before production starts</span>
+                      <span>
+                        <strong className="text-neutral-950 dark:text-white">12-Month Chip Warranty:</strong> Free replacement if NFC ever stops scanning
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
+                      <span>WhatsApp softcopy design proof sent for approval before print</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Lock className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
+                      <span>Encrypted Flutterwave payment (Card, Transfer, USSD)</span>
                     </div>
                   </div>
                 </div>
@@ -1499,15 +1511,19 @@ export function BuyCardCheckoutScreen({
                 <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 space-y-2.5 text-xs text-neutral-600 dark:text-neutral-300">
                   <div className="flex items-start gap-2.5">
                     <ShieldCheck className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
-                    <span>Pre-production design proof sent for approval before printing</span>
+                    <span>12-Month Free NFC Chip Replacement Guarantee</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <Truck className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
                     <span>{product.productionAndDelivery}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
+                    <span>WhatsApp softcopy design proof before printing or engraving</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
                     <MessageCircle className="w-4 h-4 text-[#16a34a] shrink-0 mt-0.5" />
-                    <span>Direct Lagos studio WhatsApp support on {CHIPNG_DISPLAY_PHONE}</span>
+                    <span>Direct Lekki studio WhatsApp support on {CHIPNG_DISPLAY_PHONE}</span>
                   </div>
                 </div>
               </div>
