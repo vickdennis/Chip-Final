@@ -1715,12 +1715,13 @@ export function registerFlutterwaveOrderRoutes(app: Express, deps: FlutterwaveSe
         } catch {}
       }
 
-      // C. Pull historical Supabase `purchases` (preserves historical Paystack & Flutterwave records)
+      // C. Pull historical Supabase `purchases` for NFC cards only (excludes verifications, themes & digital products)
       try {
         const sb = deps.getAdminSupabase ? deps.getAdminSupabase(req) : deps.getSupabase();
         const { data: purchases } = await sb
           .from('purchases')
           .select('*')
+          .eq('purchase_type', 'nfc_card')
           .order('created_at', { ascending: false })
           .limit(200);
         if (Array.isArray(purchases)) {
@@ -1733,7 +1734,7 @@ export function registerFlutterwaveOrderRoutes(app: Express, deps: FlutterwaveSe
                 name: p.buyer_email?.split('@')[0] || 'CHIPNG Customer',
                 email: p.buyer_email || '',
                 phone: '',
-                card_type: p.purchase_type === 'nfc_card' ? 'NFC Smart Card' : p.purchase_type || 'Hardware Order',
+                card_type: 'NFC Smart Card',
                 amount: Number(p.amount || 0),
                 payment_reference: ref,
                 payment_status: p.status === 'completed' ? 'successful' : p.status || 'successful',

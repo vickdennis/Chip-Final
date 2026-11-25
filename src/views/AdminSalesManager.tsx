@@ -13,6 +13,7 @@ import {
   MapPin,
   ExternalLink,
 } from 'lucide-react';
+import { getAdminAuthHeaders } from '../utils/adminApi';
 
 export default function AdminSalesManager() {
   const [sales, setSales] = useState<any[]>([]);
@@ -22,7 +23,8 @@ export default function AdminSalesManager() {
   const fetchSales = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/sales');
+      const headers = await getAdminAuthHeaders();
+      const res = await fetch('/api/sales', { headers });
       const data = await res.json();
       if (Array.isArray(data.sales)) {
         setSales(data.sales);

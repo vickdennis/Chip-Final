@@ -17,7 +17,7 @@ import AdminAppDownloadsManager from './AdminAppDownloadsManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
 import AdminUserCommsManager from './AdminUserCommsManager';
 import AdminEmailManager from './AdminEmailManager';
-import { MessageCircle, MessageSquare, Send, Bell, Link as LinkIcon, Smartphone, Mail } from 'lucide-react';
+import { MessageCircle, MessageSquare, Send, Bell, Link as LinkIcon, Smartphone, Mail, RefreshCw, TrendingUp, Wifi, QrCode } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { toast } from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';
@@ -25,6 +25,7 @@ import { SocialMediaIconBadge } from '../components/social/SocialMediaIconBadge'
 import InternationalPhoneInput from '../components/InternationalPhoneInput';
 import { getAdminAuthHeaders, parseTimestamp, getProductPreviewImage, SUPER_ADMIN_ALLOWLIST } from '../utils/adminApi';
 import { SeoHead } from '../components/seo/SeoHead';
+import type { SuperAdminAnalyticsPayload } from '../server/adminAnalyticsService';
 
 export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode }: { onNavigate: (view: ViewState) => void, isDarkMode: boolean, toggleDarkMode: () => void }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -35,6 +36,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
   const [posts, setPosts] = useState<any[]>([]);
   const [blogViews, setBlogViews] = useState<number>(0);
   const [appDownloadsTotal, setAppDownloadsTotal] = useState<number>(0);
+  const [serverAnalytics, setServerAnalytics] = useState<SuperAdminAnalyticsPayload | null>(null);
+  const [analyticsRefreshing, setAnalyticsRefreshing] = useState<boolean>(false);
+  const [analyticsTopView, setAnalyticsTopView] = useState<'profiles' | 'posts'>('profiles');
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; confirmLabel?: string; onConfirm: () => Promise<void> | void } | null>(null);
   const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'email' | 'comms' | 'products' | 'blog' | 'leads' | 'buybox' | 'seo' | 'broadcast' | 'notifications' | 'sales' | 'pixel' | 'downloads' | 'portfolio'>(() => {
     if (typeof window !== 'undefined') {
@@ -544,16 +548,43 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
       setUnreadInquiriesCount(directOnly.filter(l => !l.status || l.status === 'new').length);
     } catch (e) {}
 
-    // Fetch real app downloads count
+    // Fetch authoritative server-side Super Admin Analytics (aggregates Supabase + SQLite + NFC Orders + Traffic)
     try {
-      const dlRes = await fetch('/api/app/downloads');
-      if (dlRes.ok) {
-        const dlJson = await dlRes.json();
-        if (typeof dlJson.totalDownloads === 'number') {
-          setAppDownloadsTotal(dlJson.totalDownloads);
+      setAnalyticsRefreshing(true);
+      const authHeaders = await getAdminAuthHeaders();
+      const analyticsRes = await fetch('/api/admin/analytics', { headers: authHeaders });
+      if (analyticsRes.ok) {
+        const analyticsJson: SuperAdminAnalyticsPayload = await analyticsRes.json();
+        setServerAnalytics(analyticsJson);
+        if (typeof analyticsJson?.blog?.totalViews === 'number') {
+          setBlogViews(analyticsJson.blog.totalViews);
+        }
+        if (typeof analyticsJson?.appDownloads?.totalDownloads === 'number') {
+          setAppDownloadsTotal(analyticsJson.appDownloads.totalDownloads);
+        }
+      } else {
+        // Fallback: fetch real app downloads count if admin analytics endpoint failed
+        const dlRes = await fetch('/api/app/downloads');
+        if (dlRes.ok) {
+          const dlJson = await dlRes.json();
+          if (typeof dlJson.totalDownloads === 'number') {
+            setAppDownloadsTotal(dlJson.totalDownloads);
+          }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      try {
+        const dlRes = await fetch('/api/app/downloads');
+        if (dlRes.ok) {
+          const dlJson = await dlRes.json();
+          if (typeof dlJson.totalDownloads === 'number') {
+            setAppDownloadsTotal(dlJson.totalDownloads);
+          }
+        }
+      } catch (_e2) {}
+    } finally {
+      setAnalyticsRefreshing(false);
+    }
 
     // Auto-sync onboarding submissions
     try {
@@ -1428,20 +1459,74 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
     );
   });
 
-  const totalUsers = users.length;
-  const verifiedUsers = users.filter(u => u && u.is_verified).length;
-  
-  const digitalProductPurchases = purchases.filter(p => p && (p.purchase_type === 'digital_product' || !p.purchase_type));
-  const themePurchases = purchases.filter(p => p && p.purchase_type === 'theme');
-  const verificationPurchases = purchases.filter(p => p && p.purchase_type === 'verification');
-  
-  const totalShopRevenue = digitalProductPurchases.reduce((sum, p) => sum + Number(p?.amount || 0), 0);
-  const digitalProductFees = digitalProductPurchases.reduce((sum, p) => sum + Number(p?.platform_fee || (Number(p?.amount || 0) * 0.05) || 0), 0);
-  const themeSalesRevenue = themePurchases.reduce((sum, p) => sum + Number(p?.amount || 0), 0);
-  const verificationEarnings = verificationPurchases.reduce((sum, p) => sum + Number(p?.platform_fee || p?.amount || 0), 0);
-  
-  const totalPlatformFees = digitalProductFees + themeSalesRevenue + verificationEarnings;
-  const proPlanUsers = users.filter(u => u && (u.is_pro || u.enterprise_id)).length;
+  const isPaidPurchase = (p: any) => {
+    const st = String(p?.status || '').toLowerCase().trim();
+    const amt = Number(p?.amount || 0);
+    if (amt <= 0) return false;
+    return st === 'completed' || st === 'successful' || st === 'paid' || st === 'success' || st.startsWith('expires_') || st === '';
+  };
+
+  const fallbackTotalUsers = users.length;
+  const fallbackVerifiedUsers = users.filter(u => u && u.is_verified).length;
+  const fallbackProUsers = users.filter(u => u && (u.is_pro || u.enterprise_id)).length;
+
+  const digitalProductPurchases = purchases.filter(p => p && (p.purchase_type === 'digital_product' || !p.purchase_type) && isPaidPurchase(p));
+  const themePurchases = purchases.filter(p => p && p.purchase_type === 'theme' && isPaidPurchase(p));
+  const verificationPurchases = purchases.filter(p => p && p.purchase_type === 'verification' && isPaidPurchase(p));
+  const nfcPurchasesFallback = purchases.filter(p => p && p.purchase_type === 'nfc_card' && isPaidPurchase(p));
+
+  const fallbackShopRevenue = digitalProductPurchases.reduce((sum, p) => sum + Number(p?.amount || 0), 0);
+  const fallbackDigitalFees = digitalProductPurchases.reduce((sum, p) => sum + (Number(p?.platform_fee || 0) > 0 ? Number(p.platform_fee) : Math.round(Number(p?.amount || 0) * 0.05)), 0);
+  const fallbackThemeRevenue = themePurchases.reduce((sum, p) => sum + Number(p?.amount || 0), 0);
+  const fallbackVerificationEarnings = verificationPurchases.reduce((sum, p) => sum + Number(p?.platform_fee || p?.amount || 0), 0);
+  const fallbackNfcRevenue = nfcPurchasesFallback.reduce((sum, p) => sum + Number(p?.amount || 0), 0);
+  const fallbackPostViewsSum = posts.reduce((sum, post) => sum + Number(post?.views || 0), 0);
+
+  // Authoritative unified metrics (prefers server-verified /api/admin/analytics, seamlessly falls back to local state)
+  const totalUsers = serverAnalytics?.users.total ?? fallbackTotalUsers;
+  const verifiedUsers = serverAnalytics?.users.verified ?? fallbackVerifiedUsers;
+  const proPlanUsers = serverAnalytics?.users.proOrEnterprise ?? fallbackProUsers;
+  const newUsers7d = serverAnalytics?.users.newLast7Days ?? 0;
+  const newUsers30d = serverAnalytics?.users.newLast30Days ?? 0;
+  const totalEnterprises = serverAnalytics?.users.enterprises ?? enterprisesList.length;
+  const userSignups7d = serverAnalytics?.users.signups7d ?? [];
+
+  const nfcConfirmedRevenue = serverAnalytics?.revenue.nfcConfirmedNgn ?? fallbackNfcRevenue;
+  const nfcConfirmedOrders = serverAnalytics?.revenue.nfcConfirmedOrders ?? nfcPurchasesFallback.length;
+  const nfcPendingOrders = serverAnalytics?.revenue.nfcPendingOrders ?? 0;
+  const nfcAvgOrderValue = serverAnalytics?.revenue.nfcAvgOrderValueNgn ?? (nfcConfirmedOrders > 0 ? Math.round(nfcConfirmedRevenue / nfcConfirmedOrders) : 0);
+
+  const totalShopRevenue = serverAnalytics?.revenue.digitalShopNgn ?? fallbackShopRevenue;
+  const digitalShopOrdersCount = serverAnalytics?.revenue.digitalShopOrders ?? digitalProductPurchases.length;
+  const themeSalesRevenue = serverAnalytics?.revenue.themeSalesNgn ?? fallbackThemeRevenue;
+  const verificationEarnings = serverAnalytics?.revenue.verificationNgn ?? fallbackVerificationEarnings;
+  const totalPlatformFees = serverAnalytics?.revenue.platformNetFeesNgn ?? (fallbackDigitalFees + fallbackThemeRevenue + fallbackVerificationEarnings);
+  const grossPlatformRevenue = serverAnalytics?.revenue.grossTotalNgn ?? (nfcConfirmedRevenue + totalShopRevenue + themeSalesRevenue + verificationEarnings);
+  const totalConfirmedOrdersCount = serverAnalytics?.revenue.totalConfirmedOrders ?? (nfcConfirmedOrders + digitalShopOrdersCount + themePurchases.length + verificationPurchases.length);
+  const recentVerifiedTransactions = serverAnalytics?.revenue.recentTransactions ?? [];
+
+  const totalProfileViews = serverAnalytics?.traffic.totalProfileViews ?? 0;
+  const profileViews7d = serverAnalytics?.traffic.profileViewsLast7Days ?? 0;
+  const totalNfcTaps = serverAnalytics?.traffic.nfcTaps ?? 0;
+  const totalQrScans = serverAnalytics?.traffic.qrScans ?? 0;
+  const totalWebViews = serverAnalytics?.traffic.webViews ?? 0;
+  const totalLinkClicks = serverAnalytics?.traffic.totalLinkClicks ?? 0;
+  const topProfiles = serverAnalytics?.traffic.topProfiles ?? [];
+
+  const effectiveBlogViews = Math.max(serverAnalytics?.blog.totalViews ?? 0, blogViews, fallbackPostViewsSum);
+  const publishedPostsCount = serverAnalytics?.blog.publishedPosts ?? posts.filter(p => p?.is_published).length;
+  const totalPostsCount = serverAnalytics?.blog.totalPosts ?? posts.length;
+  const topBlogPosts = serverAnalytics?.blog.topPosts ?? [];
+
+  const effectiveAppDownloads = serverAnalytics?.appDownloads.totalDownloads ?? appDownloadsTotal;
+  const effectiveDirectInquiries = Math.max(serverAnalytics?.leads.directInquiries ?? 0, inquiries.length);
+  const effectiveUnreadInquiries = Math.max(serverAnalytics?.leads.unreadInquiries ?? 0, unreadInquiriesCount);
+  const totalCrmLeadsCount = serverAnalytics?.leads.totalCrmLeads ?? inquiries.length;
+  const funnelLeadsCount = serverAnalytics?.leads.funnelLeads ?? 0;
+
+  const analyticsLastSyncedLabel = serverAnalytics?.generatedAt
+    ? new Date(serverAnalytics.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : null;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0B0E] text-neutral-900 dark:text-white selection:bg-[#16a34a] selection:text-neutral-950 font-sans transition-colors pb-24">
@@ -1555,9 +1640,9 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-[#16a34a] dark:text-neutral-950' : ''}`} />
                   <span>{tab.label}</span>
-                  {tab.id === 'leads' && unreadInquiriesCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black animate-pulse shadow-xs">
-                      {unreadInquiriesCount}
+                  {tab.id === 'leads' && effectiveUnreadInquiries > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black shadow-xs tabular-nums">
+                      {effectiveUnreadInquiries}
                     </span>
                   )}
                 </button>
@@ -1568,94 +1653,192 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
 
         {activeTab === 'analytics' && (
           <div className="space-y-8 mb-8">
-            {/* 6 High-Impact Operational KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+            {/* Top Sync Bar & Manual Refresh */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#111318] px-5 py-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 shadow-xs">
+              <div>
+                <h2 className="text-sm font-bold text-neutral-950 dark:text-white">
+                  Platform Performance Overview
+                </h2>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  Aggregated live from Supabase profiles, NFC orders, digital purchases, profile views, blog reach, and leads
+                  {analyticsLastSyncedLabel ? ` · Last synced ${analyticsLastSyncedLabel}` : ''}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  await fetchData();
+                  toast.success('Super Admin analytics synced');
+                }}
+                disabled={analyticsRefreshing}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs transition-all cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${analyticsRefreshing ? 'animate-spin' : ''}`} />
+                <span>{analyticsRefreshing ? 'Syncing...' : 'Refresh Analytics'}</span>
+              </button>
+            </div>
+
+            {/* 8 Operational KPI Cards (2 clean rows of 4 on desktop) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* KPI 1: Total Gross Revenue */}
+              <div
+                onClick={() => setActiveTab('sales')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#16a34a] dark:hover:border-[#16a34a]/60 transition-all cursor-pointer group"
+              >
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Gross Volume</span>
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Gross Revenue</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    ₦{grossPlatformRevenue.toLocaleString('en-NG')}
+                  </p>
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 font-medium tabular-nums">
+                    {totalConfirmedOrdersCount} confirmed orders across all channels
+                  </p>
+                </div>
+              </div>
+
+              {/* KPI 2: NFC Hardware Card Sales */}
+              <div
+                onClick={() => setActiveTab('sales')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#16a34a] dark:hover:border-[#16a34a]/60 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Hardware</span>
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">NFC Card Sales</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    ₦{nfcConfirmedRevenue.toLocaleString('en-NG')}
+                  </p>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 flex items-center justify-between font-medium tabular-nums">
+                    <span>{nfcConfirmedOrders} paid{nfcPendingOrders > 0 ? ` · ${nfcPendingOrders} pending` : ''}</span>
+                    <span className="text-[#16a34a] font-bold">Orders →</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* KPI 3: Digital Shop & Platform Fees */}
+              <div
+                onClick={() => setActiveTab('products')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Digital &amp; Fees</span>
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Platform Net Fees</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    ₦{totalPlatformFees.toLocaleString('en-NG')}
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium tabular-nums">
+                    Shop GMV: ₦{totalShopRevenue.toLocaleString('en-NG')} ({digitalShopOrdersCount} orders)
+                  </p>
+                </div>
+              </div>
+
+              {/* KPI 4: Registered Members */}
+              <div
+                onClick={() => setActiveTab('users')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#16a34a] dark:hover:border-[#16a34a]/60 transition-all cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
                     <Users className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Members</span>
+                  <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider tabular-nums">
+                    +{newUsers7d} / 7d
+                  </span>
                 </div>
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total Users</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{totalUsers}</p>
-                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1 font-medium">
-                    <CheckCircle className="w-3 h-3" /> {verifiedUsers} Verified
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    {totalUsers.toLocaleString()}
+                  </p>
+                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center justify-between font-medium tabular-nums">
+                    <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {verifiedUsers} Verified</span>
+                    <span className="text-neutral-500 dark:text-neutral-400">{proPlanUsers} Pro/Org</span>
                   </div>
                 </div>
               </div>
-              
+
+              {/* KPI 5: Profile Views & NFC Taps */}
               <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
-                    <Package className="w-4 h-4" />
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                    <Wifi className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Store</span>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider tabular-nums">
+                    {profileViews7d.toLocaleString()} / 7d
+                  </span>
                 </div>
                 <div>
-                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Shop Sales</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalShopRevenue.toLocaleString()}</p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
-                    {digitalProductPurchases.length} digital orders
+                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Profile Views &amp; Taps</h3>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    {totalProfileViews.toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium tabular-nums">
+                    {totalNfcTaps} NFC · {totalQrScans} QR · {totalLinkClicks} clicks
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
+              {/* KPI 6: Blog Views */}
+              <div
+                onClick={() => setActiveTab('blog')}
+                className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#16a34a] dark:hover:border-[#16a34a]/60 transition-all cursor-pointer"
+              >
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Earnings</span>
-                </div>
-                <div>
-                  <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Platform Revenue</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">₦{totalPlatformFees.toLocaleString()}</p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
-                    Take fees + themes
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-neutral-300 dark:hover:border-white/20 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
                     <Eye className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Reach</span>
+                  <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Content</span>
                 </div>
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Blog Views</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{blogViews}</p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
-                    {posts.length} articles
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    {effectiveBlogViews.toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-medium tabular-nums">
+                    {publishedPostsCount} live / {totalPostsCount} total articles
                   </p>
                 </div>
               </div>
 
-              {/* KPI 5: App Downloads */}
+              {/* KPI 7: App Installs */}
               <div 
                 onClick={() => setActiveTab('downloads')}
                 className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-[#16a34a] dark:hover:border-[#16a34a]/60 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] dark:text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/15 text-[#16a34a] border border-[#16a34a]/30 flex items-center justify-center">
                     <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   </div>
-                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Live Telemetry</span>
+                  <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Live DB</span>
                 </div>
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">App Installs</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">{appDownloadsTotal.toLocaleString()}</p>
-                  <div className="text-[11px] text-[#16a34a] dark:text-[#16a34a] mt-2 flex items-center justify-between font-bold">
-                    <span>Android & iOS</span>
-                    <span>Radar →</span>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    {effectiveAppDownloads.toLocaleString()}
+                  </p>
+                  <div className="text-[11px] text-[#16a34a] mt-2 flex items-center justify-between font-bold">
+                    <span>iOS · Android · APK</span>
+                    <span>Details →</span>
                   </div>
                 </div>
               </div>
 
-              {/* KPI 6: Direct Inquiries & Support Feedback */}
+              {/* KPI 8: Direct Inquiries & CRM Leads */}
               <div 
                 onClick={() => setActiveTab('leads')}
                 className="bg-white dark:bg-[#111318] p-5 sm:p-6 rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 flex flex-col justify-between hover:border-emerald-500/60 dark:hover:border-emerald-500/50 transition-all cursor-pointer group"
@@ -1664,22 +1847,291 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                   <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
                     <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   </div>
-                  {unreadInquiriesCount > 0 ? (
-                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500 text-white animate-pulse">
-                      {unreadInquiriesCount} New
+                  {effectiveUnreadInquiries > 0 ? (
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500 text-white tabular-nums">
+                      {effectiveUnreadInquiries} Unread
                     </span>
                   ) : (
-                    <span className="text-[9px] font-bold text-neutral-400 uppercase">Live Inbox</span>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase">All Read</span>
                   )}
                 </div>
                 <div>
                   <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct Inquiries</h3>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
-                    {inquiries.length}
+                  <p className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight tabular-nums">
+                    {effectiveDirectInquiries.toLocaleString()}
                   </p>
-                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center justify-between font-bold">
-                    <span>Support Feedback</span>
-                    <span>View Inbox →</span>
+                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 flex items-center justify-between font-bold tabular-nums">
+                    <span>{totalCrmLeadsCount} leads{funnelLeadsCount > 0 ? ` · ${funnelLeadsCount} funnel` : ''}</span>
+                    <span>Inbox →</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Deep Analytics Row: Revenue Breakdown + Member Growth & Top Performers */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left 7 cols: Revenue Breakdown & Recent Verified Transactions */}
+              <div className="lg:col-span-7 bg-white dark:bg-[#111318] rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 p-6 sm:p-7 flex flex-col justify-between gap-6">
+                <div>
+                  <div className="flex items-center justify-between gap-3 mb-5">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white tracking-tight">
+                        Revenue Breakdown
+                      </h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        Verified settled payments split by revenue line (excluding failed, pending &amp; ₦0 grants)
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-[#16a34a] tabular-nums">
+                      Avg NFC Ticket: ₦{nfcAvgOrderValue.toLocaleString('en-NG')}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3.5">
+                    {[
+                      {
+                        label: 'NFC Smart Cards (Hardware)',
+                        amount: nfcConfirmedRevenue,
+                        meta: `${nfcConfirmedOrders} confirmed${nfcPendingOrders > 0 ? ` · ${nfcPendingOrders} pending` : ''}`,
+                        barClass: 'bg-[#16a34a]',
+                      },
+                      {
+                        label: 'Digital Store Products (GMV)',
+                        amount: totalShopRevenue,
+                        meta: `${digitalShopOrdersCount} paid orders`,
+                        barClass: 'bg-neutral-900 dark:bg-white',
+                      },
+                      {
+                        label: 'Premium Profile Themes',
+                        amount: themeSalesRevenue,
+                        meta: `${serverAnalytics?.revenue.themeOrders ?? themePurchases.length} unlocks`,
+                        barClass: 'bg-emerald-400',
+                      },
+                      {
+                        label: 'Verified Badge Subscriptions',
+                        amount: verificationEarnings,
+                        meta: `${serverAnalytics?.revenue.verificationOrders ?? verificationPurchases.length} paid renewals`,
+                        barClass: 'bg-blue-500',
+                      },
+                    ].map((stream) => {
+                      const pct = grossPlatformRevenue > 0 ? Math.round((stream.amount / grossPlatformRevenue) * 100) : 0;
+                      return (
+                        <div key={stream.label} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                              {stream.label}
+                              <span className="text-neutral-400 font-normal ml-2">({stream.meta})</span>
+                            </span>
+                            <span className="font-bold text-neutral-950 dark:text-white tabular-nums">
+                              ₦{stream.amount.toLocaleString('en-NG')} <span className="text-neutral-400 font-medium">({pct}%)</span>
+                            </span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-neutral-100 dark:bg-white/10 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${stream.barClass}`}
+                              style={{ width: `${stream.amount > 0 ? Math.max(2, pct) : 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Recent Verified Transactions */}
+                <div className="pt-5 border-t border-neutral-100 dark:border-white/5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                      Recent Verified Payments
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('sales')}
+                      className="text-xs font-semibold text-[#16a34a] hover:underline cursor-pointer"
+                    >
+                      View All Orders →
+                    </button>
+                  </div>
+
+                  {recentVerifiedTransactions.length === 0 ? (
+                    <p className="text-xs text-neutral-400 py-4 text-center">
+                      No confirmed paid transactions recorded yet.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-neutral-100 dark:divide-white/5">
+                      {recentVerifiedTransactions.slice(0, 5).map((tx) => {
+                        const dt = parseTimestamp(tx.createdAt);
+                        return (
+                          <div key={`${tx.category}-${tx.id}`} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-neutral-900 dark:text-white truncate">
+                                {tx.customerName} <span className="font-normal text-neutral-400">· {tx.label}</span>
+                              </div>
+                              <div className="text-[11px] text-neutral-400 truncate">
+                                {tx.customerEmail || tx.reference} · {dt ? dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}
+                              </div>
+                            </div>
+                            <span className="font-bold text-neutral-950 dark:text-white tabular-nums shrink-0">
+                              ₦{tx.amountNgn.toLocaleString('en-NG')}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right 5 cols: 7-Day Member Signups + Traffic & Top Performers */}
+              <div className="lg:col-span-5 flex flex-col gap-6">
+                {/* 7-Day Member Signups */}
+                <div className="bg-white dark:bg-[#111318] rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">
+                        New Members (Last 7 Days)
+                      </h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 tabular-nums">
+                        {newUsers7d} this week · {newUsers30d} in 30 days · {totalEnterprises} enterprises
+                      </p>
+                    </div>
+                  </div>
+                  {(() => {
+                    const maxSignups = Math.max(1, ...userSignups7d.map((d) => d.count));
+                    return (
+                      <div className="grid grid-cols-7 gap-2 items-end h-28 pt-2">
+                        {(userSignups7d.length > 0
+                          ? userSignups7d
+                          : Array.from({ length: 7 }, (_, i) => ({ date: String(i), label: '-', count: 0 }))
+                        ).map((day) => {
+                          const pct = day.count > 0 ? Math.max(12, Math.round((day.count / maxSignups) * 100)) : 4;
+                          return (
+                            <div key={day.date} className="flex flex-col items-center gap-1.5">
+                              <span className="text-[10px] font-bold text-neutral-500 tabular-nums">{day.count}</span>
+                              <div className="w-full h-16 rounded-lg bg-neutral-100 dark:bg-white/5 flex items-end p-0.5 overflow-hidden">
+                                <div
+                                  className={`w-full rounded-md transition-all ${day.count > 0 ? 'bg-[#16a34a]' : 'bg-neutral-300/40 dark:bg-white/10'}`}
+                                  style={{ height: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] font-semibold text-neutral-400 tabular-nums">{day.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Top Profiles / Top Articles + Traffic Split */}
+                <div className="bg-white dark:bg-[#111318] rounded-3xl shadow-sm border border-neutral-200/80 dark:border-white/10 p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight">
+                        Top Performers
+                      </h3>
+                      <div className="inline-flex p-1 rounded-xl bg-neutral-100 dark:bg-white/5 text-[11px] font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => setAnalyticsTopView('profiles')}
+                          className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                            analyticsTopView === 'profiles'
+                              ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                              : 'text-neutral-500 dark:text-neutral-400'
+                          }`}
+                        >
+                          Profiles
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAnalyticsTopView('posts')}
+                          className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                            analyticsTopView === 'posts'
+                              ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                              : 'text-neutral-500 dark:text-neutral-400'
+                          }`}
+                        >
+                          Blog Posts
+                        </button>
+                      </div>
+                    </div>
+
+                    {analyticsTopView === 'profiles' ? (
+                      topProfiles.length === 0 ? (
+                        <p className="text-xs text-neutral-400 py-5 text-center">
+                          Profile view traffic will rank here automatically as cards are tapped.
+                        </p>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {topProfiles.map((prof, idx) => (
+                            <div key={prof.profileId} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5 text-xs">
+                              <div className="min-w-0 flex items-center gap-2.5">
+                                <span className="w-5 h-5 rounded-md bg-neutral-200 dark:bg-white/10 text-[10px] font-bold flex items-center justify-center shrink-0 tabular-nums">
+                                  {idx + 1}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="font-semibold text-neutral-900 dark:text-white truncate">{prof.fullName}</div>
+                                  {prof.username && (
+                                    <div className="text-[11px] text-neutral-400 truncate">@{prof.username}</div>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="font-bold text-[#16a34a] tabular-nums shrink-0">
+                                {prof.views.toLocaleString()} views
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    ) : topBlogPosts.length === 0 ? (
+                      <p className="text-xs text-neutral-400 py-5 text-center">
+                        No blog articles published yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {topBlogPosts.map((post, idx) => (
+                          <div key={post.id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5 text-xs">
+                            <div className="min-w-0 flex items-center gap-2.5">
+                              <span className="w-5 h-5 rounded-md bg-neutral-200 dark:bg-white/10 text-[10px] font-bold flex items-center justify-center shrink-0 tabular-nums">
+                                {idx + 1}
+                              </span>
+                              <div className="font-semibold text-neutral-900 dark:text-white truncate">{post.title}</div>
+                            </div>
+                            <span className="font-bold text-[#16a34a] tabular-nums shrink-0">
+                              {post.views.toLocaleString()} views
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Compact Traffic Channel Split */}
+                  <div className="mt-4 pt-3.5 border-t border-neutral-100 dark:border-white/5 grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2 rounded-xl bg-neutral-50 dark:bg-[#151821]">
+                      <div className="text-[10px] font-semibold uppercase text-neutral-400 flex items-center justify-center gap-1">
+                        <Wifi className="w-3 h-3 text-[#16a34a]" /> NFC
+                      </div>
+                      <div className="text-sm font-extrabold text-neutral-950 dark:text-white tabular-nums mt-0.5">
+                        {totalNfcTaps.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-50 dark:bg-[#151821]">
+                      <div className="text-[10px] font-semibold uppercase text-neutral-400 flex items-center justify-center gap-1">
+                        <QrCode className="w-3 h-3 text-blue-500" /> QR
+                      </div>
+                      <div className="text-sm font-extrabold text-neutral-950 dark:text-white tabular-nums mt-0.5">
+                        {totalQrScans.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-50 dark:bg-[#151821]">
+                      <div className="text-[10px] font-semibold uppercase text-neutral-400 flex items-center justify-center gap-1">
+                        <Globe className="w-3 h-3 text-neutral-500" /> Web
+                      </div>
+                      <div className="text-sm font-extrabold text-neutral-950 dark:text-white tabular-nums mt-0.5">
+                        {totalWebViews.toLocaleString()}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1694,11 +2146,11 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                       <MessageCircle className="w-4 h-4" />
                     </div>
                     <h2 className="text-lg sm:text-xl font-bold tracking-tight text-neutral-950 dark:text-white">
-                      Direct Inquiries & Support Feedback
+                      Direct Inquiries &amp; Support Feedback
                     </h2>
-                    {unreadInquiriesCount > 0 && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-wider animate-pulse">
-                        {unreadInquiriesCount} Action Needed
+                    {effectiveUnreadInquiries > 0 && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-wider tabular-nums">
+                        {effectiveUnreadInquiries} Action Needed
                       </span>
                     )}
                   </div>
@@ -1720,7 +2172,7 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                 <div className="py-12 text-center text-neutral-400 text-xs space-y-2">
                   <MessageCircle className="w-8 h-8 mx-auto opacity-40 text-neutral-400" />
                   <p className="font-semibold text-neutral-600 dark:text-neutral-300">No customer inquiries yet</p>
-                  <p className="text-[11px] text-neutral-500">Messages sent via "Direct Inquiries and Support" on the contact page will appear here instantly.</p>
+                  <p className="text-[11px] text-neutral-500">Messages sent via &quot;Direct Inquiries and Support&quot; on the contact page will appear here instantly.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1767,14 +2219,14 @@ export default function AdminDashboard({ onNavigate, isDarkMode, toggleDarkMode 
                           </div>
 
                           <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-3 leading-relaxed">
-                            "{item.message || 'Customer requested contact via direct support.'}"
+                            &quot;{item.message || 'Customer requested contact via direct support.'}&quot;
                           </p>
                         </div>
 
                         <div className="mt-4 pt-3 border-t border-neutral-200/50 dark:border-white/5 flex items-center justify-between text-[11px] text-neutral-400">
                           <span>{timeAgo}</span>
                           <span className="font-semibold text-emerald-600 dark:text-emerald-400 group-hover:underline flex items-center gap-1">
-                            Reply & Manage →
+                            Reply &amp; Manage →
                           </span>
                         </div>
                       </div>

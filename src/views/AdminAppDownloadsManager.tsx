@@ -120,6 +120,19 @@ export default function AdminAppDownloadsManager() {
   const apkPercent = total > 0 ? Math.round((apkCount / total) * 100) : 0;
   const pwaPercent = total > 0 ? Math.round((pwaCount / total) * 100) : 0;
 
+  const installGoal = 5000;
+  const goalProgressPercent = total > 0 ? Math.min(100, Math.max(2, Math.round((total / installGoal) * 100))) : 0;
+
+  const dailyTrends = analytics?.dailyTrends || [];
+  const maxDailyTotal = Math.max(1, ...dailyTrends.map((t) => Number(t.total || 0)));
+  const avgPerDay = typeof analytics?.avgPerDay === 'number'
+    ? analytics.avgPerDay
+    : dailyTrends.length > 0
+      ? parseFloat((dailyTrends.reduce((s, d) => s + Number(d.total || 0), 0) / dailyTrends.length).toFixed(1))
+      : 0;
+  const topLocations = analytics?.topLocations || [];
+  const topDevices = analytics?.topDevices || [];
+
   const filteredDownloads = (analytics?.recentDownloads || []).filter(item => {
     if (selectedPlatformFilter === 'all') return true;
     return item.platform === selectedPlatformFilter;
@@ -133,10 +146,9 @@ export default function AdminAppDownloadsManager() {
         
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#16a34a]/20 border border-[#16a34a]/30 text-xs font-bold text-neutral-900 dark:text-[#16a34a] mb-3">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Live Radar Telemetry v2.4.0</span>
-            </div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#16a34a] mb-2">
+              Live Telemetry · v2.4.0
+            </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white tracking-tight">
               Official Mobile App Analytics
             </h2>
@@ -167,10 +179,10 @@ export default function AdminAppDownloadsManager() {
               <button
                 onClick={() => handleSimulateDownload('android')}
                 disabled={simulating}
-                className="px-4 py-2.5 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+                className="px-4 py-2.5 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
               >
                 <Zap className="w-3.5 h-3.5 text-[#16a34a] dark:text-neutral-950" />
-                <span>Simulate Tap Event</span>
+                <span>{simulating ? 'Recording...' : 'Record Test Install'}</span>
               </button>
             </div>
           </div>
@@ -186,20 +198,20 @@ export default function AdminAppDownloadsManager() {
             <div className="w-10 h-10 rounded-2xl bg-[#16a34a]/20 text-neutral-900 dark:text-[#16a34a] flex items-center justify-center font-bold">
               <Download className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-              +14.8% WoW
+            <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 tabular-nums">
+              {pwaCount > 0 ? `${pwaCount} PWA` : `${goalProgressPercent}% of goal`}
             </span>
           </div>
           <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">
             Total App Installs
           </h3>
-          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight">
+          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight tabular-nums">
             {total.toLocaleString()}
           </p>
           <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div className="bg-[#16a34a] h-full rounded-full" style={{ width: '74%' }} />
+            <div className="bg-[#16a34a] h-full rounded-full transition-all" style={{ width: `${goalProgressPercent}%` }} />
           </div>
-          <p className="text-[11px] text-neutral-400 mt-2 font-medium">Goal: 5,000 installs</p>
+          <p className="text-[11px] text-neutral-400 mt-2 font-medium tabular-nums">Goal: {installGoal.toLocaleString()} installs</p>
         </div>
 
         {/* iOS App Store */}
@@ -208,14 +220,14 @@ export default function AdminAppDownloadsManager() {
             <div className="w-10 h-10 rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 flex items-center justify-center font-bold">
               <Apple className="w-5 h-5" />
             </div>
-            <span className="text-[11px] font-extrabold text-neutral-900 dark:text-white">
+            <span className="text-[11px] font-extrabold text-neutral-900 dark:text-white tabular-nums">
               {iosPercent}%
             </span>
           </div>
           <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">
             Apple App Store
           </h3>
-          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight">
+          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight tabular-nums">
             {iosCount.toLocaleString()}
           </p>
           <p className="text-[11px] text-neutral-400 mt-2 font-medium">iOS 16+ with CoreNFC API</p>
@@ -227,14 +239,14 @@ export default function AdminAppDownloadsManager() {
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
               <Smartphone className="w-5 h-5" />
             </div>
-            <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">
+            <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
               {androidPercent}%
             </span>
           </div>
           <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">
             Google Play Store
           </h3>
-          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight">
+          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight tabular-nums">
             {androidCount.toLocaleString()}
           </p>
           <p className="text-[11px] text-neutral-400 mt-2 font-medium">Android 9.0+ NTAG Support</p>
@@ -246,17 +258,17 @@ export default function AdminAppDownloadsManager() {
             <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
               <Layers className="w-5 h-5" />
             </div>
-            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">
               {apkPercent}%
             </span>
           </div>
           <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">
             Direct High-Speed APK
           </h3>
-          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight">
+          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight tabular-nums">
             {apkCount.toLocaleString()}
           </p>
-          <p className="text-[11px] text-neutral-400 mt-2 font-medium">Direct Sideload (18.4 MB)</p>
+          <p className="text-[11px] text-neutral-400 mt-2 font-medium">Direct Sideload · {pwaPercent}% PWA</p>
         </div>
 
         {/* Conversion Rate */}
@@ -266,16 +278,16 @@ export default function AdminAppDownloadsManager() {
               <TrendingUp className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
-              High Intent
+              Live Ratio
             </span>
           </div>
           <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">
-            Tap-to-App Conversion
+            Tap-to-App Rate
           </h3>
-          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight">
-            {analytics?.conversionRate || 16.4}%
+          <p className="text-3xl font-black text-neutral-950 dark:text-white tracking-tight tabular-nums">
+            {(analytics?.conversionRate ?? 0).toFixed(1)}%
           </p>
-          <p className="text-[11px] text-neutral-400 mt-2 font-medium">Visitor to Installed Companion</p>
+          <p className="text-[11px] text-neutral-400 mt-2 font-medium">Installs vs tracked profile views</p>
         </div>
 
       </div>
@@ -294,7 +306,7 @@ export default function AdminAppDownloadsManager() {
                   7-Day Download Velocity
                 </h3>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Daily mobile app installations across Nigeria & diaspora hubs
+                  Rolling 7-day verified app download events recorded in database
                 </p>
               </div>
               <div className="flex items-center gap-3 text-xs font-semibold text-neutral-500">
@@ -306,28 +318,21 @@ export default function AdminAppDownloadsManager() {
 
             {/* Visual Bars */}
             <div className="grid grid-cols-7 gap-2 sm:gap-4 items-end h-48 pt-6 pb-2 border-b border-neutral-200/60 dark:border-white/5">
-              {(analytics?.dailyTrends || [
-                { date: '10-05', total: 112, ios: 42, android: 50, apk: 14, pwa: 6 },
-                { date: '10-06', total: 128, ios: 48, android: 56, apk: 16, pwa: 8 },
-                { date: '10-07', total: 145, ios: 52, android: 65, apk: 18, pwa: 10 },
-                { date: '10-08', total: 139, ios: 50, android: 62, apk: 19, pwa: 8 },
-                { date: '10-09', total: 164, ios: 61, android: 73, apk: 20, pwa: 10 },
-                { date: '10-10', total: 188, ios: 70, android: 85, apk: 22, pwa: 11 },
-                { date: '10-11', total: 196, ios: 74, android: 88, apk: 23, pwa: 11 }
-              ]).map((trend, i) => {
-                const heightPercent = Math.min(100, Math.round((trend.total / 220) * 100));
+              {dailyTrends.map((trend) => {
+                const count = Number(trend.total || 0);
+                const heightPercent = count > 0 ? Math.max(8, Math.round((count / maxDailyTotal) * 100)) : 2;
                 return (
-                  <div key={trend.date} className="flex flex-col items-center gap-2 group cursor-pointer">
-                    <div className="text-[10px] font-bold text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-                      {trend.total}
+                  <div key={trend.date} className="flex flex-col items-center gap-2 group">
+                    <div className="text-[10px] font-bold text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors tabular-nums">
+                      {count}
                     </div>
                     <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-hidden flex flex-col justify-end h-32 p-0.5">
                       <div 
-                        className="w-full rounded-lg bg-gradient-to-t from-emerald-600 via-neutral-900 to-[#16a34a] dark:from-emerald-500 dark:via-white dark:to-[#16a34a] transition-all group-hover:scale-105"
+                        className={`w-full rounded-lg transition-all ${count > 0 ? 'bg-gradient-to-t from-emerald-600 via-neutral-900 to-[#16a34a] dark:from-emerald-500 dark:via-white dark:to-[#16a34a]' : 'bg-neutral-300/40 dark:bg-white/10'}`}
                         style={{ height: `${heightPercent}%` }}
                       />
                     </div>
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider tabular-nums">
                       {trend.date}
                     </span>
                   </div>
@@ -336,11 +341,11 @@ export default function AdminAppDownloadsManager() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 mt-4 gap-2">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Activity className="w-4 h-4 text-emerald-500" /> Average Velocity: <strong>154 downloads / day</strong>
+              <span className="flex items-center gap-1.5 font-medium tabular-nums">
+                <Activity className="w-4 h-4 text-emerald-500" /> 7-Day Average: <strong>{avgPerDay} downloads / day</strong>
               </span>
               <span className="text-[11px] text-neutral-400">
-                Peak hours: 1:00 PM – 4:30 PM WAT (Post-meeting networking)
+                Live rolling window (UTC)
               </span>
             </div>
           </div>
@@ -348,7 +353,7 @@ export default function AdminAppDownloadsManager() {
           {/* Regional Hubs & Devices Breakdown */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             
-            {/* Top Nigerian Hubs */}
+            {/* Top Locations */}
             <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 border border-neutral-200/80 dark:border-white/10 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-4 h-4 text-[#16a34a]" />
@@ -356,52 +361,52 @@ export default function AdminAppDownloadsManager() {
                   Top Download Locations
                 </h3>
               </div>
-              <div className="space-y-3">
-                {[
-                  { city: 'Lekki Phase 1 & Ikoyi', percent: 38, count: 705 },
-                  { city: 'Victoria Island, Lagos', percent: 26, count: 482 },
-                  { city: 'Abuja CBD & Maitama', percent: 18, count: 334 },
-                  { city: 'Ikeja GRA & Alausa', percent: 11, count: 204 },
-                  { city: 'Port Harcourt & Diaspora', percent: 7, count: 131 }
-                ].map(loc => (
-                  <div key={loc.city} className="space-y-1">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-neutral-700 dark:text-neutral-300">{loc.city}</span>
-                      <span className="text-neutral-500">{loc.count} ({loc.percent}%)</span>
+              {topLocations.length === 0 ? (
+                <p className="text-xs text-neutral-400 py-6 text-center">
+                  No download location telemetry recorded yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {topLocations.map(loc => (
+                    <div key={loc.city} className="space-y-1">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <span className="text-neutral-700 dark:text-neutral-300">{loc.city}</span>
+                        <span className="text-neutral-500 tabular-nums">{loc.count} ({loc.percent}%)</span>
+                      </div>
+                      <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-[#16a34a] h-full rounded-full" style={{ width: `${loc.percent}%` }} />
+                      </div>
                     </div>
-                    <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#16a34a] dark:bg-[#16a34a] h-full rounded-full" style={{ width: `${loc.percent}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Popular Hardware Antennas */}
+            {/* Devices Breakdown */}
             <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 border border-neutral-200/80 dark:border-white/10 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Radio className="w-4 h-4 text-[#16a34a]" />
                 <h3 className="text-sm font-bold text-neutral-950 dark:text-white">
-                  Verified Device Antennas
+                  Recorded Device Types
                 </h3>
               </div>
-              <div className="space-y-3">
-                {[
-                  { model: 'Apple iPhone 15 Pro & 15 Pro Max', rate: '100% Sub-10ms CoreNFC', count: 412 },
-                  { model: 'Samsung Galaxy S24 Ultra & S23', rate: '100% Fast Beam', count: 350 },
-                  { model: 'Apple iPhone 14 & 13 Series', rate: '100% CoreNFC', count: 285 },
-                  { model: 'Xiaomi Redmi Note 13 & Poco', rate: 'NTAG216 Verified', count: 180 },
-                  { model: 'Google Pixel 8 & 7 Pro', rate: 'Instant Tap Detection', count: 140 }
-                ].map(dev => (
-                  <div key={dev.model} className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-neutral-900 dark:text-white">{dev.model}</div>
-                      <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{dev.rate}</div>
+              {topDevices.length === 0 ? (
+                <p className="text-xs text-neutral-400 py-6 text-center">
+                  No device telemetry recorded yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {topDevices.map(dev => (
+                    <div key={dev.device} className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/60 dark:border-white/5 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-bold text-neutral-900 dark:text-white capitalize">{dev.device}</div>
+                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">{dev.percent}% of installs</div>
+                      </div>
+                      <span className="text-xs font-extrabold text-neutral-600 dark:text-neutral-300 tabular-nums">{dev.count}</span>
                     </div>
-                    <span className="text-xs font-extrabold text-neutral-600 dark:text-neutral-300">{dev.count}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
@@ -415,7 +420,7 @@ export default function AdminAppDownloadsManager() {
           <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 border border-neutral-200/80 dark:border-white/10 shadow-sm flex flex-col h-[520px]">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-200/60 dark:border-white/5">
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
+                <Activity className="w-4 h-4 text-emerald-500" />
                 <h3 className="text-sm font-bold text-neutral-950 dark:text-white">
                   Live Download Stream
                 </h3>
@@ -427,7 +432,7 @@ export default function AdminAppDownloadsManager() {
 
             {/* Filter pills */}
             <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-              {(['all', 'ios', 'android', 'apk'] as const).map(p => (
+              {(['all', 'ios', 'android', 'apk', 'pwa'] as const).map(p => (
                 <button
                   key={p}
                   onClick={() => setSelectedPlatformFilter(p)}

@@ -404,13 +404,17 @@ export interface AppDownloadAnalytics {
   };
   dailyTrends: Array<{
     date: string;
+    label?: string;
     total: number;
     ios: number;
     android: number;
     apk: number;
     pwa: number;
   }>;
+  topLocations?: Array<{ city: string; count: number; percent: number }>;
+  topDevices?: Array<{ device: string; count: number; percent: number }>;
   recentDownloads: AppDownloadEvent[];
+  avgPerDay?: number;
   conversionRate: number;
 }
 
@@ -456,10 +460,10 @@ export async function recordAppDownload(
     window.dispatchEvent(new CustomEvent('chipng_download_event', { detail: downloadPayload }));
   }
 
-  // 4. Remote backend call (fire & forget with keepalive)
+  // 4. Remote backend call (await/keepalive so DB reflects immediately on refresh)
   try {
     if (typeof fetch !== 'undefined') {
-      fetch('/api/app/download', {
+      await fetch('/api/app/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(downloadPayload),
@@ -471,79 +475,63 @@ export async function recordAppDownload(
   return true;
 }
 
+function buildEmpty7DayTrends(): AppDownloadAnalytics['dailyTrends'] {
+  const out: AppDownloadAnalytics['dailyTrends'] = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    out.push({ date: `${mm}-${dd}`, label: `${mm}-${dd}`, total: 0, ios: 0, android: 0, apk: 0, pwa: 0 });
+  }
+  return out;
+}
+
 export async function fetchAppDownloadAnalytics(): Promise<AppDownloadAnalytics> {
-  // Baseline Nigerian distribution
-  const defaultAnalytics: AppDownloadAnalytics = {
-    totalDownloads: 1845,
-    byPlatform: {
-      ios: 680,
-      android: 820,
-      apk: 225,
-      pwa: 120
-    },
-    byDevice: {
-      mobile: 1680,
-      tablet: 95,
-      desktop: 70
-    },
-    dailyTrends: [
-      { date: '10-05', total: 112, ios: 42, android: 50, apk: 14, pwa: 6 },
-      { date: '10-06', total: 128, ios: 48, android: 56, apk: 16, pwa: 8 },
-      { date: '10-07', total: 145, ios: 52, android: 65, apk: 18, pwa: 10 },
-      { date: '10-08', total: 139, ios: 50, android: 62, apk: 19, pwa: 8 },
-      { date: '10-09', total: 164, ios: 61, android: 73, apk: 20, pwa: 10 },
-      { date: '10-10', total: 188, ios: 70, android: 85, apk: 22, pwa: 11 },
-      { date: '10-11', total: 196, ios: 74, android: 88, apk: 23, pwa: 11 }
-    ],
-    recentDownloads: [
-      { platform: 'ios', device_type: 'iPhone 15 Pro Max', version: '2.4.0', city: 'Lagos', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 3).toISOString() },
-      { platform: 'android', device_type: 'Samsung Galaxy S24 Ultra', version: '2.4.0', city: 'Abuja', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString() },
-      { platform: 'apk', device_type: 'Xiaomi Redmi Note 13', version: '2.4.0', city: 'Lekki Phase 1', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
-      { platform: 'ios', device_type: 'iPhone 14', version: '2.4.0', city: 'Victoria Island', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 44).toISOString() },
-      { platform: 'android', device_type: 'Google Pixel 8', version: '2.4.0', city: 'Port Harcourt', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 78).toISOString() }
-    ],
-    conversionRate: 16.2
+  const emptyAnalytics: AppDownloadAnalytics = {
+    totalDownloads: 0,
+    byPlatform: { ios: 0, android: 0, apk: 0, pwa: 0 },
+    byDevice: { mobile: 0, tablet: 0, desktop: 0 },
+    dailyTrends: buildEmpty7DayTrends(),
+    topLocations: [],
+    topDevices: [],
+    recentDownloads: [],
+    avgPerDay: 0,
+    conversionRate: 0
   };
 
   try {
     const res = await fetch('/api/app/downloads');
     if (res.ok) {
       const data = await res.json();
-      if (data && data.totalDownloads !== undefined) {
+      if (data && typeof data.totalDownloads === 'number') {
         return {
-          totalDownloads: Number(data.totalDownloads) || defaultAnalytics.totalDownloads,
-          byPlatform: data.byPlatform || defaultAnalytics.byPlatform,
-          byDevice: data.byDevice || defaultAnalytics.byDevice,
-          dailyTrends: data.dailyTrends?.length ? data.dailyTrends : defaultAnalytics.dailyTrends,
-          recentDownloads: data.recentDownloads?.length ? data.recentDownloads : defaultAnalytics.recentDownloads,
-          conversionRate: data.conversionRate || defaultAnalytics.conversionRate
+          totalDownloads: data.totalDownloads,
+          byPlatform: {
+            ios: Number(data.byPlatform?.ios || 0),
+            android: Number(data.byPlatform?.android || 0),
+            apk: Number(data.byPlatform?.apk || 0),
+            pwa: Number(data.byPlatform?.pwa || 0),
+          },
+          byDevice: {
+            mobile: Number(data.byDevice?.mobile || 0),
+            tablet: Number(data.byDevice?.tablet || 0),
+            desktop: Number(data.byDevice?.desktop || 0),
+          },
+          dailyTrends: Array.isArray(data.dailyTrends) && data.dailyTrends.length > 0
+            ? data.dailyTrends
+            : emptyAnalytics.dailyTrends,
+          topLocations: Array.isArray(data.topLocations) ? data.topLocations : [],
+          topDevices: Array.isArray(data.topDevices) ? data.topDevices : [],
+          recentDownloads: Array.isArray(data.recentDownloads) ? data.recentDownloads : [],
+          avgPerDay: typeof data.avgPerDay === 'number' ? data.avgPerDay : 0,
+          conversionRate: typeof data.conversionRate === 'number' ? data.conversionRate : 0,
         };
       }
     }
   } catch (err) {}
 
-  // Merge with any local cache downloads
-  try {
-    if (typeof localStorage !== 'undefined') {
-      const raw = localStorage.getItem(DOWNLOAD_STORAGE_KEY);
-      if (raw) {
-        const localList: any[] = JSON.parse(raw);
-        if (localList.length) {
-          const updated = { ...defaultAnalytics };
-          localList.forEach((item) => {
-            if (item.platform && (updated.byPlatform as any)[item.platform] !== undefined) {
-              (updated.byPlatform as any)[item.platform]++;
-              updated.totalDownloads++;
-            }
-          });
-          updated.recentDownloads = [...localList.slice(0, 5), ...updated.recentDownloads].slice(0, 20);
-          return updated;
-        }
-      }
-    }
-  } catch (e) {}
-
-  return defaultAnalytics;
+  return emptyAnalytics;
 }
 
 export function subscribeToDownloadTelemetry(onUpdate: () => void): () => void {

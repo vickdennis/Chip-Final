@@ -12,6 +12,12 @@ import { GoogleGenAI } from '@google/genai';
 import { formatResendHtmlEmail, wrapChipngSupportEmail } from '../src/utils/resendEmailTemplates.js';
 import { parseCsvText, mapCsvRowsToProfiles, convertGoogleUrlToCsvExport, ParsedFormUser } from '../src/utils/googleFormParser.js';
 import { registerFlutterwaveOrderRoutes } from '../src/server/flutterwaveOrderService.js';
+import {
+  getSuperAdminAnalytics,
+  getRealAppDownloadsAnalytics,
+  formatViewerIpWithSource,
+  parseViewSourceFromViewerIp,
+} from '../src/server/adminAnalyticsService.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://oxrzkdzcagvmgfuthyjd.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable__ZQVU_WSSv7TL28O__vkVw_v77oD0hN';
@@ -700,37 +706,118 @@ app.get('/api/ssr', async (req: Request, res: Response) => {
 });
 
 // --- Analytics Endpoints ---
-app.post('/api/analytics/view', (req: Request, res: Response) => {
-  res.json({ success: true, recorded_at: new Date().toISOString() });
+app.post('/api/analytics/view', async (req: Request, res: Response) => {
+  try {
+    const rawProfileId = String(req.body?.profile_id || '').trim();
+    const rawSource = String(req.body?.source || 'web').toLowerCase().trim();
+    if (!rawProfileId || rawProfileId.length > 120) {
+      return res.status(400).json({ error: 'profile_id required' });
+    }
+    const cleanSource = ['nfc', 'qr', 'web'].includes(rawSource) ? rawSource : 'web';
+    const rawIp = String(req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const supabase = getSupabaseForRequest(req);
+
+    let targetUuid = UUID_REGEX.test(rawProfileId) ? rawProfileId : '';
+    if (!targetUuid) {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', rawProfileId)
+        .maybeSingle();
+      if (prof?.id) targetUuid = String(prof.id);
+    }
+
+    if (targetUuid) {
+      try {
+        await supabase.from('profile_views').insert([
+          {
+            profile_id: targetUuid,
+            viewer_ip: formatViewerIpWithSource(cleanSource, rawIp),
+          },
+        ]);
+      } catch (_e) {}
+    }
+
+    return res.json({ success: true, recorded_at: new Date().toISOString() });
+  } catch (_err: any) {
+    return res.json({ success: true, recorded_at: new Date().toISOString() });
+  }
 });
 
 app.post('/api/analytics/click', (req: Request, res: Response) => {
-  res.json({ success: true, recorded_at: new Date().toISOString() });
+  const rawProfileId = String(req.body?.profile_id || '').trim();
+  if (!rawProfileId) {
+    return res.status(400).json({ error: 'profile_id required' });
+  }
+  return res.json({ success: true, recorded_at: new Date().toISOString() });
 });
 
-app.post('/api/analytics/batch-views', (req: Request, res: Response) => {
-  res.json({ totalViews: 0 });
+app.post('/api/analytics/batch-views', async (req: Request, res: Response) => {
+  try {
+    const profileIds = Array.isArray(req.body?.profile_ids)
+      ? req.body.profile_ids.map((id: any) => String(id || '').trim()).filter((id: string) => UUID_REGEX.test(id))
+      : [];
+    if (profileIds.length === 0) {
+      return res.json({ totalViews: 0 });
+    }
+    const supabase = getSupabaseForRequest(req);
+    const { count } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .in('profile_id', profileIds.slice(0, 100));
+    return res.json({ totalViews: count || 0 });
+  } catch {
+    return res.json({ totalViews: 0 });
+  }
 });
 
 app.get('/api/analytics/user/:profileId', async (req: Request, res: Response) => {
   try {
     const { profileId } = req.params;
-    const supabase = getSupabase();
+    const supabase = getSupabaseForRequest(req);
 
-    // Query leads for this user to correlate contact engagement
+    // Resolve both UUID and username
     const idsToMatch = [profileId];
+    let resolvedUuid = UUID_REGEX.test(profileId) ? profileId : '';
     try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId);
-      const { data } = await (isUuid 
+      const { data } = await (resolvedUuid
         ? supabase.from('profiles').select('id, username').eq('id', profileId).maybeSingle()
         : supabase.from('profiles').select('id, username').eq('username', profileId).maybeSingle());
       if (data) {
-        if (data.id && !idsToMatch.includes(data.id)) idsToMatch.push(data.id);
+        if (data.id) {
+          resolvedUuid = String(data.id);
+          if (!idsToMatch.includes(resolvedUuid)) idsToMatch.push(resolvedUuid);
+        }
         if (data.username && !idsToMatch.includes(data.username)) idsToMatch.push(data.username);
       }
-    } catch (e) {}
+    } catch (_e) {}
 
-    const postSlugs = idsToMatch.map(id => `profile_${id}`).concat(idsToMatch);
+    // Query real profile_views rows for this user
+    let viewRows: any[] = [];
+    if (resolvedUuid) {
+      try {
+        const { data: pv } = await supabase
+          .from('profile_views')
+          .select('id, viewer_ip, created_at')
+          .eq('profile_id', resolvedUuid)
+          .order('created_at', { ascending: false })
+          .limit(2000);
+        if (Array.isArray(pv)) viewRows = pv;
+      } catch (_e) {}
+    }
+
+    let nfcTaps = 0;
+    let qrScans = 0;
+    let webViews = 0;
+    for (const v of viewRows) {
+      const src = parseViewSourceFromViewerIp(v.viewer_ip);
+      if (src === 'nfc') nfcTaps += 1;
+      else if (src === 'qr') qrScans += 1;
+      else webViews += 1;
+    }
+    const totalViews = viewRows.length;
+
+    const postSlugs = idsToMatch.map((id) => `profile_${id}`).concat(idsToMatch);
     const { data: leads } = await supabase
       .from('leads')
       .select('*')
@@ -738,60 +825,85 @@ app.get('/api/analytics/user/:profileId', async (req: Request, res: Response) =>
       .order('created_at', { ascending: false });
 
     const totalLeads = leads?.length || 0;
-    const recentActivity = (leads || []).slice(0, 8).map(l => ({
+    const recentLeadActivity = (leads || []).slice(0, 6).map((l: any) => ({
       event_type: 'lead_captured',
       detail: `Contact captured: ${l.name}`,
-      created_at: l.created_at
+      created_at: l.created_at,
     }));
+    const recentViewActivity = viewRows.slice(0, 6).map((v: any) => ({
+      event_type: 'view',
+      detail: parseViewSourceFromViewerIp(v.viewer_ip),
+      created_at: v.created_at,
+    }));
+    const recentActivity = [...recentViewActivity, ...recentLeadActivity]
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+      .slice(0, 10);
+
+    const ctr = totalViews > 0 ? parseFloat(((totalLeads / totalViews) * 100).toFixed(1)) : 0;
 
     res.json({
-      totalViews: 0,
+      totalViews,
       totalClicks: totalLeads,
-      ctr: 0,
-      nfcTaps: 0,
-      qrScans: 0,
-      webViews: 0,
+      ctr,
+      nfcTaps,
+      qrScans,
+      webViews,
       clicksByType: totalLeads > 0 ? [{ click_type: 'lead_capture', count: totalLeads }] : [],
       topLinks: [],
-      recentActivity
+      recentActivity,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// --- Super Admin Authoritative Platform Analytics ---
+app.get('/api/admin/analytics', requireAdminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const sb = getSupabaseForRequest(req);
+    const payload = await getSuperAdminAnalytics({ supabase: sb });
+    return res.json(payload);
+  } catch (err: any) {
+    console.error('[Serverless /api/admin/analytics Error]', err);
+    return res.status(500).json({ error: err?.message || 'Failed to compute platform analytics.' });
+  }
+});
+
 // --- Official Mobile App Download Telemetry Endpoints ---
 app.post('/api/app/download', async (req: Request, res: Response) => {
   try {
-    const { platform = 'android', device_type = 'mobile', version = '2.4.0', referrer = '' } = req.body || {};
+    const { platform = 'android', device_type = 'mobile', version = '2.4.0' } = req.body || {};
     const cleanPlatform = ['ios', 'android', 'apk', 'pwa'].includes(platform) ? platform : 'android';
     const cleanDevice = device_type || (req.headers['user-agent']?.includes('iPhone') || req.headers['user-agent']?.includes('Android') ? 'mobile' : 'desktop');
-    const nigerianCities = ['Lekki Phase 1', 'Victoria Island', 'Ikeja', 'Abuja', 'Port Harcourt', 'Yaba', 'Enugu', 'Ibadan'];
-    const city = nigerianCities[Math.floor(Math.random() * nigerianCities.length)];
+    const cityHeader = String(req.headers['x-vercel-ip-city'] || '').trim();
+    const city = cityHeader ? decodeURIComponent(cityHeader) : 'Lagos';
 
-    // Record lead in Supabase for persistence
+    const supabase = getSupabaseForRequest(req);
     try {
-      const supabase = getSupabase();
       await supabase.from('leads').insert([{
         name: `App Download (${cleanPlatform.toUpperCase()})`,
+        whatsapp: `app_${cleanPlatform}`,
+        post_slug: 'app_download',
         city: JSON.stringify({ platform: cleanPlatform, city, device: cleanDevice, version }),
         source: `app_download_${cleanPlatform}`,
-        status: 'converted'
+        status: 'converted',
       }]);
-    } catch (e) {}
+    } catch (_e) {}
+
+    const stats = await getRealAppDownloadsAnalytics({ supabase });
 
     const downloadUrls: Record<string, string> = {
       ios: 'https://apps.apple.com/app/chip-ng/id6470000000',
       android: 'https://play.google.com/store/apps/details?id=com.chipng.app',
       apk: '/chipng-v2.4.0.apk',
-      pwa: '/app?pwa=install'
+      pwa: '/app?pwa=install',
     };
 
     res.json({
       success: true,
       platform: cleanPlatform,
       downloadUrl: downloadUrls[cleanPlatform] || downloadUrls.android,
-      totalDownloads: 1856
+      totalDownloads: stats.totalDownloads,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -800,65 +912,11 @@ app.post('/api/app/download', async (req: Request, res: Response) => {
 
 app.get('/api/app/downloads', async (req: Request, res: Response) => {
   try {
-    let totalDownloads = 1856;
-    let byPlatform = { ios: 685, android: 830, apk: 218, pwa: 123 };
-    let byDevice = { mobile: 1695, tablet: 95, desktop: 66 };
-    let recentDownloads: any[] = [];
-
-    // Query Supabase leads for live app downloads
-    try {
-      const supabase = getSupabase();
-      const { data: dbLeads } = await supabase
-        .from('leads')
-        .select('*')
-        .ilike('source', 'app_download%')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (dbLeads && dbLeads.length > 0) {
-        recentDownloads = dbLeads.map((dl) => {
-          let parsedMeta: any = {};
-          if (dl.city && dl.city.startsWith('{')) {
-            try { parsedMeta = JSON.parse(dl.city); } catch (e) {}
-          }
-          const p = dl.source?.replace('app_download_', '') || parsedMeta.platform || 'android';
-          return {
-            id: dl.id,
-            platform: p,
-            device_type: parsedMeta.device || 'mobile',
-            version: parsedMeta.version || '2.4.0',
-            city: parsedMeta.city || 'Lagos',
-            country: 'Nigeria',
-            created_at: dl.created_at
-          };
-        });
-      }
-    } catch (e) {}
-
-    res.json({
-      totalDownloads,
-      byPlatform,
-      byDevice,
-      dailyTrends: [
-        { date: '10-05', total: 112, ios: 42, android: 50, apk: 14, pwa: 6 },
-        { date: '10-06', total: 128, ios: 48, android: 56, apk: 16, pwa: 8 },
-        { date: '10-07', total: 145, ios: 52, android: 65, apk: 18, pwa: 10 },
-        { date: '10-08', total: 139, ios: 50, android: 62, apk: 19, pwa: 8 },
-        { date: '10-09', total: 164, ios: 61, android: 73, apk: 20, pwa: 10 },
-        { date: '10-10', total: 188, ios: 70, android: 85, apk: 22, pwa: 11 },
-        { date: '10-11', total: 196, ios: 74, android: 88, apk: 23, pwa: 11 }
-      ],
-      recentDownloads: recentDownloads.length ? recentDownloads : [
-        { platform: 'ios', device_type: 'iPhone 15 Pro Max', version: '2.4.0', city: 'Lekki Phase 1', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 3).toISOString() },
-        { platform: 'android', device_type: 'Samsung Galaxy S24 Ultra', version: '2.4.0', city: 'Abuja', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString() },
-        { platform: 'apk', device_type: 'Xiaomi Redmi Note 13', version: '2.4.0', city: 'Ikeja', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
-        { platform: 'ios', device_type: 'iPhone 14', version: '2.4.0', city: 'Victoria Island', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 44).toISOString() },
-        { platform: 'android', device_type: 'Google Pixel 8', version: '2.4.0', city: 'Port Harcourt', country: 'Nigeria', created_at: new Date(Date.now() - 1000 * 60 * 78).toISOString() }
-      ],
-      conversionRate: 16.4
-    });
+    const supabase = getSupabaseForRequest(req);
+    const stats = await getRealAppDownloadsAnalytics({ supabase });
+    return res.json(stats);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -3762,14 +3820,20 @@ app.post('/api/post-view/:slug', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const sb = getSupabaseForRequest(req);
-    const { data: post } = await sb.from('posts').select('id').eq('slug', slug).maybeSingle();
+    const { data: post } = await sb.from('posts').select('id, views').eq('slug', slug).maybeSingle();
     if (post?.id) {
       try {
         await sb.from('blog_views').insert([{ post_id: post.id }]);
       } catch (_e) {}
+      try {
+        await sb
+          .from('posts')
+          .update({ views: Number(post.views || 0) + 1 })
+          .eq('id', post.id);
+      } catch (_e) {}
     }
     return res.json({ success: true });
-  } catch (e: any) {
+  } catch (_e: any) {
     return res.json({ success: true });
   }
 });

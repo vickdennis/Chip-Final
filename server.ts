@@ -16,6 +16,11 @@ import { generateVCardString } from './src/utils/vcardGenerator';
 import { formatResendHtmlEmail, wrapChipngSupportEmail } from './src/utils/resendEmailTemplates';
 import { parseCsvText, mapCsvRowsToProfiles, convertGoogleUrlToCsvExport, ParsedFormUser } from './src/utils/googleFormParser';
 import { registerFlutterwaveOrderRoutes } from './src/server/flutterwaveOrderService';
+import {
+  getSuperAdminAnalytics,
+  getRealAppDownloadsAnalytics,
+  formatViewerIpWithSource,
+} from './src/server/adminAnalyticsService';
 
 // Initialize SQLite database
 const db = new Database('leads.sqlite', { verbose: console.log });
@@ -3259,6 +3264,8 @@ Return ONLY valid JSON matching this structure:
         const supabase = getSupabase();
         await supabase.from('leads').insert([{
           name: `App Download (${cleanPlatform.toUpperCase()})`,
+          whatsapp: `app_${cleanPlatform}`,
+          post_slug: 'app_download',
           city: JSON.stringify({ platform: cleanPlatform, city, device: cleanDevice, version }),
           source: `app_download_${cleanPlatform}`,
           status: 'converted'
@@ -3286,78 +3293,27 @@ Return ONLY valid JSON matching this structure:
     }
   });
 
+  // --- Super Admin Authoritative Platform Analytics ---
+  app.get('/api/admin/analytics', async (req, res) => {
+    try {
+      const sb = getSupabaseForRequest(req);
+      const payload = await getSuperAdminAnalytics({ supabase: sb, db });
+      return res.json(payload);
+    } catch (err: any) {
+      console.error('[Server /api/admin/analytics Error]', err);
+      return res.status(500).json({ error: err?.message || 'Failed to compute platform analytics.' });
+    }
+  });
+
   app.get('/api/app/downloads', async (req, res) => {
     try {
-      let totalDownloads = 0;
-      const byPlatform = { ios: 0, android: 0, apk: 0, pwa: 0 };
-      const byDevice = { mobile: 0, tablet: 0, desktop: 0 };
-      let recentDownloads: any[] = [];
-      let dailyTrends: any[] = [];
-
-      try {
-        const totalRow = db.prepare('SELECT COUNT(*) as c FROM app_downloads').get() as { c: number };
-        if (totalRow && totalRow.c > 0) {
-          totalDownloads = totalRow.c;
-
-          // By Platform
-          const platformRows = db.prepare('SELECT platform, COUNT(*) as c FROM app_downloads GROUP BY platform').all() as any[];
-          platformRows.forEach((r) => {
-            if (r.platform && (byPlatform as any)[r.platform] !== undefined) {
-              (byPlatform as any)[r.platform] = r.c;
-            }
-          });
-
-          // By Device
-          const devRows = db.prepare('SELECT device_type, COUNT(*) as c FROM app_downloads GROUP BY device_type').all() as any[];
-          devRows.forEach((r) => {
-            if (r.device_type && (byDevice as any)[r.device_type] !== undefined) {
-              (byDevice as any)[r.device_type] = r.c;
-            }
-          });
-
-          // Recent Downloads
-          recentDownloads = db.prepare(`
-            SELECT id, platform, device_type, version, city, country, created_at, referrer 
-            FROM app_downloads 
-            ORDER BY created_at DESC 
-            LIMIT 50
-          `).all();
-
-          // Daily Trends
-          const trendRows = db.prepare(`
-            SELECT strftime('%m-%d', created_at) as date, platform, COUNT(*) as c 
-            FROM app_downloads 
-            GROUP BY date, platform 
-            ORDER BY date DESC 
-            LIMIT 28
-          `).all() as any[];
-
-          const dateMap: Record<string, any> = {};
-          trendRows.forEach((r) => {
-            if (!dateMap[r.date]) {
-              dateMap[r.date] = { date: r.date, total: 0, ios: 0, android: 0, apk: 0, pwa: 0 };
-            }
-            dateMap[r.date].total += r.c;
-            if (dateMap[r.date][r.platform] !== undefined) {
-              dateMap[r.date][r.platform] += r.c;
-            }
-          });
-          dailyTrends = Object.values(dateMap).slice(0, 14);
-        }
-      } catch (dbErr) {
-        console.warn('SQLite error reading app_downloads:', dbErr);
-      }
-
-      res.json({
-        totalDownloads,
-        byPlatform,
-        byDevice,
-        dailyTrends,
-        recentDownloads,
-        conversionRate: totalDownloads > 0 ? 16.4 : 0
+      const stats = await getRealAppDownloadsAnalytics({
+        supabase: getSupabaseForRequest(req),
+        db,
       });
+      return res.json(stats);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
@@ -5406,18 +5362,49 @@ Ref: ${payment_reference}`,
   });
 
   // --- Real-time User Profile & NFC Analytics API ---
-  app.post('/api/analytics/view', (req, res) => {
+  app.post('/api/analytics/view', async (req, res) => {
     try {
-      const { profile_id, source } = req.body;
-      if (!profile_id) return res.status(400).json({ error: 'profile_id required' });
-      const ip = req.ip || req.headers['x-forwarded-for'] || '';
+      const { profile_id, source } = req.body || {};
+      const rawProfileId = String(profile_id || '').trim();
+      if (!rawProfileId || rawProfileId.length > 120) {
+        return res.status(400).json({ error: 'profile_id required' });
+      }
+      const cleanSource = ['nfc', 'qr', 'web'].includes(String(source || '').toLowerCase())
+        ? String(source).toLowerCase()
+        : 'web';
+      const ip = String(req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+
       db.prepare('INSERT INTO profile_analytics_views (profile_id, source, ip) VALUES (?, ?, ?)').run(
-        profile_id, 
-        source || 'web', 
-        String(ip)
+        rawProfileId,
+        cleanSource,
+        ip
       );
+
+      // Best-effort dual-write to Supabase profile_views for cross-environment sync
+      try {
+        const sb = getSupabase();
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        let targetUuid = uuidPattern.test(rawProfileId) ? rawProfileId : '';
+        if (!targetUuid) {
+          const { data: prof } = await sb
+            .from('profiles')
+            .select('id')
+            .eq('username', rawProfileId)
+            .maybeSingle();
+          if (prof?.id) targetUuid = String(prof.id);
+        }
+        if (targetUuid) {
+          await sb.from('profile_views').insert([
+            {
+              profile_id: targetUuid,
+              viewer_ip: formatViewerIpWithSource(cleanSource, ip),
+            },
+          ]);
+        }
+      } catch (_e) {}
+
       res.json({ success: true });
-    } catch(e: any) {
+    } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
   });

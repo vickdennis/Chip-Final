@@ -2434,6 +2434,14 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                 <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2.5">
                   COVER IMAGE
                 </label>
+                <input
+                  id="cover-image-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageSelect}
+                  disabled={uploading}
+                />
                 <div className="relative group w-full h-56 sm:h-72 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-neutral-200/80 dark:border-white/10 bg-neutral-100 dark:bg-[#151821]">
                   <img 
                     src={coverUrl} 
@@ -2441,17 +2449,12 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-neutral-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
-                    <label className="cursor-pointer bg-white text-neutral-900 px-4 py-2.5 rounded-full font-bold text-xs hover:bg-neutral-100 transition-all flex items-center gap-2 shadow-lg">
+                    <label
+                      htmlFor="cover-image-upload"
+                      className={`cursor-pointer bg-white text-neutral-900 px-4 py-2.5 rounded-full font-bold text-xs hover:bg-neutral-100 transition-all flex items-center gap-2 shadow-lg ${uploading ? 'opacity-60 pointer-events-none' : ''}`}
+                    >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       {uploading ? 'Uploading...' : 'Change Cover'}
-                      <input
-                        id="cover-image-upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageSelect}
-                        disabled={uploading}
-                      />
                     </label>
                     <button 
                       type="button"
@@ -2461,6 +2464,29 @@ export default function UserDashboard({ onNavigate, isDarkMode, toggleDarkMode }
                       <Trash2 className="w-4 h-4" /> Reset
                     </button>
                   </div>
+                </div>
+
+                {/* Always-visible Upload Cover Image action bar */}
+                <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                  <label
+                    htmlFor="cover-image-upload"
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 font-semibold text-xs sm:text-sm transition-all shadow-xs cursor-pointer ${uploading ? 'opacity-60 pointer-events-none' : ''}`}
+                  >
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <span>{uploading ? 'Uploading Cover...' : 'Upload Cover Image'}</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setCoverUrl("https://lh3.googleusercontent.com/aida-public/AB6AXuAKmj1IQNtRkZw-_CqYMvw1-oJRYbntoE9i-lcO4f0YTzE_on6FkGQEYyBT1UdJVxGV7OyV7ueGqGF2ch0RtSSReFT8haZ8lApX_7eI6tzbitRCQ6osMYAawyY38MGBi-DpEMoi9ECaOGMDEgNK_67r-NiOzMM9ELvAND9EE8Wk4NeqOUJGZZOq_UFQpkO0VYW9ksAGgsyyRu3PLkfrtMz0OidKOYsyRTejiHv7dqViKM_2W3KUE-4bVO2Xe9qhqoFFNPDvAfZVStY")}
+                    disabled={uploading}
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-white/15 bg-white dark:bg-[#151821] text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 font-semibold text-xs sm:text-sm transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Reset</span>
+                  </button>
+                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    JPG, PNG or WebP · 16:9 crop editor opens automatically
+                  </span>
                 </div>
               </div>
 
