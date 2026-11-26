@@ -11,6 +11,7 @@ import {
   CHIPNG_DISPLAY_PHONE,
   CHIPNG_SUPPORT_EMAIL,
 } from '../data/buyCardCatalog.js';
+import { wrapChipngSupportEmail } from '../utils/resendEmailTemplates.js';
 
 export type OrderPaymentStatus =
   | 'pending'
@@ -751,6 +752,7 @@ async function syncVerifiedOrderToLegacyTablesAndNotify(
       `3. Need priority help? WhatsApp ${CHIPNG_DISPLAY_PHONE} or email ${CHIPNG_SUPPORT_EMAIL}.`,
     ].join('\n');
 
+    const htmlBody = wrapChipngSupportEmail(textBody, subject);
     const resendKey = (process.env.RESEND_API_KEY || '').trim();
     if (resendKey) {
       const resend = new Resend(resendKey);
@@ -761,6 +763,7 @@ async function syncVerifiedOrderToLegacyTablesAndNotify(
         bcc: ['vickthor.dennis@gmail.com'],
         subject,
         text: textBody,
+        html: htmlBody,
       });
     } else if (process.env.SMTP_USER && process.env.SMTP_PASS) {
       const port = parseInt(process.env.SMTP_PORT || '465', 10);
@@ -776,6 +779,7 @@ async function syncVerifiedOrderToLegacyTablesAndNotify(
         bcc: 'vickthor.dennis@gmail.com',
         subject,
         text: textBody,
+        html: htmlBody,
       });
     }
   } catch (mailErr) {

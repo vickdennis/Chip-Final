@@ -2885,7 +2885,7 @@ app.get(['/api/onboarding/submissions', '/api/onboarding', '/onboarding/submissi
 
 
 // --- Admin Bulk Personalized Email Dispatch (Resend + SMTP + Simulated) ---
-app.post('/api/admin/send-bulk-emails', async (req: Request, res: Response) => {
+app.post('/api/admin/send-bulk-emails', requireAdminMiddleware, async (req: Request, res: Response) => {
   try {
     const { 
       recipients, 

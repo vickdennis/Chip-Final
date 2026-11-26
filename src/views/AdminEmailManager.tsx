@@ -223,9 +223,9 @@ CHIPNG Support Team`
     return Array.from(new Set(list));
   }, [recipientList, recipientsInput]);
 
-  // Generated preview HTML
+  // Generated preview HTML (use local brand asset so preview renders reliably in all environments)
   const generatedPreviewHtml = useMemo(() => {
-    return wrapChipngSupportEmail(message, subject || 'CHIPNG Support');
+    return wrapChipngSupportEmail(message, subject || 'CHIPNG Support', '/chipng_exact_tile.png');
   }, [message, subject]);
 
   // Handle Send Email Dispatch with Multi-Tier Fallback

@@ -33,7 +33,9 @@ import {
   Clock,
   Zap,
   Database,
-  Terminal
+  Terminal,
+  Mail,
+  X
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { toast } from '../components/Toast';
@@ -51,6 +53,7 @@ import {
   generateUUID
 } from '../utils/contactExtractor';
 import { downloadCsvFile, getAdminAuthHeaders } from '../utils/adminApi';
+import { formatResendHtmlEmail } from '../utils/resendEmailTemplates';
 
 interface AdminUserCommsManagerProps {
   users: any[];
@@ -110,8 +113,8 @@ DROP POLICY IF EXISTS "Anyone can delete extracted contacts" ON public.extracted
 CREATE POLICY "Anyone can delete extracted contacts" ON public.extracted_contacts FOR DELETE USING (true);`;
 
 export default function AdminUserCommsManager({ users, onRefresh }: AdminUserCommsManagerProps) {
-  // Navigation tabs: Extractor, WhatsApp/SMS, Directory, Supabase Schema
-  const [activeSubTab, setActiveSubTab] = useState<'extractor' | 'whatsapp' | 'directory' | 'supabase'>('extractor');
+  // Navigation tabs: Extractor, Bulk Email, WhatsApp/SMS, Directory, Supabase Schema
+  const [activeSubTab, setActiveSubTab] = useState<'extractor' | 'email' | 'whatsapp' | 'directory' | 'supabase'>('extractor');
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
   // ----------------------------------------------------
@@ -170,6 +173,47 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
   const [isSendingBulkSms, setIsSendingBulkSms] = useState(false);
   const [bulkSmsLogs, setBulkSmsLogs] = useState<any[]>([]);
   const [dispatchedPhoneIds, setDispatchedPhoneIds] = useState<Set<string>>(new Set());
+
+  // ----------------------------------------------------
+  // 2B. BULK EMAIL OUTREACH STATE
+  // ----------------------------------------------------
+  const [emailAudience, setEmailAudience] = useState<'selected' | 'extracted' | 'registered' | 'all'>('extracted');
+  const [emailCampaignTitle, setEmailCampaignTitle] = useState(`CHIPNG Outreach – ${new Date().toLocaleDateString('en-GB')}`);
+  const [emailSenderName, setEmailSenderName] = useState('CHIP NG');
+  const [emailSenderEmail, setEmailSenderEmail] = useState('support@chipng.com');
+  const [emailReplyTo, setEmailReplyTo] = useState('support@chipng.com');
+  const [emailSubject, setEmailSubject] = useState('Upgrade Your First Impression with CHIPNG Smart NFC Cards, {first_name}');
+  const [emailBody, setEmailBody] = useState(
+    'Hello {first_name},\n\nThank you for connecting with CHIPNG — Nigeria\'s premier contactless smart business card and dynamic link-in-bio platform.\n\nWith a single tap of a custom CHIPNG NFC card against any iPhone or Android smartphone, clients can instantly save your contact details, explore your website, and connect with your brand — with zero app required.\n\nExplore our PVC and precision-engraved Metal NFC cards or view your live digital experience below.\n\nBest regards,\nThe CHIPNG Team'
+  );
+  const [emailPreviewIndex, setEmailPreviewIndex] = useState(0);
+  const [excludedEmails, setExcludedEmails] = useState<Set<string>>(new Set());
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [isSendingBulkEmail, setIsSendingBulkEmail] = useState(false);
+  const [bulkEmailProgress, setBulkEmailProgress] = useState<{
+    currentBatch: number;
+    totalBatches: number;
+    sent: number;
+    failed: number;
+  } | null>(null);
+  const [bulkEmailSummary, setBulkEmailSummary] = useState<{
+    sentCount: number;
+    failedCount: number;
+    total: number;
+    provider: string;
+    message: string;
+    notice?: string | null;
+  } | null>(null);
+  const [bulkEmailLogs, setBulkEmailLogs] = useState<Array<{
+    email: string;
+    name: string;
+    status: 'sent' | 'simulated' | 'failed';
+    provider: string;
+    messageId?: string;
+    personalizedSubject: string;
+    error?: string;
+    timestamp: string;
+  }>>([]);
 
   // ----------------------------------------------------
   // 3. REGISTERED MEMBERS DIRECTORY STATE
@@ -331,6 +375,84 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
   const previewPersonalizedSms = useMemo(() => {
     return personalizeText(smsMessage, currentPhoneRecipient);
   }, [smsMessage, currentPhoneRecipient]);
+
+  // Registered members with valid email addresses
+  const registeredEmailUsers = useMemo(() => {
+    return processedUsers
+      .filter(u => u.hasEmail && isValidEmail(u.email))
+      .map(u => ({
+        id: `reg_email_${u.id}`,
+        name: u.full_name || u.username || 'Member',
+        email: u.email.trim().toLowerCase(),
+        phone: u.primaryPhone || '',
+        normalizedPhone: u.normalizedWa || '',
+        username: u.username || '',
+        card_url: u.username ? `https://www.chipng.com/@${u.username}` : 'https://www.chipng.com/buy-card',
+        source: 'Registered Member',
+        isValidEmail: true,
+        isValidPhone: u.hasPhone,
+        selected: true
+      }));
+  }, [processedUsers]);
+
+  // Deduplicated bulk email pool before temporary exclusions
+  const rawEmailRecipients = useMemo(() => {
+    const mapExtracted = (list: ExtractedContact[]) =>
+      list
+        .filter(c => c.isValidEmail && isValidEmail(c.email))
+        .map(c => ({
+          ...c,
+          email: c.email.trim().toLowerCase(),
+          username: '',
+          card_url: 'https://www.chipng.com/buy-card'
+        }));
+
+    let pool: Array<ExtractedContact & { username?: string; card_url?: string }> = [];
+    if (emailAudience === 'selected') {
+      pool = mapExtracted(selectedContacts);
+    } else if (emailAudience === 'extracted') {
+      pool = mapExtracted(extractedContacts);
+    } else if (emailAudience === 'registered') {
+      pool = registeredEmailUsers;
+    } else {
+      pool = [...mapExtracted(extractedContacts), ...registeredEmailUsers];
+    }
+
+    const seen = new Set<string>();
+    return pool.filter(item => {
+      const em = item.email.trim().toLowerCase();
+      if (!em || seen.has(em)) return false;
+      seen.add(em);
+      return true;
+    });
+  }, [emailAudience, selectedContacts, extractedContacts, registeredEmailUsers]);
+
+  const emailRecipients = useMemo(() => {
+    return rawEmailRecipients.filter(r => !excludedEmails.has(r.email.toLowerCase()));
+  }, [rawEmailRecipients, excludedEmails]);
+
+  const currentEmailRecipient = useMemo(() => {
+    if (emailRecipients.length === 0) {
+      return { ...fallbackContact, username: '', card_url: 'https://www.chipng.com/buy-card' };
+    }
+    const safeIdx = Math.min(emailPreviewIndex, emailRecipients.length - 1);
+    return emailRecipients[safeIdx] || emailRecipients[0];
+  }, [emailRecipients, emailPreviewIndex]);
+
+  const previewPersonalizedEmailSubject = useMemo(() => {
+    const cardUrl = currentEmailRecipient.card_url || 'https://www.chipng.com/buy-card';
+    return personalizeText(emailSubject, currentEmailRecipient).replace(/{card_url}/gi, cardUrl);
+  }, [emailSubject, currentEmailRecipient]);
+
+  const previewPersonalizedEmailBody = useMemo(() => {
+    const cardUrl = currentEmailRecipient.card_url || 'https://www.chipng.com/buy-card';
+    return personalizeText(emailBody, currentEmailRecipient).replace(/{card_url}/gi, cardUrl);
+  }, [emailBody, currentEmailRecipient]);
+
+  const previewEmailHtml = useMemo(() => {
+    const cardUrl = currentEmailRecipient.card_url || 'https://www.chipng.com/buy-card';
+    return formatResendHtmlEmail(previewPersonalizedEmailBody, cardUrl, '#16a34a', '/chipng_exact_tile.png');
+  }, [previewPersonalizedEmailBody, currentEmailRecipient]);
 
   // ----------------------------------------------------
   // EXTRACTION DISPATCHERS
@@ -649,6 +771,189 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
     setTimeout(() => setCopiedType(null), 2500);
   };
 
+  // ----------------------------------------------------
+  // BULK EMAIL DISPATCHERS
+  // ----------------------------------------------------
+  const applyEmailPreset = (preset: 'intro' | 'metal_offer' | 'platform_update') => {
+    if (preset === 'intro') {
+      setEmailCampaignTitle(`CHIPNG Executive Intro – ${new Date().toLocaleDateString('en-GB')}`);
+      setEmailSubject('Upgrade Your First Impression with CHIPNG Smart NFC Cards, {first_name}');
+      setEmailBody(
+        'Hello {first_name},\n\nThank you for connecting with CHIPNG — Nigeria\'s premier contactless smart business card and dynamic link-in-bio platform.\n\nWith a single tap of a custom CHIPNG NFC card against any iPhone or Android smartphone, clients can instantly save your contact details, explore your website, and connect with your brand — with zero app required.\n\nExplore our PVC and precision-engraved Metal NFC cards or view your live digital experience below.\n\nBest regards,\nThe CHIPNG Team'
+      );
+      toast.success('Loaded Executive NFC Intro template');
+    } else if (preset === 'metal_offer') {
+      setEmailCampaignTitle(`CHIPNG Custom Metal Offer – ${new Date().toLocaleDateString('en-GB')}`);
+      setEmailSubject('{first_name}, Your Custom Laser-Engraved Metal NFC Card Awaits');
+      setEmailBody(
+        'Hi {first_name},\n\nReady to leave paper business cards behind? Our signature CNC-engraved Metal NFC Smart Cards come with fast 24–48 hour delivery across Lagos and nationwide DHL/GIG shipping.\n\nEvery card includes a lifetime digital business profile you can update anytime from your phone — no reprinting ever again.\n\nTap below to order your custom card or preview the experience.\n\nWarm regards,\nCHIPNG Concierge Team'
+      );
+      toast.success('Loaded Custom Metal Card Offer template');
+    } else {
+      setEmailCampaignTitle(`CHIPNG Platform Update – ${new Date().toLocaleDateString('en-GB')}`);
+      setEmailSubject('Important Update for Your CHIPNG Digital Profile, {first_name}');
+      setEmailBody(
+        'Hello {first_name},\n\nWe have rolled out fresh upgrades to the CHIPNG platform to make sharing your digital business profile faster and more impactful.\n\nLog in to customize your cover banner, social links, direct WhatsApp button, and instant contact download.\n\nIf you need any assistance with your card or profile, simply reply to this email and our support team will help right away.\n\nBest regards,\nCHIPNG Support Team'
+      );
+      toast.success('Loaded Platform Update template');
+    }
+  };
+
+  const handleSendBulkEmails = async (
+    overrideRecipients?: Array<{ name: string; email: string; phone?: string; username?: string; card_url?: string }>
+  ) => {
+    const targets = overrideRecipients && overrideRecipients.length > 0
+      ? overrideRecipients
+      : emailRecipients.map(r => ({
+          name: r.name,
+          email: r.email,
+          phone: r.phone || '',
+          username: r.username || '',
+          card_url: r.card_url || 'https://www.chipng.com/buy-card'
+        }));
+
+    if (targets.length === 0) {
+      toast.error('No valid recipient email addresses queued. Extract contacts or select another pool.');
+      return;
+    }
+    if (!emailSubject.trim()) {
+      toast.error('Please enter an email subject line.');
+      return;
+    }
+    if (!emailBody.trim()) {
+      toast.error('Please enter an email message body.');
+      return;
+    }
+
+    setIsSendingBulkEmail(true);
+    setBulkEmailSummary(null);
+
+    const CHUNK_SIZE = 500;
+    const totalBatches = Math.ceil(targets.length / CHUNK_SIZE);
+    let totalSent = 0;
+    let totalFailed = 0;
+    let lastProvider = 'resend';
+    let lastNotice: string | null = null;
+    let lastMessage = '';
+    const combinedLogs: typeof bulkEmailLogs = [];
+
+    try {
+      const authHeaders = await getAdminAuthHeaders();
+
+      for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
+        const chunk = targets.slice(batchIdx * CHUNK_SIZE, (batchIdx + 1) * CHUNK_SIZE);
+        setBulkEmailProgress({
+          currentBatch: batchIdx + 1,
+          totalBatches,
+          sent: totalSent,
+          failed: totalFailed
+        });
+
+        const res = await fetch('/api/admin/send-bulk-emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+          body: JSON.stringify({
+            recipients: chunk,
+            subjectTemplate: emailSubject.trim(),
+            bodyTemplate: emailBody,
+            senderName: emailSenderName.trim() || 'CHIP NG',
+            senderEmail: emailSenderEmail.trim() || 'support@chipng.com',
+            replyTo: emailReplyTo.trim() || 'support@chipng.com',
+            provider: 'auto',
+            campaignTitle:
+              overrideRecipients && overrideRecipients.length === 1
+                ? `[Test] ${emailCampaignTitle.trim() || 'CHIPNG Outreach'}`
+                : emailCampaignTitle.trim() || `CHIPNG Outreach – ${new Date().toLocaleDateString('en-GB')}`
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (Array.isArray(data.logs)) {
+          combinedLogs.push(...data.logs);
+        }
+        totalSent += Number(data.sentCount || 0);
+        totalFailed += Number(data.failedCount || (res.ok ? 0 : chunk.length));
+        if (data.provider) lastProvider = String(data.provider);
+        if (data.notice) lastNotice = String(data.notice);
+        if (data.message) lastMessage = String(data.message);
+
+        if (!res.ok && !data.sentCount) {
+          throw new Error(data.message || data.error || `Bulk email request failed (${res.status})`);
+        }
+      }
+
+      setBulkEmailLogs(combinedLogs);
+      setBulkEmailSummary({
+        sentCount: totalSent,
+        failedCount: totalFailed,
+        total: targets.length,
+        provider: lastProvider,
+        message:
+          lastMessage ||
+          `Dispatched ${totalSent} of ${targets.length} emails via ${lastProvider.toUpperCase()}`,
+        notice: lastNotice
+      });
+
+      if (totalSent > 0 && totalFailed === 0) {
+        toast.success(
+          overrideRecipients && overrideRecipients.length === 1
+            ? `Test email sent to ${targets[0].email} via ${lastProvider.toUpperCase()}`
+            : `Successfully dispatched ${totalSent} bulk emails via ${lastProvider.toUpperCase()}`
+        );
+      } else if (totalSent > 0) {
+        toast.info(`Dispatched ${totalSent} emails (${totalFailed} failed). Review the delivery log below.`);
+      } else {
+        toast.error(lastMessage || 'Bulk email dispatch failed.');
+      }
+    } catch (err: any) {
+      setBulkEmailLogs(combinedLogs);
+      toast.error(err?.message || 'Failed to send bulk emails.');
+    } finally {
+      setIsSendingBulkEmail(false);
+      setBulkEmailProgress(null);
+    }
+  };
+
+  const handleSendTestEmail = () => {
+    const clean = testEmailAddress.trim().toLowerCase();
+    if (!isValidEmail(clean)) {
+      toast.error('Enter a valid email address for the test send.');
+      return;
+    }
+    handleSendBulkEmails([
+      {
+        name: currentEmailRecipient.name || 'CHIPNG Admin',
+        email: clean,
+        phone: currentEmailRecipient.phone || '',
+        card_url: currentEmailRecipient.card_url || 'https://www.chipng.com/buy-card'
+      }
+    ]);
+  };
+
+  const handleExportBulkEmailLogsCsv = () => {
+    if (bulkEmailLogs.length === 0) {
+      toast.error('No delivery logs to export yet.');
+      return;
+    }
+    const headers = ['Recipient Name', 'Recipient Email', 'Status', 'Provider', 'Subject', 'Message ID', 'Error', 'Timestamp'];
+    const rows = bulkEmailLogs.map(l => [
+      l.name || '',
+      l.email || '',
+      l.status || '',
+      l.provider || '',
+      l.personalizedSubject || '',
+      l.messageId || '',
+      l.error || '',
+      l.timestamp || ''
+    ]);
+    downloadCsvFile(`chipng-bulk-email-logs-${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+    toast.success(`Exported ${bulkEmailLogs.length} email delivery logs`);
+  };
+
   return (
     <div className="space-y-8">
       {/* Top Banner & KPI Stat Cards */}
@@ -669,10 +974,33 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
           </div>
         </div>
 
+        {/* Valid Emails Ready for Bulk Send */}
+        <div className="bg-white dark:bg-[#111318] p-5 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">Bulk Email Ready</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white mt-1 block">
+              {extractedContacts.filter(c => c.isValidEmail).length}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setEmailAudience(selectedContacts.filter(c => c.isValidEmail).length > 0 ? 'selected' : extractedContacts.filter(c => c.isValidEmail).length > 0 ? 'extracted' : 'registered');
+                setActiveSubTab('email');
+              }}
+              className="text-[11px] text-[#16a34a] hover:underline font-bold mt-0.5 block cursor-pointer"
+            >
+              Launch Bulk Email ({emailRecipients.length}) →
+            </button>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center">
+            <Mail className="w-6 h-6" />
+          </div>
+        </div>
+
         {/* Valid Phone Numbers Ready */}
         <div className="bg-white dark:bg-[#111318] p-5 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">WhatsApp & SMS Ready</span>
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">WhatsApp &amp; SMS Ready</span>
             <span className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white mt-1 block">
               {extractedContacts.filter(c => c.isValidPhone).length}
             </span>
@@ -685,43 +1013,33 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
           </div>
         </div>
 
-        {/* Registered Platform Profiles */}
+        {/* Registered Platform Profiles & Storage */}
         <div className="bg-white dark:bg-[#111318] p-5 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">Platform Members</span>
             <span className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white mt-1 block">
               {processedUsers.length}
             </span>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('directory')}
-              className="text-[11px] text-blue-500 hover:underline font-bold mt-0.5 block cursor-pointer"
-            >
-              Browse Member Directory →
-            </button>
+            <div className="flex items-center gap-2 mt-0.5">
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('directory')}
+                className="text-[11px] text-blue-500 hover:underline font-bold cursor-pointer"
+              >
+                Directory →
+              </button>
+              <span className="text-neutral-300 dark:text-neutral-700">•</span>
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('supabase')}
+                className="text-[11px] text-[#16a34a] hover:underline font-bold cursor-pointer"
+              >
+                SQL
+              </button>
+            </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center">
             <Users className="w-6 h-6" />
-          </div>
-        </div>
-
-        {/* Supabase Database */}
-        <div className="bg-white dark:bg-[#111318] p-5 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">Supabase Storage</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-neutral-950 dark:text-white mt-1 block">
-              {extractedContacts.length}
-            </span>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('supabase')}
-              className="text-[11px] text-[#16a34a] hover:underline font-bold mt-0.5 block cursor-pointer"
-            >
-              View SQL Schema &amp; Tables →
-            </button>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center">
-            <Database className="w-6 h-6" />
           </div>
         </div>
       </div>
@@ -742,6 +1060,22 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
             <span>Contact Extractor</span>
             <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-extrabold">
               {extractedContacts.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('email')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+              activeSubTab === 'email'
+                ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
+            }`}
+          >
+            <Mail className="w-4 h-4 text-emerald-500" />
+            <span>Bulk Email Outreach</span>
+            <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-emerald-500/15 text-emerald-500 font-extrabold">
+              {emailRecipients.length}
             </span>
           </button>
 
@@ -1008,6 +1342,20 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
                 <button
                   type="button"
                   onClick={() => {
+                    const hasSelectedEmails = selectedContacts.filter(c => c.isValidEmail).length > 0;
+                    setEmailAudience(hasSelectedEmails ? 'selected' : 'extracted');
+                    setExcludedEmails(new Set());
+                    setEmailPreviewIndex(0);
+                    setActiveSubTab('email');
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                >
+                  <Mail className="w-3.5 h-3.5 text-[#16a34a]" /> Send Bulk Email ({selectedContacts.filter(c => c.isValidEmail).length > 0 ? selectedContacts.filter(c => c.isValidEmail).length : extractedContacts.filter(c => c.isValidEmail).length}) →
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
                     setPhoneAudience(selectedContacts.length > 0 ? 'selected' : 'extracted');
                     setActiveSubTab('whatsapp');
                   }}
@@ -1120,6 +1468,22 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
                         </td>
                         <td className="py-3 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
+                            {contact.isValidEmail && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setExtractedContacts(prev => prev.map(c => ({ ...c, selected: c.id === contact.id })));
+                                  setEmailAudience('selected');
+                                  setExcludedEmails(new Set());
+                                  setEmailPreviewIndex(0);
+                                  setActiveSubTab('email');
+                                }}
+                                className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-500/10 cursor-pointer"
+                                title="Send Email to Contact"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             {contact.isValidPhone && (
                               <button
                                 type="button"
@@ -1161,6 +1525,538 @@ Reply YES if you'd like us to dispatch your laser-engraved metal card today!`
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* SUB-TAB 1B: BULK EMAIL OUTREACH STUDIO */}
+      {/* ==================================================== */}
+      {activeSubTab === 'email' && (
+        <div className="space-y-6">
+          {/* Top Bulk Email Banner */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-[#0b0f17] text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm border border-neutral-800">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 p-1.5 flex items-center justify-center shrink-0">
+                <img
+                  src="/chipng_exact_tile.png"
+                  alt="CHIPNG"
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-extrabold tracking-tight">CHIPNG Bulk Email Outreach</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    {emailRecipients.length} Valid Emails Queued
+                  </span>
+                </div>
+                <p className="text-[11px] text-neutral-400 mt-0.5">
+                  Send personalized bulk HTML emails branded with the official CHIPNG logo header via Resend / SMTP with per-recipient delivery logs.
+                </p>
+              </div>
+            </div>
+
+            {excludedEmails.size > 0 && (
+              <button
+                type="button"
+                onClick={() => setExcludedEmails(new Set())}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white/10 hover:bg-white/15 text-neutral-200 cursor-pointer transition-colors self-start md:self-center"
+              >
+                Restore {excludedEmails.size} excluded
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column: Audience, Sender & Composer */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="bg-white dark:bg-[#111318] p-6 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs space-y-5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-extrabold text-neutral-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-[#16a34a]" /> Campaign &amp; Audience
+                  </h4>
+                  <span className="text-xs font-bold text-[#16a34a]">
+                    {emailRecipients.length} Recipient{emailRecipients.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+
+                {/* Audience Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-2">
+                    Select Email Recipient Pool
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmailAudience('selected');
+                        setEmailPreviewIndex(0);
+                      }}
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
+                        emailAudience === 'selected'
+                          ? 'border-[#16a34a] bg-emerald-50/30 dark:bg-emerald-950/25 text-neutral-950 dark:text-white'
+                          : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300'
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold block">Checked Rows</span>
+                      <span className="text-[11px] text-neutral-500 block mt-0.5">
+                        {selectedContacts.filter(c => c.isValidEmail).length} valid emails
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmailAudience('extracted');
+                        setEmailPreviewIndex(0);
+                      }}
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
+                        emailAudience === 'extracted'
+                          ? 'border-[#16a34a] bg-emerald-50/30 dark:bg-emerald-950/25 text-neutral-950 dark:text-white'
+                          : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300'
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold block">All Extracted</span>
+                      <span className="text-[11px] text-neutral-500 block mt-0.5">
+                        {extractedContacts.filter(c => c.isValidEmail).length} valid emails
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmailAudience('registered');
+                        setEmailPreviewIndex(0);
+                      }}
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
+                        emailAudience === 'registered'
+                          ? 'border-[#16a34a] bg-emerald-50/30 dark:bg-emerald-950/25 text-neutral-950 dark:text-white'
+                          : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300'
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold block">Platform Users</span>
+                      <span className="text-[11px] text-neutral-500 block mt-0.5">
+                        {registeredEmailUsers.length} members
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmailAudience('all');
+                        setEmailPreviewIndex(0);
+                      }}
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
+                        emailAudience === 'all'
+                          ? 'border-[#16a34a] bg-emerald-50/30 dark:bg-emerald-950/25 text-neutral-950 dark:text-white'
+                          : 'border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300'
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold block">All Combined</span>
+                      <span className="text-[11px] text-neutral-500 block mt-0.5">
+                        Deduplicated list
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Templates */}
+                <div>
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                    Quick Outreach Templates
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => applyEmailPreset('intro')}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200/80 dark:border-white/10 cursor-pointer transition-all"
+                    >
+                      Executive NFC Intro
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyEmailPreset('metal_offer')}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200/80 dark:border-white/10 cursor-pointer transition-all"
+                    >
+                      Custom Metal Card Offer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyEmailPreset('platform_update')}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200/80 dark:border-white/10 cursor-pointer transition-all"
+                    >
+                      Platform Update
+                    </button>
+                  </div>
+                </div>
+
+                {/* Campaign & Sender Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                      Campaign Title
+                    </label>
+                    <input
+                      type="text"
+                      value={emailCampaignTitle}
+                      onChange={(e) => setEmailCampaignTitle(e.target.value)}
+                      placeholder="e.g. Lagos Founders NFC Outreach"
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                      Sender Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSenderName}
+                      onChange={(e) => setEmailSenderName(e.target.value)}
+                      placeholder="CHIP NG"
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                      From Email (Verified Domain)
+                    </label>
+                    <input
+                      type="email"
+                      value={emailSenderEmail}
+                      onChange={(e) => setEmailSenderEmail(e.target.value)}
+                      placeholder="support@chipng.com"
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono font-semibold text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                      Reply-To Email
+                    </label>
+                    <input
+                      type="email"
+                      value={emailReplyTo}
+                      onChange={(e) => setEmailReplyTo(e.target.value)}
+                      placeholder="support@chipng.com"
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono font-semibold text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                    />
+                  </div>
+                </div>
+
+                {/* Email Subject */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                    Subject Line (Supports Personalization Tags)
+                  </label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Enter compelling email subject..."
+                    className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-bold text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                  />
+                </div>
+
+                {/* Email Body */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                      Email Body Content
+                    </label>
+                    <span className="text-[11px] text-neutral-500">
+                      {emailBody.length} chars
+                    </span>
+                  </div>
+                  <textarea
+                    rows={9}
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    className="w-full p-3.5 bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 rounded-2xl text-xs leading-relaxed text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                  />
+
+                  {/* Personalization Tag Chips */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    <span className="text-[11px] text-neutral-400 font-bold mr-1">Insert tag:</span>
+                    {['{first_name}', '{name}', '{email}', '{card_url}'].map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setEmailBody(prev => `${prev}${prev.endsWith(' ') || prev.endsWith('\n') ? '' : ' '}${tag}`)}
+                        className="px-2 py-1 rounded-md text-[10px] font-mono font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Test Email Row */}
+                <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/80 dark:border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <input
+                    type="email"
+                    value={testEmailAddress}
+                    onChange={(e) => setTestEmailAddress(e.target.value)}
+                    placeholder="Send a 1-click test email to your inbox first..."
+                    className="flex-1 px-3 py-2 bg-white dark:bg-[#0e1015] border border-neutral-200/80 dark:border-white/10 rounded-xl text-xs font-mono text-neutral-900 dark:text-white outline-none focus:border-[#16a34a]"
+                  />
+                  <button
+                    type="button"
+                    disabled={isSendingBulkEmail || !testEmailAddress.trim()}
+                    onClick={handleSendTestEmail}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> Send Test
+                  </button>
+                </div>
+
+                {/* Primary Dispatch Button */}
+                <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={isSendingBulkEmail || emailRecipients.length === 0}
+                    onClick={() => handleSendBulkEmails()}
+                    className="flex-1 py-3.5 px-6 rounded-2xl bg-[#16a34a] hover:bg-[#15803d] text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {isSendingBulkEmail ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>
+                          {bulkEmailProgress
+                            ? `Dispatching Batch ${bulkEmailProgress.currentBatch}/${bulkEmailProgress.totalBatches}...`
+                            : 'Sending Bulk Emails...'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Bulk Email to {emailRecipients.length} Recipient{emailRecipients.length === 1 ? '' : 's'}</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={emailRecipients.length === 0}
+                    onClick={() =>
+                      handleCopyText(
+                        emailRecipients.map(r => r.email).join(', '),
+                        'copy_bulk_emails',
+                        `Copied ${emailRecipients.length} recipient emails`
+                      )
+                    }
+                    className="px-4 py-3.5 rounded-2xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {copiedType === 'copy_bulk_emails' ? <Check className="w-4 h-4 text-[#16a34a]" /> : <Copy className="w-4 h-4" />}
+                    <span>Copy Emails</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Live Branded Email Preview & Queued Recipients */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Live Branded Email Preview */}
+              <div className="bg-white dark:bg-[#111318] p-5 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs space-y-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-xs font-extrabold text-neutral-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-[#16a34a]" /> Live Branded Preview
+                  </h4>
+                  {emailRecipients.length > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEmailPreviewIndex(prev => (prev > 0 ? prev - 1 : emailRecipients.length - 1))}
+                        className="p-1 rounded-lg bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 cursor-pointer"
+                        title="Previous recipient"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[11px] font-bold text-neutral-500 tabular-nums">
+                        {Math.min(emailPreviewIndex + 1, emailRecipients.length)} / {emailRecipients.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEmailPreviewIndex(prev => (prev + 1 < emailRecipients.length ? prev + 1 : 0))}
+                        className="p-1 rounded-lg bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 cursor-pointer"
+                        title="Next recipient"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Email Metadata Strip */}
+                <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#151821] border border-neutral-200/70 dark:border-white/10 text-[11px] space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-neutral-400 w-14 shrink-0">From:</span>
+                    <span className="font-semibold text-neutral-900 dark:text-white truncate">
+                      {emailSenderName || 'CHIP NG'} &lt;{emailSenderEmail || 'support@chipng.com'}&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-neutral-400 w-14 shrink-0">To:</span>
+                    <span className="font-mono text-neutral-700 dark:text-neutral-300 truncate">
+                      {currentEmailRecipient.name} &lt;{currentEmailRecipient.email}&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-neutral-400 w-14 shrink-0">Subject:</span>
+                    <span className="font-bold text-neutral-900 dark:text-white truncate">
+                      {previewPersonalizedEmailSubject || '(No subject)'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sandboxed HTML Preview Frame showing actual CHIPNG brand logo */}
+                <div className="rounded-2xl overflow-hidden border border-neutral-200 dark:border-white/10 bg-[#f1f5f9]">
+                  <iframe
+                    title="CHIPNG Branded Bulk Email Preview"
+                    sandbox=""
+                    srcDoc={previewEmailHtml}
+                    className="w-full h-[460px] border-0 bg-[#f1f5f9]"
+                  />
+                </div>
+              </div>
+
+              {/* Queued Recipients Panel */}
+              <div className="bg-white dark:bg-[#111318] p-5 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-extrabold text-neutral-950 dark:text-white uppercase tracking-wider">
+                    Queued Email Recipients ({emailRecipients.length})
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSubTab('extractor')}
+                    className="text-[11px] font-bold text-[#16a34a] hover:underline cursor-pointer"
+                  >
+                    + Extract More
+                  </button>
+                </div>
+
+                {emailRecipients.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-neutral-500">
+                    <Mail className="w-7 h-7 mx-auto mb-2 opacity-35" />
+                    <p className="font-bold text-neutral-700 dark:text-neutral-300">No valid emails in this pool</p>
+                    <p className="text-[11px] mt-0.5">Upload a file or paste contacts in Contact Extractor, or switch to Platform Users.</p>
+                  </div>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto divide-y divide-neutral-200/60 dark:divide-white/5 pr-1">
+                    {emailRecipients.slice(0, 100).map((rec, idx) => (
+                      <div key={rec.email} className="py-2 flex items-center justify-between gap-2 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setEmailPreviewIndex(idx)}
+                          className="min-w-0 text-left flex-1 hover:text-[#16a34a] transition-colors cursor-pointer"
+                        >
+                          <p className="font-bold text-neutral-900 dark:text-white truncate">{rec.name || 'Recipient'}</p>
+                          <p className="text-[11px] font-mono text-neutral-500 truncate">{rec.email}</p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExcludedEmails(prev => new Set([...prev, rec.email.toLowerCase()]))}
+                          className="p-1 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer shrink-0"
+                          title="Exclude from this send"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {emailRecipients.length > 100 && (
+                      <p className="pt-2.5 text-[11px] text-center text-neutral-500 font-semibold">
+                        + {emailRecipients.length - 100} more queued recipients
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk Email Dispatch Summary & Per-Recipient Delivery Logs */}
+          {(bulkEmailSummary || bulkEmailLogs.length > 0) && (
+            <div className="bg-white dark:bg-[#111318] p-6 rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-extrabold text-neutral-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#16a34a]" /> Bulk Email Delivery Report
+                  </h4>
+                  {bulkEmailSummary && (
+                    <p className="text-xs text-neutral-500 mt-1">
+                      {bulkEmailSummary.message}
+                      {bulkEmailSummary.notice ? ` — ${bulkEmailSummary.notice}` : ''}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {bulkEmailSummary && (
+                    <>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                        Sent: {bulkEmailSummary.sentCount}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                        Failed: {bulkEmailSummary.failedCount}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 uppercase">
+                        {bulkEmailSummary.provider}
+                      </span>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleExportBulkEmailLogsCsv}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Export Logs
+                  </button>
+                </div>
+              </div>
+
+              {bulkEmailLogs.length > 0 && (
+                <div className="overflow-x-auto rounded-2xl border border-neutral-200/80 dark:border-white/10">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-neutral-100/70 dark:bg-[#151821] border-b border-neutral-200/80 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase tracking-wider font-bold">
+                        <th className="py-2.5 px-4">Recipient</th>
+                        <th className="py-2.5 px-4">Email</th>
+                        <th className="py-2.5 px-4">Status</th>
+                        <th className="py-2.5 px-4">Engine</th>
+                        <th className="py-2.5 px-4">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-200/60 dark:divide-white/5">
+                      {bulkEmailLogs.map((log, idx) => (
+                        <tr key={`${log.email}-${idx}`} className="hover:bg-neutral-50 dark:hover:bg-white/[0.02]">
+                          <td className="py-2.5 px-4 font-bold text-neutral-900 dark:text-white">{log.name || 'Recipient'}</td>
+                          <td className="py-2.5 px-4 font-mono text-neutral-600 dark:text-neutral-300">{log.email}</td>
+                          <td className="py-2.5 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
+                                log.status === 'sent'
+                                  ? 'bg-emerald-500/15 text-emerald-600'
+                                  : log.status === 'simulated'
+                                    ? 'bg-amber-500/15 text-amber-600'
+                                    : 'bg-rose-500/15 text-rose-500'
+                              }`}
+                            >
+                              {log.status}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-4 uppercase font-bold text-neutral-500">{log.provider}</td>
+                          <td className="py-2.5 px-4 text-neutral-500 truncate max-w-xs">
+                            {log.error ? (
+                              <span className="text-rose-500 font-semibold">{log.error}</span>
+                            ) : (
+                              <span className="font-mono text-[11px]">{log.messageId || 'Delivered'}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
